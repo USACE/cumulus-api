@@ -13,11 +13,9 @@ package: clean build
 	serverless package
 
 deploy: package
-	set_aws_token.sh ${TOKEN} && \
 	aws lambda update-function-code \
 	--function-name corpsmap-cumulus-api \
-	--zip-file fileb://.serverless/corpsmap-cumulus-api.zip && \
-	unset_aws_token.sh
+	--zip-file fileb://.serverless/corpsmap-cumulus-api.zip
 
 docs:
 	redoc-cli serve -p 4000 apidoc.yaml

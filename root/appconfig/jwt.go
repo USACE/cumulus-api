@@ -3,8 +3,6 @@ package appconfig
 import (
 	"crypto/rsa"
 	"log"
-	"os"
-	"strings"
 
 	jwt "github.com/dgrijalva/jwt-go"
 	"github.com/labstack/echo"
@@ -26,56 +24,55 @@ jULmKThQMqJWNFxtKO1ZZaBOaXg50H0X+28RZdlPk6qgiFyK6LcVw8ZEemxk/3bk
 dtc8yA3y/USzK7j6eu1XfOECAwEAAQ==
 -----END PUBLIC KEY-----`
 
-func parsePublicKey(key string) *rsa.PublicKey {
-
+func jwtKey(key string) *rsa.PublicKey {
 	publicKey, err := jwt.ParseRSAPublicKeyFromPEM([]byte(key))
-
 	if err != nil {
 		log.Printf(err.Error())
 	}
-
 	return publicKey
-
 }
 
-func skipper(c echo.Context) bool {
-	value, exists := os.LookupEnv("JWT_DISABLED")
-	if exists && strings.ToUpper(value) == "TRUE" {
-		return true
+// jwtSkipper defines when to skip JWT Middleware
+func jwtSkipper(cfg *Config) middleware.Skipper {
+	return func(c echo.Context) bool {
+		// Disabled via environment variable
+		if cfg.JWTDisabled == true {
+			return true
+		}
+		// Skip based on attempted token auth
+		// Add Code Here
+
+		return false
 	}
-	return false
 }
 
 // JWTConfig is JWT authentication configuration for this app
-var JWTConfig = middleware.JWTConfig{
-	// Skipper defines a function to skip middleware.
-	Skipper: skipper,
-	// Signing key to validate token.
-	// Required.
-	SigningKey: parsePublicKey(jwtVerifyKey),
-
-	// Signing method, used to check token signing method.
-	// Optional. Default value HS256.
-	SigningMethod: "RS512",
-
-	// Context key to store user information from the token into context.
-	// Optional. Default value "user".
-	// ContextKey:
-
-	// Claims are extendable claims data defining token content.
-	// Optional. Default value jwt.MapClaims
-	// Claims: jwt.MapClaims,
-
-	// TokenLookup is a string in the form of "<source>:<name>" that is used
-	// to extract token from the request.
-	// Optional. Default value "header:Authorization".
-	// Possible values:
-	// - "header:<name>"
-	// - "query:<name>"
-	// - "cookie:<name>"
-	// TokenLookup:
-
-	// AuthScheme to be used in the Authorization header.
-	// Optional. Default value "Bearer".
-	// AuthScheme: "Bearer"
+func JWTConfig(cfg *Config) *middleware.JWTConfig {
+	return &middleware.JWTConfig{
+		// Skipper defines a function to skip middleware.
+		Skipper: jwtSkipper(cfg),
+		// Signing key to validate token.
+		// Required.
+		SigningKey: jwtKey(jwtVerifyKey),
+		// Signing method, used to check token signing method.
+		// Optional. Default value HS256.
+		SigningMethod: "RS512",
+		// Context key to store user information from the token into context.
+		// Optional. Default value "user".
+		// ContextKey:
+		// Claims are extendable claims data defining token content.
+		// Optional. Default value jwt.MapClaims
+		// Claims: jwt.MapClaims,
+		// TokenLookup is a string in the form of "<source>:<name>" that is used
+		// to extract token from the request.
+		// Optional. Default value "header:Authorization".
+		// Possible values:
+		// - "header:<name>"
+		// - "query:<name>"
+		// - "cookie:<name>"
+		// TokenLookup:
+		// AuthScheme to be used in the Authorization header.
+		// Optional. Default value "Bearer".
+		// AuthScheme: "Bearer"
+	}
 }

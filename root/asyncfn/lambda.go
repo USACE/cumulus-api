@@ -1,13 +1,25 @@
 package asyncfn
 
 import (
+	"log"
+
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/service/lambda"
 )
 
-// InvokeAWSLambda isolates lambda logic. Move to an interface later if necessary
-func InvokeAWSLambda(functionName string, payload []byte) error {
+// LambdaAsyncer implements the Asyncer Interface for AWS Lambda
+type LambdaAsyncer struct{}
+
+// Name returns name of Asyncer
+func (*LambdaAsyncer) Name() string {
+	return "AWS LAMBDA"
+}
+
+// Async runs an Async function using AWS Lambda
+func (*LambdaAsyncer) Async(functionName string, payload []byte) error {
+
+	log.Printf("CALLED ASYNC FUNCTION: %s\nPAYLOAD: %s", functionName, payload)
 
 	// session
 	sess := session.Must(session.NewSession())

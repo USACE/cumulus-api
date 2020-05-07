@@ -3,8 +3,6 @@ package main
 import (
 	"log"
 	"net/http"
-	"os"
-	"strings"
 
 	"api/root/appconfig"
 	"api/root/dbutils"
@@ -16,16 +14,6 @@ import (
 
 	_ "github.com/lib/pq"
 )
-
-func lambdaContext() bool {
-
-	value, exists := os.LookupEnv("LAMBDA")
-
-	if exists && strings.ToUpper(value) == "TRUE" {
-		return true
-	}
-	return false
-}
 
 func main() {
 	//  Here's what would typically be here:
@@ -46,12 +34,14 @@ func main() {
 	//
 	//    https://github.com/awslabs/aws-lambda-go-api-proxy
 	//
+	config := appconfig.AppConfig()
+	log.Println(config.DBHost)
 
 	db := dbutils.Connection()
 
 	e := echo.New()
 	e.Use(middleware.CORS())
-	e.Use(middleware.JWTWithConfig(appconfig.JWTConfig))
+	e.Use(middleware.JWTWithConfig(*config.JWTConfig))
 
 	// Routes
 	e.GET("cumulus/test", handlers.GetTest)
@@ -61,13 +51,11 @@ func main() {
 	e.GET("cumulus/products/:id", handlers.GetProduct(db))
 	e.GET("cumulus/products/:id/files", handlers.GetProductProductfiles(db))
 
-	e.POST("cumulus/products/:id/acquire", handlers.CreateAcquisition(db))
-	log.Printf(
-		"starting server; Running On AWS LAMBDA: %t",
-		lambdaContext(),
-	)
+	e.GET("cumulus/products/:id/acquire", handlers.CreateAcquisition(db))
 
-	if lambdaContext() {
+	// Start server
+	log.Printf("starting server; Running On AWS LAMBDA: %t", config.LambdaContext)
+	if config.LambdaContext {
 		log.Fatal(gateway.ListenAndServe(":3030", e))
 	} else {
 		log.Fatal(http.ListenAndServe(":3030", e))

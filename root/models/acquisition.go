@@ -40,7 +40,7 @@ func CreateAcquisition(db *sqlx.DB, p Product) (Acquisition, error) {
 	}
 
 	// Invoke AWS Lambda
-	if err := asyncfn.InvokeAWSLambda(
+	if err := asyncfn.CallAsync(
 		"corpsmap-cumulus-downloader",
 		payload,
 	); err != nil {

@@ -11,13 +11,13 @@
       "mode": "auto",
       "program": "${workspaceFolder}/root/main.go",
       "env": {
-        "JWT_DISABLED": "TRUE",
-        "DB_USER": "postgres",
-        "DB_PASS": "postgres",
-        "DB_NAME": "postgres",
-        "DB_HOST": "localhost",
-        "DB_SSLMODE": "disable",
-        "LAMBDA": "FALSE"
+        "CUMULUS_JWTDISABLED": "TRUE",
+        "CUMULUS_DBUSER": "postgres",
+        "CUMULUS_DBPASS": "postgres",
+        "CUMULUS_DBNAME": "postgres",
+        "CUMULUS_DBHOST": "localhost",
+        "CUMULUS_DBSSLMODE": "disable",
+        "CUMULUS_LAMBDACONTEXT": "FALSE"
       },
       "args": []
     }

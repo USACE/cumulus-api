@@ -5,8 +5,10 @@ go 1.13
 require (
 	github.com/apex/gateway v1.1.1
 	github.com/aws/aws-lambda-go v1.15.0 // indirect
+	github.com/aws/aws-sdk-go v1.30.22
 	github.com/dgrijalva/jwt-go v3.2.0+incompatible // indirect
 	github.com/google/uuid v1.1.1
+	github.com/jmoiron/sqlx v1.2.0
 	github.com/labstack/echo v3.3.10+incompatible
 	github.com/labstack/gommon v0.3.0 // indirect
 	github.com/lib/pq v1.3.0

@@ -1,9 +1,10 @@
 package models
 
 import (
-	"database/sql"
 	"log"
 
+	"github.com/google/uuid"
+	"github.com/jmoiron/sqlx"
 	_ "github.com/lib/pq"
 )
 
@@ -11,27 +12,27 @@ import (
 type Basin struct {
 	ID     string `json:"id"`
 	Name   string `json:"name"`
-	Xmin   int    `json:"x_min"`
-	Ymin   int    `json:"y_min"`
-	Xmax   int    `json:"x_max"`
-	Ymax   int    `json:"y_max"`
-	Office string `json:"office_symbol"`
+	Xmin   int    `json:"x_min" db:"x_min"`
+	Ymin   int    `json:"y_min" db:"y_min"`
+	Xmax   int    `json:"x_max" db:"x_max"`
+	Ymax   int    `json:"y_max" db:"y_max"`
+	Office string `json:"office_symbol" db:"office_symbol"`
 }
 
 // ListBasins returns an array of basins
-func ListBasins(db *sql.DB) []Basin {
+func ListBasins(db *sqlx.DB) []Basin {
 	sql := `SELECT b.id,
 				   b.name,
 				   b.x_min,
 				   b.y_min,
 				   b.x_max,
 				   b.y_max,
-				   f.symbol
-            FROM   offices_basin AS b
-            JOIN offices_office  AS f
+				   f.symbol as office_symbol
+            FROM   basin AS b
+            JOIN   office  AS f
 			  ON b.office_id = f.id
 	`
-	rows, err := db.Query(sql)
+	rows, err := db.Queryx(sql)
 
 	if err != nil {
 		panic(err)
@@ -40,44 +41,34 @@ func ListBasins(db *sql.DB) []Basin {
 	defer rows.Close()
 	result := make([]Basin, 0)
 	for rows.Next() {
-		b := Basin{}
-		err := rows.Scan(
-			&b.ID, &b.Name, &b.Xmin,
-			&b.Ymin, &b.Xmax, &b.Ymax,
-			&b.Office,
-		)
+		var b Basin
+		err = rows.StructScan(&b)
 		if err != nil {
 			panic(err)
 		}
-
 		result = append(result, b)
 	}
 	return result
 }
 
 // GetBasin returns a single basin
-func GetBasin(db *sql.DB, ID string) Basin {
+func GetBasin(db *sqlx.DB, ID uuid.UUID) Basin {
 	sql := `SELECT b.id,
 				   b.name,
 				   b.x_min,
 				   b.y_min,
 				   b.x_max,
 				   b.y_max,
-				   f.symbol
-            FROM   offices_basin AS b
-            JOIN offices_office  AS f
+				   f.symbol as office_symbol
+            FROM   basin AS b
+            JOIN office  AS f
 			  ON b.office_id = f.id
 	        WHERE b.id = $1
 	`
-	var result Basin
-	err := db.QueryRow(sql, ID).Scan(
-		&result.ID, &result.Name, &result.Xmin,
-		&result.Ymin, &result.Xmax, &result.Ymax,
-		&result.Office,
-	)
 
-	if err != nil {
-		log.Printf("Fail to query and scan row with ID %s;%s", ID, err)
+	var result Basin
+	if err := db.QueryRowx(sql, ID).StructScan(&result); err != nil {
+		log.Panicf("Fail to query and scan row with ID %s;%s", ID, err)
 	}
 
 	return result

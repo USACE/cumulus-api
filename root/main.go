@@ -1,17 +1,18 @@
 package main
 
 import (
-	"database/sql"
-	"fmt"
 	"log"
 	"net/http"
 	"os"
 	"strings"
 
+	"api/root/appconfig"
+	"api/root/dbutils"
 	"api/root/handlers"
 
 	"github.com/apex/gateway"
 	"github.com/labstack/echo"
+	"github.com/labstack/echo/middleware"
 
 	_ "github.com/lib/pq"
 )
@@ -24,38 +25,6 @@ func lambdaContext() bool {
 		return true
 	}
 	return false
-}
-
-func dbConnStr() string {
-
-	log.Printf("get database connection string")
-
-	dbuser := os.Getenv("DB_USER")
-	dbpass := os.Getenv("DB_PASS")
-	dbname := os.Getenv("DB_NAME")
-	dbhost := os.Getenv("DB_HOST")
-	sslmode := os.Getenv("DB_SSLMODE")
-
-	return fmt.Sprintf(
-		"user=%s password=%s dbname=%s host=%s sslmode=%s",
-		dbuser, dbpass, dbname, dbhost, sslmode,
-	)
-}
-
-func initDB(connStr string) *sql.DB {
-
-	log.Printf("Getting database connection")
-	db, err := sql.Open("postgres", connStr)
-
-	if err != nil {
-		panic(err)
-	}
-
-	if db == nil {
-		log.Panicf("database is nil")
-	}
-
-	return db
 }
 
 func main() {
@@ -78,10 +47,11 @@ func main() {
 	//    https://github.com/awslabs/aws-lambda-go-api-proxy
 	//
 
-	db := initDB(dbConnStr())
+	db := dbutils.Connection()
 
 	e := echo.New()
-	// e.Pre(middleware.RemoveTrailingSlash())
+	e.Use(middleware.CORS())
+	e.Use(middleware.JWTWithConfig(appconfig.JWTConfig))
 
 	// Routes
 	e.GET("cumulus/test", handlers.GetTest)
@@ -91,14 +61,15 @@ func main() {
 	e.GET("cumulus/products/:id", handlers.GetProduct(db))
 	e.GET("cumulus/products/:id/files", handlers.GetProductProductfiles(db))
 
+	e.POST("cumulus/products/:id/acquire", handlers.CreateAcquisition(db))
 	log.Printf(
 		"starting server; Running On AWS LAMBDA: %t",
 		lambdaContext(),
 	)
 
 	if lambdaContext() {
-		log.Fatal(gateway.ListenAndServe(":3000", e))
+		log.Fatal(gateway.ListenAndServe(":3030", e))
 	} else {
-		log.Fatal(http.ListenAndServe(":3000", e))
+		log.Fatal(http.ListenAndServe(":3030", e))
 	}
 }

@@ -1,10 +1,10 @@
 package handlers
 
 import (
-	"database/sql"
 	"net/http"
 
 	"github.com/google/uuid"
+	"github.com/jmoiron/sqlx"
 	"github.com/labstack/echo"
 
 	"api/root/models"
@@ -13,25 +13,25 @@ import (
 )
 
 // ListProducts returns a list of all products
-func ListProducts(db *sql.DB) echo.HandlerFunc {
+func ListProducts(db *sqlx.DB) echo.HandlerFunc {
 	return func(c echo.Context) error {
 		return c.JSON(http.StatusOK, models.ListProducts(db))
 	}
 }
 
 // GetProduct returns a single Product
-func GetProduct(db *sql.DB) echo.HandlerFunc {
+func GetProduct(db *sqlx.DB) echo.HandlerFunc {
 	return func(c echo.Context) error {
 		id, err := uuid.Parse(c.Param("id"))
 		if err != nil {
 			return c.String(http.StatusBadRequest, "Malformed ID")
 		}
-		return c.JSON(http.StatusOK, models.GetProduct(db, id.String()))
+		return c.JSON(http.StatusOK, models.GetProduct(db, id))
 	}
 }
 
 // GetProductProductfiles returns an array of Productfiles
-func GetProductProductfiles(db *sql.DB) echo.HandlerFunc {
+func GetProductProductfiles(db *sqlx.DB) echo.HandlerFunc {
 	return func(c echo.Context) error {
 		// uuid
 		id, err := uuid.Parse(c.Param("id"))
@@ -52,7 +52,34 @@ func GetProductProductfiles(db *sql.DB) echo.HandlerFunc {
 
 		return c.JSON(
 			http.StatusOK,
-			models.GetProductProductfiles(db, id.String(), after, before),
+			models.GetProductProductfiles(db, id, after, before),
 		)
+	}
+}
+
+// CreateAcquisition downloads a product from the internet
+func CreateAcquisition(db *sqlx.DB) echo.HandlerFunc {
+	return func(c echo.Context) error {
+
+		// Ensure UUID represents a legitimate product
+		id, err := uuid.Parse(c.Param("id"))
+		if err != nil {
+			return c.JSON(http.StatusBadRequest, err)
+		}
+
+		// Check that the product is in the database
+		product := models.GetProduct(db, id)
+		if product == (models.Product{}) {
+			return c.JSON(http.StatusBadRequest, map[string]interface{}{
+				"msg": "Product does not exist",
+			})
+		}
+
+		acquisition, err := models.CreateAcquisition(db, product)
+		if err != nil {
+			return c.JSON(http.StatusBadRequest, err)
+		}
+
+		return c.JSON(http.StatusOK, acquisition)
 	}
 }

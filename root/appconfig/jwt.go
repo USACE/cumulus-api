@@ -1,3 +1,4 @@
+// JWT Authentication Configuration
 package appconfig
 
 import (
@@ -33,24 +34,27 @@ func jwtKey(key string) *rsa.PublicKey {
 }
 
 // jwtSkipper defines when to skip JWT Middleware
-func jwtSkipper(cfg *Config) middleware.Skipper {
+func jwtSkipper(skipWhenToken bool) middleware.Skipper {
 	return func(c echo.Context) bool {
+		cfg := AppConfig()
 		// Disabled via environment variable
-		if cfg.JWTDisabled == true {
+		if cfg.JWTAuthDisabled {
 			return true
 		}
-		// Skip based on attempted token auth
-		// Add Code Here
+		// Skip if token auth is enabled and token passed in URL query params
+		if skipWhenToken && c.QueryParam("token") != "" {
+			return true
+		}
 
 		return false
 	}
 }
 
 // JWTConfig is JWT authentication configuration for this app
-func JWTConfig(cfg *Config) *middleware.JWTConfig {
+func JWTConfig(skipWhenToken bool) *middleware.JWTConfig {
 	return &middleware.JWTConfig{
 		// Skipper defines a function to skip middleware.
-		Skipper: jwtSkipper(cfg),
+		Skipper: jwtSkipper(skipWhenToken),
 		// Signing key to validate token.
 		// Required.
 		SigningKey: jwtKey(jwtVerifyKey),

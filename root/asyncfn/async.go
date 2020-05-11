@@ -2,9 +2,9 @@ package asyncfn
 
 import (
 	"log"
-
-	"api/root/appconfig"
 )
+
+const asyncEngine = "MOCK"
 
 // Asyncer Interface avoids hard-coding AWS Lambda runtime everywhere in the app
 // Allows theoretical implementation of other ASYNC/Serverless platforms
@@ -17,10 +17,8 @@ type Asyncer interface {
 // GetAsyncer returns implementation of Async based on environment variables
 func getAsyncer() Asyncer {
 
-	cfg := appconfig.AppConfig()
-
 	// AWS Lambda
-	if cfg.LambdaContext {
+	if asyncEngine == "LAMBDA" {
 		return &LambdaAsyncer{}
 	}
 	// Mock

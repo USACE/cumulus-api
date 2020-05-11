@@ -56,3 +56,10 @@ CREATE TABLE IF NOT EXISTS public.acquisition (
     datetime TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
     product_id UUID REFERENCES product (id)
 );
+
+-- token
+CREATE TABLE IF NOT EXISTS public.token (
+    id UUID PRIMARY KEY NOT NULL DEFAULT uuid_generate_v4(),
+    datetime TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    hash VARCHAR(240) NOT NULL
+);

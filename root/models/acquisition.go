@@ -3,10 +3,10 @@ package models
 import (
 	"encoding/json"
 
+	"api/root/asyncfn"
+
 	"github.com/google/uuid"
 	"github.com/jmoiron/sqlx"
-
-	"api/root/asyncfn"
 )
 
 // Acquisition is a data retrieval request to AWS Lambda

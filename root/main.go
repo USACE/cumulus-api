@@ -56,11 +56,14 @@ func main() {
 	e.GET("cumulus/products", handlers.ListProducts(db))
 	e.GET("cumulus/products/:id", handlers.GetProduct(db))
 	e.GET("cumulus/products/:id/files", handlers.GetProductProductfiles(db))
+	e.GET("cumulus/acquirables", handlers.ListAcquirables(db))
 
-	// Restricted Routes
+	// Restricted Routes (JWT or Token)
+	r.POST("cumulus/acquisition", handlers.CreateAcquisition(db))
+
 	r.POST("cumulus/products/:id/acquire", handlers.CreateAcquisition(db))
 
-	// JWT Only Restricted Routes (i.e. do not allow a token to create a token)
+	// JWT Only Restricted Routes (JWT Only)
 	jr.POST("cumulus/token", handlers.CreateToken(db))
 
 	// Start server

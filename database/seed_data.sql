@@ -314,3 +314,7 @@ INSERT INTO product (id, name, temporal_duration, temporal_resolution, dss_fpart
 ('57da96dc-fc5e-428c-9318-19f095f461eb','nohrsc_snodas_snowpack_avg_temperature',0,86400,'SNODAS',True,'ccc8c81a-ddb0-4738-857b-f0ef69aa1dc0','855ee63c-d623-40d5-a551-3655ce2d7b47'),
 ('86526298-78fa-4307-9276-a7c0a0537d15','nohrsc_snodas_snowmelt',86400,86400,'SNODAS',True,'d3f49557-2aef-4dc2-a2dd-01b353b301a4','e245d39f-3209-4e58-bfb7-4eae94b3f8dd'),
 ('c2f2f0ed-d120-478a-b38f-427e91ab18e2','nohrsc_snodas_coldcontent',0,86400,'SNODAS',True,'2b3f8cf3-d3f5-440b-b7e7-0c8090eda80f','e245d39f-3209-4e58-bfb7-4eae94b3f8dd');
+
+-- product_acquirable
+INSERT INTO acquirable (name, schedule) VALUES
+('nohrsc_snodas_unmasked', '0 8 * * *');

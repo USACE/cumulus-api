@@ -20,11 +20,27 @@ type Product struct {
 	Unit               string    `json:"unit"`
 }
 
+// ProductAcquirable is a name and a schedule
+type ProductAcquirable struct {
+	ID       uuid.UUID `json:"id"`
+	Name     string    `json:"name"`
+	Schedule string    `json:"schedule"`
+}
+
 // Productfile is a file associated with a product
 type Productfile struct {
 	ID       uuid.UUID `json:"id"`
 	Datetime string    `json:"datetime"`
 	File     string    `json:"file"`
+}
+
+// ListProductsAcquirable is a raw product that can be downloaded
+func ListProductsAcquirable(db *sqlx.DB) ([]ProductAcquirable, error) {
+	pa := make([]ProductAcquirable, 0)
+	if err := db.Select(&pa, `SELECT * FROM product_acquirable`); err != nil {
+		return []ProductAcquirable{}, err
+	}
+	return pa, nil
 }
 
 // ListProducts returns a list of products

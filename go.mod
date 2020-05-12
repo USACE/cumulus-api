@@ -17,6 +17,7 @@ require (
 	github.com/mattn/go-colorable v0.1.6 // indirect
 	github.com/paulmach/go.geojson v1.4.0
 	github.com/pkg/errors v0.9.1 // indirect
+	github.com/robfig/cron v1.2.0
 	github.com/tj/assert v0.0.0-20190920132354-ee03d75cd160 // indirect
 	github.com/valyala/fasttemplate v1.1.0 // indirect
 	golang.org/x/crypto v0.0.0-20200311171314-f7b00557c8c4

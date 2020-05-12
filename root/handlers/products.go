@@ -57,29 +57,13 @@ func GetProductProductfiles(db *sqlx.DB) echo.HandlerFunc {
 	}
 }
 
-// CreateAcquisition downloads a product from the internet
-func CreateAcquisition(db *sqlx.DB) echo.HandlerFunc {
+// ListProductsAcquirable returns a list of all acquirable products
+func ListProductsAcquirable(db *sqlx.DB) echo.HandlerFunc {
 	return func(c echo.Context) error {
-
-		// Ensure UUID represents a legitimate product
-		id, err := uuid.Parse(c.Param("id"))
+		productsAcquirable, err := models.ListProductsAcquirable(db)
 		if err != nil {
-			return c.JSON(http.StatusBadRequest, err)
+			return c.NoContent(http.StatusInternalServerError)
 		}
-
-		// Check that the product is in the database
-		product := models.GetProduct(db, id)
-		if product == (models.Product{}) {
-			return c.JSON(http.StatusBadRequest, map[string]interface{}{
-				"msg": "Product does not exist",
-			})
-		}
-
-		acquisition, err := models.CreateAcquisition(db, product)
-		if err != nil {
-			return c.JSON(http.StatusBadRequest, err)
-		}
-
-		return c.JSON(http.StatusOK, acquisition)
+		return c.JSON(http.StatusOK, productsAcquirable)
 	}
 }

@@ -18,7 +18,7 @@ func CreateAcquisition(db *sqlx.DB) echo.HandlerFunc {
 	return func(c echo.Context) error {
 		acquisition, err := models.CreateAcquisition(db)
 		if err != nil {
-			return c.NoContent(http.StatusInternalServerError)
+			return c.JSON(http.StatusInternalServerError, err)
 		}
 		return c.JSON(http.StatusCreated, acquisition)
 	}

@@ -56,14 +56,3 @@ func GetProductProductfiles(db *sqlx.DB) echo.HandlerFunc {
 		)
 	}
 }
-
-// ListProductsAcquirable returns a list of all acquirable products
-func ListProductsAcquirable(db *sqlx.DB) echo.HandlerFunc {
-	return func(c echo.Context) error {
-		productsAcquirable, err := models.ListProductsAcquirable(db)
-		if err != nil {
-			return c.NoContent(http.StatusInternalServerError)
-		}
-		return c.JSON(http.StatusOK, productsAcquirable)
-	}
-}

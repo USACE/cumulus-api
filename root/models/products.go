@@ -34,15 +34,6 @@ type Productfile struct {
 	File     string    `json:"file"`
 }
 
-// ListProductsAcquirable is a raw product that can be downloaded
-func ListProductsAcquirable(db *sqlx.DB) ([]ProductAcquirable, error) {
-	pa := make([]ProductAcquirable, 0)
-	if err := db.Select(&pa, `SELECT * FROM product_acquirable`); err != nil {
-		return []ProductAcquirable{}, err
-	}
-	return pa, nil
-}
-
 // ListProducts returns a list of products
 func ListProducts(db *sqlx.DB) []Product {
 	sql := `SELECT p.id,

@@ -54,7 +54,8 @@ CREATE TABLE IF NOT EXISTS public.productfile (
 CREATE TABLE IF NOT EXISTS public.token (
     id UUID PRIMARY KEY NOT NULL DEFAULT uuid_generate_v4(),
     datetime TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    hash VARCHAR(240) NOT NULL
+    hash VARCHAR(240) NOT NULL,
+    revoked BOOLEAN NOT NULL DEFAULT FALSE
 );
 
 -- acquirable

@@ -29,7 +29,7 @@ func DoAcquire(db *sqlx.DB, ae asyncer.Asyncer) echo.HandlerFunc {
 	return func(c echo.Context) error {
 		acquisition, err := models.DoAcquire(db, ae)
 		if err != nil {
-			return c.NoContent(http.StatusInternalServerError)
+			return c.JSON(http.StatusInternalServerError, err)
 		}
 		return c.JSON(http.StatusCreated, acquisition)
 	}

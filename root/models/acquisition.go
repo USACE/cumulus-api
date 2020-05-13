@@ -2,7 +2,9 @@ package models
 
 import (
 	"encoding/json"
+	"fmt"
 	"log"
+	"strings"
 
 	"api/root/acquisition"
 	"api/root/asyncfn"
@@ -28,7 +30,7 @@ type Acquisition struct {
 type AcquirableAcquisition struct {
 	ID            uuid.UUID `json:"id"`
 	AcquisitionID uuid.UUID `json:"acquisition_id" db:"acquisition_id"`
-	AcquirableID  uuid.UUID `json:"acquirable_id"`
+	AcquirableID  uuid.UUID `json:"acquirable_id" db:"acquirable_id"`
 }
 
 // Acquirable interface
@@ -63,55 +65,74 @@ func Acquirables(db *sqlx.DB) ([]Acquirable, error) {
 	return acquirables, nil
 }
 
-// CreateAcquisition creates a acquisiton record and triggers downloads
+// CreateAcquisition creates a acquisiton record in the database
 func CreateAcquisition(db *sqlx.DB) (Acquisition, error) {
 
-	txn := db.MustBegin()
 	sql := `INSERT INTO acquisition DEFAULT VALUES
 			RETURNING id, datetime
 	`
 
 	// Create record of acquisition in database
 	var acq Acquisition
-	if err := txn.QueryRowx(sql).StructScan(&acq); err != nil {
-		txn.Rollback()
+	if err := db.QueryRowx(sql).StructScan(&acq); err != nil {
 		return Acquisition{}, err
 	}
+	return acq, nil
+}
+
+// DoAcquire creates a new acquisition and triggers acquisition functions
+func DoAcquire(db *sqlx.DB) (Acquisition, error) {
+
+	// Create a new Acquisition
+	acq, err := CreateAcquisition(db)
+	if err != nil {
+		return acq, err
+	}
+
+	// Start a transaction
+	txn := db.MustBegin()
 
 	// Get Acquirables
 	aa, err := Acquirables(db)
 	if err != nil {
 		txn.Rollback()
-		return Acquisition{}, err
+		return acq, err
 	}
 
-	// Check each to see if cron should run
+	// Check if Cron should run for each acquirable
 	for _, a := range aa {
+		log.Printf("Checking cron for Acquirable %s : %s", a.Info().ID, a.Info().Name)
 		if acquisition.CronShouldRunNow(a.Info().Schedule, "5m") {
 			// Create AquirableAcquisition
 			if err = CreateAcquirableAcquisition(
 				db,
-				AcquirableAcquisition{AcquirableID: a.Info().ID, AcquisitionID: acq.ID},
+				AcquirableAcquisition{AcquisitionID: acq.ID, AcquirableID: a.Info().ID},
 			); err != nil {
 				log.Printf(err.Error())
 			}
 
 			// Fire Acquisition Event for each URL
-			payload, err := json.Marshal(a)
-			if err != nil {
-				txn.Rollback()
-				return Acquisition{}, err
+			for _, url := range a.URLS() {
+				urlSplit := strings.Split(url, "/")
+				payload, err := json.Marshal(
+					map[string]string{
+						"key": fmt.Sprintf("cumulus/%s/%s", a.Info().Name, urlSplit[len(urlSplit)-1]),
+						"url": url,
+					},
+				)
+				if err != nil {
+					txn.Rollback()
+					return acq, err
+				}
+				// Invoke AWS Lambda
+				if err := asyncfn.CallAsync(
+					"corpsmap-cumulus-downloader",
+					payload,
+				); err != nil {
+					txn.Rollback()
+					return acq, err
+				}
 			}
-
-			// Invoke AWS Lambda
-			if err := asyncfn.CallAsync(
-				"corpsmap-cumulus-downloader",
-				payload,
-			); err != nil {
-				txn.Rollback()
-				return Acquisition{}, err
-			}
-
 		}
 	}
 

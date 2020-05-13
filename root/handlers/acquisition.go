@@ -23,6 +23,17 @@ func CreateAcquisition(db *sqlx.DB) echo.HandlerFunc {
 	}
 }
 
+// DoAcquire triggers data acquisition for all acquirables in the database
+func DoAcquire(db *sqlx.DB) echo.HandlerFunc {
+	return func(c echo.Context) error {
+		acquisition, err := models.DoAcquire(db)
+		if err != nil {
+			return c.NoContent(http.StatusInternalServerError)
+		}
+		return c.JSON(http.StatusCreated, acquisition)
+	}
+}
+
 // ListAcquirables lists all acquirables
 func ListAcquirables(db *sqlx.DB) echo.HandlerFunc {
 	return func(c echo.Context) error {

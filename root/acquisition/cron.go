@@ -26,11 +26,24 @@ func CronShouldRunNow(cronExpr string, tolerance string) bool {
 	// tolerance parsed to milliseconds
 	tol, err := time.ParseDuration(tolerance)
 	if err != nil {
-		log.Printf("Invalid tolerance string for acquisition: %s", tolerance)
+		log.Printf("Invalid tolerance string: %s", tolerance)
 		return false
 	}
 
-	if cronNextRun(cronExpr).Sub(time.Now()).Milliseconds() < tol.Milliseconds() {
+	// Current Time
+	now := time.Now().UTC()
+	cronNextRun := cronNextRun(cronExpr).UTC()
+	timeUntilCronNextRun := cronNextRun.Sub(now)
+	runCron := timeUntilCronNextRun.Milliseconds() < tol.Milliseconds()
+
+	// Log output
+	log.Printf("Cron Schedule        : %s", cronExpr)
+	log.Printf("Current Time         : %s", now.String())
+	log.Printf("Next Cron Run        : %s", cronNextRun.String())
+	log.Printf("Time Until Next Cron : %s (Tolerance: %s)", timeUntilCronNextRun.String(), tol.String())
+	log.Printf("Cron Should Run Now? : %t", runCron)
+
+	if runCron {
 		return true
 	}
 

@@ -50,7 +50,6 @@ func main() {
 	jr.Use(middleware.JWTWithConfig(*appconfig.JWTConfig(false)))
 
 	// Public Routes
-	e.GET("cumulus/test", handlers.GetTest)
 	e.GET("cumulus/basins", handlers.ListBasins(db))
 	e.GET("cumulus/basins/:id", handlers.GetBasin(db))
 	e.GET("cumulus/products", handlers.ListProducts(db))
@@ -59,7 +58,7 @@ func main() {
 	e.GET("cumulus/acquirables", handlers.ListAcquirables(db))
 
 	// Restricted Routes (JWT or Token)
-	r.POST("cumulus/acquisition", handlers.CreateAcquisition(db))
+	r.GET("cumulus/acquire", handlers.DoAcquire(db))
 
 	r.POST("cumulus/products/:id/acquire", handlers.CreateAcquisition(db))
 

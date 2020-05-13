@@ -17,9 +17,14 @@ func (*LambdaAsyncer) Name() string {
 }
 
 // Async runs an Async function using AWS Lambda
-func (*LambdaAsyncer) Async(functionName string, payload []byte) error {
+func (a *LambdaAsyncer) Async(functionName string, payload []byte) error {
 
-	log.Printf("CALLED ASYNC FUNCTION: %s\nPAYLOAD: %s", functionName, payload)
+	log.Printf(
+		"ASYNC ENV: %s; FUNCTION: %s;PAYLOAD: %s",
+		a.Name(),
+		functionName,
+		payload,
+	)
 
 	// session
 	sess := session.Must(session.NewSession())

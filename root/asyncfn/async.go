@@ -1,9 +1,5 @@
 package asyncfn
 
-import (
-	"log"
-)
-
 const asyncEngine = "MOCK"
 
 // Asyncer Interface avoids hard-coding AWS Lambda runtime everywhere in the app
@@ -27,7 +23,5 @@ func getAsyncer() Asyncer {
 
 // CallAsync runs an async function using the
 func CallAsync(functionName string, payload []byte) error {
-	a := getAsyncer()
-	log.Printf("CALL ASYNC WITH ENVIRONMENT: %s", a.Name())
-	return a.Async(functionName, payload)
+	return getAsyncer().Async(functionName, payload)
 }

@@ -11,7 +11,12 @@ func (*MockAsyncer) Name() string {
 }
 
 // Async runs an Async function using AWS Lambda
-func (*MockAsyncer) Async(functionName string, payload []byte) error {
-	log.Printf("CALLED ASYNC FUNCTION: %s\nPAYLOAD: %s", functionName, payload)
+func (a *MockAsyncer) Async(functionName string, payload []byte) error {
+	log.Printf(
+		"ASYNC ENV: %s; FUNCTION: %s;PAYLOAD: %s",
+		a.Name(),
+		functionName,
+		payload,
+	)
 	return nil
 }

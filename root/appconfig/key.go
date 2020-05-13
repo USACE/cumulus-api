@@ -3,6 +3,7 @@ package appconfig
 import (
 	"api/root/models"
 	"api/root/passwords"
+	"log"
 
 	"github.com/labstack/echo"
 	"github.com/labstack/echo/middleware"
@@ -10,12 +11,14 @@ import (
 
 func keyAuthValidator(cfg *Config) middleware.KeyAuthValidator {
 	return func(key string, c echo.Context) (bool, error) {
+		log.Printf("Received Token from URL: %s", key)
 
 		db := Connection(cfg)
 
 		// Get hash from database
 		hashes, err := models.ListTokenHashes(db)
 		if err != nil {
+			log.Printf(err.Error())
 			return false, err
 		}
 
@@ -23,12 +26,16 @@ func keyAuthValidator(cfg *Config) middleware.KeyAuthValidator {
 		for _, hash := range hashes {
 			match, err := passwords.ComparePasswordAndHash(key, hash.Hash)
 			if err != nil {
+				log.Printf(err.Error())
 				return false, err
 			}
 			if match && !hash.Revoked {
+				log.Print("VALID TOKEN!")
 				return true, nil
 			}
 		}
+
+		log.Printf("Invalid Token")
 
 		return false, nil
 	}

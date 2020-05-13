@@ -16,7 +16,8 @@ GRANT SELECT ON
     productfile,
     acquirable,
     acquisition,
-    acquirable_acquisition
+    acquirable_acquisition,
+    token
 TO cumulus_reader;
 
 -- Role cumulus_writer
@@ -31,7 +32,8 @@ GRANT INSERT,UPDATE,DELETE ON
     productfile,
     acquirable,
     acquisition,
-    acquirable_acquisition
+    acquirable_acquisition,
+    token
 TO cumulus_writer;
 
 -- Role postgis_reader

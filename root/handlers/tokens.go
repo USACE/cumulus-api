@@ -23,7 +23,7 @@ func CreateToken(db *sqlx.DB) echo.HandlerFunc {
 
 		// Save Token Hash to Database
 		if err := models.CreateTokenHash(db, &t.ID); err != nil {
-			return c.NoContent(http.StatusBadRequest)
+			return c.JSON(http.StatusBadRequest, err)
 		}
 
 		return c.JSON(http.StatusCreated, t)

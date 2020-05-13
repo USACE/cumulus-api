@@ -13,7 +13,10 @@ GRANT SELECT ON
     basin,
     unit,
     product,
-    productfile
+    productfile,
+    acquirable,
+    acquisition,
+    acquirable_acquisition
 TO cumulus_reader;
 
 -- Role cumulus_writer
@@ -25,7 +28,10 @@ GRANT INSERT,UPDATE,DELETE ON
     basin,
     unit,
     product,
-    productfile
+    productfile,
+    acquirable,
+    acquisition,
+    acquirable_acquisition
 TO cumulus_writer;
 
 -- Role postgis_reader

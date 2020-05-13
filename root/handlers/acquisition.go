@@ -6,6 +6,7 @@ import (
 	"github.com/jmoiron/sqlx"
 	"github.com/labstack/echo"
 
+	"api/root/asyncer"
 	"api/root/models"
 
 	// SQL Interface
@@ -24,9 +25,9 @@ func CreateAcquisition(db *sqlx.DB) echo.HandlerFunc {
 }
 
 // DoAcquire triggers data acquisition for all acquirables in the database
-func DoAcquire(db *sqlx.DB) echo.HandlerFunc {
+func DoAcquire(db *sqlx.DB, ae asyncer.Asyncer) echo.HandlerFunc {
 	return func(c echo.Context) error {
-		acquisition, err := models.DoAcquire(db)
+		acquisition, err := models.DoAcquire(db, ae)
 		if err != nil {
 			return c.NoContent(http.StatusInternalServerError)
 		}

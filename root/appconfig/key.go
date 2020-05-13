@@ -8,11 +8,13 @@ import (
 	"github.com/labstack/echo/middleware"
 )
 
-func keyAuthValidator() middleware.KeyAuthValidator {
+func keyAuthValidator(cfg *Config) middleware.KeyAuthValidator {
 	return func(key string, c echo.Context) (bool, error) {
 
+		db := Connection(cfg)
+
 		// Get hash from database
-		hashes, err := models.ListTokenHashes(Connection())
+		hashes, err := models.ListTokenHashes(db)
 		if err != nil {
 			return false, err
 		}
@@ -32,9 +34,9 @@ func keyAuthValidator() middleware.KeyAuthValidator {
 	}
 }
 
-func keyAuthSkipper() middleware.Skipper {
+func keyAuthSkipper(cfg *Config) middleware.Skipper {
 	return func(c echo.Context) bool {
-		cfg := AppConfig()
+
 		if cfg.KeyAuthDisabled {
 			return true
 		}
@@ -47,10 +49,10 @@ func keyAuthSkipper() middleware.Skipper {
 }
 
 // KeyAuthConfig supports Key-Based Authentication for the API
-func KeyAuthConfig() *middleware.KeyAuthConfig {
+func KeyAuthConfig(cfg *Config) *middleware.KeyAuthConfig {
 	return &middleware.KeyAuthConfig{
-		Skipper:   keyAuthSkipper(),
-		Validator: keyAuthValidator(),
+		Skipper:   keyAuthSkipper(cfg),
+		Validator: keyAuthValidator(cfg),
 		KeyLookup: "query:token",
 	}
 }

@@ -1,4 +1,4 @@
-package asyncfn
+package asyncer
 
 import "log"
 
@@ -6,12 +6,12 @@ import "log"
 type MockAsyncer struct{}
 
 // Name returns asyncer name
-func (*MockAsyncer) Name() string {
+func (a MockAsyncer) Name() string {
 	return "MOCK"
 }
 
-// Async runs an Async function using AWS Lambda
-func (a *MockAsyncer) Async(functionName string, payload []byte) error {
+// CallAsync implements Asyncer interface for Mock
+func (a MockAsyncer) CallAsync(functionName string, payload []byte) error {
 	log.Printf(
 		"ASYNC ENV: %s; FUNCTION: %s;PAYLOAD: %s",
 		a.Name(),

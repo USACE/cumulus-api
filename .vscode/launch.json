@@ -21,6 +21,7 @@
         "CUMULUS_DBHOST": "localhost",
         "CUMULUS_DBSSLMODE": "disable",
         "CUMULUS_LAMBDACONTEXT": "FALSE",
+        "CUMULUS_ASYNC_ENGINE": "MOCK"
       },
       "args": []
     }

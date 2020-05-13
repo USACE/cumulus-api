@@ -33,7 +33,10 @@ func main() {
 	//
 	//    https://github.com/awslabs/aws-lambda-go-api-proxy
 	//
-	db := appconfig.Connection()
+	cfg := appconfig.GetConfig()
+
+	db := appconfig.Connection(cfg)
+	asyncer := cfg.Asyncer
 
 	e := echo.New()
 
@@ -42,12 +45,12 @@ func main() {
 
 	// Restricted
 	r := e.Group("")
-	r.Use(middleware.KeyAuthWithConfig(*appconfig.KeyAuthConfig()))
-	r.Use(middleware.JWTWithConfig(*appconfig.JWTConfig(true)))
+	r.Use(middleware.KeyAuthWithConfig(*appconfig.KeyAuthConfig(cfg)))
+	r.Use(middleware.JWTWithConfig(*appconfig.JWTConfig(cfg, true)))
 
 	// JWT Only Restricted (Tokens Not Allowed)
 	jr := e.Group("")
-	jr.Use(middleware.JWTWithConfig(*appconfig.JWTConfig(false)))
+	jr.Use(middleware.JWTWithConfig(*appconfig.JWTConfig(cfg, false)))
 
 	// Public Routes
 	e.GET("cumulus/basins", handlers.ListBasins(db))
@@ -58,15 +61,14 @@ func main() {
 	e.GET("cumulus/acquirables", handlers.ListAcquirables(db))
 
 	// Restricted Routes (JWT or Token)
-	r.GET("cumulus/acquire", handlers.DoAcquire(db))
-
+	r.POST("cumulus/acquire", handlers.DoAcquire(db, asyncer))
 	r.POST("cumulus/products/:id/acquire", handlers.CreateAcquisition(db))
 
 	// JWT Only Restricted Routes (JWT Only)
 	jr.POST("cumulus/token", handlers.CreateToken(db))
 
 	// Start server
-	lambda := appconfig.AppConfig().LambdaContext
+	lambda := cfg.LambdaContext
 	log.Printf("starting server; Running On AWS LAMBDA: %t", lambda)
 	if lambda {
 		log.Fatal(gateway.ListenAndServe(":3030", e))

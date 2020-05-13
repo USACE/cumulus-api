@@ -1,4 +1,4 @@
-package asyncfn
+package asyncer
 
 import (
 	"log"
@@ -12,12 +12,12 @@ import (
 type LambdaAsyncer struct{}
 
 // Name returns name of Asyncer
-func (*LambdaAsyncer) Name() string {
+func (a LambdaAsyncer) Name() string {
 	return "AWS LAMBDA"
 }
 
-// Async runs an Async function using AWS Lambda
-func (a *LambdaAsyncer) Async(functionName string, payload []byte) error {
+// CallAsync implements Asyncer interface for AWS Lambda
+func (a LambdaAsyncer) CallAsync(functionName string, payload []byte) error {
 
 	log.Printf(
 		"ASYNC ENV: %s; FUNCTION: %s;PAYLOAD: %s",
@@ -36,6 +36,5 @@ func (a *LambdaAsyncer) Async(functionName string, payload []byte) error {
 	); err != nil {
 		return err
 	}
-
 	return nil
 }

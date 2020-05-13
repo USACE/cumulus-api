@@ -7,10 +7,7 @@ import (
 )
 
 // Connection returns a database connection
-func Connection() *sqlx.DB {
-
-	cfg := AppConfig()
-
+func Connection(cfg *Config) *sqlx.DB {
 	connStr := func(cfg *Config) string {
 		return fmt.Sprintf(
 			"user=%s password=%s dbname=%s host=%s sslmode=%s binary_parameters=yes",

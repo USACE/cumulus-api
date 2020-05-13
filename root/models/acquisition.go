@@ -7,7 +7,7 @@ import (
 	"strings"
 
 	"api/root/acquisition"
-	"api/root/asyncfn"
+	"api/root/asyncer"
 
 	"github.com/google/uuid"
 	"github.com/jmoiron/sqlx"
@@ -81,7 +81,7 @@ func CreateAcquisition(db *sqlx.DB) (Acquisition, error) {
 }
 
 // DoAcquire creates a new acquisition and triggers acquisition functions
-func DoAcquire(db *sqlx.DB) (Acquisition, error) {
+func DoAcquire(db *sqlx.DB, ae asyncer.Asyncer) (Acquisition, error) {
 
 	// Create a new Acquisition
 	acq, err := CreateAcquisition(db)
@@ -116,8 +116,9 @@ func DoAcquire(db *sqlx.DB) (Acquisition, error) {
 				urlSplit := strings.Split(url, "/")
 				payload, err := json.Marshal(
 					map[string]string{
-						"key": fmt.Sprintf("cumulus/%s/%s", a.Info().Name, urlSplit[len(urlSplit)-1]),
-						"url": url,
+						"s3_bucket": "corpsmap-data-incoming",
+						"s3_key":    fmt.Sprintf("cumulus/%s/%s", a.Info().Name, urlSplit[len(urlSplit)-1]),
+						"url":       url,
 					},
 				)
 				if err != nil {
@@ -125,7 +126,7 @@ func DoAcquire(db *sqlx.DB) (Acquisition, error) {
 					return acq, err
 				}
 				// Invoke AWS Lambda
-				if err := asyncfn.CallAsync(
+				if err := ae.CallAsync(
 					"corpsmap-cumulus-downloader",
 					payload,
 				); err != nil {

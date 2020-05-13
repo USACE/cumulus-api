@@ -313,7 +313,14 @@ INSERT INTO product (id, name, temporal_duration, temporal_resolution, dss_fpart
 ('757c809c-dda0-412b-9831-cb9bd0f62d1d','nohrsc_snodas_swe',0,86400,'SNODAS',True,'683a55b9-4a94-46b5-9f47-26e66f3037a8','e245d39f-3209-4e58-bfb7-4eae94b3f8dd'),
 ('57da96dc-fc5e-428c-9318-19f095f461eb','nohrsc_snodas_snowpack_avg_temperature',0,86400,'SNODAS',True,'ccc8c81a-ddb0-4738-857b-f0ef69aa1dc0','855ee63c-d623-40d5-a551-3655ce2d7b47'),
 ('86526298-78fa-4307-9276-a7c0a0537d15','nohrsc_snodas_snowmelt',86400,86400,'SNODAS',True,'d3f49557-2aef-4dc2-a2dd-01b353b301a4','e245d39f-3209-4e58-bfb7-4eae94b3f8dd'),
-('c2f2f0ed-d120-478a-b38f-427e91ab18e2','nohrsc_snodas_coldcontent',0,86400,'SNODAS',True,'2b3f8cf3-d3f5-440b-b7e7-0c8090eda80f','e245d39f-3209-4e58-bfb7-4eae94b3f8dd');
+('c2f2f0ed-d120-478a-b38f-427e91ab18e2','nohrsc_snodas_coldcontent',0,86400,'SNODAS',True,'2b3f8cf3-d3f5-440b-b7e7-0c8090eda80f','e245d39f-3209-4e58-bfb7-4eae94b3f8dd'),
+('517369a5-7fe3-4b0a-9ef6-10f26f327b26','nohrsc_snodas_swe_interpolated',0,86400,'SNODAS-INTERP',True,'683a55b9-4a94-46b5-9f47-26e66f3037a8','e245d39f-3209-4e58-bfb7-4eae94b3f8dd'),
+('2274baae-1dcf-4c4c-92bb-e8a640debee0','nohrsc_snodas_snowdepth_interpolated',0,86400,'SNODAS-INTERP',True,'cfa90543-235c-4266-98c2-26dbc332cd87','e245d39f-3209-4e58-bfb7-4eae94b3f8dd'),
+('33407c74-cdc2-4ab2-bd9a-3dff99ea02e4','nohrsc_snodas_coldcontent_interpolated',0,86400,'SNODAS-INTERP',True,'2b3f8cf3-d3f5-440b-b7e7-0c8090eda80f','e245d39f-3209-4e58-bfb7-4eae94b3f8dd'),
+('e97fbc56-ebe2-4d5a-bcd4-4bf3744d8a1b','nohrsc_snodas_snowpack_avg_temperature_interpolated',0,86400,'SNODAS-INTERP',True,'ccc8c81a-ddb0-4738-857b-f0ef69aa1dc0','855ee63c-d623-40d5-a551-3655ce2d7b47'),
+('10011d9c-04a4-454d-88a0-fb7ba0d64d37','nohrsc_snodas_snowmelt_interpolated',86400,86400,'SNODAS-INTERP',True,'d3f49557-2aef-4dc2-a2dd-01b353b301a4','e245d39f-3209-4e58-bfb7-4eae94b3f8dd'),
+('816abf9e-d9b8-4ba8-9532-78e36409b0b0','ncep_rtma_airtemp',0,3600,'NDGD-RTMA',True,'5fab39b9-90ba-482a-8156-d863ad7c45ad','8f51e5b5-08be-4ea7-9ebc-ad44b465dbc6'),
+('ba1cc336-6cc0-4648-85a4-dd100e0ff411','ncep_rtma_precip',3600,3600,'NDGD-RTMA',True,'eb82d661-afe6-436a-b0df-2ab0b478a1af','e245d39f-3209-4e58-bfb7-4eae94b3f8dd');
 
 -- product_acquirable
 INSERT INTO acquirable (name, schedule) VALUES

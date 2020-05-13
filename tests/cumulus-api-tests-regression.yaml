@@ -1,0 +1,90 @@
+{
+	"info": {
+		"_postman_id": "414ce26e-0941-40cb-be90-7cab92fb3834",
+		"name": "cumulus-regression",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+	},
+	"item": [
+		{
+			"name": "ListBasins",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"id": "e2ef90ad-b4b0-433e-8f45-aa987e4ec0d1",
+						"exec": [
+							"// status code is 200",
+							"pm.test(\"Status code is 200\", function () {",
+							"    pm.response.to.have.status(200);",
+							"});",
+							"",
+							"",
+							"// validate JSON schema",
+							"var schema = {",
+							"    \"type\": \"array\",",
+							"    \"items\": {",
+							"        \"type\": \"object\",",
+							"        \"properties\": {",
+							"            \"id\": { \"type\": \"string\" },",
+							"            \"name\": { \"type\": \"string\" },",
+							"            \"x_min\": { \"type\": \"number\" },",
+							"            \"y_min\": { \"type\": \"number\" },",
+							"            \"x_max\": { \"type\": \"number\" },",
+							"            \"y_max\": { \"type\": \"number\" },",
+							"            \"office_symbol\": { \"type\": \"string\" }",
+							"        },",
+							"        \"required\": [\"id\", \"name\", \"x_min\", \"y_min\", \"x_max\", \"y_max\", \"office_symbol\"],",
+							"        \"additionalProperties\": false",
+							"    }",
+							"}",
+							"",
+							"",
+							"pm.test(\"Schema validation\", function () {",
+							"    pm.response.to.have.jsonSchema(schema)",
+							"});",
+							""
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{base_url}}/basins",
+					"host": [
+						"{{base_url}}"
+					],
+					"path": [
+						"basins"
+					]
+				}
+			},
+			"response": []
+		}
+	],
+	"event": [
+		{
+			"listen": "prerequest",
+			"script": {
+				"id": "d49c6373-200d-4a3a-9733-820b0bcd9684",
+				"type": "text/javascript",
+				"exec": [
+					""
+				]
+			}
+		},
+		{
+			"listen": "test",
+			"script": {
+				"id": "5581894b-58c7-4253-a37e-66224e027564",
+				"type": "text/javascript",
+				"exec": [
+					""
+				]
+			}
+		}
+	],
+	"protocolProfileBehavior": {}
+}

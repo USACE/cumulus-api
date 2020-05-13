@@ -10,8 +10,7 @@ import (
 
 // Token is
 type Token struct {
-	ID    string `json:"token_id"`
-	Token string
+	SecretKey string `json:"token"`
 }
 
 // TokenHash is a record of a token issued for the system

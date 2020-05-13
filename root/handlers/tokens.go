@@ -15,14 +15,14 @@ func CreateToken(db *sqlx.DB) echo.HandlerFunc {
 
 		// Generate New Token
 		t := models.Token{
-			Token: passwords.GenerateToken(),
+			SecretKey: passwords.GenerateToken(),
 		}
 
 		// Generate Token Hash
-		t.ID = passwords.MustCreateHash(t.Token, passwords.DefaultParams)
+		hash := passwords.MustCreateHash(t.SecretKey, passwords.DefaultParams)
 
 		// Save Token Hash to Database
-		if err := models.CreateTokenHash(db, &t.ID); err != nil {
+		if err := models.CreateTokenHash(db, &hash); err != nil {
 			return c.JSON(http.StatusBadRequest, err)
 		}
 

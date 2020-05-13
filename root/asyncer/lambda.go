@@ -31,10 +31,13 @@ func (a LambdaAsyncer) CallAsync(functionName string, payload []byte) error {
 	// client
 	client := lambda.New(sess, &aws.Config{Region: aws.String("us-east-1")})
 
-	if _, err := client.Invoke(
+	output, err := client.Invoke(
 		&lambda.InvokeInput{FunctionName: aws.String(functionName), Payload: payload},
-	); err != nil {
+	)
+	if err != nil {
+		log.Printf("AWS Lambda Error; %s", err.Error())
 		return err
 	}
+	log.Print(output)
 	return nil
 }

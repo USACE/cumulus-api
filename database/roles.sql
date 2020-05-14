@@ -17,7 +17,7 @@ GRANT SELECT ON
     acquirable,
     acquisition,
     acquirable_acquisition,
-    token
+    key
 TO cumulus_reader;
 
 -- Role cumulus_writer
@@ -33,7 +33,7 @@ GRANT INSERT,UPDATE,DELETE ON
     acquirable,
     acquisition,
     acquirable_acquisition,
-    token
+    key
 TO cumulus_writer;
 
 -- Role postgis_reader

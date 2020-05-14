@@ -160,13 +160,12 @@ func decodeHash(hash string) (params *Params, salt, key []byte, err error) {
 	return params, salt, key, nil
 }
 
-// GenerateToken creates a random human-readable token
-// from a Base58 Encoding of 40 Bytes of Randomness
-func GenerateToken() string {
-	random, err := generateRandomBytes(40)
+// GenerateRandom creates a random human-readable string
+// by Base58 Encoding random bytes
+func GenerateRandom(length uint32) string {
+	random, err := generateRandomBytes(length)
 	if err != nil {
-		log.Panicf("Error generating randomness for token; %s", err)
+		log.Panicf("Error generating randomness; %s", err)
 	}
 	return base58.Encode(random)
-
 }

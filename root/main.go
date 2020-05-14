@@ -48,7 +48,7 @@ func main() {
 	r.Use(middleware.KeyAuthWithConfig(*appconfig.KeyAuthConfig(cfg)))
 	r.Use(middleware.JWTWithConfig(*appconfig.JWTConfig(cfg, true)))
 
-	// JWT Only Restricted (Tokens Not Allowed)
+	// JWT Only Restricted (API Keys Not Allowed)
 	jr := e.Group("")
 	jr.Use(middleware.JWTWithConfig(*appconfig.JWTConfig(cfg, false)))
 
@@ -60,12 +60,12 @@ func main() {
 	e.GET("cumulus/products/:id/files", handlers.GetProductProductfiles(db))
 	e.GET("cumulus/acquirables", handlers.ListAcquirables(db))
 
-	// Restricted Routes (JWT or Token)
+	// Restricted Routes (JWT or Key)
 	r.POST("cumulus/acquire", handlers.DoAcquire(db, asyncer))
 	r.POST("cumulus/products/:id/acquire", handlers.CreateAcquisition(db))
 
 	// JWT Only Restricted Routes (JWT Only)
-	jr.POST("cumulus/token", handlers.CreateToken(db))
+	jr.POST("cumulus/keys", handlers.CreateKey(db))
 
 	// Start server
 	lambda := cfg.LambdaContext

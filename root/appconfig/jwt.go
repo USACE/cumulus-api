@@ -34,14 +34,14 @@ func jwtKey(key string) *rsa.PublicKey {
 }
 
 // jwtSkipper defines when to skip JWT Middleware
-func jwtSkipper(cfg *Config, skipWhenToken bool) middleware.Skipper {
+func jwtSkipper(cfg *Config, skipIfKey bool) middleware.Skipper {
 	return func(c echo.Context) bool {
 		// Disabled via environment variable
 		if cfg.JWTAuthDisabled {
 			return true
 		}
-		// Skip if token auth is enabled and token passed in URL query params
-		if skipWhenToken && c.QueryParam("token") != "" {
+		// Skip if KeyAuth is enabled and Key passed in URL query params
+		if skipIfKey && c.QueryParam("key") != "" {
 			return true
 		}
 
@@ -50,10 +50,10 @@ func jwtSkipper(cfg *Config, skipWhenToken bool) middleware.Skipper {
 }
 
 // JWTConfig is JWT authentication configuration for this app
-func JWTConfig(cfg *Config, skipWhenToken bool) *middleware.JWTConfig {
+func JWTConfig(cfg *Config, skipIfKey bool) *middleware.JWTConfig {
 	return &middleware.JWTConfig{
 		// Skipper defines a function to skip middleware.
-		Skipper: jwtSkipper(cfg, skipWhenToken),
+		Skipper: jwtSkipper(cfg, skipIfKey),
 		// Signing key to validate token.
 		// Required.
 		SigningKey: jwtKey(jwtVerifyKey),

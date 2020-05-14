@@ -36,7 +36,7 @@ func (a LambdaAsyncer) CallAsync(functionName string, payload []byte) error {
 			FunctionName:   aws.String(functionName),
 			InvocationType: aws.String("Event"),
 			Payload:        payload,
-			Qualifier:      aws.String("1"),
+			Qualifier:      aws.String("$LATEST"),
 		},
 	)
 	if err != nil {

@@ -138,6 +138,8 @@ func DoAcquire(db *sqlx.DB, ae asyncer.Asyncer) (Acquisition, error) {
 	}
 
 	txn.Commit()
+
+	log.Printf("Made it this far! :)")
 	return acq, nil
 }
 

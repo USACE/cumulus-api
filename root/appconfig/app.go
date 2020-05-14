@@ -29,6 +29,8 @@ func SetAsyncer(cfg *Config) error {
 	switch cfg.AsyncEngine {
 	case "AWSLAMBDA":
 		cfg.Asyncer = asyncer.LambdaAsyncer{}
+	case "AWSSNS":
+		cfg.Asyncer = asyncer.SNSAsyncer{}
 	default:
 		cfg.Asyncer = asyncer.MockAsyncer{}
 	}

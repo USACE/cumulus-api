@@ -27,14 +27,12 @@ func (a LambdaAsyncer) CallAsync(functionName string, payload []byte) error {
 	)
 
 	// session
-	sess := session.Must(session.NewSession())
-	log.Print("Session")
-	log.Print(sess)
+	sess := session.Must(session.NewSessionWithOptions(session.Options{
+		SharedConfigState: session.SharedConfigEnable,
+	}))
 
 	// client
 	client := lambda.New(sess, &aws.Config{Region: aws.String("us-east-1")})
-	log.Print("Client")
-	log.Print(client)
 
 	output, err := client.Invoke(
 		&lambda.InvokeInput{

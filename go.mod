@@ -4,8 +4,8 @@ go 1.13
 
 require (
 	github.com/apex/gateway v1.1.1
-	github.com/aws/aws-lambda-go v1.15.0 // indirect
-	github.com/aws/aws-sdk-go v1.30.22
+	github.com/aws/aws-lambda-go v1.16.0 // indirect
+	github.com/aws/aws-sdk-go v1.30.28
 	github.com/btcsuite/btcutil v1.0.2
 	github.com/dgrijalva/jwt-go v3.2.0+incompatible
 	github.com/google/uuid v1.1.1
@@ -13,15 +13,13 @@ require (
 	github.com/kelseyhightower/envconfig v1.4.0
 	github.com/labstack/echo v3.3.10+incompatible
 	github.com/labstack/gommon v0.3.0 // indirect
-	github.com/lib/pq v1.3.0
+	github.com/lib/pq v1.5.2
 	github.com/mattn/go-colorable v0.1.6 // indirect
-	github.com/paulmach/go.geojson v1.4.0
-	github.com/pkg/errors v0.9.1 // indirect
 	github.com/robfig/cron v1.2.0
 	github.com/tj/assert v0.0.0-20190920132354-ee03d75cd160 // indirect
 	github.com/valyala/fasttemplate v1.1.0 // indirect
-	golang.org/x/crypto v0.0.0-20200311171314-f7b00557c8c4
-	golang.org/x/net v0.0.0-20200301022130-244492dfa37a // indirect
-	golang.org/x/sys v0.0.0-20200316230553-a7d97aace0b0 // indirect
+	golang.org/x/crypto v0.0.0-20200510223506-06a226fb4e37
+	golang.org/x/net v0.0.0-20200513185701-a91f0712d120 // indirect
+	golang.org/x/sys v0.0.0-20200515095857-1151b9dac4a9 // indirect
 	golang.org/x/text v0.3.2 // indirect
 )

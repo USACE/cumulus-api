@@ -20,10 +20,11 @@ type PrismTminEarlyAcquirable struct {
 	info Info
 }
 
-// PrismEarlyURLFormat returns the standard Prism download URL
+// PrismEarlyURL returns the standard Prism download URL
 // The URLs for different parameters are the same, except for parameter short codes
-func PrismEarlyURLFormat(p string) string {
-	return fmt.Sprintf("ftp://prism.nacse.org/daily/%s/2006/PRISM_%s_early_4kmD2_20060102_bil.zip", p, p)
+func PrismEarlyURL(p string, t *time.Time) string {
+	year, ymd := t.Format("2006"), t.Format("20060102")
+	return fmt.Sprintf("ftp://prism.nacse.org/daily/%s/%s/PRISM_%s_early_4kmD2_%s_bil.zip", p, year, p, ymd)
 }
 
 // PRISM PPT EARLY
@@ -33,7 +34,7 @@ func PrismEarlyURLFormat(p string) string {
 func (a *PrismPptEarlyAcquirable) URLS() []string {
 	t := time.Now().AddDate(0, 0, -1)
 	return []string{
-		t.Format(PrismEarlyURLFormat("ppt")),
+		PrismEarlyURL("ppt", &t),
 	}
 }
 
@@ -49,7 +50,7 @@ func (a *PrismPptEarlyAcquirable) Info() Info {
 func (a *PrismTmaxEarlyAcquirable) URLS() []string {
 	t := time.Now().AddDate(0, 0, -1)
 	return []string{
-		t.Format(PrismEarlyURLFormat("tmax")),
+		t.Format(PrismEarlyURL("tmax", &t)),
 	}
 }
 
@@ -65,7 +66,7 @@ func (a *PrismTmaxEarlyAcquirable) Info() Info {
 func (a *PrismTminEarlyAcquirable) URLS() []string {
 	t := time.Now().AddDate(0, 0, -1)
 	return []string{
-		t.Format(PrismEarlyURLFormat("tmin")),
+		t.Format(PrismEarlyURL("tmin", &t)),
 	}
 }
 

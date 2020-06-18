@@ -13,10 +13,10 @@ import (
 	_ "github.com/lib/pq"
 )
 
-// CreateAcquisition creates an acquisition record and fires acquisition events
-func CreateAcquisition(db *sqlx.DB) echo.HandlerFunc {
+// CreateAcquisitionAttempt creates an acquisition record and fires acquisition events
+func CreateAcquisitionAttempt(db *sqlx.DB) echo.HandlerFunc {
 	return func(c echo.Context) error {
-		acquisition, err := models.CreateAcquisition(db)
+		acquisition, err := models.CreateAcquisitionAttempt(db)
 		if err != nil {
 			return c.JSON(http.StatusInternalServerError, err)
 		}
@@ -31,14 +31,14 @@ func DoAcquire(db *sqlx.DB, ae asyncer.Asyncer) echo.HandlerFunc {
 		if err != nil {
 			return c.JSON(http.StatusInternalServerError, err)
 		}
-		return c.JSON(http.StatusCreated, acquisition)
+		return c.JSON(http.StatusCreated, &acquisition)
 	}
 }
 
 // ListAcquirables lists all acquirables
 func ListAcquirables(db *sqlx.DB) echo.HandlerFunc {
 	return func(c echo.Context) error {
-		aa, err := models.ListAcquirables(db)
+		aa, err := models.ListAcquirablesJSON(db)
 		if err != nil {
 			return c.JSON(http.StatusBadRequest, err)
 		}

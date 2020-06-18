@@ -62,7 +62,7 @@ func main() {
 
 	// Restricted Routes (JWT or Key)
 	r.POST("cumulus/acquire", handlers.DoAcquire(db, asyncer))
-	r.POST("cumulus/products/:id/acquire", handlers.CreateAcquisition(db))
+	r.POST("cumulus/products/:id/acquire", handlers.CreateAcquisitionAttempt(db))
 
 	// JWT Only Restricted Routes (JWT Only)
 	jr.POST("cumulus/keys", handlers.CreateKey(db))

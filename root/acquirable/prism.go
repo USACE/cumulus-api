@@ -33,9 +33,7 @@ func PrismEarlyURL(p string, t *time.Time) string {
 // URLS implements Acquirable interface
 func (a *PrismPptEarlyAcquirable) URLS() []string {
 	t := time.Now().AddDate(0, 0, -1)
-	return []string{
-		PrismEarlyURL("ppt", &t),
-	}
+	return []string{PrismEarlyURL("ppt", &t)}
 }
 
 // Info implements Acquirable interface
@@ -49,9 +47,7 @@ func (a *PrismPptEarlyAcquirable) Info() Info {
 // URLS implements Acquirable interface
 func (a *PrismTmaxEarlyAcquirable) URLS() []string {
 	t := time.Now().AddDate(0, 0, -1)
-	return []string{
-		t.Format(PrismEarlyURL("tmax", &t)),
-	}
+	return []string{PrismEarlyURL("tmax", &t)}
 }
 
 // Info implements Acquirable interface
@@ -65,9 +61,7 @@ func (a *PrismTmaxEarlyAcquirable) Info() Info {
 // URLS implements Acquirable interface
 func (a *PrismTminEarlyAcquirable) URLS() []string {
 	t := time.Now().AddDate(0, 0, -1)
-	return []string{
-		t.Format(PrismEarlyURL("tmin", &t)),
-	}
+	return []string{PrismEarlyURL("tmin", &t)}
 }
 
 // Info implements Acquirable interface

@@ -32,15 +32,6 @@ func ListAcquirables(db *sqlx.DB) ([]acquirable.Acquirable, error) {
 	return aa, nil
 }
 
-// ListAcquirablesJSON is a function
-func ListAcquirablesJSON(db *sqlx.DB) ([]acquirable.Info, error) {
-	nn := make([]acquirable.Info, 0)
-	if err := db.Select(&nn, `SELECT * FROM ACQUIRABLE`); err != nil {
-		return make([]acquirable.Info, 0), err
-	}
-	return nn, nil
-}
-
 // CreateAcquisitionAttempt creates a acquisiton record in the database
 func CreateAcquisitionAttempt(db *sqlx.DB) (acquirable.AcquisitionAttempt, error) {
 

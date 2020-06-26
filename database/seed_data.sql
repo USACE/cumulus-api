@@ -324,4 +324,7 @@ INSERT INTO product (id, name, temporal_duration, temporal_resolution, dss_fpart
 
 -- product_acquirable
 INSERT INTO acquirable (name, schedule) VALUES
-('nohrsc_snodas_unmasked', '30 8 * * *');
+('nohrsc_snodas_unmasked', '30 8 * * *'),
+('prism_ppt_early', '30 14 * * *'),
+('prism_tmax_early', '30 14 * * *'),
+('prism_tmin_early', '30 14 * * *');

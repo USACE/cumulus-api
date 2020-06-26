@@ -15,7 +15,11 @@ import (
 // ListProducts returns a list of all products
 func ListProducts(db *sqlx.DB) echo.HandlerFunc {
 	return func(c echo.Context) error {
-		return c.JSON(http.StatusOK, models.ListProducts(db))
+		products, err := models.ListProducts(db)
+		if err != nil {
+			return c.JSON(http.StatusInternalServerError, err)
+		}
+		return c.JSON(http.StatusOK, products)
 	}
 }
 
@@ -26,7 +30,11 @@ func GetProduct(db *sqlx.DB) echo.HandlerFunc {
 		if err != nil {
 			return c.String(http.StatusBadRequest, "Malformed ID")
 		}
-		return c.JSON(http.StatusOK, models.GetProduct(db, id))
+		product, err := models.GetProduct(db, &id)
+		if err != nil {
+			return c.JSON(http.StatusInternalServerError, err)
+		}
+		return c.JSON(http.StatusOK, product)
 	}
 }
 

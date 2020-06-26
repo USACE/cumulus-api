@@ -4,7 +4,7 @@ volumes:
   cumulus_postgres_data: {}
 
 services:
-  postgres:
+  cumulusdb:
     image: mdillon/postgis
     volumes:
       - cumulus_postgres_data:/var/lib/postgresql/data

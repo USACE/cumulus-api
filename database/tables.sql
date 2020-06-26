@@ -1,3 +1,22 @@
+-- extensions
+CREATE extension IF NOT EXISTS "uuid-ossp";
+
+
+-- drop tables if they already exist
+drop table if exists 
+    public.office,
+    public.basin,
+    public.parameter,
+    public.unit,
+    public.product,
+    public.productfile,
+    public.key,
+    public.acquirable,
+    public.acquisition,
+    public.acquirable_acquisition
+	CASCADE;
+
+
 -- office
 CREATE TABLE IF NOT EXISTS public.office (
     id UUID PRIMARY KEY NOT NULL DEFAULT uuid_generate_v4(),

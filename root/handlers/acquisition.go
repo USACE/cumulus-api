@@ -38,7 +38,7 @@ func DoAcquire(db *sqlx.DB, ae asyncer.Asyncer) echo.HandlerFunc {
 // ListAcquirables lists all acquirables
 func ListAcquirables(db *sqlx.DB) echo.HandlerFunc {
 	return func(c echo.Context) error {
-		aa, err := models.ListAcquirablesJSON(db)
+		aa, err := models.ListAcquirables(db)
 		if err != nil {
 			return c.JSON(http.StatusBadRequest, err)
 		}

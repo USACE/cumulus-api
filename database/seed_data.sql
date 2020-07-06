@@ -320,7 +320,11 @@ INSERT INTO product (id, name, temporal_duration, temporal_resolution, dss_fpart
 ('e97fbc56-ebe2-4d5a-bcd4-4bf3744d8a1b','nohrsc_snodas_snowpack_avg_temperature_interpolated',0,86400,'SNODAS-INTERP',True,'ccc8c81a-ddb0-4738-857b-f0ef69aa1dc0','855ee63c-d623-40d5-a551-3655ce2d7b47'),
 ('10011d9c-04a4-454d-88a0-fb7ba0d64d37','nohrsc_snodas_snowmelt_interpolated',86400,86400,'SNODAS-INTERP',True,'d3f49557-2aef-4dc2-a2dd-01b353b301a4','e245d39f-3209-4e58-bfb7-4eae94b3f8dd'),
 ('816abf9e-d9b8-4ba8-9532-78e36409b0b0','ncep_rtma_airtemp',0,3600,'NDGD-RTMA',True,'5fab39b9-90ba-482a-8156-d863ad7c45ad','8f51e5b5-08be-4ea7-9ebc-ad44b465dbc6'),
-('ba1cc336-6cc0-4648-85a4-dd100e0ff411','ncep_rtma_precip',3600,3600,'NDGD-RTMA',True,'eb82d661-afe6-436a-b0df-2ab0b478a1af','e245d39f-3209-4e58-bfb7-4eae94b3f8dd');
+('ba1cc336-6cc0-4648-85a4-dd100e0ff411','ncep_rtma_precip',3600,3600,'NDGD-RTMA',True,'eb82d661-afe6-436a-b0df-2ab0b478a1af','e245d39f-3209-4e58-bfb7-4eae94b3f8dd'),
+('64756f41-75e2-40ce-b91a-fda5aeb441fc','prism_ppt_early',86400,86400,'PRISM-EARLY',True,'eb82d661-afe6-436a-b0df-2ab0b478a1af','e245d39f-3209-4e58-bfb7-4eae94b3f8dd'),
+('6357a677-5e77-4c37-8aeb-3300707ca885','prism_tmax_early',86400,86400,'PRISM-EARLY',True,'5fab39b9-90ba-482a-8156-d863ad7c45ad','8f51e5b5-08be-4ea7-9ebc-ad44b465dbc6'),
+('62e08d34-ff6b-45c9-8bb9-80df922d0779','prism_tmin_early',86400,86400,'PRISM-EARLY',True,'5fab39b9-90ba-482a-8156-d863ad7c45ad','8f51e5b5-08be-4ea7-9ebc-ad44b465dbc6');
+
 
 -- product_acquirable
 INSERT INTO acquirable (name, schedule) VALUES

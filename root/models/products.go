@@ -31,10 +31,10 @@ type Product struct {
 // Given an hourly product (TemporalResolution 3600 (seconds)) and
 // 12 ProductFiles on hand, we can calculate PercentCoverage as 50.00
 type CoverageSummary struct {
-	After            time.Time `json:"after" db:"after"`
-	Before           time.Time `json:"before" db:"before"`
-	ProductfileCount int       `json:"productfile_count" db:"productfile_count"`
-	PercentCoverage  float32   `json:"percent_coverage" db:"coverage"`
+	After            *time.Time `json:"after" db:"after"`
+	Before           *time.Time `json:"before" db:"before"`
+	ProductfileCount int        `json:"productfile_count" db:"productfile_count"`
+	PercentCoverage  float32    `json:"percent_coverage" db:"coverage"`
 }
 
 // Productfile is a file associated with a product
@@ -105,14 +105,16 @@ func listProductsSQL() string {
 	               u.name                AS unit,
 	               pf.after              AS after,
 				   pf.before             AS before,
-				   pf.productfile_count  AS productfile_count,
-	               ROUND(
-					   (100*pf.productfile_count*a.temporal_resolution/EXTRACT('EPOCH' FROM age(pf.before, pf.after)))::numeric, 2
-	               ) AS coverage
+				   COALESCE(pf.productfile_count, 0)  AS productfile_count,
+				   CASE WHEN pf.productfile_count IS NULL THEN 0
+				   		WHEN pf.productfile_count = 1 THEN 100
+				        ELSE ROUND(
+							(100*pf.productfile_count*a.temporal_resolution/EXTRACT('EPOCH' FROM age(pf.before, pf.after)))::numeric, 2
+						) END AS coverage
             FROM product a
             JOIN unit u ON u.id = a.unit_id
             JOIN parameter p ON p.id = a.parameter_id
-            JOIN (
+            LEFT JOIN (
                 SELECT product_id    AS product_id,
                        COUNT(id)     AS productfile_count,
                        MIN(datetime) AS after,

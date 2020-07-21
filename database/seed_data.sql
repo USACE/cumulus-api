@@ -332,3 +332,21 @@ INSERT INTO acquirable (name, schedule) VALUES
 ('prism_ppt_early', '30 14 * * *'),
 ('prism_tmax_early', '30 14 * * *'),
 ('prism_tmin_early', '30 14 * * *');
+
+-- productfile
+-- INSERT INTO productfile (product_id, file, datetime) VALUES
+-- ('e0baa220-1310-445b-816b-6887465cc94b', 'test/file.tif', '1776-7-4'),
+-- ('757c809c-dda0-412b-9831-cb9bd0f62d1d', 'test/file.tif', '1776-7-4'),
+-- ('57da96dc-fc5e-428c-9318-19f095f461eb', 'test/file.tif', '1776-7-4'),
+-- ('86526298-78fa-4307-9276-a7c0a0537d15', 'test/file.tif', '1776-7-4'),
+-- ('c2f2f0ed-d120-478a-b38f-427e91ab18e2', 'test/file.tif', '1776-7-4'),
+-- ('517369a5-7fe3-4b0a-9ef6-10f26f327b26', 'test/file.tif', '1776-7-4'),
+-- ('2274baae-1dcf-4c4c-92bb-e8a640debee0', 'test/file.tif', '1776-7-4'),
+-- ('33407c74-cdc2-4ab2-bd9a-3dff99ea02e4', 'test/file.tif', '1776-7-4'),
+-- ('e97fbc56-ebe2-4d5a-bcd4-4bf3744d8a1b', 'test/file.tif', '1776-7-4'),
+-- ('10011d9c-04a4-454d-88a0-fb7ba0d64d37', 'test/file.tif', '1776-7-4'),
+-- ('816abf9e-d9b8-4ba8-9532-78e36409b0b0', 'test/file.tif', '1776-7-4'),
+-- ('ba1cc336-6cc0-4648-85a4-dd100e0ff411', 'test/file.tif', '1776-7-4'),
+-- ('64756f41-75e2-40ce-b91a-fda5aeb441fc', 'test/file.tif', '1776-7-4'),
+-- ('6357a677-5e77-4c37-8aeb-3300707ca885', 'test/file.tif', '1776-7-4'),
+-- ('62e08d34-ff6b-45c9-8bb9-80df922d0779', 'test/file.tif', '1776-7-4');

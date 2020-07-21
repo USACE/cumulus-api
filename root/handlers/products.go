@@ -17,7 +17,7 @@ func ListProducts(db *sqlx.DB) echo.HandlerFunc {
 	return func(c echo.Context) error {
 		products, err := models.ListProducts(db)
 		if err != nil {
-			return c.JSON(http.StatusInternalServerError, err)
+			return c.String(http.StatusInternalServerError, err.Error())
 		}
 		return c.JSON(http.StatusOK, products)
 	}

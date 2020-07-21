@@ -57,6 +57,7 @@ func main() {
 	e.GET("cumulus/basins/:id", handlers.GetBasin(db))
 	e.GET("cumulus/products", handlers.ListProducts(db))
 	e.GET("cumulus/products/:id", handlers.GetProduct(db))
+	e.GET("cumulus/products/:id/availability", handlers.GetProductAvailability(db))
 	e.GET("cumulus/products/:id/files", handlers.GetProductProductfiles(db))
 	e.GET("cumulus/acquirables", handlers.ListAcquirables(db))
 
@@ -71,8 +72,8 @@ func main() {
 	lambda := cfg.LambdaContext
 	log.Printf("starting server; Running On AWS LAMBDA: %t", lambda)
 	if lambda {
-		log.Fatal(gateway.ListenAndServe(":3030", e))
+		log.Fatal(gateway.ListenAndServe("localhost:3030", e))
 	} else {
-		log.Fatal(http.ListenAndServe(":3030", e))
+		log.Fatal(http.ListenAndServe("localhost:3030", e))
 	}
 }

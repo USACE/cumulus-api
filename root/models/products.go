@@ -44,6 +44,18 @@ type Productfile struct {
 	File     string    `json:"file"`
 }
 
+// Availability stores
+type Availability struct {
+	ProductID  uuid.UUID   `json:"product_id"`
+	DateCounts []DateCount `json:"date_counts"`
+}
+
+// DateCount is a date and a count
+type DateCount struct {
+	Date  time.Time `json:"date" db:"date"`
+	Count int       `json:"count" db:"count"`
+}
+
 // ListProducts returns a list of products
 func ListProducts(db *sqlx.DB) ([]Product, error) {
 	sql := listProductsSQL()
@@ -95,6 +107,32 @@ func GetProductProductfiles(db *sqlx.DB, ID uuid.UUID, after string, before stri
 	return result
 }
 
+// GetProductAvailability returns Availability for a product
+func GetProductAvailability(db *sqlx.DB, ID *uuid.UUID) (*Availability, error) {
+
+	// https://stackoverflow.com/questions/29023336/generate-series-in-postgres-from-start-and-end-date-in-a-table
+	sql := `SELECT series.day                      AS date,
+	               COALESCE(daily_counts.count, 0) AS count
+            FROM (
+				SELECT generate_series(MIN(pf.datetime)::date, MAX(pf.datetime)::date, '1 Day') AS day
+                FROM productfile pf
+             	WHERE product_id = $1
+			) series
+			LEFT OUTER JOIN (
+				SELECT datetime::date as day,
+				COUNT(*) as count
+				FROM productfile
+				WHERE product_id = $1
+				GROUP BY day
+			) daily_counts ON daily_counts.day = series.day
+	`
+	a := Availability{ProductID: *ID, DateCounts: make([]DateCount, 0)}
+	if err := db.Select(&a.DateCounts, sql, ID); err != nil {
+		return nil, err
+	}
+	return &a, nil
+}
+
 func listProductsSQL() string {
 	return `SELECT a.id                  AS id,
 	               a.name                AS name,
@@ -107,6 +145,7 @@ func listProductsSQL() string {
 				   pf.before             AS before,
 				   COALESCE(pf.productfile_count, 0)  AS productfile_count,
 				   CASE WHEN pf.productfile_count IS NULL THEN 0
+						WHEN pf.productfile_count = 0 THEN 0
 				   		WHEN pf.productfile_count = 1 THEN 100
 				        ELSE ROUND(
 							(100*pf.productfile_count*a.temporal_resolution/EXTRACT('EPOCH' FROM age(pf.before, pf.after)))::numeric, 2

@@ -64,3 +64,20 @@ func GetProductProductfiles(db *sqlx.DB) echo.HandlerFunc {
 		)
 	}
 }
+
+// GetProductAvailability returns an availability object
+func GetProductAvailability(db *sqlx.DB) echo.HandlerFunc {
+	return func(c echo.Context) error {
+
+		// uuid
+		id, err := uuid.Parse(c.Param("id"))
+		if err != nil {
+			return c.String(http.StatusBadRequest, "Malformed ID")
+		}
+		a, err := models.GetProductAvailability(db, &id)
+		if err != nil {
+			return c.JSON(http.StatusBadRequest, err.Error())
+		}
+		return c.JSON(http.StatusOK, a)
+	}
+}

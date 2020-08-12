@@ -286,27 +286,6 @@ INSERT INTO basin (id, slug, name, x_min, y_min, x_max, y_max, office_id) VALUES
 ('e97c5b9b-da0f-43ae-b7c4-d54bbdcc0e9f','fpg_upryell_bighorn','FPG_UPRYELL_BIGHORN',-1188000,2226000,-852000,2678000,'90173658-2de9-4329-926d-176c1b29089a'),
 ('f019ffec-e9d3-48e6-ab74-eaa8fd8065e0','garrison-to-oahe','GARRISON TO OAHE',-842000,2210000,-194000,2814000,'90173658-2de9-4329-926d-176c1b29089a');
 
-
--- unit
-INSERT INTO unit (id, name) VALUES
-('4bcfac2e-1a08-4484-bf7d-3cb937dc950b','DEGC-D'),
-('8f51e5b5-08be-4ea7-9ebc-ad44b465dbc6','DEG C'),
-('e245d39f-3209-4e58-bfb7-4eae94b3f8dd','MM'),
-('855ee63c-d623-40d5-a551-3655ce2d7b47','K');
-
--- parameter
-INSERT INTO parameter (id, name) VALUES
-('2b3f8cf3-d3f5-440b-b7e7-0c8090eda80f','COLD CONTENT'),
-('5fab39b9-90ba-482a-8156-d863ad7c45ad','AIRTEMP'),
-('683a55b9-4a94-46b5-9f47-26e66f3037a8','SWE'),
-('b93b92c7-8b0b-48c3-a0cf-7124f15197dd','LIQUID WATER'),
-('ca7b6a70-b662-4f5c-86c7-5588d1cd6cc1','COLD CONTENT ATI'),
-('cfa90543-235c-4266-98c2-26dbc332cd87','SNOW DEPTH'),
-('d0517a82-21dd-46a2-bd6d-393ebd504480','MELTRATE ATI'),
-('eb82d661-afe6-436a-b0df-2ab0b478a1af','PRECIP'),
-('d3f49557-2aef-4dc2-a2dd-01b353b301a4','SNOW MELT'),
-('ccc8c81a-ddb0-4738-857b-f0ef69aa1dc0','SNOWTEMP');
-
 -- product
 INSERT INTO product (id, name, temporal_duration, temporal_resolution, dss_fpart, is_realtime, parameter_id, unit_id) VALUES
 ('e0baa220-1310-445b-816b-6887465cc94b','nohrsc_snodas_snowdepth',0,86400,'SNODAS',True,'cfa90543-235c-4266-98c2-26dbc332cd87','e245d39f-3209-4e58-bfb7-4eae94b3f8dd'),
@@ -350,3 +329,9 @@ INSERT INTO acquirable (name, schedule) VALUES
 -- ('64756f41-75e2-40ce-b91a-fda5aeb441fc', 'test/file.tif', '1776-7-4'),
 -- ('6357a677-5e77-4c37-8aeb-3300707ca885', 'test/file.tif', '1776-7-4'),
 -- ('62e08d34-ff6b-45c9-8bb9-80df922d0779', 'test/file.tif', '1776-7-4');
+
+-- downloads
+INSERT INTO download (datetime_start, datetime_end, progress, status_id, file, processing_start, processing_end) VALUES 
+('2020-08-01', '2010-08-12', 0, '94727878-7a50-41f8-99eb-a80eb82f737a', null, '2020-08-12', null),
+('2020-08-02', '2010-08-12', 0, '3914f0bd-2290-42b1-bc24-41479b3a846f', 'test_filename.dss', '2020-08-12', null),
+('2020-08-03', '2010-08-12', 0, 'a553101e-8c51-4ddd-ac2e-b011ed54389b', null, '2020-08-12', '2020-08-13');

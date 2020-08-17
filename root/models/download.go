@@ -26,7 +26,7 @@ type Download struct {
 	DownloadStatus
 }
 
-// ListDownload returns all downloads from the database
+// ListDownloads returns all downloads from the database
 func ListDownloads(db *sqlx.DB) ([]Download, error) {
 
 	dd := make([]Download, 0)
@@ -37,21 +37,20 @@ func ListDownloads(db *sqlx.DB) ([]Download, error) {
 }
 
 // CreateDownload creates a download record in
-func CreateDownload(db *sqlx.DB) ([]Download, error) {
+func CreateDownload(db *sqlx.DB, d Download) (*Download, error) {
 
-	sql := `INSERT INTO download (id, datetime_start, datetime_end, 
-				geom, progress, status_id, file, processing_start, processing_end)
-			VALUES (DEFAULT, '2020-08-12', '2020-08-14', null, 0, '94727878-7a50-41f8-99eb-a80eb82f737a', 
-				'testfile.dss', now(), null) RETURNING id, datetime_start, datetime_end, progress, status_id,
-				processing_start`
+	sql := `INSERT INTO download (datetime_start, datetime_end, status_id)
+			VALUES ($1, $2, '94727878-7a50-41f8-99eb-a80eb82f737a')
+			RETURNING *`
 
-	dd := make([]Download, 0)
-	if err := db.Select(&dd, sql); err != nil {
-		return make([]Download, 0), err
+	var dNew Download
+	if err := db.Get(&dNew, sql, d.DatetimeStart, d.DatetimeEnd); err != nil {
+		return nil, err
 	}
-	return dd, nil
+	return &dNew, nil
 }
 
+// GetDownload returns a single download record
 func GetDownload(db *sqlx.DB, id *uuid.UUID) ([]Download, error) {
 
 	dd := make([]Download, 0)

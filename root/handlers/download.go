@@ -9,6 +9,20 @@ import (
 	"github.com/labstack/echo"
 )
 
+/*
+****************************
+Example POST JSON BODY
+****************************
+{
+	"datetime_start": "2020-08-15T00:00:00Z",
+	"datetime_end": "2020-08-17T00:00:00Z",
+	"product_id": [
+		"e0baa220-1310-445b-816b-6887465cc94b",
+		"757c809c-dda0-412b-9831-cb9bd0f62d1d"
+	]
+}
+*/
+
 // ListDownloads returns an array of download requests
 func ListDownloads(db *sqlx.DB) echo.HandlerFunc {
 	return func(c echo.Context) error {
@@ -20,21 +34,28 @@ func ListDownloads(db *sqlx.DB) echo.HandlerFunc {
 	}
 }
 
-// Create download request, return dummy response for testing until
+// CreateDownload request, return dummy response for testing until
 // dss processing/file creation is available
 func CreateDownload(db *sqlx.DB) echo.HandlerFunc {
 	return func(c echo.Context) error {
 		//need to check if products provided are valid uuids for existing products
 		//sanity check on dates in time windows and geometry??
 
-		dd, err := models.CreateDownload(db)
+		dl := models.Download{}
+		if err := c.Bind(&dl); err != nil {
+			return c.String(http.StatusBadRequest, err.Error())
+		}
+
+		d, err := models.CreateDownload(db, dl)
 		if err != nil {
 			return c.String(http.StatusInternalServerError, err.Error())
 		}
-		return c.JSON(http.StatusOK, dd)
+
+		return c.JSON(http.StatusOK, d)
 	}
 }
 
+// GetDownload gets a single download
 func GetDownload(db *sqlx.DB) echo.HandlerFunc {
 	return func(c echo.Context) error {
 

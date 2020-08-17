@@ -16,7 +16,7 @@ drop table if exists
     public.acquirable_acquisition,
     public.download,
     public.download_product,
-    public.download_status_id
+    public.download_status
 	CASCADE;
 
 
@@ -112,8 +112,7 @@ CREATE TABLE IF NOT EXISTS public.download (
     id UUID PRIMARY KEY NOT NULL DEFAULT uuid_generate_v4(),
     datetime_start TIMESTAMPTZ NOT NULL,
     datetime_end TIMESTAMPTZ NOT NULL,
-    geom geometry,
-    progress INTEGER NOT NULL,
+    progress INTEGER NOT NULL DEFAULT 0,
     status_id UUID REFERENCES download_status(id),
     file VARCHAR(240),
     processing_start TIMESTAMPTZ NOT NULL DEFAULT now(),

@@ -58,6 +58,7 @@ func main() {
 
 	// Public Routes
 	public.GET("cumulus/basins", handlers.ListBasins(db))
+	public.GET("cumulus/:office_slug/basins", handlers.ListOfficeBasins(db))
 	public.GET("cumulus/basins/:id", handlers.GetBasin(db))
 	public.GET("cumulus/products", handlers.ListProducts(db))
 	public.GET("cumulus/products/:id", handlers.GetProduct(db))

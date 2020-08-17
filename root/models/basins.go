@@ -51,6 +51,27 @@ func ListBasins(db *sqlx.DB) []Basin {
 	return result
 }
 
+// ListOfficeBasins lists basins for an office
+func ListOfficeBasins(db *sqlx.DB, officeSlug string) ([]Basin, error) {
+	sql := `SELECT b.id,
+	               b.name,
+	               b.x_min,
+	               b.y_min,
+	               b.x_max,
+	               b.y_max,
+	               f.symbol as office_symbol
+			FROM   basin AS b
+			JOIN   office  AS f ON b.office_id = f.id
+			WHERE  f.symbol = $1
+	`
+	var bb []Basin
+	err := db.Select(&bb, sql, officeSlug)
+	if err != nil {
+		return make([]Basin, 0), err
+	}
+	return bb, nil
+}
+
 // GetBasin returns a single basin
 func GetBasin(db *sqlx.DB, ID uuid.UUID) Basin {
 	sql := `SELECT b.id,

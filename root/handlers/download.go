@@ -71,3 +71,33 @@ func GetDownload(db *sqlx.DB) echo.HandlerFunc {
 		return c.JSON(http.StatusOK, dl)
 	}
 }
+
+/*
+****************************
+Example POST JSON BODY
+****************************
+
+{
+	"id": "233bf9b3-9ca6-497f-806a-9d198a28abdb",
+	"progress": 10
+}
+*/
+
+//UpdateDownload updates the status, progress and datetime_end from the lambda function
+func UpdateDownload(db *sqlx.DB) echo.HandlerFunc {
+	return func(c echo.Context) error {
+
+		dl := models.Download{}
+		if err := c.Bind(&dl); err != nil {
+			return c.String(http.StatusBadRequest, err.Error())
+		}
+
+		d, err := models.UpdateDownload(db, dl)
+		if err != nil {
+			return c.String(http.StatusInternalServerError, err.Error())
+		}
+
+		return c.JSON(http.StatusOK, d)
+
+	}
+}

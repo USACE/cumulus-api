@@ -50,6 +50,19 @@ func CreateDownload(db *sqlx.DB, d Download) (*Download, error) {
 	return &dNew, nil
 }
 
+// UpdateDownload is called by lamda function to update fields
+func UpdateDownload(db *sqlx.DB, d Download) ([]Download, error) {
+
+	sql := `UPDATE download set progress = $2 WHERE
+			id = $1 RETURNING *`
+
+	dd := make([]Download, 0)
+	if err := db.Select(&dd, sql, d.ID, d.Progress); err != nil {
+		return make([]Download, 0), err
+	}
+	return dd, nil
+}
+
 // GetDownload returns a single download record
 func GetDownload(db *sqlx.DB, id *uuid.UUID) ([]Download, error) {
 

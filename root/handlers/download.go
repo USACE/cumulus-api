@@ -74,12 +74,12 @@ func GetDownload(db *sqlx.DB) echo.HandlerFunc {
 
 /*
 ****************************
-Example POST JSON BODY
+Example PUT JSON BODY
 ****************************
-
 {
 	"id": "233bf9b3-9ca6-497f-806a-9d198a28abdb",
-	"progress": 10
+	"progress": 100,
+	"status_id": "3914f0bd-2290-42b1-bc24-41479b3a846f"
 }
 */
 
@@ -87,12 +87,18 @@ Example POST JSON BODY
 func UpdateDownload(db *sqlx.DB) echo.HandlerFunc {
 	return func(c echo.Context) error {
 
-		dl := models.Download{}
+		dl := models.DownloadUpdate{}
 		if err := c.Bind(&dl); err != nil {
 			return c.String(http.StatusBadRequest, err.Error())
 		}
+		// Set Download ID from Route Params
+		id, err := uuid.Parse(c.Param("id"))
+		if err != nil {
+			return c.JSON(http.StatusBadRequest, err)
+		}
+		dl.ID = id
 
-		d, err := models.UpdateDownload(db, dl)
+		d, err := models.UpdateDownload(db, &dl)
 		if err != nil {
 			return c.String(http.StatusInternalServerError, err.Error())
 		}

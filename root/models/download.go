@@ -1,6 +1,7 @@
 package models
 
 import (
+	"fmt"
 	"time"
 
 	"github.com/google/uuid"
@@ -26,6 +27,13 @@ type Download struct {
 	DownloadStatus
 }
 
+type DownloadUpdate struct {
+	ID            uuid.UUID  `json:"id"`
+	Progress      int16      `json:"progress"`
+	StatusID      uuid.UUID  `json:"status_id" db:"status_id"`
+	ProcessingEnd *time.Time `json:"processing_end" db:"processing_end"`
+}
+
 // ListDownloads returns all downloads from the database
 func ListDownloads(db *sqlx.DB) ([]Download, error) {
 
@@ -47,17 +55,37 @@ func CreateDownload(db *sqlx.DB, d Download) (*Download, error) {
 	if err := db.Get(&dNew, sql, d.DatetimeStart, d.DatetimeEnd); err != nil {
 		return nil, err
 	}
+
+	//*****************
+	//this is NOT FINAL
+	//*****************
+	dpSQL := `INSERT INTO download_product (product_id, download_id) VALUES ($1, $2) RETURNING id`
+	for idx, pID := range d.ProductID {
+
+		fmt.Println(idx, pID, dNew.ID)
+		var record []string
+		if err := db.Select(&record, dpSQL, pID, dNew.ID); err != nil {
+			return nil, err
+		}
+	}
+
 	return &dNew, nil
 }
 
 // UpdateDownload is called by lamda function to update fields
-func UpdateDownload(db *sqlx.DB, d Download) ([]Download, error) {
+func UpdateDownload(db *sqlx.DB, u *DownloadUpdate) ([]Download, error) {
 
-	sql := `UPDATE download set progress = $2 WHERE
-			id = $1 RETURNING *`
+	sql := `UPDATE download set progress = $2, status_id = $3, processing_end = $4
+			WHERE id = $1
+			RETURNING *`
+
+	if u.Progress == 100 {
+		t := time.Now()
+		u.ProcessingEnd = &t
+	}
 
 	dd := make([]Download, 0)
-	if err := db.Select(&dd, sql, d.ID, d.Progress); err != nil {
+	if err := db.Select(&dd, sql, u.ID, u.Progress, u.StatusID, u.ProcessingEnd); err != nil {
 		return make([]Download, 0), err
 	}
 	return dd, nil

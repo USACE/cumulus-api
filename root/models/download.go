@@ -1,7 +1,6 @@
 package models
 
 import (
-	"fmt"
 	"time"
 
 	"github.com/google/uuid"
@@ -27,6 +26,7 @@ type Download struct {
 	DownloadStatus
 }
 
+// DownloadUpdate struct
 type DownloadUpdate struct {
 	ID            uuid.UUID  `json:"id"`
 	Progress      int16      `json:"progress"`
@@ -60,9 +60,8 @@ func CreateDownload(db *sqlx.DB, d Download) (*Download, error) {
 	//this is NOT FINAL
 	//*****************
 	dpSQL := `INSERT INTO download_product (product_id, download_id) VALUES ($1, $2) RETURNING id`
-	for idx, pID := range d.ProductID {
+	for _, pID := range d.ProductID {
 
-		fmt.Println(idx, pID, dNew.ID)
 		var record []string
 		if err := db.Select(&record, dpSQL, pID, dNew.ID); err != nil {
 			return nil, err
@@ -99,13 +98,6 @@ func GetDownload(db *sqlx.DB, id *uuid.UUID) ([]Download, error) {
 		return make([]Download, 0), err
 	}
 	return dd, nil
-
-	// var t ts.Timeseries
-	// if err := db.Get(&t, listTimeseriesSQL()+" WHERE T.id = $1", id); err != nil {
-	// 	return nil, err
-	// }
-	// return &t, nil
-
 }
 
 func listDownloadSQL() string {
@@ -116,8 +108,11 @@ func listDownloadSQL() string {
 				d.file,
 				d.processing_start,
 				d.processing_end,
+				d.status_id,
 				s.name AS status
+				--dp.product_id
 			FROM download d
 			INNER JOIN download_status s ON d.status_id = s.id
+			--INNER JOIN download_product dp on d.id = dp.download_id
 `
 }

@@ -32,7 +32,7 @@ CREATE TABLE IF NOT EXISTS public.basin (
     id UUID PRIMARY KEY NOT NULL DEFAULT uuid_generate_v4(),
     slug VARCHAR(240) UNIQUE NOT NULL,
     name VARCHAR(120) NOT NULL,
-    geometry geometry,
+    --geometry geometry,
     x_min INTEGER NOT NULL,
     y_min INTEGER NOT NULL,
     x_max INTEGER NOT NULL,
@@ -114,6 +114,7 @@ CREATE TABLE IF NOT EXISTS public.download (
     datetime_end TIMESTAMPTZ NOT NULL,
     progress INTEGER NOT NULL DEFAULT 0,
     status_id UUID REFERENCES download_status(id),
+    basin_id UUID REFERENCES basin(id),
     file VARCHAR(240),
     processing_start TIMESTAMPTZ NOT NULL DEFAULT now(),
     processing_end TIMESTAMPTZ

@@ -331,7 +331,9 @@ INSERT INTO acquirable (name, schedule) VALUES
 ('nohrsc_snodas_unmasked', '30 8 * * *'),
 ('prism_ppt_early', '30 14 * * *'),
 ('prism_tmax_early', '30 14 * * *'),
-('prism_tmin_early', '30 14 * * *');
+('prism_tmin_early', '30 14 * * *'),
+('rtma_ru_anl', '20 * * * *'),
+('rtma_ru_ges', '20 * * * *');
 
 -- productfile
 -- INSERT INTO productfile (product_id, file, datetime) VALUES

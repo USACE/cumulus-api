@@ -43,10 +43,10 @@ func Factory(i Info) (Acquirable, error) {
 		return &PrismTmaxEarlyAcquirable{info: i}, nil
 	case "prism_tmin_early":
 		return &PrismTminEarlyAcquirable{info: i}, nil
-	case "rtma_ru_anl":
-		return &RtmaRuAnlAcquirable{info: i}, nil
-	case "rtma_ru_ges":
-		return &RtmaRuGesAcquirable{info: i}, nil
+	case "ncep_rtma_ru_anl":
+		return &NcepRtmaRuAnlAcquirable{info: i}, nil
+	case "ncep_rtma_ru_ges":
+		return &NcepRtmaRuGesAcquirable{info: i}, nil
 	}
 	return nil, errors.New("acquirable not implemented")
 }

@@ -13,15 +13,28 @@ import (
 	"github.com/jmoiron/sqlx"
 )
 
-// ListAcquirables returns acquirable.Info from the database
-func ListAcquirables(db *sqlx.DB) ([]acquirable.Acquirable, error) {
+// ListAcquirableInfo returns acquirable.Info from the database
+func ListAcquirableInfo(db *sqlx.DB) ([]acquirable.Info, error) {
 	nn := make([]acquirable.Info, 0)
 	if err := db.Select(&nn, `SELECT * FROM ACQUIRABLE`); err != nil {
+		return make([]acquirable.Info, 0), err
+	}
+	return nn, nil
+}
+
+
+// ListAcquirables returns acquirable.Info from the database
+func ListAcquirables(db *sqlx.DB) ([]acquirable.Acquirable, error) {
+
+	nn, err := ListAcquirableInfo(db)
+	if err != nil {
 		return make([]acquirable.Acquirable, 0), err
 	}
+
 	// Create Concrete Types
 	aa := make([]acquirable.Acquirable, len(nn))
 	for idx := range nn {
+		// Concrete type from info
 		a, err := acquirable.Factory(nn[idx])
 		if err != nil {
 			return make([]acquirable.Acquirable, 0), err

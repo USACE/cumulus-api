@@ -64,7 +64,7 @@ func main() {
 	public.GET("cumulus/products/:id", handlers.GetProduct(db))
 	public.GET("cumulus/products/:id/availability", handlers.GetProductAvailability(db))
 	public.GET("cumulus/products/:id/files", handlers.GetProductProductfiles(db))
-	public.GET("cumulus/acquirables", handlers.ListAcquirables(db))
+	public.GET("cumulus/acquirables", handlers.ListAcquirableInfo(db))
 	// Downloads
 	public.GET("cumulus/downloads", handlers.ListDownloads(db))
 	public.GET("cumulus/downloads/:id", handlers.GetDownload(db))

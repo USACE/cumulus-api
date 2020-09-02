@@ -323,7 +323,9 @@ INSERT INTO product (id, name, temporal_duration, temporal_resolution, dss_fpart
 ('ba1cc336-6cc0-4648-85a4-dd100e0ff411','ncep_rtma_precip',3600,3600,'NDGD-RTMA',True,'eb82d661-afe6-436a-b0df-2ab0b478a1af','e245d39f-3209-4e58-bfb7-4eae94b3f8dd'),
 ('64756f41-75e2-40ce-b91a-fda5aeb441fc','prism_ppt_early',86400,86400,'PRISM-EARLY',True,'eb82d661-afe6-436a-b0df-2ab0b478a1af','e245d39f-3209-4e58-bfb7-4eae94b3f8dd'),
 ('6357a677-5e77-4c37-8aeb-3300707ca885','prism_tmax_early',86400,86400,'PRISM-EARLY',True,'5fab39b9-90ba-482a-8156-d863ad7c45ad','8f51e5b5-08be-4ea7-9ebc-ad44b465dbc6'),
-('62e08d34-ff6b-45c9-8bb9-80df922d0779','prism_tmin_early',86400,86400,'PRISM-EARLY',True,'5fab39b9-90ba-482a-8156-d863ad7c45ad','8f51e5b5-08be-4ea7-9ebc-ad44b465dbc6');
+('62e08d34-ff6b-45c9-8bb9-80df922d0779','prism_tmin_early',86400,86400,'PRISM-EARLY',True,'5fab39b9-90ba-482a-8156-d863ad7c45ad','8f51e5b5-08be-4ea7-9ebc-ad44b465dbc6'),
+('e4fdadc7-5532-4910-9ed7-3c3690305d86','ncep_rtma_ru_anl_airtemp',0,900,'NCEP-RTMA-RU-ANL',True,'5fab39b9-90ba-482a-8156-d863ad7c45ad','8f51e5b5-08be-4ea7-9ebc-ad44b465dbc6'),
+('44f1ea4d-6903-4b06-8677-d1fd84dd7b34','ncep_rtma_ru_ges_airtemp',0,900,'NCEP-RTMA-RU-GES',True,'5fab39b9-90ba-482a-8156-d863ad7c45ad','8f51e5b5-08be-4ea7-9ebc-ad44b465dbc6');
 
 
 -- product_acquirable
@@ -332,8 +334,8 @@ INSERT INTO acquirable (name, schedule) VALUES
 ('prism_ppt_early', '30 14 * * *'),
 ('prism_tmax_early', '30 14 * * *'),
 ('prism_tmin_early', '30 14 * * *'),
-('rtma_ru_anl', '20 * * * *'),
-('rtma_ru_ges', '20 * * * *');
+('ncep_rtma_ru_anl', '20 * * * *'),
+('ncep_rtma_ru_ges', '20 * * * *');
 
 -- productfile
 -- INSERT INTO productfile (product_id, file, datetime) VALUES

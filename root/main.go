@@ -59,7 +59,7 @@ func main() {
 	e.GET("cumulus/products/:id", handlers.GetProduct(db))
 	e.GET("cumulus/products/:id/availability", handlers.GetProductAvailability(db))
 	e.GET("cumulus/products/:id/files", handlers.GetProductProductfiles(db))
-	e.GET("cumulus/acquirables", handlers.ListAcquirables(db))
+	e.GET("cumulus/acquirables", handlers.ListAcquirableInfo(db))
 
 	// Restricted Routes (JWT or Key)
 	r.POST("cumulus/acquire", handlers.DoAcquire(db, asyncer))

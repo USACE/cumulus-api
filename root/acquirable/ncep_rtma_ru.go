@@ -5,18 +5,18 @@ import (
 	"time"
 )
 
-// RtmaRuAnlAcquirable is RTMA Rapid Update ANL (Analysis?) Product
-type RtmaRuAnlAcquirable struct {
+// NcepRtmaRuAnlAcquirable is RTMA Rapid Update ANL (Analysis?) Product
+type NcepRtmaRuAnlAcquirable struct {
 	info Info
 }
 
-// RtmaRuGesAcquirable is RTMA Rapid Update GES Product
-type RtmaRuGesAcquirable struct {
+// NcepRtmaRuGesAcquirable is RTMA Rapid Update GES Product
+type NcepRtmaRuGesAcquirable struct {
 	info Info
 }
 
-// RtmaRuURLS returns URLS
-func RtmaRuURLS(p string, t *time.Time) []string {
+// NcepRtmaRuURLS returns URLS
+func NcepRtmaRuURLS(p string, t *time.Time) []string {
 
 	ymd, hour := t.Format("20060102"), t.Format("15")
 	urlBase := fmt.Sprintf("https://nomads.ncep.noaa.gov/pub/data/nccf/com/rtma/prod/rtma2p5_ru.%s", ymd)
@@ -32,13 +32,13 @@ func RtmaRuURLS(p string, t *time.Time) []string {
 ////////////////////////
 
 // URLS implements Acquirable interface
-func (a *RtmaRuAnlAcquirable) URLS() []string {
+func (a *NcepRtmaRuAnlAcquirable) URLS() []string {
 	t := time.Now().Add(time.Hour * -1)
-	return RtmaRuURLS("anl", &t)
+	return NcepRtmaRuURLS("anl", &t)
 }
 
 // Info implements Acquirable interface
-func (a *RtmaRuAnlAcquirable) Info() Info {
+func (a *NcepRtmaRuAnlAcquirable) Info() Info {
 	return a.info
 }
 
@@ -46,12 +46,12 @@ func (a *RtmaRuAnlAcquirable) Info() Info {
 ////////////////////////
 
 // URLS implements Acquirable interface
-func (a *RtmaRuGesAcquirable) URLS() []string {
+func (a *NcepRtmaRuGesAcquirable) URLS() []string {
 	t := time.Now().Add(time.Hour * -1)
-	return RtmaRuURLS("ges", &t)
+	return NcepRtmaRuURLS("ges", &t)
 }
 
 // Info implements Acquirable interface
-func (a *RtmaRuGesAcquirable) Info() Info {
+func (a *NcepRtmaRuGesAcquirable) Info() Info {
 	return a.info
 }

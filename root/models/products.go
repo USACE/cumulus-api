@@ -147,6 +147,7 @@ func listProductsSQL() string {
 				   CASE WHEN pf.productfile_count IS NULL THEN 0
 						WHEN pf.productfile_count = 0 THEN 0
 				   		WHEN pf.productfile_count = 1 THEN 100
+						WHEN pf.before = pf.after THEN 0
 				        ELSE ROUND(
 							(100*pf.productfile_count*a.temporal_resolution/EXTRACT('EPOCH' FROM age(pf.before, pf.after)))::numeric, 2
 						) END AS coverage

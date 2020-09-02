@@ -23,6 +23,7 @@ type Download struct {
 	ProcessingStart time.Time   `json:"processing_start" db:"processing_start"`
 	ProcessingEnd   *time.Time  `json:"processing_end" db:"processing_end"`
 	ProductID       []uuid.UUID `json:"product_id"`
+	BasinID         uuid.UUID   `json:"basin_id" db:"basin_id"`
 	DownloadStatus
 }
 
@@ -47,12 +48,12 @@ func ListDownloads(db *sqlx.DB) ([]Download, error) {
 // CreateDownload creates a download record in
 func CreateDownload(db *sqlx.DB, d Download) (*Download, error) {
 
-	sql := `INSERT INTO download (datetime_start, datetime_end, status_id)
-			VALUES ($1, $2, '94727878-7a50-41f8-99eb-a80eb82f737a')
+	sql := `INSERT INTO download (datetime_start, datetime_end, status_id, basin_id)
+			VALUES ($1, $2, '94727878-7a50-41f8-99eb-a80eb82f737a', $3)
 			RETURNING *`
 
 	var dNew Download
-	if err := db.Get(&dNew, sql, d.DatetimeStart, d.DatetimeEnd); err != nil {
+	if err := db.Get(&dNew, sql, d.DatetimeStart, d.DatetimeEnd, d.BasinID); err != nil {
 		return nil, err
 	}
 
@@ -109,6 +110,7 @@ func listDownloadSQL() string {
 				d.processing_start,
 				d.processing_end,
 				d.status_id,
+				d.basin_id,
 				s.name AS status
 				--dp.product_id
 			FROM download d

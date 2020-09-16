@@ -4,8 +4,6 @@
   // For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
   "version": "0.2.0",
   "configurations": [
-
-
     {
       "name": "Launch",
       "type": "go",
@@ -13,15 +11,17 @@
       "mode": "auto",
       "program": "${workspaceFolder}/root/main.go",
       "env": {
-        "CUMULUS_KEYAUTHDISABLED": "FALSE",
-        "CUMULUS_JWTAUTHDISABLED": "FALSE",
+        "CUMULUS_AUTHDISABLED": "TRUE",
         "CUMULUS_DBUSER": "postgres",
         "CUMULUS_DBPASS": "postgres",
         "CUMULUS_DBNAME": "postgres",
         "CUMULUS_DBHOST": "localhost",
         "CUMULUS_DBSSLMODE": "disable",
         "CUMULUS_LAMBDACONTEXT": "FALSE",
-        "CUMULUS_ASYNC_ENGINE": "MOCK"
+        "CUMULUS_ASYNC_ENGINE_ACQUISITION": "MOCK",
+        "CUMULUS_ASYNC_ENGINE_ACQUISITION_SNS_TOPIC": "",
+        "CUMULUS_ASYNC_ENGINE_PACKAGER": "MOCK",
+        "CUMULUS_ASYNC_ENGINE_PACKAGER_SNS_TOPIC": ""
       },
       "args": []
     }

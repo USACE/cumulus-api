@@ -1,6 +1,7 @@
 package models
 
 import (
+	"log"
 	"time"
 
 	"github.com/google/uuid"
@@ -45,4 +46,13 @@ func ListKeyInfo(db *sqlx.DB) ([]KeyInfo, error) {
 		return hh, err
 	}
 	return hh, nil
+}
+
+// MustListKeyInfo returns an array of all key hashes, panics on error
+func MustListKeyInfo(db *sqlx.DB) []KeyInfo {
+	kk, err := ListKeyInfo(db)
+	if err != nil {
+		log.Panicln("ERROR RETRIEVING VALID KEYS FROM DATABASE", err.Error())
+	}
+	return kk
 }

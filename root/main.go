@@ -41,32 +41,42 @@ func main() {
 	e := echo.New()
 
 	// Middleware for All Routes
-	e.Use(middleware.CORS())
-
-	// Restricted
-	r := e.Group("")
-	r.Use(middleware.KeyAuthWithConfig(*appconfig.KeyAuthConfig(cfg)))
-	r.Use(middleware.JWTWithConfig(*appconfig.JWTConfig(cfg, true)))
-
-	// JWT Only Restricted (API Keys Not Allowed)
-	jr := e.Group("")
-	jr.Use(middleware.JWTWithConfig(*appconfig.JWTConfig(cfg, false)))
+	e.Use(
+		middleware.CORS(),
+		middleware.GzipWithConfig(middleware.GzipConfig{Level: 5}),
+	)
 
 	// Public Routes
-	e.GET("cumulus/basins", handlers.ListBasins(db))
-	e.GET("cumulus/basins/:id", handlers.GetBasin(db))
-	e.GET("cumulus/products", handlers.ListProducts(db))
-	e.GET("cumulus/products/:id", handlers.GetProduct(db))
-	e.GET("cumulus/products/:id/availability", handlers.GetProductAvailability(db))
-	e.GET("cumulus/products/:id/files", handlers.GetProductProductfiles(db))
-	e.GET("cumulus/acquirables", handlers.ListAcquirableInfo(db))
+	public := e.Group("")
+	// Allow Key or CAC Auth
+	cacOrToken := e.Group("")
+	cacOrToken.Use(middleware.KeyAuthWithConfig(*appconfig.KeyAuthConfig(cfg)))
+	cacOrToken.Use(middleware.JWTWithConfig(*appconfig.JWTConfig(cfg, true)))
+	// Allow CAC Auth Only (API Keys Not Allowed)
+	cacOnly := e.Group("")
+	cacOnly.Use(middleware.JWTWithConfig(*appconfig.JWTConfig(cfg, false)))
+
+	// Public Routes
+	public.GET("cumulus/basins", handlers.ListBasins(db))
+	public.GET("cumulus/:office_slug/basins", handlers.ListOfficeBasins(db))
+	public.GET("cumulus/basins/:id", handlers.GetBasin(db))
+	public.GET("cumulus/products", handlers.ListProducts(db))
+	public.GET("cumulus/products/:id", handlers.GetProduct(db))
+	public.GET("cumulus/products/:id/availability", handlers.GetProductAvailability(db))
+	public.GET("cumulus/products/:id/files", handlers.GetProductProductfiles(db))
+	public.GET("cumulus/acquirables", handlers.ListAcquirableInfo(db))
+	// Downloads
+	public.GET("cumulus/downloads", handlers.ListDownloads(db))
+	public.GET("cumulus/downloads/:id", handlers.GetDownload(db))
+	public.POST("cumulus/downloads", handlers.CreateDownload(db, asyncer))
+	public.PUT("cumulus/downloads/:id", handlers.UpdateDownload(db))
 
 	// Restricted Routes (JWT or Key)
-	r.POST("cumulus/acquire", handlers.DoAcquire(db, asyncer))
-	r.POST("cumulus/products/:id/acquire", handlers.CreateAcquisitionAttempt(db))
+	cacOrToken.POST("cumulus/acquire", handlers.DoAcquire(db, asyncer))
+	cacOrToken.POST("cumulus/products/:id/acquire", handlers.CreateAcquisitionAttempt(db))
 
 	// JWT Only Restricted Routes (JWT Only)
-	jr.POST("cumulus/keys", handlers.CreateKey(db))
+	cacOnly.POST("cumulus/keys", handlers.CreateKey(db))
 
 	// Start server
 	lambda := cfg.LambdaContext

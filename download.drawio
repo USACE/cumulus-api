@@ -1,0 +1,151 @@
+<mxfile host="92609704-c328-4bf9-bfb2-42c870d43dd6" modified="2020-08-24T13:20:36.196Z" agent="5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Code/1.48.0 Chrome/78.0.3904.130 Electron/7.3.2 Safari/537.36" etag="GEXuwdQWpbIc6pgvdFu5" version="13.1.3">
+    <diagram id="6hGFLwfOUW9BJ-s0fimq" name="Page-1">
+        <mxGraphModel dx="1054" dy="1874" grid="0" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="827" pageHeight="1169" math="0" shadow="0">
+            <root>
+                <mxCell id="0"/>
+                <mxCell id="1" parent="0"/>
+                <mxCell id="2" value="" style="outlineConnect=0;dashed=0;verticalLabelPosition=bottom;verticalAlign=top;align=center;html=1;shape=mxgraph.aws3.lambda_function;fillColor=#F58534;gradientColor=none;" vertex="1" parent="1">
+                    <mxGeometry x="327" y="112" width="69" height="72" as="geometry"/>
+                </mxCell>
+                <mxCell id="3" value="Download API POST request" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;" vertex="1" parent="1">
+                    <mxGeometry x="178" y="103" width="95.5" height="40" as="geometry"/>
+                </mxCell>
+                <mxCell id="4" value="" style="endArrow=classic;html=1;" edge="1" parent="1">
+                    <mxGeometry width="50" height="50" relative="1" as="geometry">
+                        <mxPoint x="413.5" y="151" as="sourcePoint"/>
+                        <mxPoint x="553.5" y="151" as="targetPoint"/>
+                    </mxGeometry>
+                </mxCell>
+                <mxCell id="6" value="geolamda GeoTiff to DSS" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;" vertex="1" parent="1">
+                    <mxGeometry x="554.5" y="177" width="95.5" height="40" as="geometry"/>
+                </mxCell>
+                <mxCell id="7" value="{datetime_start,&lt;br&gt;datetime_end,&lt;br&gt;products, extents}" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;" vertex="1" parent="1">
+                    <mxGeometry x="428" y="88" width="111" height="71" as="geometry"/>
+                </mxCell>
+                <mxCell id="8" value="" style="outlineConnect=0;dashed=0;verticalLabelPosition=bottom;verticalAlign=top;align=center;html=1;shape=mxgraph.aws3.user;fillColor=#D2D3D3;gradientColor=none;" vertex="1" parent="1">
+                    <mxGeometry x="85.5" y="109" width="45" height="63" as="geometry"/>
+                </mxCell>
+                <mxCell id="9" value="User requests (1)&amp;nbsp;&lt;b&gt;&lt;u&gt;one or more products&lt;/u&gt;&lt;/b&gt; for a (2)&amp;nbsp;&lt;b&gt;&lt;u&gt;single watershed (exents)&lt;/u&gt;&lt;/b&gt; for a (3)&amp;nbsp;&lt;b&gt;&lt;u&gt;given time window&lt;/u&gt;&lt;/b&gt;.&amp;nbsp; Expects a single DSS file containings all products." style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;" vertex="1" parent="1">
+                    <mxGeometry x="15" y="-7" width="202" height="110" as="geometry"/>
+                </mxCell>
+                <mxCell id="14" value="" style="endArrow=classic;html=1;" edge="1" parent="1">
+                    <mxGeometry width="50" height="50" relative="1" as="geometry">
+                        <mxPoint x="159" y="147.5" as="sourcePoint"/>
+                        <mxPoint x="299" y="147.5" as="targetPoint"/>
+                    </mxGeometry>
+                </mxCell>
+                <mxCell id="15" value="" style="endArrow=classic;html=1;" edge="1" parent="1">
+                    <mxGeometry width="50" height="50" relative="1" as="geometry">
+                        <mxPoint x="271" y="172" as="sourcePoint"/>
+                        <mxPoint x="180" y="172" as="targetPoint"/>
+                    </mxGeometry>
+                </mxCell>
+                <mxCell id="17" value="Initial response of request id, status" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;" vertex="1" parent="1">
+                    <mxGeometry x="181" y="175" width="100" height="40" as="geometry"/>
+                </mxCell>
+                <mxCell id="18" value="Cumulus API" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;" vertex="1" parent="1">
+                    <mxGeometry x="310" y="69" width="95.5" height="40" as="geometry"/>
+                </mxCell>
+                <mxCell id="19" value="" style="outlineConnect=0;dashed=0;verticalLabelPosition=bottom;verticalAlign=top;align=center;html=1;shape=mxgraph.aws3.lambda_function;fillColor=#5294CF;gradientColor=none;" vertex="1" parent="1">
+                    <mxGeometry x="568.5" y="114" width="60" height="63" as="geometry"/>
+                </mxCell>
+                <mxCell id="21" value="Sends progress updates until complete" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;" vertex="1" parent="1">
+                    <mxGeometry x="414" y="177" width="131.5" height="40" as="geometry"/>
+                </mxCell>
+                <mxCell id="22" value="" style="endArrow=classic;html=1;" edge="1" parent="1">
+                    <mxGeometry width="50" height="50" relative="1" as="geometry">
+                        <mxPoint x="525" y="172" as="sourcePoint"/>
+                        <mxPoint x="434" y="172" as="targetPoint"/>
+                    </mxGeometry>
+                </mxCell>
+                <mxCell id="24" value="" style="outlineConnect=0;dashed=0;verticalLabelPosition=bottom;verticalAlign=top;align=center;html=1;shape=mxgraph.aws3.lambda_function;fillColor=#F58534;gradientColor=none;" vertex="1" parent="1">
+                    <mxGeometry x="325.5" y="325" width="69" height="72" as="geometry"/>
+                </mxCell>
+                <mxCell id="25" value="User polls API with request id for status until completion" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;" vertex="1" parent="1">
+                    <mxGeometry x="154" y="316" width="146" height="40" as="geometry"/>
+                </mxCell>
+                <mxCell id="27" value="geolamda GeoTiff to DSS" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;" vertex="1" parent="1">
+                    <mxGeometry x="553" y="390" width="95.5" height="40" as="geometry"/>
+                </mxCell>
+                <mxCell id="29" value="" style="outlineConnect=0;dashed=0;verticalLabelPosition=bottom;verticalAlign=top;align=center;html=1;shape=mxgraph.aws3.user;fillColor=#D2D3D3;gradientColor=none;" vertex="1" parent="1">
+                    <mxGeometry x="84" y="322" width="45" height="63" as="geometry"/>
+                </mxCell>
+                <mxCell id="30" value="" style="endArrow=classic;html=1;" edge="1" parent="1">
+                    <mxGeometry width="50" height="50" relative="1" as="geometry">
+                        <mxPoint x="157.5" y="360.5" as="sourcePoint"/>
+                        <mxPoint x="297.5" y="360.5" as="targetPoint"/>
+                    </mxGeometry>
+                </mxCell>
+                <mxCell id="31" value="" style="endArrow=classic;html=1;" edge="1" parent="1">
+                    <mxGeometry width="50" height="50" relative="1" as="geometry">
+                        <mxPoint x="269.5" y="385" as="sourcePoint"/>
+                        <mxPoint x="178.5" y="385" as="targetPoint"/>
+                    </mxGeometry>
+                </mxCell>
+                <mxCell id="32" value="Progress/Status" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;" vertex="1" parent="1">
+                    <mxGeometry x="179.5" y="388" width="100" height="28" as="geometry"/>
+                </mxCell>
+                <mxCell id="33" value="" style="outlineConnect=0;dashed=0;verticalLabelPosition=bottom;verticalAlign=top;align=center;html=1;shape=mxgraph.aws3.lambda_function;fillColor=#5294CF;gradientColor=none;" vertex="1" parent="1">
+                    <mxGeometry x="564" y="322" width="60" height="63" as="geometry"/>
+                </mxCell>
+                <mxCell id="34" value="Sends progress updates until complete" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;" vertex="1" parent="1">
+                    <mxGeometry x="410" y="313" width="131.5" height="40" as="geometry"/>
+                </mxCell>
+                <mxCell id="35" value="" style="endArrow=classic;html=1;" edge="1" parent="1">
+                    <mxGeometry width="50" height="50" relative="1" as="geometry">
+                        <mxPoint x="532.25" y="361" as="sourcePoint"/>
+                        <mxPoint x="419.25" y="360.5" as="targetPoint"/>
+                    </mxGeometry>
+                </mxCell>
+                <mxCell id="36" value="Initial Request" style="text;strokeColor=none;fillColor=none;html=1;fontSize=24;fontStyle=1;verticalAlign=middle;align=center;" vertex="1" parent="1">
+                    <mxGeometry x="314" y="26" width="100" height="40" as="geometry"/>
+                </mxCell>
+                <mxCell id="39" value="Processing" style="text;strokeColor=none;fillColor=none;html=1;fontSize=24;fontStyle=1;verticalAlign=middle;align=center;" vertex="1" parent="1">
+                    <mxGeometry x="305.5" y="263" width="100" height="40" as="geometry"/>
+                </mxCell>
+                <mxCell id="42" value="" style="outlineConnect=0;dashed=0;verticalLabelPosition=bottom;verticalAlign=top;align=center;html=1;shape=mxgraph.aws3.lambda_function;fillColor=#F58534;gradientColor=none;" vertex="1" parent="1">
+                    <mxGeometry x="323.25" y="520" width="69" height="72" as="geometry"/>
+                </mxCell>
+                <mxCell id="43" value="Final poll of API with request id" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;" vertex="1" parent="1">
+                    <mxGeometry x="151.75" y="511" width="146" height="40" as="geometry"/>
+                </mxCell>
+                <mxCell id="44" value="geolamda GeoTiff to DSS" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;" vertex="1" parent="1">
+                    <mxGeometry x="550.75" y="585" width="95.5" height="40" as="geometry"/>
+                </mxCell>
+                <mxCell id="45" value="" style="outlineConnect=0;dashed=0;verticalLabelPosition=bottom;verticalAlign=top;align=center;html=1;shape=mxgraph.aws3.user;fillColor=#D2D3D3;gradientColor=none;" vertex="1" parent="1">
+                    <mxGeometry x="81.75" y="517" width="45" height="63" as="geometry"/>
+                </mxCell>
+                <mxCell id="46" value="" style="endArrow=classic;html=1;" edge="1" parent="1">
+                    <mxGeometry width="50" height="50" relative="1" as="geometry">
+                        <mxPoint x="155.25" y="555.5" as="sourcePoint"/>
+                        <mxPoint x="295.25" y="555.5" as="targetPoint"/>
+                    </mxGeometry>
+                </mxCell>
+                <mxCell id="47" value="" style="endArrow=classic;html=1;" edge="1" parent="1">
+                    <mxGeometry width="50" height="50" relative="1" as="geometry">
+                        <mxPoint x="267.25" y="580" as="sourcePoint"/>
+                        <mxPoint x="176.25" y="580" as="targetPoint"/>
+                    </mxGeometry>
+                </mxCell>
+                <mxCell id="48" value="Progress: 100%&lt;br&gt;Status:&amp;nbsp; &quot;Success&quot;&lt;br&gt;File:&amp;nbsp; S3 Filepath" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;" vertex="1" parent="1">
+                    <mxGeometry x="134.25" y="591" width="171.25" height="28" as="geometry"/>
+                </mxCell>
+                <mxCell id="49" value="" style="outlineConnect=0;dashed=0;verticalLabelPosition=bottom;verticalAlign=top;align=center;html=1;shape=mxgraph.aws3.lambda_function;fillColor=#5294CF;gradientColor=none;" vertex="1" parent="1">
+                    <mxGeometry x="561.75" y="517" width="60" height="63" as="geometry"/>
+                </mxCell>
+                <mxCell id="50" value="Sends final progress update along with S3 DSS Filename" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;" vertex="1" parent="1">
+                    <mxGeometry x="407.75" y="508" width="131.5" height="40" as="geometry"/>
+                </mxCell>
+                <mxCell id="51" value="" style="endArrow=classic;html=1;" edge="1" parent="1">
+                    <mxGeometry width="50" height="50" relative="1" as="geometry">
+                        <mxPoint x="530" y="556" as="sourcePoint"/>
+                        <mxPoint x="417" y="555.5" as="targetPoint"/>
+                    </mxGeometry>
+                </mxCell>
+                <mxCell id="52" value="Completion" style="text;strokeColor=none;fillColor=none;html=1;fontSize=24;fontStyle=1;verticalAlign=middle;align=center;" vertex="1" parent="1">
+                    <mxGeometry x="303.25" y="457" width="100" height="40" as="geometry"/>
+                </mxCell>
+            </root>
+        </mxGraphModel>
+    </diagram>
+</mxfile>

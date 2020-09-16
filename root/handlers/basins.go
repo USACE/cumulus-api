@@ -2,6 +2,7 @@ package handlers
 
 import (
 	"net/http"
+	"strings"
 
 	"github.com/google/uuid"
 	"github.com/jmoiron/sqlx"
@@ -16,6 +17,18 @@ import (
 func ListBasins(db *sqlx.DB) echo.HandlerFunc {
 	return func(c echo.Context) error {
 		return c.JSON(http.StatusOK, models.ListBasins(db))
+	}
+}
+
+// ListOfficeBasins returns basins for an office based on office_slug in the route parameters
+func ListOfficeBasins(db *sqlx.DB) echo.HandlerFunc {
+	return func(c echo.Context) error {
+		officeSlug := strings.ToUpper(c.Param("office_slug"))
+		bb, err := models.ListOfficeBasins(db, officeSlug)
+		if err != nil {
+			return c.String(http.StatusBadRequest, err.Error())
+		}
+		return c.JSON(http.StatusOK, bb)
 	}
 }
 

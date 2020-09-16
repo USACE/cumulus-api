@@ -47,6 +47,8 @@ func Factory(i Info) (Acquirable, error) {
 		return &NcepRtmaRuAnlAcquirable{info: i}, nil
 	case "ncep_rtma_ru_ges":
 		return &NcepRtmaRuGesAcquirable{info: i}, nil
+	case "ncep_mrms_gaugecorr_qpe_01h":
+		return &NcepMrmsGaugeCorrQpe01hAcquirable{info: i}, nil
 	}
 	return nil, errors.New("acquirable not implemented")
 }

@@ -68,7 +68,7 @@ func main() {
 	// Downloads
 	public.GET("cumulus/downloads", handlers.ListDownloads(db))
 	public.GET("cumulus/downloads/:id", handlers.GetDownload(db))
-	public.POST("cumulus/downloads", handlers.CreateDownload(db))
+	public.POST("cumulus/downloads", handlers.CreateDownload(db, asyncer))
 	public.PUT("cumulus/downloads/:id", handlers.UpdateDownload(db))
 
 	// Restricted Routes (JWT or Key)

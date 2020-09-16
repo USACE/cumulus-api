@@ -1,6 +1,7 @@
 package handlers
 
 import (
+	"api/root/asyncer"
 	"api/root/models"
 	"net/http"
 
@@ -36,17 +37,17 @@ func ListDownloads(db *sqlx.DB) echo.HandlerFunc {
 
 // CreateDownload request, return dummy response for testing until
 // dss processing/file creation is available
-func CreateDownload(db *sqlx.DB) echo.HandlerFunc {
+func CreateDownload(db *sqlx.DB, ae asyncer.Asyncer) echo.HandlerFunc {
 	return func(c echo.Context) error {
 		//need to check if products provided are valid uuids for existing products
 		//sanity check on dates in time windows and geometry??
 
-		dl := models.Download{}
+		var dl models.Download
 		if err := c.Bind(&dl); err != nil {
 			return c.String(http.StatusBadRequest, err.Error())
 		}
 
-		d, err := models.CreateDownload(db, dl)
+		d, err := models.CreateDownload(db, dl, ae)
 		if err != nil {
 			return c.String(http.StatusInternalServerError, err.Error())
 		}

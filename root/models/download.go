@@ -1,6 +1,9 @@
 package models
 
 import (
+	"api/root/asyncer"
+	"encoding/json"
+	"fmt"
 	"time"
 
 	"github.com/google/uuid"
@@ -35,6 +38,46 @@ type DownloadUpdate struct {
 	ProcessingEnd *time.Time `json:"processing_end" db:"processing_end"`
 }
 
+// DownloadContentItem is a struct to hold a single entry in the contents array
+type DownloadContentItem struct {
+	Name     string `json:"name"`
+	DssFpart string `json:"dss_fpart" db:"dss_fpart"`
+	Bucket   string `json:"bucket"`
+	Key      string `json:"key"`
+}
+
+// ListDownloadContentItems returns a list of products for the lamda packager/downloader
+func ListDownloadContentItems(db *sqlx.DB, d Download) ([]DownloadContentItem, error) {
+
+	sql := `
+			SELECT 
+			'cumulus/' || p.name || '/' || f.file as key,
+			'corpsmap-data' AS bucket,
+			p.name as name,
+			p.dss_fpart as dss_fpart
+			FROM productfile f
+		INNER JOIN product p on f.product_id = p.id
+		WHERE f.datetime >= ? AND f.datetime <= ?
+		AND f.product_id IN (?)
+		order by f.product_id, f.datetime
+	`
+
+	// sqlx.In returns queries with the `?` bindvar, we can rebind it for our backend
+	contentItems := make([]DownloadContentItem, 0)
+	query, args, err := sqlx.In(sql, d.DatetimeStart.Format(time.RFC3339), d.DatetimeEnd.Format(time.RFC3339), d.ProductID)
+	if err != nil {
+		return nil, err
+	}
+
+	query = db.Rebind(query)
+	err = db.Select(&contentItems, query, args...)
+	if err != nil {
+		return nil, err
+	}
+
+	return contentItems, nil
+}
+
 // ListDownloads returns all downloads from the database
 func ListDownloads(db *sqlx.DB) ([]Download, error) {
 
@@ -46,13 +89,14 @@ func ListDownloads(db *sqlx.DB) ([]Download, error) {
 }
 
 // CreateDownload creates a download record in
-func CreateDownload(db *sqlx.DB, d Download) (*Download, error) {
+func CreateDownload(db *sqlx.DB, d Download, ae asyncer.Asyncer) (*Download, error) {
 
 	sql := `INSERT INTO download (datetime_start, datetime_end, status_id, basin_id)
 			VALUES ($1, $2, '94727878-7a50-41f8-99eb-a80eb82f737a', $3)
 			RETURNING *`
 
 	var dNew Download
+	// Creates a download record and scans into a new struct (with UUID)
 	if err := db.Get(&dNew, sql, d.DatetimeStart, d.DatetimeEnd, d.BasinID); err != nil {
 		return nil, err
 	}
@@ -60,13 +104,37 @@ func CreateDownload(db *sqlx.DB, d Download) (*Download, error) {
 	//*****************
 	//this is NOT FINAL
 	//*****************
-	dpSQL := `INSERT INTO download_product (product_id, download_id) VALUES ($1, $2) RETURNING id`
+	dpSQL := `INSERT INTO download_product (product_id, download_id) VALUES ($1, $2)`
 	for _, pID := range d.ProductID {
-
-		var record []string
-		if err := db.Select(&record, dpSQL, pID, dNew.ID); err != nil {
+		if _, err := db.Exec(dpSQL, pID, dNew.ID); err != nil {
 			return nil, err
 		}
+	}
+
+	downloadContentItems, err := ListDownloadContentItems(db, d)
+	if err != nil {
+		return nil, err
+	}
+
+	// Prepare the payload for AWS Lambda call
+	payload, err := json.Marshal(
+		map[string]interface{}{
+			"id":            dNew.ID,
+			"output_bucket": "corpsmap-data",
+			"output_key":    fmt.Sprintf("cumulus/download/dss/download_%s.dss", dNew.ID),
+			"contents":      downloadContentItems,
+		},
+	)
+	if err != nil {
+		return nil, err
+	}
+
+	// Invoke AWS Lambda
+	if err := ae.CallAsync(
+		"corpsmap-cumulus-packager",
+		payload,
+	); err != nil {
+		return nil, err
 	}
 
 	return &dNew, nil
@@ -117,4 +185,8 @@ func listDownloadSQL() string {
 			INNER JOIN download_status s ON d.status_id = s.id
 			--INNER JOIN download_product dp on d.id = dp.download_id
 `
+}
+
+func downloadProductsSql() string {
+	return listProductsSQL() + ` where a.id in (?)`
 }

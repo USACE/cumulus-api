@@ -17,7 +17,7 @@ type DownloadStatus struct {
 	Status   string    `json:"status"`
 }
 
-// DownloadRequest holds all information from a download request
+// DownloadRequest holds all information from a download request coming from a user
 type DownloadRequest struct {
 	DatetimeStart time.Time   `json:"datetime_start" db:"datetime_start"`
 	DatetimeEnd   time.Time   `json:"datetime_end" db:"datetime_end"`
@@ -58,10 +58,15 @@ type PackagerContentItem struct {
 	Key      string `json:"key"`
 }
 
+var listDownloadsSQL = `SELECT id, datetime_start, datetime_end, progress, file,
+							   processing_start, processing_end, status_id, basin_id, status, product_id
+					   FROM v_download
+					   `
+
 // ListDownloads returns all downloads from the database
 func ListDownloads(db *sqlx.DB) ([]Download, error) {
 
-	rows, err := db.Queryx(listDownloadSQL)
+	rows, err := db.Queryx(listDownloadsSQL)
 	if err != nil {
 		return make([]Download, 0), err
 	}
@@ -76,7 +81,7 @@ func ListDownloads(db *sqlx.DB) ([]Download, error) {
 // GetDownload returns a single download record
 func GetDownload(db *sqlx.DB, id *uuid.UUID) (*Download, error) {
 
-	rows, err := db.Queryx(listDownloadSQL+" WHERE d.id = $1", id)
+	rows, err := db.Queryx(listDownloadsSQL+" WHERE id = $1", id)
 	if err != nil {
 		return nil, err
 	}
@@ -190,27 +195,6 @@ func UpdateDownload(db *sqlx.DB, downloadID *uuid.UUID, info *PackagerInfo) (*Do
 
 	return GetDownload(db, downloadID)
 }
-
-var listDownloadSQL = `SELECT d.id AS id,
-				   d.datetime_start AS datetime_start,
-				   d.datetime_end AS datetime_end,
-				   d.progress AS progress,
-				   d.file AS file,
-				   d.processing_start AS processing_start,
-				   d.processing_end AS processing_end,
-				   d.status_id AS status_id,
-				   d.basin_id AS basin_id,
-				   s.name AS status,
-				   dp.product_id AS product_id
-			FROM download d
-			INNER JOIN download_status s ON d.status_id = s.id
-			INNER JOIN (
-				SELECT array_agg(id) as product_id,
-					   download_id
-				FROM download_product
-				GROUP BY download_id
-			) dp ON d.id = dp.download_id
-			`
 
 // DownloadStructFactory converts download rows to download structs
 // Necessary for scanning arrays created from postgres array_agg()

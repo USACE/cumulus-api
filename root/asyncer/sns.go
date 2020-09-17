@@ -10,7 +10,9 @@ import (
 )
 
 // SNSAsyncer implements the Asyncer Interface for SNS Messages
-type SNSAsyncer struct{}
+type SNSAsyncer struct {
+	Topic string
+}
 
 // Name returns name of Asyncer
 func (a SNSAsyncer) Name() string {
@@ -20,7 +22,7 @@ func (a SNSAsyncer) Name() string {
 // CallAsync implements Asyncer interface for AWS Lambda
 func (a SNSAsyncer) CallAsync(functionName string, payload []byte) error {
 
-	topic := "arn:aws:sns:us-east-1:038611608639:corpsmap-downloads"
+	topic := a.Topic
 
 	msg := string(payload)
 	log.Printf("Async Payload: %s", msg)

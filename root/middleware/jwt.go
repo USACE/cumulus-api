@@ -1,5 +1,4 @@
-// JWT Authentication Configuration
-package appconfig
+package middleware
 
 import (
 	"crypto/rsa"
@@ -25,7 +24,7 @@ jULmKThQMqJWNFxtKO1ZZaBOaXg50H0X+28RZdlPk6qgiFyK6LcVw8ZEemxk/3bk
 dtc8yA3y/USzK7j6eu1XfOECAwEAAQ==
 -----END PUBLIC KEY-----`
 
-func jwtKey(key string) *rsa.PublicKey {
+func parsePublicKey(key string) *rsa.PublicKey {
 	publicKey, err := jwt.ParseRSAPublicKeyFromPEM([]byte(key))
 	if err != nil {
 		log.Printf(err.Error())
@@ -33,39 +32,37 @@ func jwtKey(key string) *rsa.PublicKey {
 	return publicKey
 }
 
-// jwtSkipper defines when to skip JWT Middleware
-func jwtSkipper(cfg *Config, skipIfKey bool) middleware.Skipper {
-	return func(c echo.Context) bool {
-		// Disabled via environment variable
-		if cfg.JWTAuthDisabled {
-			return true
-		}
-		// Skip if KeyAuth is enabled and Key passed in URL query params
-		if skipIfKey && c.QueryParam("key") != "" {
-			return true
-		}
-
-		return false
-	}
-}
-
-// JWTConfig is JWT authentication configuration for this app
-func JWTConfig(cfg *Config, skipIfKey bool) *middleware.JWTConfig {
-	return &middleware.JWTConfig{
-		// Skipper defines a function to skip middleware.
-		Skipper: jwtSkipper(cfg, skipIfKey),
+// JWT is Fully Configured JWT Middleware to Support CWBI-Auth
+func JWT(isDisabled bool, skipIfKey bool) echo.MiddlewareFunc {
+	return middleware.JWTWithConfig(middleware.JWTConfig{
+		// `skipIfKey` behavior allows skipping of the middleware
+		// if ?key= is in Query Params. This is useful for routes
+		// where JWT Auth or simple Key Auth is allowed.
+		Skipper: func(c echo.Context) bool {
+			if isDisabled {
+				return true
+			}
+			if skipIfKey && c.QueryParam("key") != "" {
+				return true
+			}
+			return false
+		},
 		// Signing key to validate token.
 		// Required.
-		SigningKey: jwtKey(jwtVerifyKey),
+		SigningKey: parsePublicKey(jwtVerifyKey),
+
 		// Signing method, used to check token signing method.
 		// Optional. Default value HS256.
 		SigningMethod: "RS512",
+
 		// Context key to store user information from the token into context.
 		// Optional. Default value "user".
 		// ContextKey:
+
 		// Claims are extendable claims data defining token content.
 		// Optional. Default value jwt.MapClaims
 		// Claims: jwt.MapClaims,
+
 		// TokenLookup is a string in the form of "<source>:<name>" that is used
 		// to extract token from the request.
 		// Optional. Default value "header:Authorization".
@@ -74,8 +71,9 @@ func JWTConfig(cfg *Config, skipIfKey bool) *middleware.JWTConfig {
 		// - "query:<name>"
 		// - "cookie:<name>"
 		// TokenLookup:
+
 		// AuthScheme to be used in the Authorization header.
 		// Optional. Default value "Bearer".
 		// AuthScheme: "Bearer"
-	}
+	})
 }

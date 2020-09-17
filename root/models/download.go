@@ -8,6 +8,7 @@ import (
 
 	"github.com/google/uuid"
 	"github.com/jmoiron/sqlx"
+	"github.com/lib/pq"
 )
 
 // DownloadStatus is a domain
@@ -21,7 +22,7 @@ type DownloadRequest struct {
 	DatetimeStart time.Time   `json:"datetime_start" db:"datetime_start"`
 	DatetimeEnd   time.Time   `json:"datetime_end" db:"datetime_end"`
 	BasinID       uuid.UUID   `json:"basin_id" db:"basin_id"`
-	ProductID     []uuid.UUID `json:"product_id"`
+	ProductID     []uuid.UUID `json:"product_id" db:"product_id"`
 }
 
 // Download holds all information about a download
@@ -34,7 +35,6 @@ type Download struct {
 
 // PackagerInfo holds all information Packager provides after a download starts
 type PackagerInfo struct {
-	DownloadID      uuid.UUID  `json:"download_id"`
 	Progress        int16      `json:"progress"`
 	File            *string    `json:"file"`
 	ProcessingStart time.Time  `json:"processing_start" db:"processing_start"`
@@ -61,11 +61,30 @@ type PackagerContentItem struct {
 // ListDownloads returns all downloads from the database
 func ListDownloads(db *sqlx.DB) ([]Download, error) {
 
-	dd := make([]Download, 0)
-	if err := db.Select(&dd, listDownloadSQL()); err != nil {
+	rows, err := db.Queryx(listDownloadSQL)
+	if err != nil {
+		return make([]Download, 0), err
+	}
+	dd, err := DownloadStructFactory(rows)
+	if err != nil {
 		return make([]Download, 0), err
 	}
 	return dd, nil
+
+}
+
+// GetDownload returns a single download record
+func GetDownload(db *sqlx.DB, id *uuid.UUID) (*Download, error) {
+
+	rows, err := db.Queryx(listDownloadSQL+" WHERE d.id = $1", id)
+	if err != nil {
+		return nil, err
+	}
+	dd, err := DownloadStructFactory(rows)
+	if err != nil {
+		return nil, err
+	}
+	return &dd[0], nil
 }
 
 // BuildPackagerRequest builds the request for Packager from a fully-populated download
@@ -105,7 +124,8 @@ func BuildPackagerRequest(db *sqlx.DB, d *Download) (*PackagerRequest, error) {
 func CreateDownload(db *sqlx.DB, dr *DownloadRequest, ae asyncer.Asyncer) (*Download, error) {
 
 	// Creates a download record and scans into a new struct (with UUID)
-	var d Download
+	// Pre-Load Download with DownloadRequest
+	d := Download{DownloadRequest: *dr}
 	createDownloadSQL := `INSERT INTO download (datetime_start, datetime_end, status_id, basin_id)
 			              VALUES ($1, $2, '94727878-7a50-41f8-99eb-a80eb82f737a', $3)
 			              RETURNING *`
@@ -139,66 +159,74 @@ func CreateDownload(db *sqlx.DB, dr *DownloadRequest, ae asyncer.Asyncer) (*Down
 }
 
 // UpdateDownload is called by Packager to update progress
-func UpdateDownload(db *sqlx.DB, u *PackagerInfo) (*Download, error) {
+func UpdateDownload(db *sqlx.DB, downloadID *uuid.UUID, info *PackagerInfo) (*Download, error) {
 
-	UpdateProgress := func(u *PackagerInfo) error {
+	UpdateProgress := func() error {
 		sql := `UPDATE download SET progress = $2 WHERE id = $1`
-		if _, err := db.Exec(sql, u.DownloadID, u.Progress); err != nil {
+		if _, err := db.Exec(sql, downloadID, info.Progress); err != nil {
 			return err
 		}
 		return nil
 	}
 
-	UpdateProgressSetComplete := func(u *PackagerInfo) error {
+	UpdateProgressSetComplete := func() error {
 		sql := `UPDATE download set progress = $2, processing_end = $3 WHERE id = $1`
-		if _, err := db.Exec(sql, u.DownloadID, u.Progress); err != nil {
+		if _, err := db.Exec(sql, downloadID, info.Progress); err != nil {
 			return err
 		}
 		return nil
 	}
 
-	if u.Progress == 100 {
+	if info.Progress == 100 {
 		t := time.Now()
-		u.ProcessingEnd = &t
-		if err := UpdateProgressSetComplete(u); err != nil {
+		info.ProcessingEnd = &t
+		if err := UpdateProgressSetComplete(); err != nil {
 			return nil, err
 		}
 	}
-	if err := UpdateProgress(u); err != nil {
+	if err := UpdateProgress(); err != nil {
 		return nil, err
 	}
 
-	return GetDownload(db, &u.DownloadID)
+	return GetDownload(db, downloadID)
 }
 
-// GetDownload returns a single download record
-func GetDownload(db *sqlx.DB, id *uuid.UUID) (*Download, error) {
-
-	var d Download
-	if err := db.Get(&d, listDownloadSQL()+" WHERE d.id = $1", id); err != nil {
-		return nil, err
-	}
-	return &d, nil
-}
-
-func listDownloadSQL() string {
-	return `SELECT d.id,
-				d.datetime_start,
-				d.datetime_end,
-				d.progress,
-				d.file,
-				d.processing_start,
-				d.processing_end,
-				d.status_id,
-				d.basin_id,
-				s.name AS status
-				--dp.product_id
+var listDownloadSQL = `SELECT d.id AS id,
+				   d.datetime_start AS datetime_start,
+				   d.datetime_end AS datetime_end,
+				   d.progress AS progress,
+				   d.file AS file,
+				   d.processing_start AS processing_start,
+				   d.processing_end AS processing_end,
+				   d.status_id AS status_id,
+				   d.basin_id AS basin_id,
+				   s.name AS status,
+				   dp.product_id AS product_id
 			FROM download d
 			INNER JOIN download_status s ON d.status_id = s.id
-			--INNER JOIN download_product dp on d.id = dp.download_id
-`
-}
+			INNER JOIN (
+				SELECT array_agg(id) as product_id,
+					   download_id
+				FROM download_product
+				GROUP BY download_id
+			) dp ON d.id = dp.download_id
+			`
 
-func downloadProductsSql() string {
-	return listProductsSQL() + ` where a.id in (?)`
+// DownloadStructFactory converts download rows to download structs
+// Necessary for scanning arrays created from postgres array_agg()
+func DownloadStructFactory(rows *sqlx.Rows) ([]Download, error) {
+	dd := make([]Download, 0)
+	defer rows.Close()
+	var d Download
+	for rows.Next() {
+		err := rows.Scan(
+			&d.ID, &d.DatetimeStart, &d.DatetimeEnd, &d.Progress, &d.File,
+			&d.ProcessingStart, &d.ProcessingEnd, &d.StatusID, &d.BasinID, &d.Status, pq.Array(&d.ProductID),
+		)
+		if err != nil {
+			return make([]Download, 0), err
+		}
+		dd = append(dd, d)
+	}
+	return dd, nil
 }

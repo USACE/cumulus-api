@@ -90,13 +90,12 @@ func UpdateDownload(db *sqlx.DB) echo.HandlerFunc {
 			return c.String(http.StatusBadRequest, err.Error())
 		}
 		// Set Download ID from Route Params
-		downloadID, err := uuid.Parse(c.Param("download_id"))
+		downloadID, err := uuid.Parse(c.Param("id"))
 		if err != nil {
 			return c.JSON(http.StatusBadRequest, err)
 		}
-		u.DownloadID = downloadID
 
-		d, err := models.UpdateDownload(db, &u)
+		d, err := models.UpdateDownload(db, &downloadID, &u)
 		if err != nil {
 			return c.String(http.StatusInternalServerError, err.Error())
 		}

@@ -160,13 +160,13 @@ func UpdateDownload(db *sqlx.DB, u *DownloadUpdate) ([]Download, error) {
 }
 
 // GetDownload returns a single download record
-func GetDownload(db *sqlx.DB, id *uuid.UUID) ([]Download, error) {
+func GetDownload(db *sqlx.DB, id *uuid.UUID) (*Download, error) {
 
-	dd := make([]Download, 0)
-	if err := db.Select(&dd, listDownloadSQL()+" WHERE d.id = $1", id); err != nil {
-		return make([]Download, 0), err
+	var dd Download
+	if err := db.Get(&dd, listDownloadSQL()+" WHERE d.id = $1", id); err != nil {
+		return &dd, err
 	}
-	return dd, nil
+	return &dd, nil
 }
 
 func listDownloadSQL() string {
@@ -187,6 +187,6 @@ func listDownloadSQL() string {
 `
 }
 
-func downloadProductsSql() string {
+func downloadProductsSQL() string {
 	return listProductsSQL() + ` where a.id in (?)`
 }

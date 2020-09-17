@@ -17,7 +17,8 @@ GRANT SELECT ON
     acquirable,
     acquisition,
     acquirable_acquisition,
-    key
+    key,
+    v_download
 TO cumulus_reader;
 
 -- Role cumulus_writer

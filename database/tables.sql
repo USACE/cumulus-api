@@ -127,6 +127,29 @@ CREATE TABLE IF NOT EXISTS public.download_product (
     download_id UUID REFERENCES download(id)
 );
 
+-- VIEWS
+CREATE OR REPLACE VIEW v_download AS (
+        SELECT d.id AS id,
+            d.datetime_start AS datetime_start,
+            d.datetime_end AS datetime_end,
+            d.progress AS progress,
+            d.file AS file,
+            d.processing_start AS processing_start,
+            d.processing_end AS processing_end,
+            d.status_id AS status_id,
+            d.basin_id AS basin_id,
+            s.name AS status,
+            dp.product_id AS product_id
+        FROM download d
+            INNER JOIN download_status s ON d.status_id = s.id
+            INNER JOIN (
+                SELECT array_agg(id) as product_id,
+                    download_id
+                FROM download_product
+                GROUP BY download_id
+            ) dp ON d.id = dp.download_id
+    )
+
 ------------------------
 -- SEED DATA FOR DOMAINS
 ------------------------

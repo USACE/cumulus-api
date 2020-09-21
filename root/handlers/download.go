@@ -41,13 +41,11 @@ func CreateDownload(db *sqlx.DB, ae asyncer.Asyncer) echo.HandlerFunc {
 	return func(c echo.Context) error {
 		//need to check if products provided are valid uuids for existing products
 		//sanity check on dates in time windows and geometry??
-
-		var dl models.Download
-		if err := c.Bind(&dl); err != nil {
+		var dr models.DownloadRequest
+		if err := c.Bind(&dr); err != nil {
 			return c.String(http.StatusBadRequest, err.Error())
 		}
-
-		d, err := models.CreateDownload(db, dl, ae)
+		d, err := models.CreateDownload(db, &dr, ae)
 		if err != nil {
 			return c.String(http.StatusInternalServerError, err.Error())
 		}
@@ -88,18 +86,17 @@ Example PUT JSON BODY
 func UpdateDownload(db *sqlx.DB) echo.HandlerFunc {
 	return func(c echo.Context) error {
 
-		dl := models.DownloadUpdate{}
-		if err := c.Bind(&dl); err != nil {
+		var u models.PackagerInfo
+		if err := c.Bind(&u); err != nil {
 			return c.String(http.StatusBadRequest, err.Error())
 		}
 		// Set Download ID from Route Params
-		id, err := uuid.Parse(c.Param("id"))
+		downloadID, err := uuid.Parse(c.Param("id"))
 		if err != nil {
 			return c.JSON(http.StatusBadRequest, err)
 		}
-		dl.ID = id
 
-		d, err := models.UpdateDownload(db, &dl)
+		d, err := models.UpdateDownload(db, &downloadID, &u)
 		if err != nil {
 			return c.String(http.StatusInternalServerError, err.Error())
 		}

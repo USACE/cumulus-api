@@ -102,7 +102,7 @@ func BuildPackagerRequest(db *sqlx.DB, d *Download) (*PackagerRequest, error) {
 		Contents:     make([]PackagerContentItem, 0),
 	}
 
-	sql := `SELECT 'cumulus/' || p.name || '/' || f.file as key,
+	sql := `SELECT f.file as key,
 		           'corpsmap-data' AS bucket,
 			       p.name as name,
 			       p.dss_fpart as dss_fpart

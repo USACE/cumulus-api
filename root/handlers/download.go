@@ -49,7 +49,8 @@ func CreateDownload(db *sqlx.DB, ae asyncer.Asyncer) echo.HandlerFunc {
 		if err != nil {
 			return c.String(http.StatusInternalServerError, err.Error())
 		}
-		return c.JSON(http.StatusOK, d)
+
+		return c.JSON(http.StatusCreated, d)
 	}
 }
 

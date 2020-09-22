@@ -100,8 +100,7 @@ func GetProductProductfiles(db *sqlx.DB, ID uuid.UUID, after string, before stri
 			panic(err)
 		}
 
-		//pf.File = strings.Join([]string{"https://cumulus.rsgis.dev/apimedia", file}, "/")
-		pf.File = strings.Join([]string{"https://api.rsgis.dev", file}, "/")
+		pf.File = strings.Join([]string{"https://cumulus.rsgis.dev/apimedia", file}, "/")
 
 		result = append(result, pf)
 	}

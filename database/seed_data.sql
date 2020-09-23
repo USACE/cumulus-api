@@ -319,6 +319,15 @@ INSERT INTO acquirable (name, schedule) VALUES
 ('ncep_mrms_gaugecorr_qpe_01h', '5 * * * *');
 
 -- productfile
+INSERT INTO productfile (id, file, datetime, product_id) VALUES
+('9250d514-a975-40e1-8259-981a7edea912', 'cumulus/ncep_mrms_gaugecorr_qpe_01h/MRMS_GaugeCorr_QPE_01H_00.00_20200921-170000.tif', '2020-09-21 17:00:00+00', 'f1b6ac38-bbc9-48c6-bf78-207005ee74fa'),
+('e0190bf4-989c-45e3-9f49-be56ba57c3cf', 'cumulus/ncep_mrms_gaugecorr_qpe_01h/MRMS_GaugeCorr_QPE_01H_00.00_20200921-180000.tif', '2020-09-21 18:00:00+00', 'f1b6ac38-bbc9-48c6-bf78-207005ee74fa'),
+('68df27dd-1280-4402-a62d-e8691009ca0f', 'cumulus/ncep_mrms_gaugecorr_qpe_01h/MRMS_GaugeCorr_QPE_01H_00.00_20200921-190000.tif', '2020-09-21 19:00:00+00', 'f1b6ac38-bbc9-48c6-bf78-207005ee74fa'),
+('98d93fc9-2370-447b-bfe9-889f9bac431c', 'cumulus/ncep_mrms_gaugecorr_qpe_01h/MRMS_GaugeCorr_QPE_01H_00.00_20200903-150000.tif', '2020-09-03 15:00:00+00', 'f1b6ac38-bbc9-48c6-bf78-207005ee74fa'),
+('831adc64-e0d0-431a-93cf-ca344094142d', 'cumulus/ncep_rtma_ru_anl_airtemp/20200921_rtma2p5_ru.t1630z.2dvaranl_ndfd.grb2', '2020-09-21 16:30:00+00', 'e4fdadc7-5532-4910-9ed7-3c3690305d86'),
+('12af166a-0a09-4410-b9c4-8ae978e775bd', 'cumulus/nohrsc_snodas_snowdepth/zz_ssmv11036tS__T0001TTNATS2016010605HP001_cloud_optimized.tif', '2016-01-06 06:00:00+00', 'e0baa220-1310-445b-816b-6887465cc94b'),
+('9d708871-627d-446e-9936-699309919fdd', 'cumulus/ncep_rtma_ru_anl_airtemp/20200921_rtma2p5_ru.t1130z.2dvaranl_ndfd.grb2', '2020-09-21 11:30:00+00', 'e4fdadc7-5532-4910-9ed7-3c3690305d86');
+
 -- INSERT INTO productfile (product_id, file, datetime) VALUES
 -- ('e0baa220-1310-445b-816b-6887465cc94b', 'test/file.tif', '1776-7-4'),
 -- ('757c809c-dda0-412b-9831-cb9bd0f62d1d', 'test/file.tif', '1776-7-4'),

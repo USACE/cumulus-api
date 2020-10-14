@@ -6,9 +6,10 @@ import (
 	"log"
 	"net/http"
 
-	"api/root/asyncer"
 	"api/root/handlers"
 	"api/root/middleware"
+
+	"github.com/USACE/go-simple-asyncer/asyncer"
 
 	"github.com/apex/gateway"
 	"github.com/kelseyhightower/envconfig"

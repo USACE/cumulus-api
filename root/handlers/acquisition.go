@@ -6,8 +6,9 @@ import (
 	"github.com/jmoiron/sqlx"
 	"github.com/labstack/echo"
 
-	"api/root/asyncer"
 	"api/root/models"
+
+	"github.com/USACE/go-simple-asyncer/asyncer"
 
 	// SQL Interface
 	_ "github.com/lib/pq"

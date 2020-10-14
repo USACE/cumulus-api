@@ -12,10 +12,11 @@ services:
         - POSTGRES_PASSWORD=postgres
     ports:
         - "5432:5432"
-  pgadmin:
-    image: dpage/pgadmin4
+  packager:
+    image: cumulus/packager
     environment:
-        - PGADMIN_DEFAULT_EMAIL=postgres@postgres.com
-        - PGADMIN_DEFAULT_PASSWORD=postgres
-    ports:
-        - "8080:80"
+      - CUMULUS_DBUSER=postgres
+      - CUMULUS_DBPASS=postgres
+      - CUMULUS_DBNAME=postgres
+      - CUMULUS_DBHOST=localhost
+      - CUMULUS_DBSSLMODE=disable

@@ -8,7 +8,8 @@ import (
 
 	"api/root/acquirable"
 	"api/root/acquisition"
-	"api/root/asyncer"
+
+	"github.com/USACE/go-simple-asyncer/asyncer"
 
 	"github.com/jmoiron/sqlx"
 )
@@ -21,7 +22,6 @@ func ListAcquirableInfo(db *sqlx.DB) ([]acquirable.Info, error) {
 	}
 	return nn, nil
 }
-
 
 // ListAcquirables returns acquirable.Info from the database
 func ListAcquirables(db *sqlx.DB) ([]acquirable.Acquirable, error) {

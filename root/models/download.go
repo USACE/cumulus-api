@@ -1,10 +1,11 @@
 package models
 
 import (
-	"api/root/asyncer"
 	"encoding/json"
 	"fmt"
 	"time"
+
+	"github.com/USACE/go-simple-asyncer/asyncer"
 
 	"github.com/google/uuid"
 	"github.com/jmoiron/sqlx"

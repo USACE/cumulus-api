@@ -1,9 +1,10 @@
 package handlers
 
 import (
-	"api/root/asyncer"
 	"api/root/models"
 	"net/http"
+
+	"github.com/USACE/go-simple-asyncer/asyncer"
 
 	"github.com/google/uuid"
 	"github.com/jmoiron/sqlx"

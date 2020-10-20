@@ -12,11 +12,31 @@ services:
         - POSTGRES_PASSWORD=postgres
     ports:
         - "5432:5432"
+  elasticmq:
+    image: softwaremill/elasticmq
+    volumes:
+      - ./elasticmq.conf:/opt/elasticmq.conf
+    ports:
+      - "9324:9324"
   packager:
-    image: cumulus/packager
+    build:
+      context: ../packager
     environment:
+      - AWS_ACCESS_KEY_ID=$AWS_ACCESS_KEY_ID
+      - AWS_SECRET_ACCESS_KEY=$AWS_SECRET_ACCESS_KEY
+      - CUMULUS_MOCK_S3_UPLOAD=TRUE
       - CUMULUS_DBUSER=postgres
       - CUMULUS_DBPASS=postgres
       - CUMULUS_DBNAME=postgres
-      - CUMULUS_DBHOST=localhost
+      - CUMULUS_DBHOST=cumulusdb
       - CUMULUS_DBSSLMODE=disable
+    # Volume to persist packager created file
+    volumes:
+      - ./packager_files:/output
+  pgadmin:
+    image: dpage/pgadmin4
+    environment:
+        - PGADMIN_DEFAULT_EMAIL=postgres@postgres.com
+        - PGADMIN_DEFAULT_PASSWORD=postgres
+    ports:
+        - "8080:80"

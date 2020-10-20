@@ -22,17 +22,17 @@ import (
 
 // Config holds application configuration variables
 type Config struct {
-	DBUser                         string
-	DBPass                         string
-	DBName                         string
-	DBHost                         string
-	DBSSLMode                      string
-	AuthDisabled                   bool `split_words:"true"`
-	LambdaContext                  bool
-	AsyncEngineAcquisition         string `envconfig:"ASYNC_ENGINE_ACQUISITION"`
-	AsyncEngineAcquisitionSNSTopic string `envconfig:"ASYNC_ENGINE_ACQUISITION_SNS_TOPIC"`
-	AsyncEnginePackager            string `envconfig:"ASYNC_ENGINE_PACKAGER"`
-	AsyncEnginePackagerSNSTopic    string `envconfig:"ASYNC_ENGINE_PACKAGER_SNS_TOPIC"`
+	DBUser                       string
+	DBPass                       string
+	DBName                       string
+	DBHost                       string
+	DBSSLMode                    string
+	AuthDisabled                 bool `split_words:"true"`
+	LambdaContext                bool
+	AsyncEngineAcquisition       string `envconfig:"ASYNC_ENGINE_ACQUISITION"`
+	AsyncEngineAcquisitionTarget string `envconfig:"ASYNC_ENGINE_ACQUISITION_TARGET"`
+	AsyncEnginePackager          string `envconfig:"ASYNC_ENGINE_PACKAGER"`
+	AsyncEnginePackagerTarget    string `envconfig:"ASYNC_ENGINE_PACKAGER_TARGET"`
 }
 
 // Connection returns a database connection from configuration parameters
@@ -77,14 +77,15 @@ func main() {
 
 	// packagerAsyncer defines async engine used to package DSS files for download
 	packagerAsyncer, err := asyncer.NewAsyncer(
-		asyncer.Config{Engine: cfg.AsyncEnginePackager, Topic: cfg.AsyncEnginePackagerSNSTopic},
+		asyncer.Config{Engine: cfg.AsyncEnginePackager, Target: cfg.AsyncEnginePackagerTarget},
 	)
 	if err != nil {
 		log.Fatal(err.Error())
 	}
+	fmt.Println(packagerAsyncer)
 	// acquisitionAsyncer defines async engine used to package DSS files for download
 	acquisitionAsyncer, err := asyncer.NewAsyncer(
-		asyncer.Config{Engine: cfg.AsyncEngineAcquisition, Topic: cfg.AsyncEngineAcquisitionSNSTopic},
+		asyncer.Config{Engine: cfg.AsyncEngineAcquisition, Target: cfg.AsyncEngineAcquisitionTarget},
 	)
 	if err != nil {
 		log.Fatal(err.Error())
@@ -117,6 +118,7 @@ func main() {
 	public.GET("cumulus/products/:id/availability", handlers.GetProductAvailability(db))
 	public.GET("cumulus/products/:id/files", handlers.GetProductProductfiles(db))
 	public.GET("cumulus/acquirables", handlers.ListAcquirableInfo(db))
+
 	// Downloads
 	public.GET("cumulus/downloads", handlers.ListDownloads(db))
 	public.GET("cumulus/downloads/:id", handlers.GetDownload(db))

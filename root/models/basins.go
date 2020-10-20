@@ -1,8 +1,6 @@
 package models
 
 import (
-	"log"
-
 	"github.com/google/uuid"
 	"github.com/jmoiron/sqlx"
 	_ "github.com/lib/pq"
@@ -73,7 +71,7 @@ func ListOfficeBasins(db *sqlx.DB, officeSlug string) ([]Basin, error) {
 }
 
 // GetBasin returns a single basin
-func GetBasin(db *sqlx.DB, ID uuid.UUID) Basin {
+func GetBasin(db *sqlx.DB, ID *uuid.UUID) (*Basin, error) {
 	sql := `SELECT b.id,
 				   b.name,
 				   b.x_min,
@@ -87,10 +85,10 @@ func GetBasin(db *sqlx.DB, ID uuid.UUID) Basin {
 	        WHERE b.id = $1
 	`
 
-	var result Basin
-	if err := db.QueryRowx(sql, ID).StructScan(&result); err != nil {
-		log.Panicf("Fail to query and scan row with ID %s;%s", ID, err)
+	var b Basin
+	if err := db.QueryRowx(sql, ID).StructScan(&b); err != nil {
+		return nil, err
 	}
 
-	return result
+	return &b, nil
 }

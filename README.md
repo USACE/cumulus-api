@@ -12,5 +12,3 @@
 	('prism_tmax_early', '55 06-10 * * *'),
 	('prism_tmin_early', '55 07-10 * * *');
     ```
-
-2. 

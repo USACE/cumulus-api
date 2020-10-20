@@ -107,10 +107,7 @@ func DoAcquire(db *sqlx.DB, ae asyncer.Asyncer) (*acquirable.AcquisitionAttempt,
 					return &acq, err
 				}
 				// Invoke AWS Lambda
-				if err := ae.CallAsync(
-					"corpsmap-cumulus-downloader",
-					payload,
-				); err != nil {
+				if err := ae.CallAsync(payload); err != nil {
 					txn.Rollback()
 					return &acq, err
 				}

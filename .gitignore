@@ -20,4 +20,6 @@ vendor
 
 **.DS_Store
 
+database/packager_files/**
+
 __debug*

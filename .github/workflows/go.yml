@@ -1,12 +1,13 @@
-name: Go
+name: API and Packager
 
 on:
   push:
     branches: [develop]
 
 jobs:
-  build:
-    name: Build
+
+  GoAPI:
+    name: Build Go API
     runs-on: ubuntu-latest
     steps:
       - name: Set up Go 1.13
@@ -27,3 +28,38 @@ jobs:
           AWS_ACCESS_KEY_ID: ${{ secrets.RSGISCI_AWS_ACCESS_KEY_ID }}
           AWS_SECRET_ACCESS_KEY: ${{ secrets.RSGISCI_AWS_SECRET_ACCESS_KEY }}
         run: make deploy
+
+  PackagerDockerImage:
+    name: Packager Container Image
+    # The type of runner that the job will run on
+    runs-on: ubuntu-latest
+
+    # Steps represent a sequence of tasks that will be executed as part of the job
+    steps:
+    # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
+      - uses: actions/checkout@v2
+    
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v1
+        with:
+          aws-access-key-id: ${{ secrets.RSGISCI_AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.RSGISCI_AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ secrets.RSGISCI_AWS_DEFAULT_REGION }}
+    
+      - name: Login to Amazon ECR
+        id: login-ecr
+        uses: aws-actions/amazon-ecr-login@v1
+
+      - name: Build, tag, and push image to Amazon ECR (cumulus-packager)
+        env:
+          ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
+          ECR_REPOSITORY: cumulus-packager
+          IMAGE_TAG: ${{ github.sha }}
+        run: |
+          docker build -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG -t $ECR_REGISTRY/$ECR_REPOSITORY:latest cumulus-packager
+          docker push $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
+          docker push $ECR_REGISTRY/$ECR_REPOSITORY:latest
+
+      - name: Logout of Amazon ECR
+        if: always()
+        run: docker logout ${{ steps.login-ecr.outputs.registry }}

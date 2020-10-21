@@ -40,3 +40,12 @@ services:
         - PGADMIN_DEFAULT_PASSWORD=postgres
     ports:
         - "8080:80"
+  nginx:
+    image: nginx
+    ports: 
+        - "80:80"
+    build: 
+      context: ../packager
+      dockerfile: ../packager/Dockerfile-nginx
+    volumes:
+      - ./packager_files:/usr/share/nginx/html/cumulus/download/dss

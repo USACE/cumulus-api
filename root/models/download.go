@@ -1,6 +1,7 @@
 package models
 
 import (
+	"api/root/config"
 	"encoding/json"
 	"fmt"
 	"time"
@@ -11,6 +12,13 @@ import (
 	"github.com/jmoiron/sqlx"
 	"github.com/lib/pq"
 )
+
+// Environment Variable Config
+var cfg, err = config.GetConfig()
+
+// if err != nil {
+// 	log.Fatal(err.Error())
+// }
 
 // DownloadStatus is a domain
 type DownloadStatus struct {
@@ -63,7 +71,7 @@ type PackagerContentItem struct {
 	DssUnit     string `json:"dss_unit" db:"dss_unit"`
 }
 
-var listDownloadsSQL = `SELECT id, datetime_start, datetime_end, progress, file,
+var listDownloadsSQL = `SELECT id, datetime_start, datetime_end, progress, CONCAT('` + cfg.StaticHost + `/', file) as file,
 							   processing_start, processing_end, status_id, basin_id, status, product_id
 					   FROM v_download
 					   `

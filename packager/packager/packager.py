@@ -3,6 +3,7 @@ import os
 import json
 from time import sleep
 import tempfile
+import shutil
 
 import boto3
 import botocore
@@ -115,7 +116,7 @@ def package(msg, packager_update_fn):
     # Get product count from event contents
     with tempfile.TemporaryDirectory() as td:
         print(f'Working in temporary directory: {td}')
-        outfile = write_contents_to_dssfile("/output/test.dss", basin, contents, callbackFn)
+        outfile = write_contents_to_dssfile(os.path.join(td, os.path.basename(output_key)), basin, contents, callbackFn)
 
         print('Output key is: {}'.format(output_key))
 
@@ -123,9 +124,9 @@ def package(msg, packager_update_fn):
         if CONFIG.CUMULUS_MOCK_S3_UPLOAD:
             # Mock good upload to S3
             upload_success = True
-            # Copy file to tmp directory on host
+            # Copy file to output directory in the container
             # shutil.copy2 will overwrite a file if it already exists.
-            # shutil.copy2(_f["file"], "/tmp")
+            shutil.copy2(outfile, "/output/"+os.path.basename(outfile))
         else:
             upload_success = upload_file(
                 _outfile, WRITE_TO_BUCKET, output_key

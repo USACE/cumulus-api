@@ -6,13 +6,13 @@ import (
 	"log"
 	"net/http"
 
+	"api/root/config"
 	"api/root/handlers"
 	"api/root/middleware"
 
 	"github.com/USACE/go-simple-asyncer/asyncer"
 
 	"github.com/apex/gateway"
-	"github.com/kelseyhightower/envconfig"
 	"github.com/labstack/echo"
 
 	"github.com/jmoiron/sqlx"
@@ -20,24 +20,9 @@ import (
 	_ "github.com/lib/pq"
 )
 
-// Config holds application configuration variables
-type Config struct {
-	DBUser                       string
-	DBPass                       string
-	DBName                       string
-	DBHost                       string
-	DBSSLMode                    string
-	AuthDisabled                 bool `split_words:"true"`
-	LambdaContext                bool
-	AsyncEngineAcquisition       string `envconfig:"ASYNC_ENGINE_ACQUISITION"`
-	AsyncEngineAcquisitionTarget string `envconfig:"ASYNC_ENGINE_ACQUISITION_TARGET"`
-	AsyncEnginePackager          string `envconfig:"ASYNC_ENGINE_PACKAGER"`
-	AsyncEnginePackagerTarget    string `envconfig:"ASYNC_ENGINE_PACKAGER_TARGET"`
-}
-
 // Connection returns a database connection from configuration parameters
-func Connection(cfg *Config) *sqlx.DB {
-	connStr := func(cfg *Config) string {
+func Connection(cfg *config.Config) *sqlx.DB {
+	connStr := func(cfg *config.Config) string {
 		return fmt.Sprintf(
 			"user=%s password=%s dbname=%s host=%s sslmode=%s binary_parameters=yes",
 			cfg.DBUser, cfg.DBPass, cfg.DBName, cfg.DBHost, cfg.DBSSLMode,
@@ -67,13 +52,13 @@ func main() {
 	//
 
 	// Environment Variable Config
-	var cfg Config
-	if err := envconfig.Process("cumulus", &cfg); err != nil {
+	cfg, err := config.GetConfig()
+	if err != nil {
 		log.Fatal(err.Error())
 	}
 
 	// Database
-	db := Connection(&cfg)
+	db := Connection(cfg)
 
 	// packagerAsyncer defines async engine used to package DSS files for download
 	packagerAsyncer, err := asyncer.NewAsyncer(
@@ -138,6 +123,6 @@ func main() {
 	if lambda {
 		log.Fatal(gateway.ListenAndServe("localhost:3030", e))
 	} else {
-		log.Fatal(http.ListenAndServe("localhost:3030", e))
+		log.Fatal(http.ListenAndServe(":3030", e))
 	}
 }

@@ -11,6 +11,9 @@
       "mode": "auto",
       "program": "${workspaceFolder}/root/main.go",
       "env": {
+        "AWS_ACCESS_KEY_ID": "x",
+        "AWS_SECRET_ACCESS_KEY": "x",
+        "AWS_REGION": "us-east-1",
         "CUMULUS_AUTH_DISABLED": "FALSE",
         "CUMULUS_DBUSER": "postgres",
         "CUMULUS_DBPASS": "postgres",
@@ -19,9 +22,10 @@
         "CUMULUS_DBSSLMODE": "disable",
         "CUMULUS_LAMBDACONTEXT": "FALSE",
         "CUMULUS_ASYNC_ENGINE_ACQUISITION": "MOCK",
-        "CUMULUS_ASYNC_ENGINE_ACQUISITION_SNS_TOPIC": "",
-        "CUMULUS_ASYNC_ENGINE_PACKAGER": "MOCK",
-        "CUMULUS_ASYNC_ENGINE_PACKAGER_SNS_TOPIC": ""
+        "CUMULUS_ASYNC_ENGINE_ACQUISITION_TARGET": "",
+        "CUMULUS_ASYNC_ENGINE_PACKAGER": "AWSSQS",
+        "CUMULUS_ASYNC_ENGINE_PACKAGER_TARGET": "local/http://localhost:9324/queue/packager",
+        "CUMULUS_STATIC_HOST": "https://api.rsgis.dev"
       },
       "args": []
     }

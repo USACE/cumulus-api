@@ -1,6 +1,7 @@
 package models
 
 import (
+	"api/root/config"
 	"encoding/json"
 	"fmt"
 	"time"
@@ -11,6 +12,13 @@ import (
 	"github.com/jmoiron/sqlx"
 	"github.com/lib/pq"
 )
+
+// Environment Variable Config
+var cfg, err = config.GetConfig()
+
+// if err != nil {
+// 	log.Fatal(err.Error())
+// }
 
 // DownloadStatus is a domain
 type DownloadStatus struct {
@@ -47,19 +55,23 @@ type PackagerRequest struct {
 	DownloadID   uuid.UUID             `json:"download_id"`
 	OutputBucket string                `json:"output_bucket"`
 	OutputKey    string                `json:"output_key"`
+	Basin        Basin                 `json:"basin"`
 	Contents     []PackagerContentItem `json:"contents"`
 }
 
 // PackagerContentItem is a single item for Packager to include in output file
 // Note: Previously called DownloadContentItem
 type PackagerContentItem struct {
-	Name     string `json:"name"`
-	DssFpart string `json:"dss_fpart" db:"dss_fpart"`
-	Bucket   string `json:"bucket"`
-	Key      string `json:"key"`
+	Bucket      string `json:"bucket"`
+	Key         string `json:"key"`
+	DssDatatype string `json:"dss_datatype" db:"dss_datatype"`
+	DssFpart    string `json:"dss_fpart" db:"dss_fpart"`
+	DssDpart    string `json:"dss_dpart" db:"dss_dpart"`
+	DssEpart    string `json:"dss_epart" db:"dss_epart"`
+	DssUnit     string `json:"dss_unit" db:"dss_unit"`
 }
 
-var listDownloadsSQL = `SELECT id, datetime_start, datetime_end, progress, file,
+var listDownloadsSQL = `SELECT id, datetime_start, datetime_end, progress, CONCAT('` + cfg.StaticHost + `/', file) as file,
 							   processing_start, processing_end, status_id, basin_id, status, product_id
 					   FROM v_download
 					   `
@@ -103,15 +115,39 @@ func BuildPackagerRequest(db *sqlx.DB, d *Download) (*PackagerRequest, error) {
 		Contents:     make([]PackagerContentItem, 0),
 	}
 
-	sql := `SELECT f.file as key,
-		           'corpsmap-data' AS bucket,
-			       p.name as name,
-			       p.dss_fpart as dss_fpart
-		    FROM productfile f
-		    INNER JOIN product p on f.product_id = p.id
-		    WHERE f.datetime >= ? AND f.datetime <= ?
-		    AND f.product_id IN (?)
-		    order by f.product_id, f.datetime
+	// Accounts for DSS Datetime Strings referencing midnight as 2400
+	sql := `SELECT key,
+	               bucket,
+	               dss_datatype,
+	               CASE WHEN date_part('hour', datetime_dss_dpart) = 0
+	               			THEN to_char(datetime_dss_dpart - interval '1 Day', 'DDMONYYYY:24MI')
+	               	 	ELSE to_char(datetime_dss_dpart, 'DDMONYYYY:HH24MI') END as dss_dpart,
+	               CASE WHEN date_part('hour', datetime_dss_epart) = 0
+	               			THEN to_char(datetime_dss_epart - interval '1 Day', 'DDMONYYYY:24MI')
+	               	 	ELSE COALESCE(to_char(datetime_dss_epart, 'DDMONYYYY:HH24MI'), '') END as dss_epart,
+				   dss_fpart,
+				   dss_unit
+			FROM (
+			 	SELECT f.file as key,
+			 		   'corpsmap-data' AS bucket,
+					   CASE WHEN p.temporal_duration = 0 THEN 'INST-VAL'
+					   		ELSE 'PER-CUM'
+			        		END as dss_datatype,
+			           CASE WHEN p.temporal_duration = 0 THEN f.datetime
+			        		ELSE f.datetime - p.temporal_duration * interval '1 Second'
+			           	  	END as datetime_dss_dpart,
+			           CASE WHEN p.temporal_duration = 0 THEN null
+			           	 	ELSE f.datetime
+			           	 	END as datetime_dss_epart,
+					   p.dss_fpart as dss_fpart,
+					   u.name      as dss_unit
+			 	FROM productfile f
+				INNER JOIN product p on f.product_id = p.id
+				INNER JOIN unit u on p.unit_id = u.id
+				WHERE f.datetime >= ? AND f.datetime <= ?
+		    	AND f.product_id IN (?)
+		    	ORDER BY f.product_id, f.datetime
+ 			) as dss
 	`
 
 	// sqlx.In returns queries with the `?` bindvar, we can rebind it for our backend
@@ -123,6 +159,14 @@ func BuildPackagerRequest(db *sqlx.DB, d *Download) (*PackagerRequest, error) {
 	if err = db.Select(&pr.Contents, query, args...); err != nil {
 		return nil, err
 	}
+
+	// Attach Basin
+	b, err := GetBasin(db, &d.BasinID)
+	if err != nil {
+		return nil, err
+	}
+	pr.Basin = *b
+
 	return &pr, nil
 }
 
@@ -157,10 +201,9 @@ func CreateDownload(db *sqlx.DB, dr *DownloadRequest, ae asyncer.Asyncer) (*Down
 	}
 
 	// Fire Async Call to Packager
-	if err := ae.CallAsync("corpsmap-cumulus-packager", payload); err != nil {
+	if err := ae.CallAsync(payload); err != nil {
 		return nil, err
 	}
-
 	return &d, nil
 }
 

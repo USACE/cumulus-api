@@ -3,9 +3,10 @@ module api
 go 1.13
 
 require (
-	github.com/USACE/go-simple-asyncer v0.0.0-20201009224357-739c4a3e35ab
+	github.com/USACE/go-simple-asyncer v0.0.0-20201015223104-446ae10887a8
 	github.com/apex/gateway v1.1.1
 	github.com/aws/aws-lambda-go v1.19.1 // indirect
+	github.com/aws/aws-sdk-go v1.35.8 // indirect
 	github.com/btcsuite/btcutil v1.0.2
 	github.com/dgrijalva/jwt-go v3.2.0+incompatible
 	github.com/go-sql-driver/mysql v1.5.0 // indirect
@@ -21,5 +22,5 @@ require (
 	github.com/valyala/fasttemplate v1.2.1 // indirect
 	golang.org/x/crypto v0.0.0-20201012173705-84dcc777aaee
 	golang.org/x/net v0.0.0-20201010224723-4f7140c49acb // indirect
-	golang.org/x/sys v0.0.0-20201014080544-cc95f250f6bc // indirect
+	golang.org/x/sys v0.0.0-20201015000850-e3ed0017c211 // indirect
 )

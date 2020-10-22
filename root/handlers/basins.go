@@ -37,8 +37,12 @@ func GetBasin(db *sqlx.DB) echo.HandlerFunc {
 	return func(c echo.Context) error {
 		id, err := uuid.Parse(c.Param("id"))
 		if err != nil {
-			return c.NoContent(http.StatusNotFound)
+			return c.NoContent(http.StatusBadRequest)
 		}
-		return c.JSON(http.StatusOK, models.GetBasin(db, id))
+		b, err := models.GetBasin(db, &id)
+		if err != nil {
+			return c.String(http.StatusInternalServerError, err.Error())
+		}
+		return c.JSON(http.StatusOK, b)
 	}
 }

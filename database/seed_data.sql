@@ -326,24 +326,10 @@ INSERT INTO productfile (id, file, datetime, product_id) VALUES
 ('98d93fc9-2370-447b-bfe9-889f9bac431c', 'cumulus/ncep_mrms_gaugecorr_qpe_01h/MRMS_GaugeCorr_QPE_01H_00.00_20200903-150000.tif', '2020-09-03 15:00:00+00', 'f1b6ac38-bbc9-48c6-bf78-207005ee74fa'),
 ('831adc64-e0d0-431a-93cf-ca344094142d', 'cumulus/ncep_rtma_ru_anl_airtemp/20200921_rtma2p5_ru.t1630z.2dvaranl_ndfd.grb2', '2020-09-21 16:30:00+00', 'e4fdadc7-5532-4910-9ed7-3c3690305d86'),
 ('12af166a-0a09-4410-b9c4-8ae978e775bd', 'cumulus/nohrsc_snodas_snowdepth/zz_ssmv11036tS__T0001TTNATS2016010605HP001_cloud_optimized.tif', '2016-01-06 06:00:00+00', 'e0baa220-1310-445b-816b-6887465cc94b'),
-('9d708871-627d-446e-9936-699309919fdd', 'cumulus/ncep_rtma_ru_anl_airtemp/20200921_rtma2p5_ru.t1130z.2dvaranl_ndfd.grb2', '2020-09-21 11:30:00+00', 'e4fdadc7-5532-4910-9ed7-3c3690305d86');
-
--- INSERT INTO productfile (product_id, file, datetime) VALUES
--- ('e0baa220-1310-445b-816b-6887465cc94b', 'test/file.tif', '1776-7-4'),
--- ('757c809c-dda0-412b-9831-cb9bd0f62d1d', 'test/file.tif', '1776-7-4'),
--- ('57da96dc-fc5e-428c-9318-19f095f461eb', 'test/file.tif', '1776-7-4'),
--- ('86526298-78fa-4307-9276-a7c0a0537d15', 'test/file.tif', '1776-7-4'),
--- ('c2f2f0ed-d120-478a-b38f-427e91ab18e2', 'test/file.tif', '1776-7-4'),
--- ('517369a5-7fe3-4b0a-9ef6-10f26f327b26', 'test/file.tif', '1776-7-4'),
--- ('2274baae-1dcf-4c4c-92bb-e8a640debee0', 'test/file.tif', '1776-7-4'),
--- ('33407c74-cdc2-4ab2-bd9a-3dff99ea02e4', 'test/file.tif', '1776-7-4'),
--- ('e97fbc56-ebe2-4d5a-bcd4-4bf3744d8a1b', 'test/file.tif', '1776-7-4'),
--- ('10011d9c-04a4-454d-88a0-fb7ba0d64d37', 'test/file.tif', '1776-7-4'),
--- ('816abf9e-d9b8-4ba8-9532-78e36409b0b0', 'test/file.tif', '1776-7-4'),
--- ('ba1cc336-6cc0-4648-85a4-dd100e0ff411', 'test/file.tif', '1776-7-4'),
--- ('64756f41-75e2-40ce-b91a-fda5aeb441fc', 'test/file.tif', '1776-7-4'),
--- ('6357a677-5e77-4c37-8aeb-3300707ca885', 'test/file.tif', '1776-7-4'),
--- ('62e08d34-ff6b-45c9-8bb9-80df922d0779', 'test/file.tif', '1776-7-4');
+('9d708871-627d-446e-9936-699309919fdd', 'cumulus/ncep_rtma_ru_anl_airtemp/20200921_rtma2p5_ru.t1130z.2dvaranl_ndfd.grb2', '2020-09-21 11:30:00+00', 'e4fdadc7-5532-4910-9ed7-3c3690305d86'),
+('30a70d43-dcd2-4c46-85a8-8bf16200da5c', 'cumulus/nohrsc_snodas_snowdepth/zz_ssmv11036tS__T0001TTNATS2020081505HP001_cloud_optimized.tif','2020-08-15 00:00:00+00', 'e0baa220-1310-445b-816b-6887465cc94b'),
+('3b5542cc-f8bb-40d9-8663-5aa2f1ea7c60', 'cumulus/nohrsc_snodas_snowdepth/zz_ssmv11036tS__T0001TTNATS2020081605HP001_cloud_optimized.tif','2020-08-16 00:00:00+00', 'e0baa220-1310-445b-816b-6887465cc94b'),
+('27007e85-6cd9-4c03-b62e-503ffd3d7611', 'cumulus/nohrsc_snodas_snowdepth/zz_ssmv11036tS__T0001TTNATS2020081705HP001_cloud_optimized.tif','2020-08-17 00:00:00+00', 'e0baa220-1310-445b-816b-6887465cc94b');
 
 -- downloads
 INSERT INTO download (datetime_start, datetime_end, progress, status_id, file, processing_start, processing_end) VALUES 

@@ -25,11 +25,11 @@ CLIENT = boto3.resource(
 )
 
 # Incoming Requests for Packager
-queue_packager = CLIENT.get_queue_by_name(QueueName='packager')
+queue_packager = CLIENT.get_queue_by_name(QueueName=CONFIG.QUEUE_NAME_PACKAGER)
 print(f'queue; packager       : {queue_packager}')
 
 # Where to send Packager updates
-queue_packager_update = CLIENT.get_queue_by_name(QueueName="packager_update")
+queue_packager_update = CLIENT.get_queue_by_name(QueueName=CONFIG.QUEUE_NAME_PACKAGER_UPDATE)
 print(f'queue; packager_update: {queue_packager_update}')
 
 # Logger

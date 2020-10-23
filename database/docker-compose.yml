@@ -22,9 +22,12 @@ services:
     build:
       context: ../packager
     environment:
+      - AWS_REGION=$AWS_REGION
       - AWS_ACCESS_KEY_ID=$AWS_ACCESS_KEY_ID
       - AWS_SECRET_ACCESS_KEY=$AWS_SECRET_ACCESS_KEY
       - CUMULUS_MOCK_S3_UPLOAD=TRUE
+      - QUEUE_NAME_PACKAGER=packager
+      - QUEUE_NAME_PACKAGER_UPDATE=packager_update
       - CUMULUS_DBUSER=postgres
       - CUMULUS_DBPASS=postgres
       - CUMULUS_DBNAME=postgres
@@ -46,6 +49,6 @@ services:
         - "80:80"
     build: 
       context: ../packager
-      dockerfile: ../packager/Dockerfile-nginx
+      dockerfile: Dockerfile-nginx
     volumes:
       - ./packager_files:/usr/share/nginx/html/cumulus/download/dss

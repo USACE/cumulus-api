@@ -67,7 +67,6 @@ func main() {
 	if err != nil {
 		log.Fatal(err.Error())
 	}
-	fmt.Println(packagerAsyncer)
 	// acquisitionAsyncer defines async engine used to package DSS files for download
 	acquisitionAsyncer, err := asyncer.NewAsyncer(
 		asyncer.Config{Engine: cfg.AsyncEngineAcquisition, Target: cfg.AsyncEngineAcquisitionTarget},

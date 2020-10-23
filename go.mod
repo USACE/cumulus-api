@@ -4,9 +4,9 @@ go 1.13
 
 require (
 	github.com/USACE/go-simple-asyncer v0.0.0-20201015223104-446ae10887a8
-	github.com/apex/gateway v1.1.1
+	github.com/apex/gateway v1.1.2
 	github.com/aws/aws-lambda-go v1.19.1 // indirect
-	github.com/aws/aws-sdk-go v1.35.8 // indirect
+	github.com/aws/aws-sdk-go v1.35.14 // indirect
 	github.com/btcsuite/btcutil v1.0.2
 	github.com/dgrijalva/jwt-go v3.2.0+incompatible
 	github.com/go-sql-driver/mysql v1.5.0 // indirect
@@ -18,9 +18,8 @@ require (
 	github.com/lib/pq v1.8.0
 	github.com/mattn/go-colorable v0.1.8 // indirect
 	github.com/robfig/cron v1.2.0
-	github.com/tj/assert v0.0.0-20190920132354-ee03d75cd160 // indirect
 	github.com/valyala/fasttemplate v1.2.1 // indirect
-	golang.org/x/crypto v0.0.0-20201012173705-84dcc777aaee
-	golang.org/x/net v0.0.0-20201010224723-4f7140c49acb // indirect
-	golang.org/x/sys v0.0.0-20201015000850-e3ed0017c211 // indirect
+	golang.org/x/crypto v0.0.0-20201016220609-9e8e0b390897
+	golang.org/x/net v0.0.0-20201022231255-08b38378de70 // indirect
+	golang.org/x/sys v0.0.0-20201022201747-fb209a7c41cd // indirect
 )

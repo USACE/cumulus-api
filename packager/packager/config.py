@@ -1,5 +1,6 @@
 import os
 
+ENDPOINT_URL = os.getenv('ENDPOINT_URL', default='http://elasticmq:9324')
 QUEUE_NAME_PACKAGER=os.getenv('QUEUE_NAME_PACKAGER', 'packager')
 QUEUE_NAME_PACKAGER_UPDATE=os.getenv('QUEUE_NAME_PACKAGER_UPDATE', 'packager_update')
 
@@ -21,8 +22,6 @@ CUMULUS_DBPASS = os.getenv('CUMULUS_DBPASS', default='postgres')
 # 
 # Configuration Parameters
 # 
-ENDPOINT_URL = os.getenv('ENDPOINT_URL', default='http://elasticmq:9324')
-
 USE_SSL = os.getenv('USE_SSL', default=False)
 
 WAIT_TIME_SECONDS = os.getenv('WAIT_TIME_SECONDS', default=20)

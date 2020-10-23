@@ -20,7 +20,7 @@ def write_contents_to_dssfile(outfile, basin, items, callback):
 
             ds = gdal.Warp(
                 '/vsimem/projected.tif',
-                f'/vsicurl/https://api.rsgis.dev/{item["key"]}',
+                f'/vsis3_streaming/{item["bucket"]}/{item["key"]}',
                 dstSRS='EPSG:5070',
                 outputType=gdal.GDT_Float64,
                 outputBounds=[basin['x_min'], basin['y_min'], basin['x_max'], basin['y_max']],

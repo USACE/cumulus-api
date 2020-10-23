@@ -201,10 +201,9 @@ func CreateDownload(db *sqlx.DB, dr *DownloadRequest, ae asyncer.Asyncer) (*Down
 	}
 
 	// Fire Async Call to Packager
-	fmt.Println(payload)
-	// if err := ae.CallAsync(payload); err != nil {
-	// 	return nil, err
-	// }
+	if err := ae.CallAsync(payload); err != nil {
+		return nil, err
+	}
 	return &d, nil
 }
 

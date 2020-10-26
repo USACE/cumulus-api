@@ -121,9 +121,7 @@ func BuildPackagerRequest(db *sqlx.DB, d *Download) (*PackagerRequest, error) {
 	sql := `SELECT key,
 	               bucket,
 	               dss_datatype,
-	               CASE WHEN date_part('hour', datetime_dss_dpart) = 0
-	               			THEN to_char(datetime_dss_dpart - interval '1 Day', 'DDMONYYYY:24MI')
-	               	 	ELSE to_char(datetime_dss_dpart, 'DDMONYYYY:HH24MI') END as dss_dpart,
+	               to_char(datetime_dss_dpart, 'DDMONYYYY:HH24MI') as dss_dpart,
 	               CASE WHEN date_part('hour', datetime_dss_epart) = 0
 	               			THEN to_char(datetime_dss_epart - interval '1 Day', 'DDMONYYYY:24MI')
 	               	 	ELSE COALESCE(to_char(datetime_dss_epart, 'DDMONYYYY:HH24MI'), '') END as dss_epart,

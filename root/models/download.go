@@ -71,10 +71,12 @@ type PackagerContentItem struct {
 	DssUnit     string `json:"dss_unit" db:"dss_unit"`
 }
 
-var listDownloadsSQL = `SELECT id, datetime_start, datetime_end, progress, CONCAT('` + cfg.StaticHost + `/', file) as file,
-							   processing_start, processing_end, status_id, basin_id, status, product_id
-					   FROM v_download
-					   `
+var listDownloadsSQL = fmt.Sprintf(
+	`SELECT id, datetime_start, datetime_end, progress, (%s || '/' || file) as file,
+	   processing_start, processing_end, status_id, basin_id, status, product_id
+	   FROM v_download
+	`, cfg.StaticHost,
+)
 
 // ListDownloads returns all downloads from the database
 func ListDownloads(db *sqlx.DB) ([]Download, error) {

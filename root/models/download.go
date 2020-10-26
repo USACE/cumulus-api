@@ -72,7 +72,7 @@ type PackagerContentItem struct {
 }
 
 var listDownloadsSQL = fmt.Sprintf(
-	`SELECT id, datetime_start, datetime_end, progress, (%s || '/' || file) as file,
+	`SELECT id, datetime_start, datetime_end, progress, ('%s' || '/' || file) as file,
 	   processing_start, processing_end, status_id, basin_id, status, product_id
 	   FROM v_download
 	`, cfg.StaticHost,

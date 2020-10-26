@@ -66,6 +66,7 @@ type PackagerContentItem struct {
 	Key         string `json:"key"`
 	DssDatatype string `json:"dss_datatype" db:"dss_datatype"`
 	DssFpart    string `json:"dss_fpart" db:"dss_fpart"`
+	DssCpart    string `json:"dss_cpart" db:"dss_cpart"`
 	DssDpart    string `json:"dss_dpart" db:"dss_dpart"`
 	DssEpart    string `json:"dss_epart" db:"dss_epart"`
 	DssUnit     string `json:"dss_unit" db:"dss_unit"`
@@ -120,7 +121,8 @@ func BuildPackagerRequest(db *sqlx.DB, d *Download) (*PackagerRequest, error) {
 	// Accounts for DSS Datetime Strings referencing midnight as 2400
 	sql := `SELECT key,
 	               bucket,
-	               dss_datatype,
+				   dss_datatype,
+				   dss_cpart,
 	               to_char(datetime_dss_dpart, 'DDMONYYYY:HH24MI') as dss_dpart,
 	               CASE WHEN date_part('hour', datetime_dss_epart) = 0
 	               			THEN to_char(datetime_dss_epart - interval '1 Day', 'DDMONYYYY:24MI')
@@ -140,10 +142,12 @@ func BuildPackagerRequest(db *sqlx.DB, d *Download) (*PackagerRequest, error) {
 			           	 	ELSE f.datetime
 			           	 	END as datetime_dss_epart,
 					   p.dss_fpart as dss_fpart,
-					   u.name      as dss_unit
+					   u.name      as dss_unit,
+					   a.name      as dss_cpart
 			 	FROM productfile f
 				INNER JOIN product p on f.product_id = p.id
 				INNER JOIN unit u on p.unit_id = u.id
+				INNER JOIN parameter a on a.id = p.parameter_id
 				WHERE f.datetime >= ? AND f.datetime <= ?
 		    	AND f.product_id IN (?)
 		    	ORDER BY f.product_id, f.datetime

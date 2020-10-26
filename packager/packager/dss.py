@@ -52,7 +52,7 @@ def write_contents_to_dssfile(outfile, basin, items, callback):
             ])
 
             fid.put_grid(
-                f'/SHG/{basin["name"]}/DATA/{item["dss_dpart"]}/{item["dss_epart"]}/{item["dss_fpart"]}/',
+                f'/SHG/{basin["name"]}/{item["dss_cpart"]}/{item["dss_dpart"]}/{item["dss_epart"]}/{item["dss_fpart"]}/',
                 data,
                 grid_info
             )

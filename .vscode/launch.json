@@ -24,7 +24,7 @@
         "CUMULUS_ASYNC_ENGINE_ACQUISITION": "MOCK",
         "CUMULUS_ASYNC_ENGINE_ACQUISITION_TARGET": "",
         "CUMULUS_ASYNC_ENGINE_PACKAGER": "AWSSQS",
-        "CUMULUS_ASYNC_ENGINE_PACKAGER_TARGET": "local/http://localhost:9324/queue/packager",
+        "CUMULUS_ASYNC_ENGINE_PACKAGER_TARGET": "local/http://localhost:9324/queue/cumulus-packager",
         "CUMULUS_STATIC_HOST": "https://api.rsgis.dev"
       },
       "args": []

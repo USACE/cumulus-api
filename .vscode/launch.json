@@ -17,7 +17,7 @@
         "CUMULUS_APPLICATION_KEY": "appkey",
         "CUMULUS_AUTH_DISABLED": "FALSE",
         "CUMULUS_AUTH_JWT_MOCKED": "TRUE",
-        "CUMULUS_DBUSER": "postgres",
+        "CUMULUS_DBUSER": "cumulus_user",
         "CUMULUS_DBPASS": "postgres",
         "CUMULUS_DBNAME": "postgres",
         "CUMULUS_DBHOST": "localhost",

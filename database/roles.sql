@@ -8,6 +8,8 @@ CREATE USER cumulus_user WITH ENCRYPTED PASSWORD 'password';
 -- Tables specific to cumulus app
 CREATE ROLE cumulus_reader;
 GRANT SELECT ON
+    profile,
+    profile_token,
     office,
     parameter,
     basin,
@@ -25,6 +27,8 @@ TO cumulus_reader;
 -- Tables specific to instrumentation app
 CREATE ROLE cumulus_writer;
 GRANT INSERT,UPDATE,DELETE ON 
+    profile,
+    profile_token,
     office,
     parameter,
     basin,

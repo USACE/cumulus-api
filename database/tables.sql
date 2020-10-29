@@ -3,7 +3,7 @@ CREATE extension IF NOT EXISTS "uuid-ossp";
 
 
 -- drop tables if they already exist
-drop table if exists 
+drop table if exists
     public.office,
     public.basin,
     public.parameter,
@@ -16,7 +16,9 @@ drop table if exists
     public.acquirable_acquisition,
     public.download,
     public.download_product,
-    public.download_status
+    public.download_status,
+	public.profile_token,
+	public.profile
 	CASCADE;
 
 
@@ -164,7 +166,7 @@ CREATE OR REPLACE VIEW v_download AS (
                 FROM download_product
                 GROUP BY download_id
             ) dp ON d.id = dp.download_id
-    )
+    );
 
 ------------------------
 -- SEED DATA FOR DOMAINS

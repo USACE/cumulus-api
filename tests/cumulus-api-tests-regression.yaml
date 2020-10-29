@@ -1,17 +1,316 @@
 {
 	"info": {
-		"_postman_id": "414ce26e-0941-40cb-be90-7cab92fb3834",
+		"_postman_id": "72cc1ca3-c4a2-4cfa-949e-36744220955e",
 		"name": "cumulus-regression",
 		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
 	},
 	"item": [
+		{
+			"name": "downloads",
+			"item": [
+				{
+					"name": "CreateDownload",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"id": "bad9967e-e3f6-4e01-83f0-165d4bfd45fe",
+								"exec": [
+									"// validate JSON schema",
+									"var schema = {",
+									"    \"type\": \"array\",",
+									"    \"items\": {",
+									"        \"type\": \"object\",",
+									"        \"properties\": {",
+									"            \"id\": { \"type\": \"string\" },",
+									"            \"name\": { \"type\": \"string\" },",
+									"            \"x_min\": { \"type\": \"number\" },",
+									"            \"y_min\": { \"type\": \"number\" },",
+									"            \"x_max\": { \"type\": \"number\" },",
+									"            \"y_max\": { \"type\": \"number\" },",
+									"            \"office_symbol\": { \"type\": \"string\" }",
+									"        },",
+									"        \"required\": [\"id\", \"name\", \"x_min\", \"y_min\", \"x_max\", \"y_max\", \"office_symbol\"],",
+									"        \"additionalProperties\": false",
+									"    }",
+									"}",
+									"",
+									"// status code is 201",
+									"pm.test(\"Status code is 201\", function () {",
+									"    pm.response.to.have.status(201);",
+									"});",
+									"",
+									"pm.test(\"Schema validation\", function () {",
+									"    pm.response.to.have.jsonSchema(schema)",
+									"});",
+									""
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n\t\"datetime_start\": \"2020-09-14T00:00:00Z\",\n\t\"datetime_end\": \"2020-09-20T00:00:00Z\",\n\t\"basin_id\": \"c785f4de-ab17-444b-b6e6-6f1ad16676e8\",\n\t\"product_id\": [\n\t\t\"f1b6ac38-bbc9-48c6-bf78-207005ee74fa\"\n\t]\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{base_url}}/cumulus/downloads",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"cumulus",
+								"downloads"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "GetDownload",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"id": "20e7cb7d-043e-4fec-ad1f-e279f4464634",
+								"exec": [
+									"// validate JSON schema",
+									"var schema = {",
+									"    \"type\": \"array\",",
+									"    \"items\": {",
+									"        \"type\": \"object\",",
+									"        \"properties\": {",
+									"            \"id\": { \"type\": \"string\" },",
+									"            \"name\": { \"type\": \"string\" },",
+									"            \"x_min\": { \"type\": \"number\" },",
+									"            \"y_min\": { \"type\": \"number\" },",
+									"            \"x_max\": { \"type\": \"number\" },",
+									"            \"y_max\": { \"type\": \"number\" },",
+									"            \"office_symbol\": { \"type\": \"string\" }",
+									"        },",
+									"        \"required\": [\"id\", \"name\", \"x_min\", \"y_min\", \"x_max\", \"y_max\", \"office_symbol\"],",
+									"        \"additionalProperties\": false",
+									"    }",
+									"}",
+									"",
+									"// status code is 201",
+									"pm.test(\"Status code is 201\", function () {",
+									"    pm.response.to.have.status(201);",
+									"});",
+									"",
+									"pm.test(\"Schema validation\", function () {",
+									"    pm.response.to.have.jsonSchema(schema)",
+									"});",
+									""
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/cumulus/downloads/e8fa79d4-b9c8-4603-a293-d420f6d9834f",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"cumulus",
+								"downloads",
+								"e8fa79d4-b9c8-4603-a293-d420f6d9834f"
+							]
+						}
+					},
+					"response": []
+				}
+			],
+			"protocolProfileBehavior": {}
+		},
+		{
+			"name": "profile",
+			"item": [
+				{
+					"name": "CreateProfile",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"email\": \"admin@testuser.gov\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{base_url}}/cumulus/profiles",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"cumulus",
+								"profiles"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "CreateToken",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/cumulus/my_tokens",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"cumulus",
+								"my_tokens"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "GetMyProfile",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/cumulus/my_profile",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"cumulus",
+								"my_profile"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "ListMyTokens",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/cumulus/my_tokens",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"cumulus",
+								"my_tokens"
+							]
+						}
+					},
+					"response": []
+				}
+			],
+			"protocolProfileBehavior": {}
+		},
+		{
+			"name": "DoAcquisition",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"id": "eaa0d9e3-0b17-4a1e-b9e5-f3e1c3aa03d6",
+						"exec": [
+							"// status code is 200",
+							"pm.test(\"Status code is 201\", function () {",
+							"    pm.response.to.have.status(201);",
+							"});",
+							"",
+							"",
+							"// validate JSON schema",
+							"var schema = {",
+							"    \"type\": \"object\",",
+							"    \"properties\": {",
+							"        \"id\": { \"type\": \"string\" },",
+							"        \"datetime\": { \"type\": \"string\" }",
+							"    },",
+							"    \"required\": [\"id\", \"datetime\"],",
+							"    \"additionalProperties\": false",
+							"}",
+							"",
+							"",
+							"",
+							"pm.test(\"Schema validation\", function () {",
+							"    pm.response.to.have.jsonSchema(schema)",
+							"});",
+							""
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{base_url}}/cumulus/acquire?key=appkey",
+					"host": [
+						"{{base_url}}"
+					],
+					"path": [
+						"cumulus",
+						"acquire"
+					],
+					"query": [
+						{
+							"key": "name",
+							"value": "cheese",
+							"disabled": true
+						},
+						{
+							"key": "height",
+							"value": "20.0",
+							"disabled": true
+						},
+						{
+							"key": "type",
+							"value": "0fd1f9ba-2731-4ff9-96dd-3c03215ab06f",
+							"disabled": true
+						},
+						{
+							"key": "key",
+							"value": "appkey"
+						}
+					]
+				}
+			},
+			"response": []
+		},
 		{
 			"name": "ListBasins",
 			"event": [
 				{
 					"listen": "test",
 					"script": {
-						"id": "e2ef90ad-b4b0-433e-8f45-aa987e4ec0d1",
+						"id": "1cec4a5e-bea5-4b10-b970-621af84b0acd",
 						"exec": [
 							"// status code is 200",
 							"pm.test(\"Status code is 200\", function () {",
@@ -52,202 +351,34 @@
 				"method": "GET",
 				"header": [],
 				"url": {
-					"raw": "{{base_url}}/basins",
+					"raw": "{{base_url}}/cumulus/basins",
 					"host": [
 						"{{base_url}}"
 					],
 					"path": [
+						"cumulus",
 						"basins"
-					]
-				}
-			},
-			"response": []
-		},
-		{
-			"name": "CreateKey",
-			"event": [
-				{
-					"listen": "test",
-					"script": {
-						"id": "af7d4e3d-7ffe-48ff-b46d-c198bd7c25ac",
-						"exec": [
-							"// status code is 200",
-							"pm.test(\"Status code is 201\", function () {",
-							"    pm.response.to.have.status(201);",
-							"});",
-							"",
-							"",
-							"// validate JSON schema",
-							"var schema = {",
-							"    \"type\": \"object\",",
-							"    \"properties\": {",
-							"        \"key\": { \"type\": \"string\" },",
-							"        \"key_id\": { \"type\": \"string\" },",
-							"    },",
-							"    \"required\": [\"key\", \"key_id\"],",
-							"    \"additionalProperties\": false",
-							"}",
-							"",
-							"",
-							"pm.test(\"Schema validation\", function () {",
-							"    pm.response.to.have.jsonSchema(schema)",
-							"});",
-							""
-						],
-						"type": "text/javascript"
-					}
-				}
-			],
-			"request": {
-				"auth": {
-					"type": "bearer",
-					"bearer": [
-						{
-							"key": "token",
-							"value": "{{jwt}}",
-							"type": "string"
-						}
-					]
-				},
-				"method": "POST",
-				"header": [],
-				"body": {
-					"mode": "raw",
-					"raw": "{\n\t\"id\": \"3f447e39-e18e-4492-8d40-f7022af4fe21\",\n    \"name\": \"I GOT THE UPDATE\",\n    \"type\": \"0fd1f9ba-2731-4ff9-96dd-3c03215ab06f\",\n    \"height\": \"40.0\",\n    \"geometry\": {\"type\":\"Point\",\"coordinates\": [125.6, 10.1]}\n}",
-					"options": {
-						"raw": {
-							"language": "json"
-						}
-					}
-				},
-				"url": {
-					"raw": "{{base_url}}/cumulus/keys",
-					"host": [
-						"{{base_url}}"
-					],
-					"path": [
-						"cumulus",
-						"keys"
-					],
-					"query": [
-						{
-							"key": "name",
-							"value": "cheese",
-							"disabled": true
-						},
-						{
-							"key": "height",
-							"value": "20.0",
-							"disabled": true
-						},
-						{
-							"key": "type",
-							"value": "0fd1f9ba-2731-4ff9-96dd-3c03215ab06f",
-							"disabled": true
-						}
-					]
-				}
-			},
-			"response": []
-		},
-		{
-			"name": "DoAcquisition",
-			"event": [
-				{
-					"listen": "test",
-					"script": {
-						"id": "31530cb1-34a5-4b3c-b764-204a283a2087",
-						"exec": [
-							"// status code is 200",
-							"pm.test(\"Status code is 201\", function () {",
-							"    pm.response.to.have.status(201);",
-							"});",
-							"",
-							"",
-							"// validate JSON schema",
-							"var schema = {",
-							"    \"type\": \"object\",",
-							"    \"properties\": {",
-							"        \"id\": { \"type\": \"string\" },",
-							"        \"datetime\": { \"type\": \"string\" }",
-							"    },",
-							"    \"required\": [\"id\", \"datetime\"],",
-							"    \"additionalProperties\": false",
-							"}",
-							"",
-							"",
-							"",
-							"pm.test(\"Schema validation\", function () {",
-							"    pm.response.to.have.jsonSchema(schema)",
-							"});",
-							""
-						],
-						"type": "text/javascript"
-					}
-				}
-			],
-			"request": {
-				"auth": {
-					"type": "bearer",
-					"bearer": [
-						{
-							"key": "token",
-							"value": "{{bearer_token}}",
-							"type": "string"
-						}
-					]
-				},
-				"method": "POST",
-				"header": [],
-				"body": {
-					"mode": "raw",
-					"raw": "{\n\t\"id\": \"3f447e39-e18e-4492-8d40-f7022af4fe21\",\n    \"name\": \"I GOT THE UPDATE\",\n    \"type\": \"0fd1f9ba-2731-4ff9-96dd-3c03215ab06f\",\n    \"height\": \"40.0\",\n    \"geometry\": {\"type\":\"Point\",\"coordinates\": [125.6, 10.1]}\n}",
-					"options": {
-						"raw": {
-							"language": "json"
-						}
-					}
-				},
-				"url": {
-					"raw": "{{base_url}}/cumulus/acquire?key={{key}}",
-					"host": [
-						"{{base_url}}"
-					],
-					"path": [
-						"cumulus",
-						"acquire"
-					],
-					"query": [
-						{
-							"key": "name",
-							"value": "cheese",
-							"disabled": true
-						},
-						{
-							"key": "height",
-							"value": "20.0",
-							"disabled": true
-						},
-						{
-							"key": "type",
-							"value": "0fd1f9ba-2731-4ff9-96dd-3c03215ab06f",
-							"disabled": true
-						},
-						{
-							"key": "key",
-							"value": "{{key}}"
-						}
 					]
 				}
 			},
 			"response": []
 		}
 	],
+	"auth": {
+		"type": "bearer",
+		"bearer": [
+			{
+				"key": "token",
+				"value": "{{jwt}}",
+				"type": "string"
+			}
+		]
+	},
 	"event": [
 		{
 			"listen": "prerequest",
 			"script": {
-				"id": "d49c6373-200d-4a3a-9733-820b0bcd9684",
+				"id": "2e17676d-ba7c-4b33-ad7c-74e231b9405e",
 				"type": "text/javascript",
 				"exec": [
 					""
@@ -257,7 +388,7 @@
 		{
 			"listen": "test",
 			"script": {
-				"id": "5581894b-58c7-4253-a37e-66224e027564",
+				"id": "bce92742-7001-439f-a163-c487c1fd16cd",
 				"type": "text/javascript",
 				"exec": [
 					""

@@ -127,6 +127,22 @@ CREATE TABLE IF NOT EXISTS public.download_product (
     download_id UUID REFERENCES download(id)
 );
 
+
+-- profile
+CREATE TABLE IF NOT EXISTS public.profile (
+    id UUID PRIMARY KEY NOT NULL DEFAULT uuid_generate_v4(),
+    edipi BIGINT UNIQUE NOT NULL,
+    email VARCHAR(240) UNIQUE NOT NULL
+);
+
+-- profile_token
+CREATE TABLE IF NOT EXISTS public.profile_token (
+    id UUID PRIMARY KEY NOT NULL DEFAULT uuid_generate_v4(),
+    profile_id UUID NOT NULL REFERENCES profile(id),
+    issued TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    hash VARCHAR(240) NOT NULL
+);
+
 -- VIEWS
 CREATE OR REPLACE VIEW v_download AS (
         SELECT d.id AS id,

@@ -11,11 +11,10 @@ import (
 	"api/root/middleware"
 
 	"github.com/USACE/go-simple-asyncer/asyncer"
+	"github.com/jmoiron/sqlx"
 
 	"github.com/apex/gateway"
-	"github.com/labstack/echo"
-
-	"github.com/jmoiron/sqlx"
+	"github.com/labstack/echo/v4"
 
 	_ "github.com/lib/pq"
 )
@@ -81,17 +80,38 @@ func main() {
 
 	// Public Routes
 	public := e.Group("")
+
+	/////////////////////////
 	// Key or CAC Auth Routes
+	/////////////////////////
 	cacOrToken := e.Group("")
-	cacOrToken.Use(
-		middleware.JWT(cfg.AuthDisabled, true),
-		middleware.KeyAuth(cfg.AuthDisabled, models.MustListKeyInfo(db)),
+	if cfg.AuthJWTMocked {
+		cacOrToken.Use(middleware.JWTMock(cfg.AuthDisabled, true))
+	} else {
+		cacOrToken.Use(middleware.JWT(cfg.AuthDisabled, true))
+	}
+	cacOrToken.Use(middleware.KeyAuth(
+		cfg.AuthDisabled,
+		cfg.ApplicationKey,
+		func(keyID string) (string, error) {
+			k, err := models.GetTokenInfoByTokenID(db, &keyID)
+			if err != nil {
+				return "", err
+			}
+			return k.Hash, nil
+		}),
 	)
+
+	/////////////////////////////////////////
 	// CAC Only Routes (API Keys Not Allowed)
+	/////////////////////////////////////////
 	cacOnly := e.Group("")
-	cacOnly.Use(
-		middleware.JWT(cfg.AuthDisabled, false),
-	)
+	if cfg.AuthJWTMocked {
+		cacOnly.Use(middleware.JWTMock(cfg.AuthDisabled, false))
+	} else {
+		cacOnly.Use(middleware.JWT(cfg.AuthDisabled, false))
+	}
+	cacOnly.Use(middleware.IsLoggedIn)
 
 	// Public Routes
 	public.GET("cumulus/basins", handlers.ListBasins(db))
@@ -114,7 +134,10 @@ func main() {
 	cacOrToken.POST("cumulus/products/:id/acquire", handlers.CreateAcquisitionAttempt(db))
 
 	// JWT Only Restricted Routes (JWT Only)
-	cacOnly.POST("cumulus/keys", handlers.CreateKey(db))
+	cacOnly.POST("cumulus/profiles", handlers.CreateProfile(db))
+	cacOnly.GET("cumulus/my_profile", handlers.GetMyProfile(db))
+	cacOnly.GET("cumulus/my_tokens", handlers.ListMyTokens(db))
+	cacOnly.POST("cumulus/my_tokens", handlers.CreateToken(db))
 
 	// Start server
 	lambda := cfg.LambdaContext

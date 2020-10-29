@@ -3,20 +3,21 @@ CREATE extension IF NOT EXISTS "uuid-ossp";
 
 
 -- drop tables if they already exist
-drop table if exists 
+drop table if exists
     public.office,
     public.basin,
     public.parameter,
     public.unit,
     public.product,
     public.productfile,
-    public.key,
     public.acquirable,
     public.acquisition,
     public.acquirable_acquisition,
     public.download,
     public.download_product,
-    public.download_status
+    public.download_status,
+	public.profile_token,
+	public.profile
 	CASCADE;
 
 
@@ -72,15 +73,6 @@ CREATE TABLE IF NOT EXISTS public.productfile (
     product_id UUID REFERENCES product (id)
 );
 
--- token
-CREATE TABLE IF NOT EXISTS public.key (
-    id UUID PRIMARY KEY NOT NULL DEFAULT uuid_generate_v4(),
-    key_id VARCHAR(240) UNIQUE NOT NULL,
-    issued TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    hash VARCHAR(240) NOT NULL,
-    revoked BOOLEAN NOT NULL DEFAULT FALSE
-);
-
 -- acquirable
 CREATE TABLE IF NOT EXISTS public.acquirable (
     id UUID PRIMARY KEY NOT NULL DEFAULT uuid_generate_v4(),
@@ -127,6 +119,23 @@ CREATE TABLE IF NOT EXISTS public.download_product (
     download_id UUID REFERENCES download(id)
 );
 
+
+-- profile
+CREATE TABLE IF NOT EXISTS public.profile (
+    id UUID PRIMARY KEY NOT NULL DEFAULT uuid_generate_v4(),
+    edipi BIGINT UNIQUE NOT NULL,
+    email VARCHAR(240) UNIQUE NOT NULL
+);
+
+-- profile_token
+CREATE TABLE IF NOT EXISTS public.profile_token (
+    id UUID PRIMARY KEY NOT NULL DEFAULT uuid_generate_v4(),
+    token_id VARCHAR NOT NULL,
+    profile_id UUID NOT NULL REFERENCES profile(id),
+    issued TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    hash VARCHAR(240) NOT NULL
+);
+
 -- VIEWS
 CREATE OR REPLACE VIEW v_download AS (
         SELECT d.id AS id,
@@ -148,7 +157,7 @@ CREATE OR REPLACE VIEW v_download AS (
                 FROM download_product
                 GROUP BY download_id
             ) dp ON d.id = dp.download_id
-    )
+    );
 
 ------------------------
 -- SEED DATA FOR DOMAINS

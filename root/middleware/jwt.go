@@ -5,8 +5,8 @@ import (
 	"log"
 
 	jwt "github.com/dgrijalva/jwt-go"
-	"github.com/labstack/echo"
-	"github.com/labstack/echo/middleware"
+	"github.com/labstack/echo/v4"
+	"github.com/labstack/echo/v4/middleware"
 )
 
 var jwtVerifyKey = `-----BEGIN PUBLIC KEY-----
@@ -76,4 +76,25 @@ func JWT(isDisabled bool, skipIfKey bool) echo.MiddlewareFunc {
 		// Optional. Default value "Bearer".
 		// AuthScheme: "Bearer"
 	})
+}
+
+// JWTMock is JWT Middleware
+func JWTMock(isDisabled bool, skipIfKey bool) echo.MiddlewareFunc {
+	return middleware.JWTWithConfig(
+		middleware.JWTConfig{
+			SigningKey: []byte("mock"),
+			// `skipIfKey` behavior allows skipping of the middleware
+			// if ?key= is in Query Params. This is useful for routes
+			// where JWT Auth or simple Key Auth is allowed.
+			Skipper: func(c echo.Context) bool {
+				if isDisabled {
+					return true
+				}
+				if skipIfKey && c.QueryParam("key") != "" {
+					return true
+				}
+				return false
+			},
+		},
+	)
 }

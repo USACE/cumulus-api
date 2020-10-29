@@ -10,7 +10,6 @@ drop table if exists
     public.unit,
     public.product,
     public.productfile,
-    public.key,
     public.acquirable,
     public.acquisition,
     public.acquirable_acquisition,
@@ -74,15 +73,6 @@ CREATE TABLE IF NOT EXISTS public.productfile (
     product_id UUID REFERENCES product (id)
 );
 
--- token
-CREATE TABLE IF NOT EXISTS public.key (
-    id UUID PRIMARY KEY NOT NULL DEFAULT uuid_generate_v4(),
-    key_id VARCHAR(240) UNIQUE NOT NULL,
-    issued TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    hash VARCHAR(240) NOT NULL,
-    revoked BOOLEAN NOT NULL DEFAULT FALSE
-);
-
 -- acquirable
 CREATE TABLE IF NOT EXISTS public.acquirable (
     id UUID PRIMARY KEY NOT NULL DEFAULT uuid_generate_v4(),
@@ -140,6 +130,7 @@ CREATE TABLE IF NOT EXISTS public.profile (
 -- profile_token
 CREATE TABLE IF NOT EXISTS public.profile_token (
     id UUID PRIMARY KEY NOT NULL DEFAULT uuid_generate_v4(),
+    token_id VARCHAR NOT NULL,
     profile_id UUID NOT NULL REFERENCES profile(id),
     issued TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
     hash VARCHAR(240) NOT NULL

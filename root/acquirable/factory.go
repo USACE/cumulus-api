@@ -49,6 +49,10 @@ func Factory(i Info) (Acquirable, error) {
 		return &NcepRtmaRuGesAcquirable{info: i}, nil
 	case "ncep_mrms_gaugecorr_qpe_01h":
 		return &NcepMrmsGaugeCorrQpe01hAcquirable{info: i}, nil
+	case "ncep_mrms_v12_MultiSensor_QPE_01H_Pass1":
+		return &NcepMrmsV12MultiSensorQPE01HPass1Acquirable{info: i}, nil
+	case "ncep_mrms_v12_MultiSensor_QPE_01H_Pass2":
+		return &NcepMrmsV12MultiSensorQPE01HPass2Acquirable{info: i}, nil
 	}
 	return nil, errors.New("acquirable not implemented")
 }

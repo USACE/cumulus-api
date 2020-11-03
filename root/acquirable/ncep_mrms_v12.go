@@ -34,7 +34,7 @@ type NcepMrmsV12MultiSensorQPE01HPass2Acquirable struct {
 
 // URLS implements Acquirable interface
 func (a *NcepMrmsV12MultiSensorQPE01HPass2Acquirable) URLS() []string {
-	t := time.Now().Add(time.Hour * -1)
+	t := time.Now().Add(time.Hour * -2)
 	dateStr := t.Format("20060102-150000")
 	return []string{
 		fmt.Sprintf("https://mrms.ncep.noaa.gov/data/2D/MultiSensor_QPE_01H_Pass2/MRMS_MultiSensor_QPE_01H_Pass2_00.00_%s.grib2.gz", dateStr),

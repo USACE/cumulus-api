@@ -316,7 +316,9 @@ INSERT INTO acquirable (name, schedule) VALUES
 ('prism_tmin_early', '30 14 * * *'),
 ('ncep_rtma_ru_anl', '20 * * * *'),
 ('ncep_rtma_ru_ges', '20 * * * *'),
-('ncep_mrms_gaugecorr_qpe_01h', '5 * * * *');
+('ncep_mrms_gaugecorr_qpe_01h', '5 * * * *'),
+('ncep_mrms_v12_MultiSensor_QPE_01H_Pass1', '5 * * * *'),
+('ncep_mrms_v12_MultiSensor_QPE_01H_Pass2', '5 * * * *');
 
 -- productfile
 INSERT INTO productfile (id, file, datetime, product_id) VALUES

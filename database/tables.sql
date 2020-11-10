@@ -5,6 +5,7 @@ CREATE extension IF NOT EXISTS "uuid-ossp";
 -- drop tables if they already exist
 drop table if exists
     public.office,
+    public.subbasin,
     public.basin,
     public.parameter,
     public.unit,
@@ -39,6 +40,13 @@ CREATE TABLE IF NOT EXISTS public.basin (
     x_max INTEGER NOT NULL,
     y_max INTEGER NOT NULL,
     office_id UUID NOT NULL REFERENCES office (id)
+);
+
+CREATE TABLE IF NOT EXISTS public.subbasin (
+    id UUID PRIMARY KEY NOT NULL DEFAULT uuid_generate_v4(),
+    basin_id UUID REFERENCES basin(id),
+    name VARCHAR NOT NULL,
+    geometry geometry
 );
 
 -- parameter
@@ -158,6 +166,34 @@ CREATE OR REPLACE VIEW v_download AS (
                 GROUP BY download_id
             ) dp ON d.id = dp.download_id
     );
+
+
+
+-- Function; NOTIFY STATISTICS
+CREATE OR REPLACE FUNCTION public.notify_productfile_statistics ()
+  returns trigger
+  language plpgsql
+AS $$
+declare
+    channel text := 'cumulus_productfile_statistics';
+begin
+	PERFORM (
+		WITH payload as (
+			SELECT NEW.id AS productfile_id, 'corpsmap-data' AS s3_bucket, NEW.product_id
+		)
+		SELECT pg_notify(channel, row_to_json(payload)::text)
+		FROM payload
+	);
+	RETURN NULL;
+end;
+$$;
+
+-- Trigger; NOTIFY STATISTICS ON INSERT
+CREATE TRIGGER notify_productfile_statistics
+AFTER INSERT
+ON public.productfile
+FOR EACH ROW
+EXECUTE PROCEDURE public.notify_productfile_statistics();
 
 ------------------------
 -- SEED DATA FOR DOMAINS

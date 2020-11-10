@@ -73,6 +73,13 @@ func main() {
 	if err != nil {
 		log.Fatal(err.Error())
 	}
+	// statisticsAsyncer defines async engine for computing raster statistics
+	statisticsAsyncer, err := asyncer.NewAsyncer(
+		asyncer.Config{Engine: cfg.AsyncEngineStatistics, Target: cfg.AsyncEngineStatisticsTarget},
+	)
+	if err != nil {
+		log.Fatal(err.Error())
+	}
 
 	e := echo.New()
 	// Middleware for All Routes
@@ -132,6 +139,9 @@ func main() {
 	// Restricted Routes (JWT or Key)
 	cacOrToken.POST("cumulus/acquire", handlers.DoAcquire(db, acquisitionAsyncer))
 	cacOrToken.POST("cumulus/products/:id/acquire", handlers.CreateAcquisitionAttempt(db))
+
+	// Statistics
+	public.GET("cumulus/run_statistics", handlers.DoStatistics(db, statisticsAsyncer))
 
 	// JWT Only Restricted Routes (JWT Only)
 	cacOnly.POST("cumulus/profiles", handlers.CreateProfile(db))

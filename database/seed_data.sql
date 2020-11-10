@@ -305,17 +305,19 @@ INSERT INTO product (id, name, temporal_duration, temporal_resolution, dss_fpart
 ('62e08d34-ff6b-45c9-8bb9-80df922d0779','prism_tmin_early',86400,86400,'PRISM-EARLY',True,'5fab39b9-90ba-482a-8156-d863ad7c45ad','8f51e5b5-08be-4ea7-9ebc-ad44b465dbc6'),
 ('e4fdadc7-5532-4910-9ed7-3c3690305d86','ncep_rtma_ru_anl_airtemp',0,900,'NCEP-RTMA-RU-ANL',True,'5fab39b9-90ba-482a-8156-d863ad7c45ad','8f51e5b5-08be-4ea7-9ebc-ad44b465dbc6'),
 ('44f1ea4d-6903-4b06-8677-d1fd84dd7b34','ncep_rtma_ru_ges_airtemp',0,900,'NCEP-RTMA-RU-GES',True,'5fab39b9-90ba-482a-8156-d863ad7c45ad','8f51e5b5-08be-4ea7-9ebc-ad44b465dbc6'),
-('f1b6ac38-bbc9-48c6-bf78-207005ee74fa', 'ncep_mrms_gaugecorr_qpe_01h',0,3600,'NCEP-MRMS-QPE-GAUGECORR',True,'eb82d661-afe6-436a-b0df-2ab0b478a1af','e245d39f-3209-4e58-bfb7-4eae94b3f8dd');
+('f1b6ac38-bbc9-48c6-bf78-207005ee74fa', 'ncep_mrms_gaugecorr_qpe_01h',0,3600,'NCEP-MRMS-QPE-GAUGECORR',True,'eb82d661-afe6-436a-b0df-2ab0b478a1af','e245d39f-3209-4e58-bfb7-4eae94b3f8dd'),
+('30a6d443-80a5-49cc-beb0-5d3a18a84caa', 'ncep_mrms_v12_MultiSensor_QPE_01H_Pass1',0,3600,'NCEP-MRMSV12-QPE-01H-PASS1',True,'eb82d661-afe6-436a-b0df-2ab0b478a1af','e245d39f-3209-4e58-bfb7-4eae94b3f8dd'),
+('7c7ba37a-efad-499e-9c3a-5354370b8e9e', 'ncep_mrms_v12_MultiSensor_QPE_01H_Pass2',0,3600,'NCEP-MRMSV12-QPE-01H-PASS2',True,'eb82d661-afe6-436a-b0df-2ab0b478a1af','e245d39f-3209-4e58-bfb7-4eae94b3f8dd');
 
 
 -- product_acquirable
+-- ('ncep_rtma_ru_ges', '20 * * * *') <- Removed from acquirables 2020-11-09
 INSERT INTO acquirable (name, schedule) VALUES
 ('nohrsc_snodas_unmasked', '30 8 * * *'),
 ('prism_ppt_early', '30 14 * * *'),
 ('prism_tmax_early', '30 14 * * *'),
 ('prism_tmin_early', '30 14 * * *'),
 ('ncep_rtma_ru_anl', '20 * * * *'),
-('ncep_rtma_ru_ges', '20 * * * *'),
 ('ncep_mrms_gaugecorr_qpe_01h', '5 * * * *'),
 ('ncep_mrms_v12_MultiSensor_QPE_01H_Pass1', '5 * * * *'),
 ('ncep_mrms_v12_MultiSensor_QPE_01H_Pass2', '5 * * * *');

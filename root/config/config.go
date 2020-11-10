@@ -20,6 +20,8 @@ type Config struct {
 	AsyncEngineAcquisitionTarget string `envconfig:"ASYNC_ENGINE_ACQUISITION_TARGET"`
 	AsyncEnginePackager          string `envconfig:"ASYNC_ENGINE_PACKAGER"`
 	AsyncEnginePackagerTarget    string `envconfig:"ASYNC_ENGINE_PACKAGER_TARGET"`
+	AsyncEngineStatistics        string `envconfig:"ASYNC_ENGINE_STATISTICS"`
+	AsyncEngineStatisticsTarget  string `envconfig:"ASYNC_ENGINE_STATISTICS_TARGET"`
 	StaticHost                   string `envconfig:"STATIC_HOST"`
 	ApplicationKey               string `envconfig:"APPLICATION_KEY"`
 }

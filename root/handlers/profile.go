@@ -75,18 +75,3 @@ func CreateToken(db *sqlx.DB) echo.HandlerFunc {
 		return c.JSON(http.StatusOK, token)
 	}
 }
-
-// ListMyTokens returns all tokens for current user
-func ListMyTokens(db *sqlx.DB) echo.HandlerFunc {
-	return func(c echo.Context) error {
-		p, err := profileFromContext(c, db)
-		if err != nil {
-			return c.String(http.StatusBadRequest, err.Error())
-		}
-		tt, err := models.ListMyTokens(db, &p.ID)
-		if err != nil {
-			return c.String(http.StatusInternalServerError, err.Error())
-		}
-		return c.JSON(http.StatusOK, &tt)
-	}
-}

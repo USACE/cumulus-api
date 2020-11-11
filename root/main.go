@@ -136,7 +136,6 @@ func main() {
 	// JWT Only Restricted Routes (JWT Only)
 	cacOnly.POST("cumulus/profiles", handlers.CreateProfile(db))
 	cacOnly.GET("cumulus/my_profile", handlers.GetMyProfile(db))
-	cacOnly.GET("cumulus/my_tokens", handlers.ListMyTokens(db))
 	cacOnly.POST("cumulus/my_tokens", handlers.CreateToken(db))
 
 	// Start server

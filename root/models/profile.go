@@ -29,7 +29,6 @@ type ProfileInfo struct {
 }
 
 // TokenInfo represents the information held in the database about a token
-// Note: Hash is stored, not the actual token; Fields in addition to TokenInfoMinimal
 type TokenInfo struct {
 	ID        uuid.UUID `json:"-"`
 	TokenID   string    `json:"token_id" db:"token_id"`

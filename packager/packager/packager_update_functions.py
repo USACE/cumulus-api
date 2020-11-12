@@ -1,6 +1,7 @@
 import psycopg2
 import psycopg2.extras
 import requests
+from datetime import datetime
 
 import config as CONFIG
 
@@ -19,11 +20,18 @@ def db_connection():
 # i.e. update progress percent only, or update progress percent and add file URL
 def updateStatus_db(id, status_id, progress, file=None):
     
+    processing_end = None
+
+    if progress == 100:
+        now = datetime.now() # current date and time
+        processing_end = now.strftime("%Y-%m-%dT%H:%M:%S.%fZ")
+
     try:
         conn = db_connection()
         c = conn.cursor()
-        c.execute("""UPDATE download set progress = %s, status_id = %s, file=%s WHERE id = %s""", 
-            (progress, status_id, file, id))
+        c.execute("""UPDATE download set progress = %s, status_id = %s, file=%s, 
+            processing_end=%s WHERE id = %s""", 
+            (progress, status_id, file, processing_end, id))
         conn.commit()
     except Exception as e:
         print(e)

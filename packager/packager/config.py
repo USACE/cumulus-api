@@ -3,13 +3,16 @@ import os
 ENDPOINT_URL = os.getenv('ENDPOINT_URL', default='http://elasticmq:9324')
 QUEUE_NAME_PACKAGER=os.getenv('QUEUE_NAME_PACKAGER', 'packager')
 QUEUE_NAME_PACKAGER_UPDATE=os.getenv('QUEUE_NAME_PACKAGER_UPDATE', 'packager_update')
+# How often to send status updates
+PACKAGER_UPDATE_INTERVAL = int(os.getenv('PACKAGER_UPDATE_INTERVAL', default=5))
 
 # 
 # AWS Credentials
 # 
 AWS_SECRET_ACCESS_KEY = os.getenv('AWS_SECRET_ACCESS_KEY', default='x')
 AWS_ACCESS_KEY_ID = os.getenv('AWS_ACCESS_KEY_ID', default='x')
-REGION_NAME = os.getenv('AWS_REGION', default='elasticmq')
+AWS_REGION = os.getenv('AWS_REGION', default='us-east-1')
+AWS_REGION_SQS = os.getenv('AWS_REGION_SQS', default='elasticmq')
 
 # 
 # Database Credentials

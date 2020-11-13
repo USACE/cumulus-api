@@ -19,8 +19,8 @@ CLIENT = boto3.resource(
     'sqs',
     endpoint_url=CONFIG.ENDPOINT_URL,
     region_name=CONFIG.AWS_REGION_SQS,
-    aws_secret_access_key=CONFIG.AWS_SECRET_ACCESS_KEY,
-    aws_access_key_id=CONFIG.AWS_ACCESS_KEY_ID,
+    aws_secret_access_key=CONFIG.AWS_SECRET_ACCESS_KEY_SQS,
+    aws_access_key_id=CONFIG.AWS_ACCESS_KEY_ID_SQS,
     use_ssl=CONFIG.USE_SSL
 )
 

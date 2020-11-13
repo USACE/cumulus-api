@@ -12,6 +12,9 @@ PACKAGER_UPDATE_INTERVAL = int(os.getenv('PACKAGER_UPDATE_INTERVAL', default=5))
 AWS_SECRET_ACCESS_KEY = os.getenv('AWS_SECRET_ACCESS_KEY', default='x')
 AWS_ACCESS_KEY_ID = os.getenv('AWS_ACCESS_KEY_ID', default='x')
 AWS_REGION = os.getenv('AWS_REGION', default='us-east-1')
+
+AWS_SECRET_ACCESS_KEY_SQS = os.getenv('AWS_SECRET_ACCESS_KEY_SQS', default='x')
+AWS_ACCESS_KEY_ID_SQS = os.getenv('AWS_ACCESS_KEY_ID_SQS', default='x')
 AWS_REGION_SQS = os.getenv('AWS_REGION_SQS', default='elasticmq')
 
 # 

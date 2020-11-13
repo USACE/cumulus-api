@@ -39,9 +39,12 @@ services:
     build:
       context: ../async_packager
     environment:
-      - AWS_REGION=$AWS_REGION
+      - AWS_REGION=us-east-1
       - AWS_ACCESS_KEY_ID=$AWS_ACCESS_KEY_ID
       - AWS_SECRET_ACCESS_KEY=$AWS_SECRET_ACCESS_KEY
+      - AWS_ACCESS_KEY_ID_SQS=$AWS_ACCESS_KEY_ID
+      - AWS_SECRET_ACCESS_KEY_SQS=$AWS_SECRET_ACCESS_KEY
+      - AWS_REGION_SQS=elasticmq
       - CUMULUS_MOCK_S3_UPLOAD=TRUE
       - QUEUE_NAME_PACKAGER=cumulus-packager
       - QUEUE_NAME_PACKAGER_UPDATE=cumulus-packager-update
@@ -51,6 +54,7 @@ services:
       - CUMULUS_DBHOST=cumulusdb
       - CUMULUS_DBSSLMODE=disable
       - ENDPOINT_URL=http://elasticmq:9324
+      - PACKAGER_UPDATE_INTERVAL=5
     # Volume to persist packager created file
     volumes:
       - ./packager_files:/output

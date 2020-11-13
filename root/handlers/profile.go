@@ -76,17 +76,23 @@ func CreateToken(db *sqlx.DB) echo.HandlerFunc {
 	}
 }
 
-// ListMyTokens returns all tokens for current user
-func ListMyTokens(db *sqlx.DB) echo.HandlerFunc {
+// DeleteToken deletes a token
+func DeleteToken(db *sqlx.DB) echo.HandlerFunc {
 	return func(c echo.Context) error {
+		// Get ProfileID
 		p, err := profileFromContext(c, db)
 		if err != nil {
-			return c.String(http.StatusBadRequest, err.Error())
+			return c.NoContent(http.StatusBadRequest)
 		}
-		tt, err := models.ListMyTokens(db, &p.ID)
-		if err != nil {
+		// Get Token ID
+		tokenID := c.Param("token_id")
+		if tokenID == "" {
+			return c.String(http.StatusBadRequest, "Bad Token ID")
+		}
+		// Delete Token
+		if err := models.DeleteToken(db, &p.ID, &tokenID); err != nil {
 			return c.String(http.StatusInternalServerError, err.Error())
 		}
-		return c.JSON(http.StatusOK, &tt)
+		return c.JSON(http.StatusOK, make(map[string]interface{}))
 	}
 }

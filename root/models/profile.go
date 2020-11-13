@@ -13,6 +13,13 @@ import (
 type Profile struct {
 	ID uuid.UUID `json:"id"`
 	ProfileInfo
+	Tokens []TokenInfoProfile `json:"tokens"`
+}
+
+// TokenInfoProfile is token information embedded in Profile
+type TokenInfoProfile struct {
+	TokenID string    `json:"token_id" db:"token_id"`
+	Issued  time.Time `json:"issued"`
 }
 
 // ProfileInfo is information necessary to construct a profile
@@ -22,7 +29,6 @@ type ProfileInfo struct {
 }
 
 // TokenInfo represents the information held in the database about a token
-// Note: Hash is stored, not the actual token
 type TokenInfo struct {
 	ID        uuid.UUID `json:"-"`
 	TokenID   string    `json:"token_id" db:"token_id"`
@@ -40,10 +46,14 @@ type Token struct {
 
 // GetProfileFromEDIPI returns a profile given an edipi
 func GetProfileFromEDIPI(db *sqlx.DB, e int) (*Profile, error) {
+	// Would prefer to do this in one query using a join and postgres json/array aggregation
+	// for now it's implemented with two queries
 	var p Profile
-	if err := db.Get(
-		&p, "SELECT * FROM profile WHERE edipi=$1", e,
-	); err != nil {
+	if err := db.Get(&p, "SELECT id, edipi, email FROM profile WHERE edipi=$1", e); err != nil {
+		return nil, err
+	}
+	p.Tokens = make([]TokenInfoProfile, 0)
+	if err := db.Select(&p.Tokens, "SELECT token_id, issued FROM profile_token WHERE profile_id=$1", p.ID); err != nil {
 		return nil, err
 	}
 	return &p, nil
@@ -81,17 +91,6 @@ func CreateProfileToken(db *sqlx.DB, profileID *uuid.UUID) (*Token, error) {
 	return &t, nil
 }
 
-// ListMyTokens returns TokenInfo for current logged-in user
-func ListMyTokens(db *sqlx.DB, profileID *uuid.UUID) ([]TokenInfo, error) {
-	tt := make([]TokenInfo, 0)
-	if err := db.Select(
-		&tt, "SELECT * FROM profile_token WHERE profile_id=$1", profileID,
-	); err != nil {
-		return make([]TokenInfo, 0), err
-	}
-	return tt, nil
-}
-
 // GetTokenInfoByTokenID returns a single token by token id
 func GetTokenInfoByTokenID(db *sqlx.DB, tokenID *string) (*TokenInfo, error) {
 	var n TokenInfo
@@ -101,4 +100,14 @@ func GetTokenInfoByTokenID(db *sqlx.DB, tokenID *string) (*TokenInfo, error) {
 		return nil, err
 	}
 	return &n, nil
+}
+
+// DeleteToken deletes a token by token_id
+func DeleteToken(db *sqlx.DB, profileID *uuid.UUID, tokenID *string) error {
+	sql := "DELETE FROM profile_token WHERE profile_id=$1 AND token_id=$2"
+	_, err := db.Exec(sql, profileID, tokenID)
+	if err != nil {
+		return err
+	}
+	return nil
 }

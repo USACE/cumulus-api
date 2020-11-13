@@ -18,9 +18,9 @@ from dss import write_contents_to_dssfile
 CLIENT = boto3.resource(
     'sqs',
     endpoint_url=CONFIG.ENDPOINT_URL,
-    region_name=CONFIG.REGION_NAME,
-    aws_secret_access_key=CONFIG.AWS_SECRET_ACCESS_KEY,
-    aws_access_key_id=CONFIG.AWS_ACCESS_KEY_ID,
+    region_name=CONFIG.AWS_REGION_SQS,
+    aws_secret_access_key=CONFIG.AWS_SECRET_ACCESS_KEY_SQS,
+    aws_access_key_id=CONFIG.AWS_ACCESS_KEY_ID_SQS,
     use_ssl=CONFIG.USE_SSL
 )
 
@@ -46,7 +46,7 @@ else:
 
 def get_infile(bucket, key, filepath):
     
-    s3 = boto3.resource('s3')
+    s3 = boto3.client('s3')
     try:
         s3.Bucket(bucket).download_file(key, filepath)
         return os.path.abspath(filepath)
@@ -73,11 +73,13 @@ def upload_file(file_name, bucket, object_name=None):
     if object_name is None:
         object_name = file_name
 
-    # Upload the file
+    # Upload the file    
     s3_client = boto3.client('s3')
+
     try:
         response = s3_client.upload_file(file_name, bucket, object_name)
     except botocore.exceptions.ClientError as e:
+        logger.error('Unable to upload file to S3.')
         logger.error(e)
         return False
     return True

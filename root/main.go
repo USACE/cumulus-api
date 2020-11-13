@@ -137,6 +137,7 @@ func main() {
 	cacOnly.POST("cumulus/profiles", handlers.CreateProfile(db))
 	cacOnly.GET("cumulus/my_profile", handlers.GetMyProfile(db))
 	cacOnly.POST("cumulus/my_tokens", handlers.CreateToken(db))
+	cacOnly.DELETE("cumulus/my_tokens/:token_id", handlers.DeleteToken(db))
 
 	// Start server
 	lambda := cfg.LambdaContext

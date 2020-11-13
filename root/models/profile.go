@@ -101,3 +101,13 @@ func GetTokenInfoByTokenID(db *sqlx.DB, tokenID *string) (*TokenInfo, error) {
 	}
 	return &n, nil
 }
+
+// DeleteToken deletes a token by token_id
+func DeleteToken(db *sqlx.DB, profileID *uuid.UUID, tokenID *string) error {
+	sql := "DELETE FROM profile_token WHERE profile_id=$1 AND token_id=$2"
+	_, err := db.Exec(sql, profileID, tokenID)
+	if err != nil {
+		return err
+	}
+	return nil
+}

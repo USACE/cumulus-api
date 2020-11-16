@@ -7,7 +7,7 @@ UPDATE BASIN set geometry =
 	5070
 	)
 )
-WHERE id = 'c785f4de-ab17-444b-b6e6-6f1ad16676e8'
+WHERE id = 'c785f4de-ab17-444b-b6e6-6f1ad16676e8';
 
 -- LowerCumberlandTennessee River
 UPDATE BASIN set geometry = 

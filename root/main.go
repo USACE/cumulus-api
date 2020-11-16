@@ -133,6 +133,10 @@ func main() {
 	cacOrToken.POST("cumulus/acquire", handlers.DoAcquire(db, acquisitionAsyncer))
 	cacOrToken.POST("cumulus/products/:id/acquire", handlers.CreateAcquisitionAttempt(db))
 
+	// Basins
+	cacOrToken.POST("cumulus/basins/:basin_id/products/:product_id/statistics/enable", handlers.EnableBasinProductStatistics(db))
+	cacOrToken.POST("cumulus/basins/:basin_id/products/:product_id/statistics/disable", handlers.DisableBasinProductStatistics(db))
+
 	// JWT Only Restricted Routes (JWT Only)
 	cacOnly.POST("cumulus/profiles", handlers.CreateProfile(db))
 	cacOnly.GET("cumulus/my_profile", handlers.GetMyProfile(db))

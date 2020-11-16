@@ -5,6 +5,7 @@ CREATE extension IF NOT EXISTS "uuid-ossp";
 -- drop tables if they already exist
 drop table if exists
     public.office,
+    public.subbasin,
     public.basin,
     public.parameter,
     public.unit,
@@ -33,12 +34,19 @@ CREATE TABLE IF NOT EXISTS public.basin (
     id UUID PRIMARY KEY NOT NULL DEFAULT uuid_generate_v4(),
     slug VARCHAR(240) UNIQUE NOT NULL,
     name VARCHAR(120) NOT NULL,
-    --geometry geometry,
+    geometry geometry,
     x_min INTEGER NOT NULL,
     y_min INTEGER NOT NULL,
     x_max INTEGER NOT NULL,
     y_max INTEGER NOT NULL,
     office_id UUID NOT NULL REFERENCES office (id)
+);
+
+CREATE TABLE IF NOT EXISTS public.subbasin (
+    id UUID PRIMARY KEY NOT NULL DEFAULT uuid_generate_v4(),
+    basin_id UUID REFERENCES basin(id),
+    name VARCHAR NOT NULL,
+    geometry geometry
 );
 
 -- parameter
@@ -63,6 +71,14 @@ CREATE TABLE IF NOT EXISTS public.product (
     is_realtime BOOLEAN,
     parameter_id UUID NOT NULL REFERENCES parameter (id),
     unit_id UUID NOT NULL REFERENCES unit (id)
+);
+
+-- basin_product_statistics_enabled
+CREATE TABLE IF NOT EXISTS public.basin_product_statistics_enabled (
+    id UUID PRIMARY KEY NOT NULL DEFAULT uuid_generate_v4(),
+    basin_id UUID NOT NULL REFERENCES basin(id),
+    product_id UUID NOT NULL REFERENCES product(id),
+    CONSTRAINT unique_basin_product UNIQUE(basin_id, product_id)
 );
 
 -- productfile
@@ -158,6 +174,52 @@ CREATE OR REPLACE VIEW v_download AS (
                 GROUP BY download_id
             ) dp ON d.id = dp.download_id
     );
+
+-- Basins; Projected to EPSG 5070
+CREATE OR REPLACE VIEW v_basin_5070 AS (
+        SELECT id,
+	        slug,
+	        name,
+                ST_SnapToGrid(
+                    ST_Transform(
+                        geometry,
+                        '+proj=aea +lat_0=23 +lon_0=-96 +lat_1=29.5 +lat_2=45.5 +x_0=0 +y_0=0 +datum=NAD83 +units=us-ft +no_defs',
+                        5070
+                    ),
+                    1
+                ) AS geometry
+        FROM basin
+    );
+
+
+-- Function; NOTIFY NEW PRODUCTFILE
+CREATE OR REPLACE FUNCTION public.notify_new_productfile ()
+  returns trigger
+  language plpgsql
+AS $$
+declare
+    channel text := 'cumulus_new_productfile';
+begin
+	PERFORM (
+		WITH payload as (
+			SELECT NEW.id AS productfile_id,
+				   NEW.product_id  AS product_id,
+			       'corpsmap-data' AS s3_bucket,
+			       NEW.file        AS s3_key
+		)
+		SELECT pg_notify(channel, row_to_json(payload)::text)
+		FROM payload
+	);
+	RETURN NULL;
+end;
+$$;
+
+-- Trigger; NOTIFY STATISTICS ON INSERT
+CREATE TRIGGER notify_new_productfile
+AFTER INSERT
+ON public.productfile
+FOR EACH ROW
+EXECUTE PROCEDURE public.notify_new_productfile();
 
 ------------------------
 -- SEED DATA FOR DOMAINS

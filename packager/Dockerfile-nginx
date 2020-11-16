@@ -1,3 +1,0 @@
-FROM nginx
-
-RUN mkdir -p /usr/share/nginx/html/cumulus/download/dss

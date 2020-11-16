@@ -19,9 +19,11 @@ GRANT SELECT ON
     office,
     parameter,
     basin,
+    subbasin,
     unit,
     product,
     productfile,
+    basin_product_statistics_enabled,
     acquirable,
     acquisition,
     acquirable_acquisition,
@@ -39,15 +41,18 @@ GRANT INSERT,UPDATE,DELETE ON
     office,
     parameter,
     basin,
+    subbasin,
     unit,
     product,
     productfile,
+    basin_product_statistics_enabled,
     acquirable,
     acquisition,
     acquirable_acquisition,
     download_status,
     download,
-    download_product
+    download_product,
+    v_basin_5070
 TO cumulus_writer;
 
 -- Role postgis_reader

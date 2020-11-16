@@ -4,6 +4,8 @@ import numpy.ma as ma
 from osgeo import gdal
 from affine import Affine
 
+import config as CONFIG
+
 from pydsstools.heclib.dss.HecDss import Open
 from pydsstools.heclib.utils import gridInfo
 
@@ -14,9 +16,12 @@ def write_contents_to_dssfile(outfile, basin, items, callback):
 
     with Open(outfile) as fid:
 
+        item_length = len(items)
+
         for idx, item in enumerate(items):
-            # Update progress
-            callback(idx)
+            # Update progress at predefined interval
+            if idx % CONFIG.PACKAGER_UPDATE_INTERVAL == 0 or idx == item_length-1:
+                callback(idx)
 
             ds = gdal.Warp(
                 '/vsimem/projected.tif',

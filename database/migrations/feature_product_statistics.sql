@@ -28,10 +28,12 @@ CREATE OR REPLACE VIEW v_basin_5070 AS (
 
 
 -- Function; NOTIFY NEW PRODUCTFILE
-CREATE OR REPLACE FUNCTION public.notify_new_productfile ()
-  returns trigger
-  language plpgsql
-AS $$
+CREATE OR REPLACE FUNCTION public.notify_new_productfile()
+    RETURNS trigger
+    LANGUAGE 'plpgsql'
+    COST 100
+    VOLATILE NOT LEAKPROOF
+AS $BODY$
 declare
     channel text := 'cumulus_new_productfile';
 begin
@@ -47,7 +49,8 @@ begin
 	);
 	RETURN NULL;
 end;
-$$;
+$BODY$;
+
 
 -- Trigger; NOTIFY NEW PRODUCTFILE ON INSERT
 CREATE TRIGGER notify_new_productfile

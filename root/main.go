@@ -73,13 +73,6 @@ func main() {
 	if err != nil {
 		log.Fatal(err.Error())
 	}
-	// statisticsAsyncer defines async engine for computing raster statistics
-	statisticsAsyncer, err := asyncer.NewAsyncer(
-		asyncer.Config{Engine: cfg.AsyncEngineStatistics, Target: cfg.AsyncEngineStatisticsTarget},
-	)
-	if err != nil {
-		log.Fatal(err.Error())
-	}
 
 	e := echo.New()
 	// Middleware for All Routes

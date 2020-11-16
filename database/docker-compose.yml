@@ -84,7 +84,7 @@ services:
     ports: 
         - "80:80"
     build: 
-      context: ../packager
+      context: ../async_packager
       dockerfile: Dockerfile-nginx
     volumes:
       - ./packager_files:/usr/share/nginx/html/cumulus/download/dss

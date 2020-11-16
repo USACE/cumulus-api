@@ -335,6 +335,11 @@ INSERT INTO productfile (id, file, datetime, product_id) VALUES
 ('3b5542cc-f8bb-40d9-8663-5aa2f1ea7c60', 'cumulus/nohrsc_snodas_snowdepth/zz_ssmv11036tS__T0001TTNATS2020081605HP001_cloud_optimized.tif','2020-08-16 00:00:00+00', 'e0baa220-1310-445b-816b-6887465cc94b'),
 ('27007e85-6cd9-4c03-b62e-503ffd3d7611', 'cumulus/nohrsc_snodas_snowdepth/zz_ssmv11036tS__T0001TTNATS2020081705HP001_cloud_optimized.tif','2020-08-17 00:00:00+00', 'e0baa220-1310-445b-816b-6887465cc94b');
 
+-- basin_product_statistics_enabled
+INSERT INTO basin_product_statistics_enabled (basin_id, product_id) VALUES
+	('c785f4de-ab17-444b-b6e6-6f1ad16676e8', 'f1b6ac38-bbc9-48c6-bf78-207005ee74fa'),
+	('c54eab5b-1020-476b-a5f8-56d77802d9bf', 'f1b6ac38-bbc9-48c6-bf78-207005ee74fa');
+
 -- downloads
 INSERT INTO download (datetime_start, datetime_end, progress, status_id, file, processing_start, processing_end) VALUES 
 ('2020-08-01', '2010-08-12', 0, '94727878-7a50-41f8-99eb-a80eb82f737a', null, '2020-08-12', null),

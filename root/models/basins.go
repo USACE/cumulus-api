@@ -92,3 +92,27 @@ func GetBasin(db *sqlx.DB, ID *uuid.UUID) (*Basin, error) {
 
 	return &b, nil
 }
+
+// EnableBasinProductStatistics turns on statistics calculations when new productfiles arrive
+// If attempting to "enable" when already "ENABLED", do nothing.
+func EnableBasinProductStatistics(db *sqlx.DB, basinID *uuid.UUID, productID *uuid.UUID) error {
+	if _, err := db.Exec(
+		`INSERT INTO basin_product_statistics_enabled (basin_id, product_id) VALUES ($1, $2)
+		 ON CONFLICT ON CONSTRAINT unique_basin_product DO NOTHING`,
+		basinID, productID,
+	); err != nil {
+		return err
+	}
+	return nil
+}
+
+// DisableBasinProductStatistics turns off statistics calculatiions when new productfiles arrive
+func DisableBasinProductStatistics(db *sqlx.DB, basinID *uuid.UUID, productID *uuid.UUID) error {
+	if _, err := db.Exec(
+		`DELETE FROM basin_product_statistics_enabled WHERE basin_id=$1 AND product_id=$2`,
+		basinID, productID,
+	); err != nil {
+		return err
+	}
+	return nil
+}

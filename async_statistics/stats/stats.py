@@ -12,6 +12,7 @@ from rasterstats import zonal_stats
 
 import config as CONFIG
 from helpers import buffered_extent
+from db import get_basin
 
 CLIENT = boto3.resource(
     'sqs',
@@ -34,8 +35,6 @@ logger.addHandler(logging.StreamHandler())
 # Packager Update Function
 def statistics(item):
     """Item: { bucket: "", key: "", }"""
-    print(item)
-    vector = item['basins']
 
     cellsize = 2000
     # minx, miny, maxx, maxy = buffered_extent(
@@ -45,6 +44,9 @@ def statistics(item):
 
         projected_raster = os.path.abspath(os.path.join(td, 'projected.tif'))
 
+        # TODO: Add outputBounds on warp using buffered basin extent
+        # this should significantly speed up statistics by avoiding a resample and download
+        # of the entire grid extent.
         ds = gdal.Warp(
             projected_raster,
             f'/vsis3_streaming/{item["s3_bucket"]}/{item["s3_key"]}',
@@ -56,15 +58,17 @@ def statistics(item):
             yRes=cellsize
         )
         ds = None
-
+        
+        geometry = get_basin(item["basin_id"])
+        
         features = zonal_stats(
-            vector, projected_raster, stats=["min", "max", "mean", "count", ], geojson_out=True
+            [geometry[0]], projected_raster, stats=["min", "max", "mean", "count", ], geojson_out=True
         )
-        print(features)
 
         result = [
             {
-                "name": f['properties']['HMS_Name'],
+                "productfile_id": item['productfile_id'],
+                "basin_id": item['basin_id'],
                 "min": f['properties']['min'],
                 "max": f['properties']['max'],
                 "mean": f['properties']['mean']

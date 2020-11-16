@@ -1,4 +1,7 @@
 
+-- add geometry field to basin table
+ALTER TABLE basin ADD COLUMN geometry geometry;
+
 -- basin_product_statistics_enabled
 CREATE TABLE IF NOT EXISTS public.basin_product_statistics_enabled (
     id UUID PRIMARY KEY NOT NULL DEFAULT uuid_generate_v4(),

@@ -42,8 +42,7 @@ def write_contents_to_dssfile(outfile, basin, items, callback):
             proj = ds.GetProjection()
             # Affine Transform
             geo_transform = ds.GetGeoTransform()
-            xmin,ymax = geo_transform[0], geo_transform[3]
-            affine_transform = Affine(cellsize,0,xmin,0,-cellsize,ymax)
+            affine_transform = Affine.from_gdal(*geo_transform)
 
             # Create HEC GridInfo Object
             grid_info = gridInfo()

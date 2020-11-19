@@ -70,6 +70,7 @@ CREATE TABLE IF NOT EXISTS public.product (
     dss_fpart VARCHAR(40),
     is_realtime BOOLEAN,
     parameter_id UUID NOT NULL REFERENCES parameter (id),
+    description TEXT,
     unit_id UUID NOT NULL REFERENCES unit (id)
 );
 

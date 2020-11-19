@@ -47,7 +47,7 @@ def write_contents_to_dssfile(outfile, basin, items, callback):
             # Create HEC GridInfo Object
             grid_info = gridInfo()
             grid_info.update([
-                ('grid_type','shg-time'),
+                ('grid_type','specified-time'),
                 ('grid_crs', proj),
                 ('grid_transform', affine_transform),
                 ('data_type', item['dss_datatype'].lower()),

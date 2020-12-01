@@ -74,8 +74,8 @@ CREATE TABLE IF NOT EXISTS public.product (
     temporal_duration INTEGER NOT NULL,
     temporal_resolution INTEGER NOT NULL,
     dss_fpart VARCHAR(40),
-    is_realtime BOOLEAN,
-    is_forecast BOOLEAN,
+    is_realtime BOOLEAN NOT NULL,
+    is_forecast BOOLEAN NOT NULL,
     parameter_id UUID NOT NULL REFERENCES parameter (id),
     unit_id UUID NOT NULL REFERENCES unit (id),
 );

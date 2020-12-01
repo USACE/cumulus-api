@@ -61,16 +61,23 @@ CREATE TABLE IF NOT EXISTS public.unit (
     name VARCHAR(120) UNIQUE NOT NULL
 );
 
+CREATE TABLE IF NOT EXISTS public.product_group (
+    id UUID PRIMARY KEY NOT NULL DEFAULT uuid_generate_v4(),
+    name VARCHAR NOT NULL
+);
+
 -- product
 CREATE TABLE IF NOT EXISTS public.product (
     id UUID PRIMARY KEY NOT NULL DEFAULT uuid_generate_v4(),
+    group_id UUID REFERENCES product_group(id),
     name VARCHAR(120) NOT NULL,
     temporal_duration INTEGER NOT NULL,
     temporal_resolution INTEGER NOT NULL,
     dss_fpart VARCHAR(40),
     is_realtime BOOLEAN,
+    is_forecast BOOLEAN,
     parameter_id UUID NOT NULL REFERENCES parameter (id),
-    unit_id UUID NOT NULL REFERENCES unit (id)
+    unit_id UUID NOT NULL REFERENCES unit (id),
 );
 
 -- basin_product_statistics_enabled
@@ -225,6 +232,12 @@ EXECUTE PROCEDURE public.notify_new_productfile();
 -- SEED DATA FOR DOMAINS
 ------------------------
 
+-- product_group
+INSERT INTO product_group (id, name) VALUES
+    ('726039da-2f21-4393-a15c-5f6e7ea41b1f', 'PRECIPITATION'),
+    ('d9613031-7cf0-4722-923e-e5c3675a163b', 'TEMPERATURE'),
+    ('57bda84f-ecec-4cd7-b3b1-c0c36f838a05', 'SNOW');
+
 -- unit
 INSERT INTO unit (id, name) VALUES
 ('4bcfac2e-1a08-4484-bf7d-3cb937dc950b','DEGC-D'),
@@ -250,3 +263,4 @@ INSERT INTO download_status (id, name) VALUES
 ('94727878-7a50-41f8-99eb-a80eb82f737a', 'INITIATED'),
 ('3914f0bd-2290-42b1-bc24-41479b3a846f', 'SUCCESS'),
 ('a553101e-8c51-4ddd-ac2e-b011ed54389b', 'FAILED');
+

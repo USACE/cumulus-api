@@ -12,13 +12,17 @@ import (
 
 // Product is a product structure
 type Product struct {
-	ID                 uuid.UUID `json:"id"`
-	Name               string    `json:"name"`
-	TemporalResolution string    `json:"temporal_resolution" db:"temporal_resolution"`
-	TemporalDuration   string    `json:"temporal_duration" db:"temporal_duration"`
-	DssFpart           string    `json:"dss_fpart" db:"dss_fpart"`
-	Parameter          string    `json:"parameter"`
-	Unit               string    `json:"unit"`
+	ID                 uuid.UUID  `json:"id"`
+	GroupID            *uuid.UUID `json:"group_id" db:"group_id"`
+	Group              *string    `json:"group" db:"group"`
+	IsForecast         bool       `json:"is_forecast" db:"is_forecast"`
+	IsRealtime         bool       `json:"is_realtime" db:"is_realtime"`
+	Name               string     `json:"name"`
+	TemporalResolution string     `json:"temporal_resolution" db:"temporal_resolution"`
+	TemporalDuration   string     `json:"temporal_duration" db:"temporal_duration"`
+	DssFpart           string     `json:"dss_fpart" db:"dss_fpart"`
+	Parameter          string     `json:"parameter"`
+	Unit               string     `json:"unit"`
 	CoverageSummary
 }
 
@@ -136,7 +140,11 @@ func GetProductAvailability(db *sqlx.DB, ID *uuid.UUID) (*Availability, error) {
 
 func listProductsSQL() string {
 	return `SELECT a.id                  AS id,
-	               a.name                AS name,
+				   a.name                AS name,
+				   a.group_id            AS group_id,
+				   g.name                AS group,
+				   a.is_realtime         AS is_realtime,
+				   a.is_forecast         AS is_forecast,
 	               a.temporal_resolution AS temporal_resolution,
 	               a.temporal_duration   AS temporal_duration,
 	               a.dss_fpart           AS dss_fpart,
@@ -154,7 +162,8 @@ func listProductsSQL() string {
 						) END AS coverage
             FROM product a
             JOIN unit u ON u.id = a.unit_id
-            JOIN parameter p ON p.id = a.parameter_id
+			JOIN parameter p ON p.id = a.parameter_id
+			LEFT JOIN product_group g ON a.group_id = g.id
             LEFT JOIN (
                 SELECT product_id    AS product_id,
                        COUNT(id)     AS productfile_count,

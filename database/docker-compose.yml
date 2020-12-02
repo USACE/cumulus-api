@@ -9,7 +9,7 @@ services:
     volumes:
       # - cumulus_postgres_data:/var/lib/postgresql/data
       - ./database_files:/database_files
-      - ./sql:/docker-entrypoint-initdb.d/sql
+      - ./sql:/sql
       - ./sql/init.sql:/docker-entrypoint-initdb.d/z_init.sql
     environment:
         - POSTGRES_PASSWORD=postgres

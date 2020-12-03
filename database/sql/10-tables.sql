@@ -213,7 +213,7 @@ CREATE OR REPLACE VIEW v_download AS (
     );
 
 -- Basins; Projected to EPSG 5070
-CREATE OR REPLACE VIEW v_basin_5070 AS (
+CREATE OR REPLACE VIEW v_area_5070 AS (
         SELECT id,
 	        slug,
 	        name,
@@ -225,7 +225,7 @@ CREATE OR REPLACE VIEW v_basin_5070 AS (
                     ),
                     1
                 ) AS geometry
-        FROM basin
+        FROM area
     );
 
 

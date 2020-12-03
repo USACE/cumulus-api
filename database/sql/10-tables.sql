@@ -77,7 +77,7 @@ CREATE TABLE IF NOT EXISTS public.product (
     is_realtime BOOLEAN NOT NULL,
     is_forecast BOOLEAN NOT NULL,
     parameter_id UUID NOT NULL REFERENCES parameter (id),
-    unit_id UUID NOT NULL REFERENCES unit (id),
+    unit_id UUID NOT NULL REFERENCES unit (id)
 );
 
 -- basin_product_statistics_enabled

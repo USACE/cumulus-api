@@ -286,6 +286,10 @@ INSERT INTO basin (id, slug, name, x_min, y_min, x_max, y_max, office_id) VALUES
 ('e97c5b9b-da0f-43ae-b7c4-d54bbdcc0e9f','fpg_upryell_bighorn','FPG_UPRYELL_BIGHORN',-1188000,2226000,-852000,2678000,'90173658-2de9-4329-926d-176c1b29089a'),
 ('f019ffec-e9d3-48e6-ab74-eaa8fd8065e0','garrison-to-oahe','GARRISON TO OAHE',-842000,2210000,-194000,2814000,'90173658-2de9-4329-926d-176c1b29089a');
 
+-- watershed
+INSERT INTO watershed (id, slug, name)
+SELECT id, slug, name FROM basin;
+
 -- product
 INSERT INTO product (id, group_id, name, temporal_duration, temporal_resolution, dss_fpart, is_realtime, is_forecast, parameter_id, unit_id) VALUES
 ('e0baa220-1310-445b-816b-6887465cc94b','57bda84f-ecec-4cd7-b3b1-c0c36f838a05','nohrsc_snodas_snowdepth',0,86400,'SNODAS',True,False,'cfa90543-235c-4266-98c2-26dbc332cd87','e245d39f-3209-4e58-bfb7-4eae94b3f8dd'),
@@ -343,6 +347,14 @@ INSERT INTO productfile (id, file, datetime, product_id) VALUES
 INSERT INTO basin_product_statistics_enabled (basin_id, product_id) VALUES
 	('c785f4de-ab17-444b-b6e6-6f1ad16676e8', 'f1b6ac38-bbc9-48c6-bf78-207005ee74fa'),
 	('c54eab5b-1020-476b-a5f8-56d77802d9bf', 'f1b6ac38-bbc9-48c6-bf78-207005ee74fa');
+
+-- area_group
+INSERT INTO area_group (id, watershed_id, slug, name) VALUES
+    ('e3fd63a1-f19f-4bf3-b436-1c7086b7afe7','c785f4de-ab17-444b-b6e6-6f1ad16676e8','subbasins','Subbasins');
+
+-- area_group_product_statistics_enabled
+INSERT INTO area_group_product_statistics_enabled (area_group_id, product_id) VALUES
+	('e3fd63a1-f19f-4bf3-b436-1c7086b7afe7', 'f1b6ac38-bbc9-48c6-bf78-207005ee74fa');
 
 -- downloads
 INSERT INTO download (datetime_start, datetime_end, progress, status_id, file, processing_start, processing_end) VALUES 

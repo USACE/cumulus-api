@@ -4,6 +4,9 @@ CREATE extension IF NOT EXISTS "uuid-ossp";
 
 -- drop tables if they already exist
 drop table if exists
+    public.area_group_product_statistics_enabled,
+    public.area,
+    public.area_group,
     public.office,
     public.subbasin,
     public.basin,
@@ -18,7 +21,8 @@ drop table if exists
     public.download_product,
     public.download_status,
 	public.profile_token,
-	public.profile
+	public.profile,
+    public.watershed
 	CASCADE;
 
 
@@ -42,11 +46,29 @@ CREATE TABLE IF NOT EXISTS public.basin (
     office_id UUID NOT NULL REFERENCES office (id)
 );
 
-CREATE TABLE IF NOT EXISTS public.subbasin (
+-- watershed
+CREATE TABLE IF NOT EXISTS public.watershed (
     id UUID PRIMARY KEY NOT NULL DEFAULT uuid_generate_v4(),
-    basin_id UUID REFERENCES basin(id),
-    name VARCHAR NOT NULL,
+    slug VARCHAR UNIQUE NOT NULL,
+    name VARCHAR,
     geometry geometry
+);
+
+-- area_group
+CREATE TABLE IF NOT EXISTS public.area_group (
+    id UUID PRIMARY KEY NOT NULL DEFAULT uuid_generate_v4(),
+    watershed_id UUID NOT NULL REFERENCES watershed(id),
+    slug VARCHAR UNIQUE NOT NULL,
+    name VARCHAR UNIQUE NOT NULL
+);
+
+-- area
+CREATE TABLE IF NOT EXISTS public.area (
+    id UUID PRIMARY KEY NOT NULL DEFAULT uuid_generate_v4(),
+    slug VARCHAR UNIQUE NOT NULL,
+    name VARCHAR UNIQUE NOT NULL,
+    geometry geometry NOT NULL,
+    area_group_id UUID NOT NULL REFERENCES area_group(id)
 );
 
 -- parameter
@@ -159,6 +181,14 @@ CREATE TABLE IF NOT EXISTS public.profile_token (
     hash VARCHAR(240) NOT NULL
 );
 
+-- area_group_product_statistics_enabled
+CREATE TABLE IF NOT EXISTS public.area_group_product_statistics_enabled (
+    id UUID PRIMARY KEY NOT NULL DEFAULT uuid_generate_v4(),
+    area_group_id UUID NOT NULL REFERENCES area_group(id),
+    product_id UUID NOT NULL REFERENCES product(id),
+    CONSTRAINT unique_area_group_product UNIQUE(area_group_id, product_id)
+);
+
 -- VIEWS
 CREATE OR REPLACE VIEW v_download AS (
         SELECT d.id AS id,
@@ -183,7 +213,7 @@ CREATE OR REPLACE VIEW v_download AS (
     );
 
 -- Basins; Projected to EPSG 5070
-CREATE OR REPLACE VIEW v_basin_5070 AS (
+CREATE OR REPLACE VIEW v_area_5070 AS (
         SELECT id,
 	        slug,
 	        name,
@@ -195,7 +225,7 @@ CREATE OR REPLACE VIEW v_basin_5070 AS (
                     ),
                     1
                 ) AS geometry
-        FROM basin
+        FROM area
     );
 
 

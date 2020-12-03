@@ -57,7 +57,7 @@ CREATE TABLE IF NOT EXISTS public.watershed (
 -- area_group
 CREATE TABLE IF NOT EXISTS public.area_group (
     id UUID PRIMARY KEY NOT NULL DEFAULT uuid_generate_v4(),
-    watershed_id UUID NOT NULL REFERENCES watershed(id),
+    watershed_id UUID NOT NULL REFERENCES watershed(id) ON DELETE CASCADE,
     slug VARCHAR UNIQUE NOT NULL,
     name VARCHAR UNIQUE NOT NULL
 );
@@ -68,7 +68,7 @@ CREATE TABLE IF NOT EXISTS public.area (
     slug VARCHAR UNIQUE NOT NULL,
     name VARCHAR UNIQUE NOT NULL,
     geometry geometry NOT NULL,
-    area_group_id UUID NOT NULL REFERENCES area_group(id)
+    area_group_id UUID NOT NULL REFERENCES area_group(id) ON DELETE CASCADE
 );
 
 -- parameter
@@ -184,8 +184,8 @@ CREATE TABLE IF NOT EXISTS public.profile_token (
 -- area_group_product_statistics_enabled
 CREATE TABLE IF NOT EXISTS public.area_group_product_statistics_enabled (
     id UUID PRIMARY KEY NOT NULL DEFAULT uuid_generate_v4(),
-    area_group_id UUID NOT NULL REFERENCES area_group(id),
-    product_id UUID NOT NULL REFERENCES product(id),
+    area_group_id UUID NOT NULL REFERENCES area_group(id) ON DELETE CASCADE,
+    product_id UUID NOT NULL REFERENCES product(id) ON DELETE CASCADE,
     CONSTRAINT unique_area_group_product UNIQUE(area_group_id, product_id)
 );
 

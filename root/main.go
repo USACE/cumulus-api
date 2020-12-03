@@ -137,6 +137,13 @@ func main() {
 	cacOrToken.POST("cumulus/basins/:basin_id/products/:product_id/statistics/enable", handlers.EnableBasinProductStatistics(db))
 	cacOrToken.POST("cumulus/basins/:basin_id/products/:product_id/statistics/disable", handlers.DisableBasinProductStatistics(db))
 
+	// Watersheds (to replace basins)
+	public.GET("cumulus/watersheds", handlers.ListWatersheds(db))
+	public.GET("cumulus/watersheds/:watershed_id", handlers.GetWatershed(db))
+	cacOrToken.POST("cumulus/watersheds", handlers.CreateWatershed(db))
+	cacOrToken.PUT("cumulus/watersheds/:watershed_id", handlers.UpdateWatershed(db))
+	cacOrToken.DELETE("cumulus/watersheds/:watershed_id", handlers.DeleteWatershed(db))
+
 	// JWT Only Restricted Routes (JWT Only)
 	cacOnly.POST("cumulus/profiles", handlers.CreateProfile(db))
 	cacOnly.GET("cumulus/my_profile", handlers.GetMyProfile(db))

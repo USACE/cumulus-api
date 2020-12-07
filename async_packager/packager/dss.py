@@ -52,6 +52,8 @@ def write_contents_to_dssfile(outfile, basin, items, callback):
                 ('grid_transform', affine_transform),
                 ('data_type', item['dss_datatype'].lower()),
                 ('data_units', item['dss_unit'].lower()),
+                ('opt_lower_left_x', basin['x_min'] / cellsize),
+                ('opt_lower_left_y', basin['y_min'] / cellsize),
                 ('opt_time_stamped',False)
             ])
 

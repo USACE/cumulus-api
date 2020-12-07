@@ -258,6 +258,33 @@ ON public.productfile
 FOR EACH ROW
 EXECUTE PROCEDURE public.notify_new_productfile();
 
+
+-- Function; NOTIFY NEW DOWNLOAD
+CREATE OR REPLACE FUNCTION public.notify_new_download ()
+    returns trigger
+    language plpgsql
+AS $$
+declare
+    channel text := 'cumulus_new_download';
+begin
+    PERFORM (
+        WITH payload as (
+            SELECT NEW.id AS download_id
+        )
+        SELECT pg_notify(channel, row_to_json(payload)::text)
+        FROM payload
+    );
+    RETURN NULL;
+end;
+$$;
+
+-- Trigger; NOTIFY NEW DOWNLOAD ON INSERT
+CREATE TRIGGER notify_new_download
+AFTER INSERT
+ON public.download
+FOR EACH ROW
+EXECUTE PROCEDURE public.notify_new_download();
+
 ------------------------
 -- SEED DATA FOR DOMAINS
 ------------------------

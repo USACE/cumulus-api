@@ -126,6 +126,7 @@ func main() {
 	// Downloads
 	public.GET("cumulus/downloads", handlers.ListDownloads(db))
 	public.GET("cumulus/downloads/:id", handlers.GetDownload(db))
+	public.GET("cumulus/downloads/:id/packager_request", handlers.GetDownloadPackagerRequest(db))
 	public.POST("cumulus/downloads", handlers.CreateDownload(db, packagerAsyncer))
 	public.PUT("cumulus/downloads/:id", handlers.UpdateDownload(db))
 

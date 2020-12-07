@@ -83,6 +83,22 @@ Example PUT JSON BODY
 }
 */
 
+// GetDownloadPackagerRequest is an endpoint used by packager to get information about records
+// that must go into the download package
+func GetDownloadPackagerRequest(db *sqlx.DB) echo.HandlerFunc {
+	return func(c echo.Context) error {
+		downloadID, err := uuid.Parse(c.Param("id"))
+		if err != nil {
+			return c.String(http.StatusBadRequest, err.Error())
+		}
+		dpr, err := models.GetDownloadPackagerRequest(db, &downloadID)
+		if err != nil {
+			return c.String(http.StatusInternalServerError, err.Error())
+		}
+		return c.JSON(http.StatusOK, dpr)
+	}
+}
+
 //UpdateDownload updates the status, progress and datetime_end from the lambda function
 func UpdateDownload(db *sqlx.DB) echo.HandlerFunc {
 	return func(c echo.Context) error {

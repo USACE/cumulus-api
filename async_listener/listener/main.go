@@ -60,6 +60,11 @@ type NewProductfileMessage struct {
 	S3Key         string    `json:"s3_key" db:"s3_key"`
 }
 
+// NewDownloadMessage holds database notification information for New Download Created
+type NewDownloadMessage struct {
+	DownloadID uuid.UUID `json:"download_id" db:"download_id"`
+}
+
 func handleStatistics(n *pq.Notification, db *sqlx.DB, statistics asyncer.Asyncer) error {
 	var m NewProductfileMessage
 	if err := json.Unmarshal([]byte(n.Extra), &m); err != nil {
@@ -102,12 +107,29 @@ func handleStatistics(n *pq.Notification, db *sqlx.DB, statistics asyncer.Asynce
 	return nil
 }
 
+func handleNewDownload(n *pq.Notification, db *sqlx.DB, packager asyncer.Asyncer) error {
+	var m NewDownloadMessage
+	if err := json.Unmarshal([]byte(n.Extra), &m); err != nil {
+		fmt.Println("error unmarshaling new download message")
+		return err
+	}
+	if err := packager.CallAsync([]byte(n.Extra)); err != nil {
+		fmt.Println("Error calling packager async")
+		fmt.Println(err.Error())
+		return err
+	}
+	return nil
+}
+
 func waitForNotification(l *pq.Listener, db *sqlx.DB, statistics asyncer.Asyncer, packager asyncer.Asyncer) {
 	select {
 	case n := <-l.Notify:
 		fmt.Println("notification on channel: " + n.Channel)
 		if n.Channel == "cumulus_new_productfile" {
 			go handleStatistics(n, db, statistics)
+		}
+		if n.Channel == "cumulus_new_download" {
+			go handleNewDownload(n, db, packager)
 		}
 	case <-time.After(90 * time.Second):
 		go l.Ping()

@@ -4,6 +4,9 @@ CREATE extension IF NOT EXISTS "uuid-ossp";
 
 -- drop tables if they already exist
 drop table if exists
+    public.area_group_product_statistics_enabled,
+    public.area,
+    public.area_group,
     public.office,
     public.subbasin,
     public.basin,
@@ -18,7 +21,8 @@ drop table if exists
     public.download_product,
     public.download_status,
 	public.profile_token,
-	public.profile
+	public.profile,
+    public.watershed
 	CASCADE;
 
 
@@ -42,11 +46,29 @@ CREATE TABLE IF NOT EXISTS public.basin (
     office_id UUID NOT NULL REFERENCES office (id)
 );
 
-CREATE TABLE IF NOT EXISTS public.subbasin (
+-- watershed
+CREATE TABLE IF NOT EXISTS public.watershed (
     id UUID PRIMARY KEY NOT NULL DEFAULT uuid_generate_v4(),
-    basin_id UUID REFERENCES basin(id),
-    name VARCHAR NOT NULL,
+    slug VARCHAR UNIQUE NOT NULL,
+    name VARCHAR,
     geometry geometry
+);
+
+-- area_group
+CREATE TABLE IF NOT EXISTS public.area_group (
+    id UUID PRIMARY KEY NOT NULL DEFAULT uuid_generate_v4(),
+    watershed_id UUID NOT NULL REFERENCES watershed(id) ON DELETE CASCADE,
+    slug VARCHAR UNIQUE NOT NULL,
+    name VARCHAR UNIQUE NOT NULL
+);
+
+-- area
+CREATE TABLE IF NOT EXISTS public.area (
+    id UUID PRIMARY KEY NOT NULL DEFAULT uuid_generate_v4(),
+    slug VARCHAR UNIQUE NOT NULL,
+    name VARCHAR UNIQUE NOT NULL,
+    geometry geometry NOT NULL,
+    area_group_id UUID NOT NULL REFERENCES area_group(id) ON DELETE CASCADE
 );
 
 -- parameter
@@ -61,14 +83,21 @@ CREATE TABLE IF NOT EXISTS public.unit (
     name VARCHAR(120) UNIQUE NOT NULL
 );
 
+CREATE TABLE IF NOT EXISTS public.product_group (
+    id UUID PRIMARY KEY NOT NULL DEFAULT uuid_generate_v4(),
+    name VARCHAR NOT NULL
+);
+
 -- product
 CREATE TABLE IF NOT EXISTS public.product (
     id UUID PRIMARY KEY NOT NULL DEFAULT uuid_generate_v4(),
+    group_id UUID REFERENCES product_group(id),
     name VARCHAR(120) NOT NULL,
     temporal_duration INTEGER NOT NULL,
     temporal_resolution INTEGER NOT NULL,
     dss_fpart VARCHAR(40),
-    is_realtime BOOLEAN,
+    is_realtime BOOLEAN NOT NULL,
+    is_forecast BOOLEAN NOT NULL,
     parameter_id UUID NOT NULL REFERENCES parameter (id),
     unit_id UUID NOT NULL REFERENCES unit (id)
 );
@@ -152,6 +181,14 @@ CREATE TABLE IF NOT EXISTS public.profile_token (
     hash VARCHAR(240) NOT NULL
 );
 
+-- area_group_product_statistics_enabled
+CREATE TABLE IF NOT EXISTS public.area_group_product_statistics_enabled (
+    id UUID PRIMARY KEY NOT NULL DEFAULT uuid_generate_v4(),
+    area_group_id UUID NOT NULL REFERENCES area_group(id) ON DELETE CASCADE,
+    product_id UUID NOT NULL REFERENCES product(id) ON DELETE CASCADE,
+    CONSTRAINT unique_area_group_product UNIQUE(area_group_id, product_id)
+);
+
 -- VIEWS
 CREATE OR REPLACE VIEW v_download AS (
         SELECT d.id AS id,
@@ -176,7 +213,7 @@ CREATE OR REPLACE VIEW v_download AS (
     );
 
 -- Basins; Projected to EPSG 5070
-CREATE OR REPLACE VIEW v_basin_5070 AS (
+CREATE OR REPLACE VIEW v_area_5070 AS (
         SELECT id,
 	        slug,
 	        name,
@@ -188,7 +225,7 @@ CREATE OR REPLACE VIEW v_basin_5070 AS (
                     ),
                     1
                 ) AS geometry
-        FROM basin
+        FROM area
     );
 
 
@@ -225,6 +262,12 @@ EXECUTE PROCEDURE public.notify_new_productfile();
 -- SEED DATA FOR DOMAINS
 ------------------------
 
+-- product_group
+INSERT INTO product_group (id, name) VALUES
+    ('726039da-2f21-4393-a15c-5f6e7ea41b1f', 'PRECIPITATION'),
+    ('d9613031-7cf0-4722-923e-e5c3675a163b', 'TEMPERATURE'),
+    ('57bda84f-ecec-4cd7-b3b1-c0c36f838a05', 'SNOW');
+
 -- unit
 INSERT INTO unit (id, name) VALUES
 ('4bcfac2e-1a08-4484-bf7d-3cb937dc950b','DEGC-D'),
@@ -250,3 +293,4 @@ INSERT INTO download_status (id, name) VALUES
 ('94727878-7a50-41f8-99eb-a80eb82f737a', 'INITIATED'),
 ('3914f0bd-2290-42b1-bc24-41479b3a846f', 'SUCCESS'),
 ('a553101e-8c51-4ddd-ac2e-b011ed54389b', 'FAILED');
+

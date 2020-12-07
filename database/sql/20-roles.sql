@@ -14,15 +14,18 @@ CREATE ROLE postgis_reader;
 -- Role cumulus_reader
 -- Tables specific to cumulus app
 GRANT SELECT ON
+    area,
+    area_group,
+    area_group_product_statistics_enabled,
     profile,
     profile_token,
     office,
     parameter,
     basin,
-    subbasin,
     unit,
     product,
     productfile,
+    product_group,
     basin_product_statistics_enabled,
     acquirable,
     acquisition,
@@ -30,21 +33,26 @@ GRANT SELECT ON
     download_status,
     download,
     download_product,
-    v_download
+    watershed,
+    v_download,
+    v_area_5070
 TO cumulus_reader;
 
 -- Role cumulus_writer
 -- Tables specific to instrumentation app
-GRANT INSERT,UPDATE,DELETE ON 
+GRANT INSERT,UPDATE,DELETE ON
+    area,
+    area_group,
+    area_group_product_statistics_enabled,
     profile,
     profile_token,
     office,
     parameter,
     basin,
-    subbasin,
     unit,
     product,
     productfile,
+    product_group,
     basin_product_statistics_enabled,
     acquirable,
     acquisition,
@@ -52,7 +60,7 @@ GRANT INSERT,UPDATE,DELETE ON
     download_status,
     download,
     download_product,
-    v_basin_5070
+    watershed
 TO cumulus_writer;
 
 -- Role postgis_reader

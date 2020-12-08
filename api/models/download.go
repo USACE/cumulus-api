@@ -1,7 +1,7 @@
 package models
 
 import (
-	"api/root/config"
+	"api/config"
 	"fmt"
 	"time"
 

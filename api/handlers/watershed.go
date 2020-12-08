@@ -7,7 +7,7 @@ import (
 	"github.com/jmoiron/sqlx"
 	"github.com/labstack/echo/v4"
 
-	"api/root/models"
+	"api/models"
 
 	_ "github.com/lib/pq"
 )

@@ -1,7 +1,7 @@
 package handlers
 
 import (
-	"api/root/models"
+	"api/models"
 	"net/http"
 
 	"github.com/USACE/go-simple-asyncer/asyncer"

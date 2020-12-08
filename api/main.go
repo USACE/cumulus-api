@@ -1,14 +1,14 @@
 package main
 
 import (
-	"api/root/models"
+	"api/models"
 	"fmt"
 	"log"
 	"net/http"
 
-	"api/root/config"
-	"api/root/handlers"
-	"api/root/middleware"
+	"api/config"
+	"api/handlers"
+	"api/middleware"
 
 	"github.com/USACE/go-simple-asyncer/asyncer"
 	"github.com/jmoiron/sqlx"

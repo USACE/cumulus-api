@@ -228,21 +228,17 @@ CREATE OR REPLACE VIEW v_area_5070 AS (
         FROM area
     );
 
-
--- Function; NOTIFY NEW PRODUCTFILE
-CREATE OR REPLACE FUNCTION public.notify_new_productfile ()
+-- Function; Notify New Record in Table
+CREATE OR REPLACE FUNCTION public.notify_new ()
   returns trigger
   language plpgsql
 AS $$
 declare
-    channel text := 'cumulus_new_productfile';
+    channel text := 'cumulus_new';
 begin
 	PERFORM (
 		WITH payload as (
-			SELECT NEW.id AS productfile_id,
-				   NEW.product_id  AS product_id,
-			       'corpsmap-data' AS s3_bucket,
-			       NEW.file        AS s3_key
+			SELECT TG_TABLE_NAME AS table, NEW.id AS id
 		)
 		SELECT pg_notify(channel, row_to_json(payload)::text)
 		FROM payload
@@ -251,12 +247,18 @@ begin
 end;
 $$;
 
--- Trigger; NOTIFY STATISTICS ON INSERT
+-- Trigger; NOTIFY NEW DOWNLOAD ON INSERT
+CREATE TRIGGER notify_new_download
+AFTER INSERT ON public.download
+FOR EACH ROW
+EXECUTE PROCEDURE public.notify_new();
+
+-- -- Trigger; NOTIFY NEW PRODUCTFILE ON INSERT
 CREATE TRIGGER notify_new_productfile
 AFTER INSERT
 ON public.productfile
 FOR EACH ROW
-EXECUTE PROCEDURE public.notify_new_productfile();
+EXECUTE PROCEDURE public.notify_new();
 
 ------------------------
 -- SEED DATA FOR DOMAINS

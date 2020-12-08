@@ -6,8 +6,8 @@ import (
 	"log"
 	"strings"
 
-	"api/root/acquirable"
-	"api/root/acquisition"
+	"api/acquirable"
+	"api/acquisition"
 
 	"github.com/USACE/go-simple-asyncer/asyncer"
 

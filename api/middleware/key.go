@@ -1,7 +1,7 @@
 package middleware
 
 import (
-	"api/root/passwords"
+	"api/passwords"
 
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/echo/v4/middleware"

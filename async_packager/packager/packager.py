@@ -8,6 +8,7 @@ import shutil
 import boto3
 import botocore
 import botocore.exceptions
+import requests
 
 import config as CONFIG
 from packager_update_functions import updateStatus_api, updateStatus_db
@@ -150,8 +151,6 @@ def package(msg, packager_update_fn):
             callbackFn
         )
 
-        
-
         # Upload the final output file to S3        
         if CONFIG.CUMULUS_MOCK_S3_UPLOAD:
             # Mock good upload to S3
@@ -178,12 +177,12 @@ def handle_message(msg):
     """Converts JSON-Formatted message string to dictionary and calls package()"""
 
     print('\n\nmessage received\n\n')
-    j = json.loads(msg.body)
-    result = package(j, packager_update_fn)
-
-    print(result)
-
-
+    download_id = json.loads(msg.body)["id"]
+    r = requests.get(f'{CONFIG.CUMULUS_API_URL}/cumulus/downloads/{download_id}/packager_request')
+    if r.status_code == 200:
+        package(r.json(), packager_update_fn)
+    else:
+        print(f'Packager Fail: {msg}')
 
 while 1:
     messages = queue_packager.receive_messages(WaitTimeSeconds=CONFIG.WAIT_TIME_SECONDS)

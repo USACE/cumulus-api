@@ -1,7 +1,7 @@
 package models
 
 import (
-	"api/root/passwords"
+	"api/passwords"
 	"time"
 
 	"github.com/google/uuid"

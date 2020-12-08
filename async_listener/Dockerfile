@@ -11,8 +11,7 @@ RUN go get -d -v
 RUN GOOS=linux GOARCH=amd64 CGO_ENABLED=0 \
     go build -ldflags="-w -s" -o /go/bin/cumulus-listener
 
-
-# # SCRATCH IMAGE
+# SCRATCH IMAGE
 FROM scratch
 COPY --from=builder /go/bin/cumulus-listener /go/bin/cumulus-listener
 ENTRYPOINT ["/go/bin/cumulus-listener"]

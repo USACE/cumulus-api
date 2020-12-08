@@ -41,6 +41,6 @@ else:
     # If CUMULUS_MOCK_S3_UPLOAD environment variable is unset then CUMULUS_MOCK_S3_UPLOAD will equal False
     CUMULUS_MOCK_S3_UPLOAD = False
 
-CUMULUS_API_URL = os.getenv('CUMULUS_API_URL', default='https://api.rsgis.dev')
+CUMULUS_API_URL = os.getenv('CUMULUS_API_URL', default='http://api:3030')
 
 UPDATE_DOWNLOAD_METHOD = os.getenv('UPDATE_DOWNLOAD_METHOD', default='DB')

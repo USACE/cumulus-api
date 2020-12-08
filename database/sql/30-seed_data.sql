@@ -355,9 +355,3 @@ INSERT INTO area_group (id, watershed_id, slug, name) VALUES
 -- area_group_product_statistics_enabled
 INSERT INTO area_group_product_statistics_enabled (area_group_id, product_id) VALUES
 	('e3fd63a1-f19f-4bf3-b436-1c7086b7afe7', 'f1b6ac38-bbc9-48c6-bf78-207005ee74fa');
-
--- downloads
-INSERT INTO download (datetime_start, datetime_end, progress, status_id, file, processing_start, processing_end) VALUES 
-('2020-08-01', '2010-08-12', 0, '94727878-7a50-41f8-99eb-a80eb82f737a', null, '2020-08-12', null),
-('2020-08-02', '2010-08-12', 0, '3914f0bd-2290-42b1-bc24-41479b3a846f', 'test_filename.dss', '2020-08-12', null),
-('2020-08-03', '2010-08-12', 0, 'a553101e-8c51-4ddd-ac2e-b011ed54389b', null, '2020-08-12', '2020-08-13');

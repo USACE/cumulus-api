@@ -1,5 +1,5 @@
 # golang output binary directory
-bin
+api/bin
 
 # golang vendor (dependencies) directory
 vendor
@@ -22,4 +22,4 @@ vendor
 
 database/packager_files/**
 
-__debug*
+**/__debug*

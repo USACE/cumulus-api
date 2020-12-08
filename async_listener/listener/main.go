@@ -8,10 +8,12 @@ import (
 
 	"github.com/USACE/go-simple-asyncer/asyncer"
 	"github.com/google/uuid"
-	"github.com/jmoiron/sqlx"
 	"github.com/kelseyhightower/envconfig"
 	"github.com/lib/pq"
 )
+
+// NotificationHandler is a function that takes a notification and returns an error
+type NotificationHandler func(*pq.Notification) error
 
 // Config holds application configuration variables
 type Config struct {
@@ -52,62 +54,39 @@ func (c Config) maxReconn() time.Duration {
 	return d
 }
 
-// NewProductfileMessage holds database notification information for New Productfile Created
-type NewProductfileMessage struct {
-	ProductfileID uuid.UUID `json:"productfile_id" db:"productfile_id"`
-	ProductID     uuid.UUID `json:"product_id" db:"product_id"`
-	S3Bucket      string    `json:"s3_bucket" db:"s3_bucket"`
-	S3Key         string    `json:"s3_key" db:"s3_key"`
+// Message holds ID of new record and table/entity name
+type Message struct {
+	ID    uuid.UUID `json:"id"`
+	Table string    `json:"table"`
 }
 
-func handleStatistics(n *pq.Notification, db *sqlx.DB, statistics asyncer.Asyncer) error {
-	var m NewProductfileMessage
-	if err := json.Unmarshal([]byte(n.Extra), &m); err != nil {
-		fmt.Println("error unmarshaling new productfile message")
-		return err
-	}
-	// Select list of basin IDs subscribed to statistics for the product
-	// that have a valid geometry that can be used to calculate statistics
-	sql := `SELECT a.basin_id
-	        FROM basin_product_statistics_enabled a
-			INNER JOIN v_basin_5070 b ON b.id = a.basin_id
-			WHERE b.geometry IS NOT NULL AND a.product_id = $1
-			`
-	bb := make([]uuid.UUID, 0)
-	if err := db.Select(&bb, sql, m.ProductID); err != nil {
-		fmt.Println("Eror querying database")
-		fmt.Println(err.Error())
-		return err
-	}
-
-	// Create a Message to Compute statistics for each basin
-	for _, b := range bb {
-		payload, err := json.Marshal(map[string]string{
-			"productfile_id": m.ProductfileID.String(),
-			"basin_id":       b.String(),
-			"s3_key":         m.S3Key,
-			"s3_bucket":      m.S3Bucket,
-		})
-		if err != nil {
-			fmt.Println("Error in marshalling payload")
-			return err
-		}
-		// Send message
-		if err := statistics.CallAsync(payload); err != nil {
-			fmt.Println("Error calling statistics async")
+// NewAsyncNotificationHandler handles dependency injection of asyncer.Asyncer
+func NewAsyncNotificationHandler(a asyncer.Asyncer) NotificationHandler {
+	return func(n *pq.Notification) error {
+		if err := a.CallAsync([]byte(n.Extra)); err != nil {
+			fmt.Println("Error calling async")
 			fmt.Println(err.Error())
 			return err
 		}
+		return nil
 	}
-	return nil
 }
 
-func waitForNotification(l *pq.Listener, db *sqlx.DB, statistics asyncer.Asyncer, packager asyncer.Asyncer) {
+func waitForNotification(l *pq.Listener, handleDownload, handleStatistics NotificationHandler) {
 	select {
 	case n := <-l.Notify:
 		fmt.Println("notification on channel: " + n.Channel)
-		if n.Channel == "cumulus_new_productfile" {
-			go handleStatistics(n, db, statistics)
+		var m Message
+		if err := json.Unmarshal([]byte(n.Extra), &m); err != nil {
+			print("ERROR: %s", err.Error())
+		}
+		switch m.Table {
+		case "download":
+			go handleDownload(n)
+		case "statistics":
+			go handleStatistics(n)
+		default:
+			fmt.Printf("Unimplemented handler for new records in table %s", m.Table)
 		}
 	case <-time.After(90 * time.Second):
 		go l.Ping()
@@ -130,30 +109,27 @@ func main() {
 
 	// Database Listener
 	listener := pq.NewListener(cfg.connStr(), cfg.minReconn(), cfg.maxReconn(), reportProblem)
-
-	// Database Connection
-	db := sqlx.MustOpen("postgres", cfg.connStr())
-
-	// packagerAsyncer defines async engine used to package DSS files for download
-	packagerAsyncer, err := asyncer.NewAsyncer(
-		asyncer.Config{Engine: cfg.AsyncEnginePackager, Target: cfg.AsyncEnginePackagerTarget},
-	)
-	if err != nil {
-		log.Fatal(err.Error())
-	}
-
-	// statisticsAsyncer defines async engine for computing raster statistics
-	statisticsAsyncer, err := asyncer.NewAsyncer(
-		asyncer.Config{Engine: cfg.AsyncEngineStatistics, Target: cfg.AsyncEngineStatisticsTarget},
-	)
-
-	// Start Listening
-	if err := listener.Listen("cumulus_new_productfile"); err != nil {
+	// Start Listening for Productfiles
+	if err := listener.Listen("cumulus_new"); err != nil {
 		panic(err)
 	}
 
+	// packagerAsyncer defines async engine used to package DSS files for download
+	downloadAsyncer, err := asyncer.NewAsyncer(asyncer.Config{Engine: cfg.AsyncEnginePackager, Target: cfg.AsyncEnginePackagerTarget})
+	if err != nil {
+		log.Fatal(err.Error())
+	}
+	d := NewAsyncNotificationHandler(downloadAsyncer)
+
+	// statisticsAsyncer defines async engine for computing raster statistics
+	statisticsAsyncer, err := asyncer.NewAsyncer(asyncer.Config{Engine: cfg.AsyncEngineStatistics, Target: cfg.AsyncEngineStatisticsTarget})
+	if err != nil {
+		log.Fatal(err.Error())
+	}
+	s := NewAsyncNotificationHandler(statisticsAsyncer)
+
 	fmt.Println("entering main loop")
 	for {
-		waitForNotification(listener, db, statisticsAsyncer, packagerAsyncer)
+		waitForNotification(listener, d, s)
 	}
 }

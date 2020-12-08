@@ -138,7 +138,7 @@ func main() {
 	cacOrToken.POST("cumulus/basins/:basin_id/products/:product_id/statistics/enable", handlers.EnableBasinProductStatistics(db))
 	cacOrToken.POST("cumulus/basins/:basin_id/products/:product_id/statistics/disable", handlers.DisableBasinProductStatistics(db))
 
-	// Watersheds (to replace basins)
+	// Watersheds (to replace basins) #
 	public.GET("cumulus/watersheds", handlers.ListWatersheds(db))
 	public.GET("cumulus/watersheds/:watershed_id", handlers.GetWatershed(db))
 	cacOrToken.POST("cumulus/watersheds", handlers.CreateWatershed(db))

@@ -86,7 +86,7 @@ func waitForNotification(l *pq.Listener, handleDownload, handleStatistics Notifi
 		case "statistics":
 			go handleStatistics(n)
 		default:
-			fmt.Printf("Unimplemented handler for new records in table %s", m.Table)
+			fmt.Printf("Unimplemented handler for new records in table %s\n", m.Table)
 		}
 	case <-time.After(90 * time.Second):
 		go l.Ping()

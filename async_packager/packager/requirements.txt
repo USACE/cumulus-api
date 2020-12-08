@@ -1,4 +1,4 @@
 boto3
 psycopg2-binary
 requests
-https://github.com/gyanz/pydsstools/zipball/master
+https://github.com/usace/pydsstools/zipball/develop

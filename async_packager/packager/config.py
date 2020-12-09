@@ -41,12 +41,7 @@ else:
     # If CUMULUS_MOCK_S3_UPLOAD environment variable is unset then CUMULUS_MOCK_S3_UPLOAD will equal False
     CUMULUS_MOCK_S3_UPLOAD = False
 
-# This warrants some explaining...
-# CUMULUS_API_HOST_HEADER and CUMULUS_API_URL are both required if API
-# is hosted on AWS API Gateway and accessed from a private VPC Endpoint.
-# See AWS Documentation Here:
-# https://docs.aws.amazon.com/apigateway/latest/developerguide/apigateway-private-api-test-invoke-url.html
-CUMULUS_API_URL = os.getenv('CUMULUS_API_URL', default='http://api:3030')
+CUMULUS_API_URL = os.getenv('CUMULUS_API_URL', default='http://api:80')
 CUMULUS_API_HOST_HEADER = os.getenv('CUMULUS_API_HOST_HEADER', default=None)
 
 UPDATE_DOWNLOAD_METHOD = os.getenv('UPDATE_DOWNLOAD_METHOD', default='DB')

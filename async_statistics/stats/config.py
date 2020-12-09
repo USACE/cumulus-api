@@ -25,4 +25,4 @@ USE_SSL = os.getenv('USE_SSL', default=False)
 
 WAIT_TIME_SECONDS = os.getenv('WAIT_TIME_SECONDS', default=20)
 
-CUMULUS_API_URL = os.getenv('CUMULUS_API_URL', default='http://api:3030')
+CUMULUS_API_URL = os.getenv('CUMULUS_API_URL', default='http://api:80')

@@ -179,19 +179,18 @@ def handle_message(msg):
     print('\n\nmessage received\n\n')
     download_id = json.loads(msg.body)["id"]
     r = requests.get(
-        f'{CONFIG.CUMULUS_API_URL}/cumulus/downloads/{download_id}/packager_request',
-        headers={'Host': CONFIG.CUMULUS_API_HOST_HEADER}
+        f'{CONFIG.CUMULUS_API_URL}/downloads/{download_id}/packager_request',
     )
     if r.status_code == 200:
         package(r.json(), packager_update_fn)
     else:
-        brk = '\n*\n' * 24
-        print(f'{brk}Packager Fail On Message: {msg}{brk}')
-        print(f'{brk}Request: {r.request.url}{brk}')
-        print(f'{brk}Headers: {r.request.headers}{brk}')
-        print(f'{brk}Status Code: {r.status_code}{brk}')
-        print(f'{brk}Reason: {r.reason}{brk}')
-        print(f'{brk}Content: {r.content}{brk}')
+        brk = '*' * 24
+        print(f'{brk}\nPackager Fail On Message: {msg}{brk}\n')
+        print(f'{brk}\nRequest: {r.request.url}{brk}\n')
+        print(f'{brk}\nHeaders: {r.request.headers}{brk}\n')
+        print(f'{brk}\nStatus Code: {r.status_code}{brk}\n')
+        print(f'{brk}\nReason: {r.reason}{brk}\n')
+        print(f'{brk}\nContent: {r.content}{brk}\n')
 
 
 while 1:

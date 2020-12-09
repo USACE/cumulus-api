@@ -79,12 +79,12 @@ func main() {
 	e.Use(middleware.CORS, middleware.GZIP)
 
 	// Public Routes
-	public := e.Group("")
+	public := e.Group("/cumulus/v1")
 
 	/////////////////////////
 	// Key or CAC Auth Routes
 	/////////////////////////
-	cacOrToken := e.Group("")
+	cacOrToken := e.Group("/cumulus/v1")
 	if cfg.AuthJWTMocked {
 		cacOrToken.Use(middleware.JWTMock(cfg.AuthDisabled, true))
 	} else {
@@ -105,7 +105,7 @@ func main() {
 	/////////////////////////////////////////
 	// CAC Only Routes (API Keys Not Allowed)
 	/////////////////////////////////////////
-	cacOnly := e.Group("")
+	cacOnly := e.Group("/cumulus/v1")
 	if cfg.AuthJWTMocked {
 		cacOnly.Use(middleware.JWTMock(cfg.AuthDisabled, false))
 	} else {
@@ -114,42 +114,42 @@ func main() {
 	cacOnly.Use(middleware.IsLoggedIn)
 
 	// Public Routes
-	public.GET("cumulus/basins", handlers.ListBasins(db))
-	public.GET("cumulus/:office_slug/basins", handlers.ListOfficeBasins(db))
-	public.GET("cumulus/basins/:id", handlers.GetBasin(db))
-	public.GET("cumulus/products", handlers.ListProducts(db))
-	public.GET("cumulus/products/:id", handlers.GetProduct(db))
-	public.GET("cumulus/products/:id/availability", handlers.GetProductAvailability(db))
-	public.GET("cumulus/products/:id/files", handlers.GetProductProductfiles(db))
-	public.GET("cumulus/acquirables", handlers.ListAcquirableInfo(db))
+	public.GET("/basins", handlers.ListBasins(db))
+	public.GET("/:office_slug/basins", handlers.ListOfficeBasins(db))
+	public.GET("/basins/:id", handlers.GetBasin(db))
+	public.GET("/products", handlers.ListProducts(db))
+	public.GET("/products/:id", handlers.GetProduct(db))
+	public.GET("/products/:id/availability", handlers.GetProductAvailability(db))
+	public.GET("/products/:id/files", handlers.GetProductProductfiles(db))
+	public.GET("/acquirables", handlers.ListAcquirableInfo(db))
 
 	// Downloads
-	public.GET("cumulus/downloads", handlers.ListDownloads(db))
-	public.GET("cumulus/downloads/:id", handlers.GetDownload(db))
-	public.GET("cumulus/downloads/:id/packager_request", handlers.GetDownloadPackagerRequest(db))
-	public.POST("cumulus/downloads", handlers.CreateDownload(db, packagerAsyncer))
-	public.PUT("cumulus/downloads/:id", handlers.UpdateDownload(db))
+	public.GET("/downloads", handlers.ListDownloads(db))
+	public.GET("/downloads/:id", handlers.GetDownload(db))
+	public.GET("/downloads/:id/packager_request", handlers.GetDownloadPackagerRequest(db))
+	public.POST("/downloads", handlers.CreateDownload(db, packagerAsyncer))
+	public.PUT("/downloads/:id", handlers.UpdateDownload(db))
 
 	// Restricted Routes (JWT or Key)
-	cacOrToken.POST("cumulus/acquire", handlers.DoAcquire(db, acquisitionAsyncer))
-	cacOrToken.POST("cumulus/products/:id/acquire", handlers.CreateAcquisitionAttempt(db))
+	cacOrToken.POST("/acquire", handlers.DoAcquire(db, acquisitionAsyncer))
+	cacOrToken.POST("/products/:id/acquire", handlers.CreateAcquisitionAttempt(db))
 
 	// Basins
-	cacOrToken.POST("cumulus/basins/:basin_id/products/:product_id/statistics/enable", handlers.EnableBasinProductStatistics(db))
-	cacOrToken.POST("cumulus/basins/:basin_id/products/:product_id/statistics/disable", handlers.DisableBasinProductStatistics(db))
+	cacOrToken.POST("/basins/:basin_id/products/:product_id/statistics/enable", handlers.EnableBasinProductStatistics(db))
+	cacOrToken.POST("/basins/:basin_id/products/:product_id/statistics/disable", handlers.DisableBasinProductStatistics(db))
 
 	// Watersheds (to replace basins) #
-	public.GET("cumulus/watersheds", handlers.ListWatersheds(db))
-	public.GET("cumulus/watersheds/:watershed_id", handlers.GetWatershed(db))
-	cacOrToken.POST("cumulus/watersheds", handlers.CreateWatershed(db))
-	cacOrToken.PUT("cumulus/watersheds/:watershed_id", handlers.UpdateWatershed(db))
-	cacOrToken.DELETE("cumulus/watersheds/:watershed_id", handlers.DeleteWatershed(db))
+	public.GET("/watersheds", handlers.ListWatersheds(db))
+	public.GET("/watersheds/:watershed_id", handlers.GetWatershed(db))
+	cacOrToken.POST("/watersheds", handlers.CreateWatershed(db))
+	cacOrToken.PUT("/watersheds/:watershed_id", handlers.UpdateWatershed(db))
+	cacOrToken.DELETE("/watersheds/:watershed_id", handlers.DeleteWatershed(db))
 
 	// JWT Only Restricted Routes (JWT Only)
-	cacOnly.POST("cumulus/profiles", handlers.CreateProfile(db))
-	cacOnly.GET("cumulus/my_profile", handlers.GetMyProfile(db))
-	cacOnly.POST("cumulus/my_tokens", handlers.CreateToken(db))
-	cacOnly.DELETE("cumulus/my_tokens/:token_id", handlers.DeleteToken(db))
+	cacOnly.POST("/profiles", handlers.CreateProfile(db))
+	cacOnly.GET("/my_profile", handlers.GetMyProfile(db))
+	cacOnly.POST("/my_tokens", handlers.CreateToken(db))
+	cacOnly.DELETE("/my_tokens/:token_id", handlers.DeleteToken(db))
 
 	// Start server
 	lambda := cfg.LambdaContext

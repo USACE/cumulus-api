@@ -185,7 +185,14 @@ def handle_message(msg):
     if r.status_code == 200:
         package(r.json(), packager_update_fn)
     else:
-        print(f'Packager Fail: {msg}')
+        brk = '\n*\n' * 24
+        print(f'{brk}Packager Fail On Message: {msg}{brk}')
+        print(f'{brk}Request: {r.request.url}{brk}')
+        print(f'{brk}Headers: {r.request.headers}{brk}')
+        print(f'{brk}Status Code: {r.status_code}{brk}')
+        print(f'{brk}Reason: {r.reason}{brk}')
+        print(f'{brk}Content: {r.content}{brk}')
+
 
 while 1:
     messages = queue_packager.receive_messages(WaitTimeSeconds=CONFIG.WAIT_TIME_SECONDS)

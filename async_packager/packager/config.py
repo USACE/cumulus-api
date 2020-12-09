@@ -42,5 +42,6 @@ else:
     CUMULUS_MOCK_S3_UPLOAD = False
 
 CUMULUS_API_URL = os.getenv('CUMULUS_API_URL', default='http://api:3030')
+CUMULUS_API_HOST_HEADER = os.getenv('CUMULUS_API_HOST_HEADER', default=None)
 
 UPDATE_DOWNLOAD_METHOD = os.getenv('UPDATE_DOWNLOAD_METHOD', default='DB')

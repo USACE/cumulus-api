@@ -157,6 +157,6 @@ func main() {
 	if lambda {
 		log.Fatal(gateway.ListenAndServe("localhost:3030", e))
 	} else {
-		log.Fatal(http.ListenAndServe(":3030", e))
+		log.Fatal(http.ListenAndServe(":80", e))
 	}
 }

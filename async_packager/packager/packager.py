@@ -179,7 +179,7 @@ def handle_message(msg):
     print('\n\nmessage received\n\n')
     download_id = json.loads(msg.body)["id"]
     r = requests.get(
-        url=f'{CONFIG.CUMULUS_API_URL}/cumulus/downloads/{download_id}/packager_request',
+        f'{CONFIG.CUMULUS_API_URL}/cumulus/downloads/{download_id}/packager_request',
         headers={'Host': CONFIG.CUMULUS_API_HOST_HEADER}
     )
     if r.status_code == 200:

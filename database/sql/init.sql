@@ -4,5 +4,6 @@ begin;
 \i '/sql/10-tables.sql'
 \i '/sql/20-roles.sql'
 \i '/sql/30-seed_data.sql'
+\i '/sql/31-seed_prodfiles.sql'
 
 commit;

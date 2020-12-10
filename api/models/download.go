@@ -204,23 +204,37 @@ func CreateDownload(db *sqlx.DB, dr *DownloadRequest, ae asyncer.Asyncer) (*Down
 	// Creates a download record and scans into a new struct (with UUID)
 	// Pre-Load Download with DownloadRequest
 	d := Download{DownloadRequest: *dr}
-	createDownloadSQL := `INSERT INTO download (datetime_start, datetime_end, status_id, basin_id)
-			              VALUES ($1, $2, '94727878-7a50-41f8-99eb-a80eb82f737a', $3)
-			              RETURNING *`
-	if err := db.Get(&d, createDownloadSQL, dr.DatetimeStart, dr.DatetimeEnd, dr.BasinID); err != nil {
+
+	// TRANSACTION
+	//////////////
+	tx, err := db.Beginx()
+	if err != nil {
 		return nil, err
 	}
 
+	if err := tx.Get(
+		&d,
+		`INSERT INTO download (datetime_start, datetime_end, status_id, basin_id)
+		VALUES ($1, $2, '94727878-7a50-41f8-99eb-a80eb82f737a', $3)
+		RETURNING *`, dr.DatetimeStart, dr.DatetimeEnd, dr.BasinID,
+	); err != nil {
+		tx.Rollback()
+		return nil, err
+	}
+
+	stmt, err := tx.Preparex(`INSERT INTO download_product (product_id, download_id) VALUES ($1, $2)`)
+	if err != nil {
+		tx.Rollback()
+		return nil, err
+	}
 	for _, pID := range d.ProductID {
-		// TODO: make SQL a prepared statement
-		if _, err := db.Exec(
-			`INSERT INTO download_product (product_id, download_id) VALUES ($1, $2)`,
-			pID, d.ID,
-		); err != nil {
+		if _, err := stmt.Exec(pID, d.ID); err != nil {
+			tx.Rollback()
 			return nil, err
 		}
-		return &d, nil
 	}
+	stmt.Close()
+	tx.Commit()
 
 	return &d, nil
 }

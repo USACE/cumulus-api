@@ -326,23 +326,6 @@ INSERT INTO acquirable (name, schedule) VALUES
 ('ncep_mrms_v12_MultiSensor_QPE_01H_Pass1', '5 * * * *'),
 ('ncep_mrms_v12_MultiSensor_QPE_01H_Pass2', '5 * * * *');
 
--- productfile
-INSERT INTO productfile (id, file, datetime, product_id) VALUES
-('9250d514-a975-40e1-8259-981a7edea912', 'cumulus/ncep_mrms_gaugecorr_qpe_01h/MRMS_GaugeCorr_QPE_01H_00.00_20200921-170000.tif', '2020-09-21 17:00:00+00', 'f1b6ac38-bbc9-48c6-bf78-207005ee74fa'),
-('e0190bf4-989c-45e3-9f49-be56ba57c3cf', 'cumulus/ncep_mrms_gaugecorr_qpe_01h/MRMS_GaugeCorr_QPE_01H_00.00_20200921-180000.tif', '2020-09-21 18:00:00+00', 'f1b6ac38-bbc9-48c6-bf78-207005ee74fa'),
-('68df27dd-1280-4402-a62d-e8691009ca0f', 'cumulus/ncep_mrms_gaugecorr_qpe_01h/MRMS_GaugeCorr_QPE_01H_00.00_20200921-190000.tif', '2020-09-21 19:00:00+00', 'f1b6ac38-bbc9-48c6-bf78-207005ee74fa'),
-('98d93fc9-2370-447b-bfe9-889f9bac431c', 'cumulus/ncep_mrms_gaugecorr_qpe_01h/MRMS_GaugeCorr_QPE_01H_00.00_20200903-150000.tif', '2020-09-03 15:00:00+00', 'f1b6ac38-bbc9-48c6-bf78-207005ee74fa'),
-('831adc64-e0d0-431a-93cf-ca344094142d', 'cumulus/ncep_rtma_ru_anl_airtemp/20200921_rtma2p5_ru.t1630z.2dvaranl_ndfd.grb2', '2020-09-21 16:30:00+00', 'e4fdadc7-5532-4910-9ed7-3c3690305d86'),
-('12af166a-0a09-4410-b9c4-8ae978e775bd', 'cumulus/nohrsc_snodas_snowdepth/zz_ssmv11036tS__T0001TTNATS2016010605HP001_cloud_optimized.tif', '2016-01-06 06:00:00+00', 'e0baa220-1310-445b-816b-6887465cc94b'),
-('9d708871-627d-446e-9936-699309919fdd', 'cumulus/ncep_rtma_ru_anl_airtemp/20200921_rtma2p5_ru.t1130z.2dvaranl_ndfd.grb2', '2020-09-21 11:30:00+00', 'e4fdadc7-5532-4910-9ed7-3c3690305d86'),
-('30a70d43-dcd2-4c46-85a8-8bf16200da5c', 'cumulus/nohrsc_snodas_snowdepth/zz_ssmv11036tS__T0001TTNATS2020081505HP001_cloud_optimized.tif','2020-08-15 00:00:00+00', 'e0baa220-1310-445b-816b-6887465cc94b'),
-('3b5542cc-f8bb-40d9-8663-5aa2f1ea7c60', 'cumulus/nohrsc_snodas_snowdepth/zz_ssmv11036tS__T0001TTNATS2020081605HP001_cloud_optimized.tif','2020-08-16 00:00:00+00', 'e0baa220-1310-445b-816b-6887465cc94b'),
-('27007e85-6cd9-4c03-b62e-503ffd3d7611', 'cumulus/nohrsc_snodas_snowdepth/zz_ssmv11036tS__T0001TTNATS2020081705HP001_cloud_optimized.tif','2020-08-17 00:00:00+00', 'e0baa220-1310-445b-816b-6887465cc94b'),
-('08733298-ed88-4d3c-a04c-71919eabd4bb', 'cumulus/ncep_mrms_v12_MultiSensor_QPE_01H_Pass2/MRMS_MultiSensor_QPE_01H_Pass2_00.00_20201105-210000.tif', '2020-11-05 21:00:00+00', '7c7ba37a-efad-499e-9c3a-5354370b8e9e'),
-('ccb3af1a-403c-4646-8cec-d17a0ea210cf', 'cumulus/ncep_mrms_v12_MultiSensor_QPE_01H_Pass2/MRMS_MultiSensor_QPE_01H_Pass2_00.00_20201202-200000.tif', '2020-12-02 20:00:00+00', '7c7ba37a-efad-499e-9c3a-5354370b8e9e'),
-('6ae8a81c-83b0-4937-8f17-c3c91f448beb', 'cumulus/ncep_mrms_v12_MultiSensor_QPE_01H_Pass1/MRMS_MultiSensor_QPE_01H_Pass1_00.00_20201105-220000.tif', '2020-11-05 22:00:00+00', '30a6d443-80a5-49cc-beb0-5d3a18a84caa'),
-('873381e5-5fb8-49be-80de-7c5f195c3029', 'cumulus/ncep_mrms_v12_MultiSensor_QPE_01H_Pass1/MRMS_MultiSensor_QPE_01H_Pass1_00.00_20201202-210000.tif', '2020-12-02 21:00:00+00', '30a6d443-80a5-49cc-beb0-5d3a18a84caa');
-
 -- basin_product_statistics_enabled
 INSERT INTO basin_product_statistics_enabled (basin_id, product_id) VALUES
 	('c785f4de-ab17-444b-b6e6-6f1ad16676e8', 'f1b6ac38-bbc9-48c6-bf78-207005ee74fa'),

@@ -33,7 +33,7 @@ func GetWatershed(db *sqlx.DB, id *uuid.UUID) (*Watershed, error) {
 
 // CreateWatershed creates a new watershed
 func CreateWatershed(db *sqlx.DB, w *Watershed) (*Watershed, error) {
-	slug, err := NextUniqueSlug(db, "watershed", "slug", w.Name)
+	slug, err := NextUniqueSlug(db, "watershed", "slug", w.Name, "", "")
 	if err != nil {
 		return nil, err
 	}

@@ -48,7 +48,7 @@ services:
       - CUMULUS_MOCK_S3_UPLOAD=TRUE
       - QUEUE_NAME_PACKAGER=cumulus-packager
       - QUEUE_NAME_PACKAGER_UPDATE=cumulus-packager-update
-      - CUMULUS_API_URL=http://api:80
+      - CUMULUS_API_URL=http://api:80/cumulus/v1
       - CUMULUS_DBUSER=postgres
       - CUMULUS_DBPASS=postgres
       - CUMULUS_DBNAME=postgres

@@ -58,8 +58,10 @@ CREATE TABLE IF NOT EXISTS public.watershed (
 CREATE TABLE IF NOT EXISTS public.area_group (
     id UUID PRIMARY KEY NOT NULL DEFAULT uuid_generate_v4(),
     watershed_id UUID NOT NULL REFERENCES watershed(id) ON DELETE CASCADE,
-    slug VARCHAR UNIQUE NOT NULL,
-    name VARCHAR UNIQUE NOT NULL
+    slug VARCHAR NOT NULL,
+    name VARCHAR NOT NULL,
+    CONSTRAINT watershed_unique_slug UNIQUE(watershed_id, slug),
+    CONSTRAINT watershed_unique_name UNIQUE(watershed_id, name)
 );
 
 -- area
@@ -68,7 +70,9 @@ CREATE TABLE IF NOT EXISTS public.area (
     slug VARCHAR UNIQUE NOT NULL,
     name VARCHAR UNIQUE NOT NULL,
     geometry geometry NOT NULL,
-    area_group_id UUID NOT NULL REFERENCES area_group(id) ON DELETE CASCADE
+    area_group_id UUID NOT NULL REFERENCES area_group(id) ON DELETE CASCADE,
+    CONSTRAINT area_group_unique_slug UNIQUE(area_group_id, slug),
+    CONSTRAINT area_group_unique_name UNIQUE(area_group_id, name)
 );
 
 -- parameter
@@ -211,6 +215,19 @@ CREATE OR REPLACE VIEW v_download AS (
                 GROUP BY download_id
             ) dp ON d.id = dp.download_id
     );
+
+CREATE OR REPLACE VIEW v_watershed AS (
+    SELECT w.id,
+           w.slug,
+           w.name,
+           COALESCE(ag.area_groups, '{}') AS area_groups
+	FROM   watershed w
+	LEFT JOIN (
+		SELECT array_agg(id) as area_groups, watershed_id
+		FROM area_group
+		GROUP BY watershed_id
+	) ag ON ag.watershed_id = w.id
+);
 
 -- Basins; Projected to EPSG 5070
 CREATE OR REPLACE VIEW v_area_5070 AS (

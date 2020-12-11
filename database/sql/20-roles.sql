@@ -26,7 +26,6 @@ GRANT SELECT ON
     product,
     productfile,
     product_group,
-    basin_product_statistics_enabled,
     acquirable,
     acquisition,
     acquirable_acquisition,
@@ -35,7 +34,8 @@ GRANT SELECT ON
     download_product,
     watershed,
     v_download,
-    v_area_5070
+    v_area_5070,
+    v_watershed
 TO cumulus_reader;
 
 -- Role cumulus_writer
@@ -53,7 +53,6 @@ GRANT INSERT,UPDATE,DELETE ON
     product,
     productfile,
     product_group,
-    basin_product_statistics_enabled,
     acquirable,
     acquisition,
     acquirable_acquisition,

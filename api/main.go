@@ -134,16 +134,20 @@ func main() {
 	cacOrToken.POST("/acquire", handlers.DoAcquire(db, acquisitionAsyncer))
 	cacOrToken.POST("/products/:id/acquire", handlers.CreateAcquisitionAttempt(db))
 
-	// Basins
-	cacOrToken.POST("/basins/:basin_id/products/:product_id/statistics/enable", handlers.EnableBasinProductStatistics(db))
-	cacOrToken.POST("/basins/:basin_id/products/:product_id/statistics/disable", handlers.DisableBasinProductStatistics(db))
-
 	// Watersheds (to replace basins) #
 	public.GET("/watersheds", handlers.ListWatersheds(db))
 	public.GET("/watersheds/:watershed_id", handlers.GetWatershed(db))
 	cacOrToken.POST("/watersheds", handlers.CreateWatershed(db))
 	cacOrToken.PUT("/watersheds/:watershed_id", handlers.UpdateWatershed(db))
 	cacOrToken.DELETE("/watersheds/:watershed_id", handlers.DeleteWatershed(db))
+
+	// Area Groups
+	// TODO: CRUD Handlers for area_groups
+	// cacOrToken.POST("watersheds/:watershed_id/area_groups", handlers.CreateAreaGroup(db))
+	// cacOrToken.PUT("watersheds/:watershed_id/area_groups/:area_group_id", handlers.UpdateAreaGroup(db))
+	// cacOrToken.DELETE("watersheds/:watershed_id/area_groups/:area_group_id", handlers.DeleteAreaGroup(db))
+	cacOrToken.POST("/watersheds/:watershed_id/area_groups/:area_group_id/products/:product_id/statistics/enable", handlers.EnableAreaGroupProductStatistics(db))
+	cacOrToken.POST("/watersheds/:watershed_id/area_groups/:area_group_id/products/:product_id/statistics/disable", handlers.DisableAreaGroupProductStatistics(db))
 
 	// JWT Only Restricted Routes (JWT Only)
 	cacOnly.POST("/profiles", handlers.CreateProfile(db))

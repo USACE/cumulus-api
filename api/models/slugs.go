@@ -9,18 +9,31 @@ import (
 	"github.com/jmoiron/sqlx"
 )
 
-// NextUniqueSlug returns the next available slug given a table, slug field, and un-slugified string
-func NextUniqueSlug(db *sqlx.DB, table string, field string, inString string) (string, error) {
+// NextUniqueSlug returns the next available slug given a table
+// contextField is a column name in table; contextString is a value in contextField;
+// If contextField="" or contextString="", returned string will be table unique
+// If contextField is provided, the returned string will be unique among rows having contextField = contextValue
+func NextUniqueSlug(db *sqlx.DB, table, field, inString, contextField, contextValue string) (string, error) {
+
+	// SQL Query Builder logic
+	sql := func() string {
+		// Find inString or any variants suffixed by xxx-1, xxx-2, etc.
+		q := fmt.Sprintf(
+			`SELECT %s FROM %s WHERE %s ~ ($1||'(?:-[0-9]+)?$')`,
+			field, table, field,
+		)
+		if contextField != "" && contextValue != "" {
+			q += fmt.Sprintf(" AND %s = %s", contextField, contextValue)
+		}
+		q += fmt.Sprintf(" ORDER BY %s DESC", field)
+		return q
+	}
+
 	// Slugify string; this is the first choice for a slug if it's not already taken
 	slugTry := slug.Make(inString)
 
-	// Find what's already taken by this name as-is or same but suffixed by xxx-1, xxx-2, etc.
-	sql := fmt.Sprintf(
-		`SELECT %s FROM %s WHERE %s ~ ($1||'(?:-[0-9]+)?$') ORDER BY %s DESC`,
-		field, table, field, field,
-	)
 	ss := make([]string, 0)
-	if err := db.Select(&ss, sql, slugTry); err != nil {
+	if err := db.Select(&ss, sql(), slugTry); err != nil {
 		return "", err
 	}
 

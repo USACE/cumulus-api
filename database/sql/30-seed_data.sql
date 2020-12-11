@@ -310,8 +310,8 @@ INSERT INTO product (id, group_id, name, temporal_duration, temporal_resolution,
 ('e4fdadc7-5532-4910-9ed7-3c3690305d86','d9613031-7cf0-4722-923e-e5c3675a163b','ncep_rtma_ru_anl_airtemp',0,900,'NCEP-RTMA-RU-ANL',True,False,'5fab39b9-90ba-482a-8156-d863ad7c45ad','8f51e5b5-08be-4ea7-9ebc-ad44b465dbc6'),
 ('44f1ea4d-6903-4b06-8677-d1fd84dd7b34','d9613031-7cf0-4722-923e-e5c3675a163b','ncep_rtma_ru_ges_airtemp',0,900,'NCEP-RTMA-RU-GES',True,False,'5fab39b9-90ba-482a-8156-d863ad7c45ad','8f51e5b5-08be-4ea7-9ebc-ad44b465dbc6'),
 ('f1b6ac38-bbc9-48c6-bf78-207005ee74fa','726039da-2f21-4393-a15c-5f6e7ea41b1f','ncep_mrms_gaugecorr_qpe_01h',0,3600,'NCEP-MRMS-QPE-GAUGECORR',True,False,'eb82d661-afe6-436a-b0df-2ab0b478a1af','e245d39f-3209-4e58-bfb7-4eae94b3f8dd'),
-('30a6d443-80a5-49cc-beb0-5d3a18a84caa','726039da-2f21-4393-a15c-5f6e7ea41b1f','ncep_mrms_v12_MultiSensor_QPE_01H_Pass1',0,3600,'NCEP-MRMSV12-QPE-01H-PASS1',True,False,'eb82d661-afe6-436a-b0df-2ab0b478a1af','e245d39f-3209-4e58-bfb7-4eae94b3f8dd'),
-('7c7ba37a-efad-499e-9c3a-5354370b8e9e','726039da-2f21-4393-a15c-5f6e7ea41b1f','ncep_mrms_v12_MultiSensor_QPE_01H_Pass2',0,3600,'NCEP-MRMSV12-QPE-01H-PASS2',True,False,'eb82d661-afe6-436a-b0df-2ab0b478a1af','e245d39f-3209-4e58-bfb7-4eae94b3f8dd');
+('30a6d443-80a5-49cc-beb0-5d3a18a84caa','726039da-2f21-4393-a15c-5f6e7ea41b1f','ncep_mrms_v12_MultiSensor_QPE_01H_Pass1',3600,3600,'NCEP-MRMSV12-QPE-01H-PASS1',True,False,'eb82d661-afe6-436a-b0df-2ab0b478a1af','e245d39f-3209-4e58-bfb7-4eae94b3f8dd'),
+('7c7ba37a-efad-499e-9c3a-5354370b8e9e','726039da-2f21-4393-a15c-5f6e7ea41b1f','ncep_mrms_v12_MultiSensor_QPE_01H_Pass2',3600,3600,'NCEP-MRMSV12-QPE-01H-PASS2',True,False,'eb82d661-afe6-436a-b0df-2ab0b478a1af','e245d39f-3209-4e58-bfb7-4eae94b3f8dd');
 
 
 -- product_acquirable

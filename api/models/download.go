@@ -152,7 +152,7 @@ func GetDownloadPackagerRequest(db *sqlx.DB, downloadID *uuid.UUID) (*PackagerRe
 			   bucket,
 			   dss_datatype,
 			   dss_cpart,
-			   CASE WHEN date_part('hour', datetime_dss_dpart) = 0 AND date_part('minute', datetime_dss_dpart) = 0
+			   CASE WHEN dss_datatype = 'INST-VAL' AND date_part('hour', datetime_dss_dpart) = 0 AND date_part('minute', datetime_dss_dpart) = 0
 	               	THEN to_char(datetime_dss_dpart - interval '1 Day', 'DDMONYYYY:24MI')
 	               	ELSE COALESCE(to_char(datetime_dss_dpart, 'DDMONYYYY:HH24MI'), '') END as dss_dpart,
 			   CASE WHEN date_part('hour', datetime_dss_epart) = 0 AND date_part('minute', datetime_dss_dpart) = 0

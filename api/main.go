@@ -146,8 +146,8 @@ func main() {
 	// cacOrToken.POST("watersheds/:watershed_id/area_groups", handlers.CreateAreaGroup(db))
 	// cacOrToken.PUT("watersheds/:watershed_id/area_groups/:area_group_id", handlers.UpdateAreaGroup(db))
 	// cacOrToken.DELETE("watersheds/:watershed_id/area_groups/:area_group_id", handlers.DeleteAreaGroup(db))
-	cacOrToken.POST("/watersheds/:watershed_id/area_groups/:area_group_id/products/:product_id/enable", handlers.EnableAreaGroupProductStatistics(db))
-	cacOrToken.POST("/watersheds/:watershed_id/area_groups/:area_group_id/products/:product_id/disable", handlers.DisableAreaGroupProductStatistics(db))
+	cacOrToken.POST("/watersheds/:watershed_id/area_groups/:area_group_id/products/:product_id/statistics/enable", handlers.EnableAreaGroupProductStatistics(db))
+	cacOrToken.POST("/watersheds/:watershed_id/area_groups/:area_group_id/products/:product_id/statistics/disable", handlers.DisableAreaGroupProductStatistics(db))
 
 	// JWT Only Restricted Routes (JWT Only)
 	cacOnly.POST("/profiles", handlers.CreateProfile(db))

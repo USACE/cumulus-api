@@ -25,7 +25,7 @@ func EnableAreaGroupProductStatistics(db *sqlx.DB) echo.HandlerFunc {
 		if err := models.EnableAreaGroupProductStatistics(db, &areaGroupID, &productID); err != nil {
 			return c.String(http.StatusInternalServerError, err.Error())
 		}
-		return c.JSON(http.StatusCreated, make(map[string]interface{}))
+		return c.JSON(http.StatusOK, make(map[string]interface{}))
 	}
 }
 

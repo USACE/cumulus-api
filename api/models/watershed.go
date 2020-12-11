@@ -3,32 +3,55 @@ package models
 import (
 	"github.com/google/uuid"
 	"github.com/jmoiron/sqlx"
-	_ "github.com/lib/pq"
+	"github.com/lib/pq"
 )
 
 // Watershed is a watershed struct
 type Watershed struct {
-	ID   uuid.UUID `json:"id"`
-	Slug string    `json:"slug"`
-	Name string    `json:"name"`
+	ID         uuid.UUID   `json:"id"`
+	Slug       string      `json:"slug"`
+	Name       string      `json:"name"`
+	AreaGroups []uuid.UUID `json:"area_groups" db:"area_groups"`
 }
 
-// ListWatersheds returns an array of watersheds
-func ListWatersheds(db *sqlx.DB) ([]Watershed, error) {
+// ListWatershedsSQL is sql used to list all watersheds
+const ListWatershedsSQL = `SELECT id, slug, name, area_groups FROM v_watershed`
+
+// WatershedsFactory converts query rows to an array of watersheds
+func WatershedsFactory(rows *sqlx.Rows) ([]Watershed, error) {
+	defer rows.Close()
 	ww := make([]Watershed, 0)
-	if err := db.Select(&ww, `SELECT id, slug, name FROM watershed`); err != nil {
-		return make([]Watershed, 0), err
+	for rows.Next() {
+		var w Watershed
+		err := rows.Scan(&w.ID, &w.Slug, &w.Name, pq.Array(&w.AreaGroups))
+		if err != nil {
+			return make([]Watershed, 0), nil
+		}
+		ww = append(ww, w)
 	}
 	return ww, nil
 }
 
+// ListWatersheds returns an array of watersheds
+func ListWatersheds(db *sqlx.DB) ([]Watershed, error) {
+	rows, err := db.Queryx(ListWatershedsSQL)
+	if err != nil {
+		return make([]Watershed, 0), nil
+	}
+	return WatershedsFactory(rows)
+}
+
 // GetWatershed returns a single watershed using slug
 func GetWatershed(db *sqlx.DB, id *uuid.UUID) (*Watershed, error) {
-	var w Watershed
-	if err := db.Get(&w, `SELECT id, slug, name FROM watershed WHERE id = $1`, id); err != nil {
+	rows, err := db.Queryx(ListWatershedsSQL+` WHERE id = $1`, id)
+	if err != nil {
 		return nil, err
 	}
-	return &w, nil
+	ww, err := WatershedsFactory(rows)
+	if err != nil {
+		return nil, err
+	}
+	return &ww[0], nil
 }
 
 // CreateWatershed creates a new watershed

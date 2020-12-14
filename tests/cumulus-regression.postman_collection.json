@@ -16,34 +16,10 @@
 							"script": {
 								"id": "bad9967e-e3f6-4e01-83f0-165d4bfd45fe",
 								"exec": [
-									"// validate JSON schema",
-									"var schema = {",
-									"    \"type\": \"array\",",
-									"    \"items\": {",
-									"        \"type\": \"object\",",
-									"        \"properties\": {",
-									"            \"id\": { \"type\": \"string\" },",
-									"            \"name\": { \"type\": \"string\" },",
-									"            \"x_min\": { \"type\": \"number\" },",
-									"            \"y_min\": { \"type\": \"number\" },",
-									"            \"x_max\": { \"type\": \"number\" },",
-									"            \"y_max\": { \"type\": \"number\" },",
-									"            \"office_symbol\": { \"type\": \"string\" }",
-									"        },",
-									"        \"required\": [\"id\", \"name\", \"x_min\", \"y_min\", \"x_max\", \"y_max\", \"office_symbol\"],",
-									"        \"additionalProperties\": false",
-									"    }",
-									"}",
-									"",
 									"// status code is 201",
 									"pm.test(\"Status code is 201\", function () {",
 									"    pm.response.to.have.status(201);",
-									"});",
-									"",
-									"pm.test(\"Schema validation\", function () {",
-									"    pm.response.to.have.jsonSchema(schema)",
-									"});",
-									""
+									"});"
 								],
 								"type": "text/javascript"
 							}
@@ -54,7 +30,7 @@
 						"header": [],
 						"body": {
 							"mode": "raw",
-							"raw": "{\n\t\"datetime_start\": \"2020-09-14T00:00:00Z\",\n\t\"datetime_end\": \"2020-09-20T00:00:00Z\",\n\t\"basin_id\": \"c785f4de-ab17-444b-b6e6-6f1ad16676e8\",\n\t\"product_id\": [\n\t\t\"f1b6ac38-bbc9-48c6-bf78-207005ee74fa\"\n\t]\n}",
+							"raw": "{\n\t\"datetime_start\": \"2020-12-01T01:00:00Z\",\n\t\"datetime_end\": \"2020-12-10T01:00:00Z\",\n\t\"basin_id\": \"3e8db268-d9ca-47ec-ae93-21a3c2bcf0a1\",\n\t\"product_id\": [\n        \"30a6d443-80a5-49cc-beb0-5d3a18a84caa\"\n\t]\n}",
 							"options": {
 								"raw": {
 									"language": "json"
@@ -62,12 +38,52 @@
 							}
 						},
 						"url": {
-							"raw": "{{base_url}}/cumulus/downloads",
+							"raw": "{{base_url}}/downloads",
 							"host": [
 								"{{base_url}}"
 							],
 							"path": [
-								"cumulus",
+								"downloads"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "CreateDownloadAirtemp",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"id": "77dfe49b-65fa-45b7-b614-1c34fc42d70c",
+								"exec": [
+									"// status code is 201",
+									"pm.test(\"Status code is 201\", function () {",
+									"    pm.response.to.have.status(201);",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n\t\"datetime_start\": \"2020-11-18T06:00:00Z\",\n\t\"datetime_end\": \"2020-12-02T06:00:00Z\",\n\t\"basin_id\": \"f019ffec-e9d3-48e6-ab74-eaa8fd8065e0\",\n\t\"product_id\": [\n\t\t\"e4fdadc7-5532-4910-9ed7-3c3690305d86\"\n\t]\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{base_url}}/downloads",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
 								"downloads"
 							]
 						}
@@ -82,6 +98,193 @@
 							"script": {
 								"id": "20e7cb7d-043e-4fec-ad1f-e279f4464634",
 								"exec": [
+									""
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/downloads/d6f3e743-74c1-47cf-8cb8-b3275bd082f5/packager_request",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"downloads",
+								"d6f3e743-74c1-47cf-8cb8-b3275bd082f5",
+								"packager_request"
+							]
+						}
+					},
+					"response": []
+				}
+			],
+			"protocolProfileBehavior": {}
+		},
+		{
+			"name": "profile",
+			"item": [
+				{
+					"name": "CreateProfile",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"id": "4fd973ab-2265-4302-a7ce-1adac18959d4",
+								"exec": [
+									"// status code is 201",
+									"pm.test(\"Status code is 201\", function () {",
+									"    pm.response.to.have.status(201);",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"email\": \"admin@testuser.gov\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{base_url}}/profiles",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"profiles"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "CreateToken",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"id": "9ad370c3-3d02-41cd-a179-f73f60ef04b4",
+								"exec": [
+									"// status code is 201",
+									"pm.test(\"Status code is 201\", function () {",
+									"    pm.response.to.have.status(201);",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/my_tokens",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"my_tokens"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "GetMyProfile",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"id": "1afc72eb-342a-4dfc-ad31-c6a14cbfcbde",
+								"exec": [
+									"// status code is 200",
+									"pm.test(\"Status code is 200\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/my_profile",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"my_profile"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "DeleteToken",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"id": "c3f5b97a-a3f1-45cb-a2f9-59555c718d51",
+								"exec": [
+									"// status code is 200",
+									"pm.test(\"Status code is 200\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "DELETE",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/my_tokens/AXZrRtC4TrTrYHnfXHPomZ41gXnDZh1KUro9LaG1uyVb8oR6mTY59Ho",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"my_tokens",
+								"AXZrRtC4TrTrYHnfXHPomZ41gXnDZh1KUro9LaG1uyVb8oR6mTY59Ho"
+							]
+						}
+					},
+					"response": []
+				}
+			],
+			"protocolProfileBehavior": {}
+		},
+		{
+			"name": "basins",
+			"item": [
+				{
+					"name": "ListBasins",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"id": "1cec4a5e-bea5-4b10-b970-621af84b0acd",
+								"exec": [
+									"// status code is 200",
+									"pm.test(\"Status code is 200\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"",
+									"",
 									"// validate JSON schema",
 									"var schema = {",
 									"    \"type\": \"array\",",
@@ -101,10 +304,6 @@
 									"    }",
 									"}",
 									"",
-									"// status code is 201",
-									"pm.test(\"Status code is 201\", function () {",
-									"    pm.response.to.have.status(201);",
-									"});",
 									"",
 									"pm.test(\"Schema validation\", function () {",
 									"    pm.response.to.have.jsonSchema(schema)",
@@ -119,14 +318,68 @@
 						"method": "GET",
 						"header": [],
 						"url": {
-							"raw": "{{base_url}}/cumulus/downloads/e8fa79d4-b9c8-4603-a293-d420f6d9834f",
+							"raw": "{{base_url}}/basins",
 							"host": [
 								"{{base_url}}"
 							],
 							"path": [
-								"cumulus",
-								"downloads",
-								"e8fa79d4-b9c8-4603-a293-d420f6d9834f"
+								"basins"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "GetBasin",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"id": "122710a9-b7c2-447d-9b75-c8ca371ce85b",
+								"exec": [
+									"// status code is 200",
+									"pm.test(\"Status code is 200\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"",
+									"",
+									"// validate JSON schema",
+									"var schema = {",
+									"    \"type\": \"object\",",
+									"    \"properties\": {",
+									"        \"id\": { \"type\": \"string\" },",
+									"        \"name\": { \"type\": \"string\" },",
+									"        \"x_min\": { \"type\": \"number\" },",
+									"        \"y_min\": { \"type\": \"number\" },",
+									"        \"x_max\": { \"type\": \"number\" },",
+									"        \"y_max\": { \"type\": \"number\" },",
+									"        \"office_symbol\": { \"type\": \"string\" }",
+									"    },",
+									"    \"required\": [\"id\", \"name\", \"x_min\", \"y_min\", \"x_max\", \"y_max\", \"office_symbol\"],",
+									"    \"additionalProperties\": false",
+									"}",
+									"",
+									"",
+									"pm.test(\"Schema validation\", function () {",
+									"    pm.response.to.have.jsonSchema(schema)",
+									"});",
+									""
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/basins/ad30f178-afc3-43b9-ba92-7bd139581217",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"basins",
+								"ad30f178-afc3-43b9-ba92-7bd139581217"
 							]
 						}
 					},
@@ -136,16 +389,134 @@
 			"protocolProfileBehavior": {}
 		},
 		{
-			"name": "profile",
+			"name": "products",
 			"item": [
 				{
-					"name": "CreateProfile",
+					"name": "ListProducts",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"id": "4ccc04fe-9aab-4bd3-a3dd-626909c6ab95",
+								"exec": [
+									"// status code is 200",
+									"pm.test(\"Status code is 200\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/products",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"products"
+							]
+						}
+					},
+					"response": []
+				}
+			],
+			"protocolProfileBehavior": {}
+		},
+		{
+			"name": "watersheds",
+			"item": [
+				{
+					"name": "ListWatersheds",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"id": "e6d015b3-7371-46fc-96a1-2ec6c9b97c53",
+								"exec": [
+									"// status code is 200",
+									"pm.test(\"Status code is 200\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/watersheds",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"watersheds"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "GetWatershed",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"id": "dcb7af34-531b-4e6d-95dd-905be18db8b4",
+								"exec": [
+									"// status code is 200",
+									"pm.test(\"Status code is 200\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/watersheds/c785f4de-ab17-444b-b6e6-6f1ad16676e8",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"watersheds",
+								"c785f4de-ab17-444b-b6e6-6f1ad16676e8"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "CreateWatershed",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"id": "4e7ab2f7-2ecf-467a-beba-2c6656f29421",
+								"exec": [
+									"// status code is 201",
+									"pm.test(\"Status code is 201\", function () {",
+									"    pm.response.to.have.status(201);",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
 					"request": {
 						"method": "POST",
 						"header": [],
 						"body": {
 							"mode": "raw",
-							"raw": "{\n    \"email\": \"admin@testuser.gov\"\n}",
+							"raw": "{\"name\": \"Test Watershed\"}",
 							"options": {
 								"raw": {
 									"language": "json"
@@ -153,49 +524,251 @@
 							}
 						},
 						"url": {
-							"raw": "{{base_url}}/cumulus/profiles",
+							"raw": "{{base_url}}/watersheds",
 							"host": [
 								"{{base_url}}"
 							],
 							"path": [
-								"cumulus",
-								"profiles"
+								"watersheds"
 							]
 						}
 					},
 					"response": []
 				},
 				{
-					"name": "CreateToken",
+					"name": "UpdateWatershed",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"id": "ee80c9d1-e167-48bf-946d-5efa36de1742",
+								"exec": [
+									"// status code is 200",
+									"pm.test(\"Status code is 201\", function () {",
+									"    pm.response.to.have.status(201);",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "PUT",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"id\": \"c785f4de-ab17-444b-b6e6-6f1ad16676e8\",\n    \"slug\": \"cumberland-basin-river\",\n    \"name\": \"Cumberland River Basin\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{base_url}}/watersheds/c785f4de-ab17-444b-b6e6-6f1ad16676e8",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"watersheds",
+								"c785f4de-ab17-444b-b6e6-6f1ad16676e8"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "DeleteWatershed",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"id": "a30d9388-1735-4d8f-b30a-c7813f9d3f49",
+								"exec": [
+									"// status code is 200",
+									"pm.test(\"Status code is 200\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "DELETE",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"id\": \"c785f4de-ab17-444b-b6e6-6f1ad16676e8\",\n    \"slug\": \"cumberland-basin-river\",\n    \"name\": \"Cumberland River Basin\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{base_url}}/watersheds/c54eab5b-1020-476b-a5f8-56d77802d9bf",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"watersheds",
+								"c54eab5b-1020-476b-a5f8-56d77802d9bf"
+							]
+						}
+					},
+					"response": []
+				}
+			],
+			"protocolProfileBehavior": {}
+		},
+		{
+			"name": "area_group",
+			"item": [
+				{
+					"name": "EnableAreaGroupProductStatistics",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"id": "a99611a9-bbab-484e-a177-ee71a3bd1fbc",
+								"exec": [
+									"// status code is 200",
+									"pm.test(\"Status code is 200\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
 					"request": {
 						"method": "POST",
 						"header": [],
 						"url": {
-							"raw": "{{base_url}}/cumulus/my_tokens",
+							"raw": "{{base_url}}/watersheds/ad30f178-afc3-43b9-ba92-7bd139581217/area_groups/e3fd63a1-f19f-4bf3-b436-1c7086b7afe7/products/757c809c-dda0-412b-9831-cb9bd0f62d1d/statistics/enable",
 							"host": [
 								"{{base_url}}"
 							],
 							"path": [
-								"cumulus",
-								"my_tokens"
+								"watersheds",
+								"ad30f178-afc3-43b9-ba92-7bd139581217",
+								"area_groups",
+								"e3fd63a1-f19f-4bf3-b436-1c7086b7afe7",
+								"products",
+								"757c809c-dda0-412b-9831-cb9bd0f62d1d",
+								"statistics",
+								"enable"
 							]
 						}
 					},
 					"response": []
 				},
 				{
-					"name": "GetMyProfile",
+					"name": "DisableBasinProductStatistics",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"id": "b937254d-cb4e-4e82-88b9-ee29f5dc68df",
+								"exec": [
+									"// status code is 200",
+									"pm.test(\"Status code is 200\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									""
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
 					"request": {
-						"method": "GET",
+						"method": "POST",
 						"header": [],
 						"url": {
-							"raw": "{{base_url}}/cumulus/my_profile",
+							"raw": "{{base_url}}/watersheds/ad30f178-afc3-43b9-ba92-7bd139581217/area_groups/e3fd63a1-f19f-4bf3-b436-1c7086b7afe7/products/757c809c-dda0-412b-9831-cb9bd0f62d1d/statistics/disable",
 							"host": [
 								"{{base_url}}"
 							],
 							"path": [
-								"cumulus",
-								"my_profile"
+								"watersheds",
+								"ad30f178-afc3-43b9-ba92-7bd139581217",
+								"area_groups",
+								"e3fd63a1-f19f-4bf3-b436-1c7086b7afe7",
+								"products",
+								"757c809c-dda0-412b-9831-cb9bd0f62d1d",
+								"statistics",
+								"disable"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "ListWatershedAreaGroups",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"id": "91b870a9-b9fd-4b18-afdf-b47a08dbb6cc",
+								"exec": [
+									"// status code is 200",
+									"pm.test(\"Status code is 200\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/watersheds/c785f4de-ab17-444b-b6e6-6f1ad16676e8/area_groups",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"watersheds",
+								"c785f4de-ab17-444b-b6e6-6f1ad16676e8",
+								"area_groups"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "ListAreaGroupAreas",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"id": "27e6fc2d-90c5-4f93-884d-17b02aad2433",
+								"exec": [
+									"// status code is 200",
+									"pm.test(\"Status code is 200\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/watersheds/c785f4de-ab17-444b-b6e6-6f1ad16676e8/area_groups/e3fd63a1-f19f-4bf3-b436-1c7086b7afe7/areas",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"watersheds",
+								"c785f4de-ab17-444b-b6e6-6f1ad16676e8",
+								"area_groups",
+								"e3fd63a1-f19f-4bf3-b436-1c7086b7afe7",
+								"areas"
 							]
 						}
 					},
@@ -253,12 +826,11 @@
 					}
 				},
 				"url": {
-					"raw": "{{base_url}}/cumulus/acquire?key=appkey",
+					"raw": "{{base_url}}/acquire?key=appkey",
 					"host": [
 						"{{base_url}}"
 					],
 					"path": [
-						"cumulus",
 						"acquire"
 					],
 					"query": [
@@ -281,65 +853,6 @@
 							"key": "key",
 							"value": "appkey"
 						}
-					]
-				}
-			},
-			"response": []
-		},
-		{
-			"name": "ListBasins",
-			"event": [
-				{
-					"listen": "test",
-					"script": {
-						"id": "1cec4a5e-bea5-4b10-b970-621af84b0acd",
-						"exec": [
-							"// status code is 200",
-							"pm.test(\"Status code is 200\", function () {",
-							"    pm.response.to.have.status(200);",
-							"});",
-							"",
-							"",
-							"// validate JSON schema",
-							"var schema = {",
-							"    \"type\": \"array\",",
-							"    \"items\": {",
-							"        \"type\": \"object\",",
-							"        \"properties\": {",
-							"            \"id\": { \"type\": \"string\" },",
-							"            \"name\": { \"type\": \"string\" },",
-							"            \"x_min\": { \"type\": \"number\" },",
-							"            \"y_min\": { \"type\": \"number\" },",
-							"            \"x_max\": { \"type\": \"number\" },",
-							"            \"y_max\": { \"type\": \"number\" },",
-							"            \"office_symbol\": { \"type\": \"string\" }",
-							"        },",
-							"        \"required\": [\"id\", \"name\", \"x_min\", \"y_min\", \"x_max\", \"y_max\", \"office_symbol\"],",
-							"        \"additionalProperties\": false",
-							"    }",
-							"}",
-							"",
-							"",
-							"pm.test(\"Schema validation\", function () {",
-							"    pm.response.to.have.jsonSchema(schema)",
-							"});",
-							""
-						],
-						"type": "text/javascript"
-					}
-				}
-			],
-			"request": {
-				"method": "GET",
-				"header": [],
-				"url": {
-					"raw": "{{base_url}}/cumulus/basins",
-					"host": [
-						"{{base_url}}"
-					],
-					"path": [
-						"cumulus",
-						"basins"
 					]
 				}
 			},

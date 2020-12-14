@@ -9,10 +9,42 @@ import (
 	"github.com/labstack/echo/v4"
 )
 
+// ListWatershedAreaGroups lists all area groups for a watershed
+func ListWatershedAreaGroups(db *sqlx.DB) echo.HandlerFunc {
+	return func(c echo.Context) error {
+		// Get Watershed ID
+		watershedID, err := uuid.Parse(c.Param("watershed_id"))
+		if err != nil {
+			return c.String(http.StatusBadRequest, err.Error())
+		}
+		gg, err := models.ListWatershedAreaGroups(db, &watershedID)
+		if err != nil {
+			return c.String(http.StatusInternalServerError, err.Error())
+		}
+		return c.JSON(http.StatusOK, &gg)
+	}
+}
+
+// ListAreaGroupAreas returns all areas for an area group
+func ListAreaGroupAreas(db *sqlx.DB) echo.HandlerFunc {
+	return func(c echo.Context) error {
+		// Get Area Group ID
+		areaGroupID, err := uuid.Parse(c.Param("area_group_id"))
+		if err != nil {
+			return c.String(http.StatusBadRequest, err.Error())
+		}
+		aa, err := models.ListAreaGroupAreas(db, &areaGroupID)
+		if err != nil {
+			return c.String(http.StatusInternalServerError, err.Error())
+		}
+		return c.JSON(http.StatusOK, &aa)
+	}
+}
+
 // EnableAreaGroupProductStatistics enables statistics for a product for an area group
 func EnableAreaGroupProductStatistics(db *sqlx.DB) echo.HandlerFunc {
 	return func(c echo.Context) error {
-		// Get Basin ID
+		// Get Area Group ID
 		areaGroupID, err := uuid.Parse(c.Param("area_group_id"))
 		if err != nil {
 			return c.String(http.StatusBadRequest, err.Error())
@@ -32,7 +64,7 @@ func EnableAreaGroupProductStatistics(db *sqlx.DB) echo.HandlerFunc {
 // DisableAreaGroupProductStatistics disables statistics for a product for an area group
 func DisableAreaGroupProductStatistics(db *sqlx.DB) echo.HandlerFunc {
 	return func(c echo.Context) error {
-		// Get Basin ID
+		// Get Area Group ID
 		areaGroupID, err := uuid.Parse(c.Param("area_group_id"))
 		if err != nil {
 			return c.String(http.StatusBadRequest, err.Error())

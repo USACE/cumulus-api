@@ -72,7 +72,7 @@ func CreateToken(db *sqlx.DB) echo.HandlerFunc {
 		if err != nil {
 			return c.String(http.StatusInternalServerError, err.Error())
 		}
-		return c.JSON(http.StatusOK, token)
+		return c.JSON(http.StatusCreated, token)
 	}
 }
 

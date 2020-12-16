@@ -101,7 +101,7 @@ def package(msg, packager_update_fn):
     output_bucket = msg['output_bucket']
     output_key = msg['output_key']
     contents = msg['contents']
-    basin = msg['basin']
+    basin = msg['watershed']
 
     filecount = len(contents)
     logger.info(f'filecount is: {filecount}')

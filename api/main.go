@@ -114,9 +114,6 @@ func main() {
 	cacOnly.Use(middleware.IsLoggedIn)
 
 	// Public Routes
-	public.GET("/basins", handlers.ListBasins(db))
-	public.GET("/:office_slug/basins", handlers.ListOfficeBasins(db))
-	public.GET("/basins/:id", handlers.GetBasin(db))
 	public.GET("/products", handlers.ListProducts(db))
 	public.GET("/products/:id", handlers.GetProduct(db))
 	public.GET("/products/:id/availability", handlers.GetProductAvailability(db))
@@ -134,7 +131,7 @@ func main() {
 	cacOrToken.POST("/acquire", handlers.DoAcquire(db, acquisitionAsyncer))
 	cacOrToken.POST("/products/:id/acquire", handlers.CreateAcquisitionAttempt(db))
 
-	// Watersheds (to replace basins) #
+	// Watersheds
 	public.GET("/watersheds", handlers.ListWatersheds(db))
 	public.GET("/watersheds/:watershed_id", handlers.GetWatershed(db))
 	cacOrToken.POST("/watersheds", handlers.CreateWatershed(db))

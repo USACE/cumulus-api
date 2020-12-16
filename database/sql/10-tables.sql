@@ -37,7 +37,7 @@ CREATE TABLE IF NOT EXISTS public.watershed (
     slug VARCHAR UNIQUE NOT NULL,
     name VARCHAR,
     geometry geometry,
-    office_id UUID NOT NULL REFERENCES office(id)
+    office_id UUID REFERENCES office(id)
 );
 
 -- area_group

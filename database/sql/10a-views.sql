@@ -8,11 +8,13 @@ CREATE OR REPLACE VIEW v_download AS (
             d.processing_end AS processing_end,
             d.status_id AS status_id,
             d.watershed_id AS watershed_id,
+            w.slug         AS watershed_slug,
+            w.name         AS watershed_name,
             s.name AS status,
             dp.product_id AS product_id
         FROM download d
             INNER JOIN download_status s ON d.status_id = s.id
-            INNER JOIN watershed w on d.watershed_id = w.id
+            INNER JOIN watershed w on w.id = d.watershed_id
             INNER JOIN (
                 SELECT array_agg(id) as product_id,
                     download_id
@@ -25,10 +27,7 @@ CREATE OR REPLACE VIEW v_watershed AS (
     SELECT w.id,
            w.slug,
            w.name,
-           ST_XMin(w.geometry) AS x_min,
-           ST_Ymin(w.geometry) AS y_min,
-           ST_XMax(w.geometry) AS x_max,
-           ST_YMax(w.geometry) AS y_max,
+           w.geometry AS geometry,
            COALESCE(ag.area_groups, '{}') AS area_groups,
            f.symbol AS office_symbol
 	FROM   watershed w

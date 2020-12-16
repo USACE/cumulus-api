@@ -39,6 +39,9 @@ type Download struct {
 	DownloadRequest
 	DownloadStatus
 	PackagerInfo
+	// Include Watershed Name and Watershed Slug for Convenience
+	WatershedSlug string `json:"watershed_slug" db:"watershed_slug"`
+	WatershedName string `json:"watershed_name" db:"watershed_name"`
 }
 
 // PackagerInfo holds all information Packager provides after a download starts
@@ -73,7 +76,7 @@ type PackagerContentItem struct {
 
 var listDownloadsSQL = fmt.Sprintf(
 	`SELECT id, datetime_start, datetime_end, progress, ('%s' || '/' || file) as file,
-	   processing_start, processing_end, status_id, watershed_id, watershed_name, status, product_id
+	   processing_start, processing_end, status_id, watershed_id, watershed_slug, watershed_name, status, product_id
 	   FROM v_download
 	`, cfg.StaticHost,
 )
@@ -105,28 +108,6 @@ func GetDownload(db *sqlx.DB, id *uuid.UUID) (*Download, error) {
 		return nil, err
 	}
 	return &dd[0], nil
-}
-
-// GetDownloadWatershed returns the watershed for a downloadID
-func GetDownloadWatershed(db *sqlx.DB, downloadID *uuid.UUID) (*Watershed, error) {
-	var w Watershed
-	if err := db.Get(
-		&w,
-		`SELECT w.office_symbol AS office_symbol,
-		        w.id,
-		        w.name,
-		        w.x_min,
-		        w.y_min,
-		        w.x_max,
-		        w.y_max
-		 FROM download d
-		 INNER JOIN v_watershed w ON d.watershed_id = w.id
-		 WHERE d.ID = $1`,
-		downloadID,
-	); err != nil {
-		return nil, err
-	}
-	return &w, nil
 }
 
 // GetDownloadPackagerRequest retrieves the information packager needs to package a download
@@ -280,7 +261,7 @@ func DownloadStructFactory(rows *sqlx.Rows) ([]Download, error) {
 	for rows.Next() {
 		err := rows.Scan(
 			&d.ID, &d.DatetimeStart, &d.DatetimeEnd, &d.Progress, &d.File,
-			&d.ProcessingStart, &d.ProcessingEnd, &d.StatusID, &d.WatershedID, &d.Status, pq.Array(&d.ProductID),
+			&d.ProcessingStart, &d.ProcessingEnd, &d.StatusID, &d.WatershedID, &d.WatershedSlug, &d.WatershedName, &d.Status, pq.Array(&d.ProductID),
 		)
 		if err != nil {
 			return make([]Download, 0), err

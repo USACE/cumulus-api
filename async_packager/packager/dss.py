@@ -10,7 +10,7 @@ from pydsstools.heclib.dss.HecDss import Open
 from pydsstools.heclib.utils import gridInfo
 
 
-def write_contents_to_dssfile(outfile, basin, items, callback):
+def write_contents_to_dssfile(outfile, watershed, items, callback):
 
     cellsize = 2000
 
@@ -28,7 +28,7 @@ def write_contents_to_dssfile(outfile, basin, items, callback):
                 f'/vsis3_streaming/{item["bucket"]}/{item["key"]}',
                 dstSRS='EPSG:5070',
                 outputType=gdal.GDT_Float64,
-                outputBounds=[basin['x_min'], basin['y_min'], basin['x_max'], basin['y_max']],
+                outputBounds=watershed["bbox"],
                 resampleAlg="bilinear",
                 targetAlignedPixels=True,
                 xRes=cellsize,
@@ -52,13 +52,13 @@ def write_contents_to_dssfile(outfile, basin, items, callback):
                 ('grid_transform', affine_transform),
                 ('data_type', item['dss_datatype'].lower()),
                 ('data_units', item['dss_unit'].lower()),
-                ('opt_lower_left_x', basin['x_min'] / cellsize),
-                ('opt_lower_left_y', basin['y_min'] / cellsize),
+                ('opt_lower_left_x', watershed['bbox'][0] / cellsize),
+                ('opt_lower_left_y', watershed['bbox'][1] / cellsize),
                 ('opt_time_stamped',False)
             ])
 
             fid.put_grid(
-                f'/SHG/{basin["name"]}/{item["dss_cpart"]}/{item["dss_dpart"]}/{item["dss_epart"]}/{item["dss_fpart"]}/',
+                f'/SHG/{watershed["name"]}/{item["dss_cpart"]}/{item["dss_dpart"]}/{item["dss_epart"]}/{item["dss_fpart"]}/',
                 data,
                 grid_info
             )

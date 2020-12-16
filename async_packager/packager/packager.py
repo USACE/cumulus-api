@@ -101,7 +101,7 @@ def package(msg, packager_update_fn):
     output_bucket = msg['output_bucket']
     output_key = msg['output_key']
     contents = msg['contents']
-    basin = msg['watershed']
+    watershed = msg['watershed']
 
     filecount = len(contents)
     logger.info(f'filecount is: {filecount}')
@@ -146,7 +146,7 @@ def package(msg, packager_update_fn):
         print('Output key is: {}'.format(output_key))
         outfile = write_contents_to_dssfile(
             os.path.join(td, os.path.basename(output_key)),
-            basin,
+            watershed,
             contents,
             callbackFn
         )

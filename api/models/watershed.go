@@ -8,14 +8,24 @@ import (
 
 // Watershed is a watershed struct
 type Watershed struct {
-	ID         uuid.UUID   `json:"id"`
-	Slug       string      `json:"slug"`
-	Name       string      `json:"name"`
-	AreaGroups []uuid.UUID `json:"area_groups" db:"area_groups"`
+	ID           uuid.UUID   `json:"id"`
+	OfficeSymbol *string     `json:"office_symbol" db:"office_symbol"`
+	Slug         string      `json:"slug"`
+	Name         string      `json:"name"`
+	AreaGroups   []uuid.UUID `json:"area_groups" db:"area_groups"`
+	Bbox         []float64   `json:"bbox"`
 }
 
-// ListWatershedsSQL is sql used to list all watersheds
-const ListWatershedsSQL = `SELECT id, slug, name, area_groups FROM v_watershed`
+// WatershedSQL includes common fields selected to build a watershed
+const WatershedSQL = `SELECT w.id,
+                             w.slug,
+                             w.name,
+                             w.area_groups,
+						     ST_XMin(w.geometry) AS x_min,
+						     ST_Ymin(w.geometry) AS y_min,
+						     ST_XMax(w.geometry) AS x_max,
+							 ST_YMax(w.geometry) AS y_max
+							 `
 
 // WatershedsFactory converts query rows to an array of watersheds
 func WatershedsFactory(rows *sqlx.Rows) ([]Watershed, error) {
@@ -23,8 +33,11 @@ func WatershedsFactory(rows *sqlx.Rows) ([]Watershed, error) {
 	ww := make([]Watershed, 0)
 	for rows.Next() {
 		var w Watershed
-		err := rows.Scan(&w.ID, &w.Slug, &w.Name, pq.Array(&w.AreaGroups))
-		if err != nil {
+		w.Bbox = make([]float64, 4)
+		if err := rows.Scan(
+			&w.ID, &w.Slug, &w.Name, pq.Array(&w.AreaGroups),
+			&w.Bbox[0], &w.Bbox[1], &w.Bbox[2], &w.Bbox[3],
+		); err != nil {
 			return make([]Watershed, 0), nil
 		}
 		ww = append(ww, w)
@@ -34,7 +47,7 @@ func WatershedsFactory(rows *sqlx.Rows) ([]Watershed, error) {
 
 // ListWatersheds returns an array of watersheds
 func ListWatersheds(db *sqlx.DB) ([]Watershed, error) {
-	rows, err := db.Queryx(ListWatershedsSQL)
+	rows, err := db.Queryx(WatershedSQL + " FROM v_watershed w")
 	if err != nil {
 		return make([]Watershed, 0), nil
 	}
@@ -43,7 +56,25 @@ func ListWatersheds(db *sqlx.DB) ([]Watershed, error) {
 
 // GetWatershed returns a single watershed using slug
 func GetWatershed(db *sqlx.DB, id *uuid.UUID) (*Watershed, error) {
-	rows, err := db.Queryx(ListWatershedsSQL+` WHERE id = $1`, id)
+	rows, err := db.Queryx(WatershedSQL+` FROM v_watershed w WHERE w.id = $1`, id)
+	if err != nil {
+		return nil, err
+	}
+	ww, err := WatershedsFactory(rows)
+	if err != nil {
+		return nil, err
+	}
+	return &ww[0], nil
+}
+
+// GetDownloadWatershed returns the watershed for a downloadID
+func GetDownloadWatershed(db *sqlx.DB, downloadID *uuid.UUID) (*Watershed, error) {
+
+	rows, err := db.Queryx(
+		WatershedSQL+` FROM download d
+					   INNER JOIN v_watershed w ON w.id = d.watershed_id
+					   WHERE d.ID = $1`, downloadID,
+	)
 	if err != nil {
 		return nil, err
 	}

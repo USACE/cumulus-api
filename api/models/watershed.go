@@ -18,6 +18,7 @@ type Watershed struct {
 
 // WatershedSQL includes common fields selected to build a watershed
 const WatershedSQL = `SELECT w.id,
+                             w.office_symbol,
                              w.slug,
                              w.name,
                              w.area_groups,
@@ -35,7 +36,7 @@ func WatershedsFactory(rows *sqlx.Rows) ([]Watershed, error) {
 		var w Watershed
 		w.Bbox = make([]float64, 4)
 		if err := rows.Scan(
-			&w.ID, &w.Slug, &w.Name, pq.Array(&w.AreaGroups),
+			&w.ID, &w.OfficeSymbol, &w.Slug, &w.Name, pq.Array(&w.AreaGroups),
 			&w.Bbox[0], &w.Bbox[1], &w.Bbox[2], &w.Bbox[3],
 		); err != nil {
 			return make([]Watershed, 0), nil

@@ -8,8 +8,6 @@ drop table if exists
     public.area,
     public.area_group,
     public.office,
-    public.subbasin,
-    public.basin,
     public.parameter,
     public.unit,
     public.product,
@@ -33,25 +31,13 @@ CREATE TABLE IF NOT EXISTS public.office (
     name VARCHAR(120) UNIQUE NOT NULL
 );
 
--- basin
-CREATE TABLE IF NOT EXISTS public.basin (
-    id UUID PRIMARY KEY NOT NULL DEFAULT uuid_generate_v4(),
-    slug VARCHAR(240) UNIQUE NOT NULL,
-    name VARCHAR(120) NOT NULL,
-    geometry geometry,
-    x_min INTEGER NOT NULL,
-    y_min INTEGER NOT NULL,
-    x_max INTEGER NOT NULL,
-    y_max INTEGER NOT NULL,
-    office_id UUID NOT NULL REFERENCES office (id)
-);
-
 -- watershed
 CREATE TABLE IF NOT EXISTS public.watershed (
     id UUID PRIMARY KEY NOT NULL DEFAULT uuid_generate_v4(),
     slug VARCHAR UNIQUE NOT NULL,
     name VARCHAR,
-    geometry geometry
+    geometry geometry,
+    office_id UUID REFERENCES office(id)
 );
 
 -- area_group
@@ -106,14 +92,6 @@ CREATE TABLE IF NOT EXISTS public.product (
     unit_id UUID NOT NULL REFERENCES unit (id)
 );
 
--- basin_product_statistics_enabled
-CREATE TABLE IF NOT EXISTS public.basin_product_statistics_enabled (
-    id UUID PRIMARY KEY NOT NULL DEFAULT uuid_generate_v4(),
-    basin_id UUID NOT NULL REFERENCES basin(id),
-    product_id UUID NOT NULL REFERENCES product(id),
-    CONSTRAINT unique_basin_product UNIQUE(basin_id, product_id)
-);
-
 -- productfile
 CREATE TABLE IF NOT EXISTS public.productfile (
     id UUID PRIMARY KEY NOT NULL DEFAULT uuid_generate_v4(),
@@ -155,7 +133,7 @@ CREATE TABLE IF NOT EXISTS public.download (
     datetime_end TIMESTAMPTZ NOT NULL,
     progress INTEGER NOT NULL DEFAULT 0,
     status_id UUID REFERENCES download_status(id),
-    basin_id UUID REFERENCES basin(id),
+    watershed_id UUID REFERENCES watershed(id),
     file VARCHAR(240),
     processing_start TIMESTAMPTZ NOT NULL DEFAULT now(),
     processing_end TIMESTAMPTZ
@@ -192,58 +170,6 @@ CREATE TABLE IF NOT EXISTS public.area_group_product_statistics_enabled (
     product_id UUID NOT NULL REFERENCES product(id) ON DELETE CASCADE,
     CONSTRAINT unique_area_group_product UNIQUE(area_group_id, product_id)
 );
-
--- VIEWS
-CREATE OR REPLACE VIEW v_download AS (
-        SELECT d.id AS id,
-            d.datetime_start AS datetime_start,
-            d.datetime_end AS datetime_end,
-            d.progress AS progress,
-            d.file AS file,
-            d.processing_start AS processing_start,
-            d.processing_end AS processing_end,
-            d.status_id AS status_id,
-            d.basin_id AS basin_id,
-            s.name AS status,
-            dp.product_id AS product_id
-        FROM download d
-            INNER JOIN download_status s ON d.status_id = s.id
-            INNER JOIN (
-                SELECT array_agg(id) as product_id,
-                    download_id
-                FROM download_product
-                GROUP BY download_id
-            ) dp ON d.id = dp.download_id
-    );
-
-CREATE OR REPLACE VIEW v_watershed AS (
-    SELECT w.id,
-           w.slug,
-           w.name,
-           COALESCE(ag.area_groups, '{}') AS area_groups
-	FROM   watershed w
-	LEFT JOIN (
-		SELECT array_agg(id) as area_groups, watershed_id
-		FROM area_group
-		GROUP BY watershed_id
-	) ag ON ag.watershed_id = w.id
-);
-
--- Basins; Projected to EPSG 5070
-CREATE OR REPLACE VIEW v_area_5070 AS (
-        SELECT id,
-	        slug,
-	        name,
-                ST_SnapToGrid(
-                    ST_Transform(
-                        geometry,
-                        '+proj=aea +lat_0=23 +lon_0=-96 +lat_1=29.5 +lat_2=45.5 +x_0=0 +y_0=0 +datum=NAD83 +units=us-ft +no_defs',
-                        5070
-                    ),
-                    1
-                ) AS geometry
-        FROM area
-    );
 
 -- Function; Notify New Record in Table
 CREATE OR REPLACE FUNCTION public.notify_new ()

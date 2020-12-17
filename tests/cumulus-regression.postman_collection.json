@@ -30,7 +30,7 @@
 						"header": [],
 						"body": {
 							"mode": "raw",
-							"raw": "{\n\t\"datetime_start\": \"2020-12-01T01:00:00Z\",\n\t\"datetime_end\": \"2020-12-10T01:00:00Z\",\n\t\"basin_id\": \"3e8db268-d9ca-47ec-ae93-21a3c2bcf0a1\",\n\t\"product_id\": [\n        \"30a6d443-80a5-49cc-beb0-5d3a18a84caa\"\n\t]\n}",
+							"raw": "{\n\t\"datetime_start\": \"2020-12-01T01:00:00Z\",\n\t\"datetime_end\": \"2020-12-10T01:00:00Z\",\n\t\"watershed_id\": \"3e8db268-d9ca-47ec-ae93-21a3c2bcf0a1\",\n\t\"product_id\": [\n        \"30a6d443-80a5-49cc-beb0-5d3a18a84caa\"\n\t]\n}",
 							"options": {
 								"raw": {
 									"language": "json"
@@ -71,7 +71,7 @@
 						"header": [],
 						"body": {
 							"mode": "raw",
-							"raw": "{\n\t\"datetime_start\": \"2020-11-18T06:00:00Z\",\n\t\"datetime_end\": \"2020-12-02T06:00:00Z\",\n\t\"basin_id\": \"f019ffec-e9d3-48e6-ab74-eaa8fd8065e0\",\n\t\"product_id\": [\n\t\t\"e4fdadc7-5532-4910-9ed7-3c3690305d86\"\n\t]\n}",
+							"raw": "{\n\t\"datetime_start\": \"2020-11-18T06:00:00Z\",\n\t\"datetime_end\": \"2020-12-02T06:00:00Z\",\n\t\"watershed_id\": \"f019ffec-e9d3-48e6-ab74-eaa8fd8065e0\",\n\t\"product_id\": [\n\t\t\"e4fdadc7-5532-4910-9ed7-3c3690305d86\"\n\t]\n}",
 							"options": {
 								"raw": {
 									"language": "json"
@@ -91,7 +91,7 @@
 					"response": []
 				},
 				{
-					"name": "GetDownload",
+					"name": "ListDownloads",
 					"event": [
 						{
 							"listen": "test",
@@ -108,14 +108,12 @@
 						"method": "GET",
 						"header": [],
 						"url": {
-							"raw": "{{base_url}}/downloads/d6f3e743-74c1-47cf-8cb8-b3275bd082f5/packager_request",
+							"raw": "{{base_url}}/downloads",
 							"host": [
 								"{{base_url}}"
 							],
 							"path": [
-								"downloads",
-								"d6f3e743-74c1-47cf-8cb8-b3275bd082f5",
-								"packager_request"
+								"downloads"
 							]
 						}
 					},
@@ -260,126 +258,6 @@
 							"path": [
 								"my_tokens",
 								"AXZrRtC4TrTrYHnfXHPomZ41gXnDZh1KUro9LaG1uyVb8oR6mTY59Ho"
-							]
-						}
-					},
-					"response": []
-				}
-			],
-			"protocolProfileBehavior": {}
-		},
-		{
-			"name": "basins",
-			"item": [
-				{
-					"name": "ListBasins",
-					"event": [
-						{
-							"listen": "test",
-							"script": {
-								"id": "1cec4a5e-bea5-4b10-b970-621af84b0acd",
-								"exec": [
-									"// status code is 200",
-									"pm.test(\"Status code is 200\", function () {",
-									"    pm.response.to.have.status(200);",
-									"});",
-									"",
-									"",
-									"// validate JSON schema",
-									"var schema = {",
-									"    \"type\": \"array\",",
-									"    \"items\": {",
-									"        \"type\": \"object\",",
-									"        \"properties\": {",
-									"            \"id\": { \"type\": \"string\" },",
-									"            \"name\": { \"type\": \"string\" },",
-									"            \"x_min\": { \"type\": \"number\" },",
-									"            \"y_min\": { \"type\": \"number\" },",
-									"            \"x_max\": { \"type\": \"number\" },",
-									"            \"y_max\": { \"type\": \"number\" },",
-									"            \"office_symbol\": { \"type\": \"string\" }",
-									"        },",
-									"        \"required\": [\"id\", \"name\", \"x_min\", \"y_min\", \"x_max\", \"y_max\", \"office_symbol\"],",
-									"        \"additionalProperties\": false",
-									"    }",
-									"}",
-									"",
-									"",
-									"pm.test(\"Schema validation\", function () {",
-									"    pm.response.to.have.jsonSchema(schema)",
-									"});",
-									""
-								],
-								"type": "text/javascript"
-							}
-						}
-					],
-					"request": {
-						"method": "GET",
-						"header": [],
-						"url": {
-							"raw": "{{base_url}}/basins",
-							"host": [
-								"{{base_url}}"
-							],
-							"path": [
-								"basins"
-							]
-						}
-					},
-					"response": []
-				},
-				{
-					"name": "GetBasin",
-					"event": [
-						{
-							"listen": "test",
-							"script": {
-								"id": "122710a9-b7c2-447d-9b75-c8ca371ce85b",
-								"exec": [
-									"// status code is 200",
-									"pm.test(\"Status code is 200\", function () {",
-									"    pm.response.to.have.status(200);",
-									"});",
-									"",
-									"",
-									"// validate JSON schema",
-									"var schema = {",
-									"    \"type\": \"object\",",
-									"    \"properties\": {",
-									"        \"id\": { \"type\": \"string\" },",
-									"        \"name\": { \"type\": \"string\" },",
-									"        \"x_min\": { \"type\": \"number\" },",
-									"        \"y_min\": { \"type\": \"number\" },",
-									"        \"x_max\": { \"type\": \"number\" },",
-									"        \"y_max\": { \"type\": \"number\" },",
-									"        \"office_symbol\": { \"type\": \"string\" }",
-									"    },",
-									"    \"required\": [\"id\", \"name\", \"x_min\", \"y_min\", \"x_max\", \"y_max\", \"office_symbol\"],",
-									"    \"additionalProperties\": false",
-									"}",
-									"",
-									"",
-									"pm.test(\"Schema validation\", function () {",
-									"    pm.response.to.have.jsonSchema(schema)",
-									"});",
-									""
-								],
-								"type": "text/javascript"
-							}
-						}
-					],
-					"request": {
-						"method": "GET",
-						"header": [],
-						"url": {
-							"raw": "{{base_url}}/basins/ad30f178-afc3-43b9-ba92-7bd139581217",
-							"host": [
-								"{{base_url}}"
-							],
-							"path": [
-								"basins",
-								"ad30f178-afc3-43b9-ba92-7bd139581217"
 							]
 						}
 					},

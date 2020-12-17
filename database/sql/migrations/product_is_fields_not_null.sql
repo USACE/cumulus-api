@@ -1,2 +1,0 @@
-ALTER TABLE product ALTER COLUMN is_realtime SET NOT NULL;
-ALTER TABLE product ALTER COLUMN is_forecast SET NOT NULL;

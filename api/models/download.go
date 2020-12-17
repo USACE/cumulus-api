@@ -29,7 +29,7 @@ type DownloadStatus struct {
 type DownloadRequest struct {
 	DatetimeStart time.Time   `json:"datetime_start" db:"datetime_start"`
 	DatetimeEnd   time.Time   `json:"datetime_end" db:"datetime_end"`
-	BasinID       uuid.UUID   `json:"basin_id" db:"basin_id"`
+	WatershedID   uuid.UUID   `json:"watershed_id" db:"watershed_id"`
 	ProductID     []uuid.UUID `json:"product_id" db:"product_id"`
 }
 
@@ -39,6 +39,9 @@ type Download struct {
 	DownloadRequest
 	DownloadStatus
 	PackagerInfo
+	// Include Watershed Name and Watershed Slug for Convenience
+	WatershedSlug string `json:"watershed_slug" db:"watershed_slug"`
+	WatershedName string `json:"watershed_name" db:"watershed_name"`
 }
 
 // PackagerInfo holds all information Packager provides after a download starts
@@ -54,7 +57,7 @@ type PackagerRequest struct {
 	DownloadID   uuid.UUID             `json:"download_id"`
 	OutputBucket string                `json:"output_bucket"`
 	OutputKey    string                `json:"output_key"`
-	Basin        Basin                 `json:"basin"`
+	Watershed    Watershed             `json:"watershed"`
 	Contents     []PackagerContentItem `json:"contents"`
 }
 
@@ -73,7 +76,7 @@ type PackagerContentItem struct {
 
 var listDownloadsSQL = fmt.Sprintf(
 	`SELECT id, datetime_start, datetime_end, progress, ('%s' || '/' || file) as file,
-	   processing_start, processing_end, status_id, basin_id, status, product_id
+	   processing_start, processing_end, status_id, watershed_id, watershed_slug, watershed_name, status, product_id
 	   FROM v_download
 	`, cfg.StaticHost,
 )
@@ -105,29 +108,6 @@ func GetDownload(db *sqlx.DB, id *uuid.UUID) (*Download, error) {
 		return nil, err
 	}
 	return &dd[0], nil
-}
-
-// GetDownloadBasin returns the basin for a downloadID
-func GetDownloadBasin(db *sqlx.DB, downloadID *uuid.UUID) (*Basin, error) {
-	var b Basin
-	if err := db.Get(
-		&b,
-		`SELECT b.id,
-				b.name,
-				b.x_min,
-				b.y_min,
-				b.x_max,
-				b.y_max,
-				f.symbol AS office_symbol
-		FROM   download d
-		INNER JOIN basin b ON d.basin_id = b.id
-		JOIN office f ON b.office_id = f.id
-		WHERE d.ID = $1`,
-		downloadID,
-	); err != nil {
-		return nil, err
-	}
-	return &b, nil
 }
 
 // GetDownloadPackagerRequest retrieves the information packager needs to package a download
@@ -188,12 +168,12 @@ func GetDownloadPackagerRequest(db *sqlx.DB, downloadID *uuid.UUID) (*PackagerRe
 		return nil, err
 	}
 
-	// Attach Basin
-	b, err := GetDownloadBasin(db, downloadID)
+	// Attach Watershed
+	w, err := GetDownloadWatershed(db, downloadID)
 	if err != nil {
 		return nil, err
 	}
-	pr.Basin = *b
+	pr.Watershed = *w
 
 	return &pr, nil
 }
@@ -214,9 +194,9 @@ func CreateDownload(db *sqlx.DB, dr *DownloadRequest, ae asyncer.Asyncer) (*Down
 
 	if err := tx.Get(
 		&d,
-		`INSERT INTO download (datetime_start, datetime_end, status_id, basin_id)
+		`INSERT INTO download (datetime_start, datetime_end, status_id, watershed_id)
 		VALUES ($1, $2, '94727878-7a50-41f8-99eb-a80eb82f737a', $3)
-		RETURNING *`, dr.DatetimeStart, dr.DatetimeEnd, dr.BasinID,
+		RETURNING *`, dr.DatetimeStart, dr.DatetimeEnd, dr.WatershedID,
 	); err != nil {
 		tx.Rollback()
 		return nil, err
@@ -281,7 +261,7 @@ func DownloadStructFactory(rows *sqlx.Rows) ([]Download, error) {
 	for rows.Next() {
 		err := rows.Scan(
 			&d.ID, &d.DatetimeStart, &d.DatetimeEnd, &d.Progress, &d.File,
-			&d.ProcessingStart, &d.ProcessingEnd, &d.StatusID, &d.BasinID, &d.Status, pq.Array(&d.ProductID),
+			&d.ProcessingStart, &d.ProcessingEnd, &d.StatusID, &d.WatershedID, &d.WatershedSlug, &d.WatershedName, &d.Status, pq.Array(&d.ProductID),
 		)
 		if err != nil {
 			return make([]Download, 0), err

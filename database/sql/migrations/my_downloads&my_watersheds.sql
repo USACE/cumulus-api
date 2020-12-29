@@ -13,11 +13,6 @@ CREATE TABLE IF NOT EXISTS public.profile_watersheds (
 
 );
 
--- Role cumulus_reader
-GRANT SELECT ON profile_watersheds TO cumulus_reader;
--- Role cumulus_writer
-GRANT SELECT ON profile_watersheds TO cumulus_writer;
-
 -- Replace v_download
 CREATE OR REPLACE VIEW v_download AS (
         SELECT d.id AS id,
@@ -45,3 +40,8 @@ CREATE OR REPLACE VIEW v_download AS (
             ) dp ON d.id = dp.download_id
             ORDER BY d.processing_start DESC
     );
+
+-- Role cumulus_reader
+GRANT SELECT ON profile_watersheds,v_download TO cumulus_reader;
+-- Role cumulus_writer
+GRANT SELECT ON profile_watersheds TO cumulus_writer;

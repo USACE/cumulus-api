@@ -4,8 +4,6 @@ import (
 	"api/models"
 	"net/http"
 
-	"github.com/USACE/go-simple-asyncer/asyncer"
-
 	"github.com/google/uuid"
 	"github.com/jmoiron/sqlx"
 	"github.com/labstack/echo/v4"
@@ -36,9 +34,24 @@ func ListDownloads(db *sqlx.DB) echo.HandlerFunc {
 	}
 }
 
+// ListMyDownloads returns an array of downloads for a ProfileID
+func ListMyDownloads(db *sqlx.DB) echo.HandlerFunc {
+	return func(c echo.Context) error {
+		p, err := profileFromContext(c, db)
+		if err != nil {
+			return c.String(http.StatusBadRequest, err.Error())
+		}
+		dd, err := models.ListMyDownloads(db, &p.ID)
+		if err != nil {
+			return c.String(http.StatusInternalServerError, err.Error())
+		}
+		return c.JSON(http.StatusOK, dd)
+	}
+}
+
 // CreateDownload request, return dummy response for testing until
 // dss processing/file creation is available
-func CreateDownload(db *sqlx.DB, ae asyncer.Asyncer) echo.HandlerFunc {
+func CreateDownload(db *sqlx.DB) echo.HandlerFunc {
 	return func(c echo.Context) error {
 		//need to check if products provided are valid uuids for existing products
 		//sanity check on dates in time windows and geometry??
@@ -46,7 +59,16 @@ func CreateDownload(db *sqlx.DB, ae asyncer.Asyncer) echo.HandlerFunc {
 		if err := c.Bind(&dr); err != nil {
 			return c.String(http.StatusBadRequest, err.Error())
 		}
-		d, err := models.CreateDownload(db, &dr, ae)
+		// TODO: Cleanup and support CAC or Token to get Profile
+		p, err := profileFromContext(c, db)
+		// ProfileID is null (allows anon downloads)
+		if err != nil || p == nil {
+			dr.ProfileID = nil
+		} else {
+			// Attach ProfileID to Download Request if authenticated request
+			dr.ProfileID = &p.ID
+		}
+		d, err := models.CreateDownload(db, &dr)
 		if err != nil {
 			return c.String(http.StatusInternalServerError, err.Error())
 		}

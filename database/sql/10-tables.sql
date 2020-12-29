@@ -20,7 +20,8 @@ drop table if exists
     public.download_status,
 	public.profile_token,
 	public.profile,
-    public.watershed
+    public.watershed,
+    public.profile_watersheds
 	CASCADE;
 
 
@@ -31,6 +32,22 @@ CREATE TABLE IF NOT EXISTS public.office (
     name VARCHAR(120) UNIQUE NOT NULL
 );
 
+-- profile
+CREATE TABLE IF NOT EXISTS public.profile (
+    id UUID PRIMARY KEY NOT NULL DEFAULT uuid_generate_v4(),
+    edipi BIGINT UNIQUE NOT NULL,
+    email VARCHAR(240) UNIQUE NOT NULL
+);
+
+-- profile_token
+CREATE TABLE IF NOT EXISTS public.profile_token (
+    id UUID PRIMARY KEY NOT NULL DEFAULT uuid_generate_v4(),
+    token_id VARCHAR NOT NULL,
+    profile_id UUID NOT NULL REFERENCES profile(id),
+    issued TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    hash VARCHAR(240) NOT NULL
+);
+
 -- watershed
 CREATE TABLE IF NOT EXISTS public.watershed (
     id UUID PRIMARY KEY NOT NULL DEFAULT uuid_generate_v4(),
@@ -38,6 +55,15 @@ CREATE TABLE IF NOT EXISTS public.watershed (
     name VARCHAR,
     geometry geometry,
     office_id UUID REFERENCES office(id)
+);
+
+-- profile_watersheds
+CREATE TABLE IF NOT EXISTS public.profile_watersheds (
+    id UUID PRIMARY KEY NOT NULL DEFAULT uuid_generate_v4(),
+    watershed_id UUID NOT NULL REFERENCES watershed(id) ON DELETE CASCADE,
+    profile_id UUID NOT NULL REFERENCES profile(id) ON DELETE CASCADE,
+    CONSTRAINT profile_unique_watershed UNIQUE(watershed_id, profile_id)
+
 );
 
 -- area_group
@@ -136,7 +162,8 @@ CREATE TABLE IF NOT EXISTS public.download (
     watershed_id UUID REFERENCES watershed(id),
     file VARCHAR(240),
     processing_start TIMESTAMPTZ NOT NULL DEFAULT now(),
-    processing_end TIMESTAMPTZ
+    processing_end TIMESTAMPTZ,
+    profile_id UUID REFERENCES profile(id)
 );
 
 -- download_product
@@ -144,23 +171,6 @@ CREATE TABLE IF NOT EXISTS public.download_product (
     id UUID PRIMARY KEY NOT NULL DEFAULT uuid_generate_v4(),
     product_id UUID REFERENCES product(id),
     download_id UUID REFERENCES download(id)
-);
-
-
--- profile
-CREATE TABLE IF NOT EXISTS public.profile (
-    id UUID PRIMARY KEY NOT NULL DEFAULT uuid_generate_v4(),
-    edipi BIGINT UNIQUE NOT NULL,
-    email VARCHAR(240) UNIQUE NOT NULL
-);
-
--- profile_token
-CREATE TABLE IF NOT EXISTS public.profile_token (
-    id UUID PRIMARY KEY NOT NULL DEFAULT uuid_generate_v4(),
-    token_id VARCHAR NOT NULL,
-    profile_id UUID NOT NULL REFERENCES profile(id),
-    issued TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    hash VARCHAR(240) NOT NULL
 );
 
 -- area_group_product_statistics_enabled

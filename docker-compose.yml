@@ -59,6 +59,7 @@ services:
     # Volume to persist packager created file
     volumes:
       - ./data:/output
+    restart: always
   statistics:
     build:
       context: async_statistics

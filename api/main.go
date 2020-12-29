@@ -59,13 +59,6 @@ func main() {
 	// Database
 	db := Connection(cfg)
 
-	// packagerAsyncer defines async engine used to package DSS files for download
-	packagerAsyncer, err := asyncer.NewAsyncer(
-		asyncer.Config{Engine: cfg.AsyncEnginePackager, Target: cfg.AsyncEnginePackagerTarget},
-	)
-	if err != nil {
-		log.Fatal(err.Error())
-	}
 	// acquisitionAsyncer defines async engine used to package DSS files for download
 	acquisitionAsyncer, err := asyncer.NewAsyncer(
 		asyncer.Config{Engine: cfg.AsyncEngineAcquisition, Target: cfg.AsyncEngineAcquisitionTarget},
@@ -122,9 +115,11 @@ func main() {
 
 	// Downloads
 	public.GET("/downloads", handlers.ListDownloads(db))
+	cacOnly.GET("/my_downloads", handlers.ListMyDownloads(db))
+	cacOnly.POST("/my_downloads", handlers.CreateDownload(db))
 	public.GET("/downloads/:id", handlers.GetDownload(db))
 	public.GET("/downloads/:id/packager_request", handlers.GetDownloadPackagerRequest(db))
-	public.POST("/downloads", handlers.CreateDownload(db, packagerAsyncer))
+	public.POST("/downloads", handlers.CreateDownload(db))
 	public.PUT("/downloads/:id", handlers.UpdateDownload(db))
 
 	// Restricted Routes (JWT or Key)
@@ -137,6 +132,11 @@ func main() {
 	cacOrToken.POST("/watersheds", handlers.CreateWatershed(db))
 	cacOrToken.PUT("/watersheds/:watershed_id", handlers.UpdateWatershed(db))
 	cacOrToken.DELETE("/watersheds/:watershed_id", handlers.DeleteWatershed(db))
+
+	// My Watersheds
+	cacOnly.GET("/my_watersheds", handlers.ListMyWatersheds(db))
+	cacOnly.POST("/my_watersheds/:watershed_id/add", handlers.MyWatershedsAdd(db))
+	cacOnly.POST("/my_watersheds/:watershed_id/remove", handlers.MyWatershedsRemove(db))
 
 	// Area Groups
 	// TODO: CRUD Handlers for area_groups

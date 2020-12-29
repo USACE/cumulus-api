@@ -32,6 +32,7 @@ GRANT SELECT ON
     download,
     download_product,
     watershed,
+    profile_watersheds,
     v_download,
     v_area_5070,
     v_watershed
@@ -57,7 +58,8 @@ GRANT INSERT,UPDATE,DELETE ON
     download_status,
     download,
     download_product,
-    watershed
+    watershed,
+    profile_watersheds
 TO cumulus_writer;
 
 -- Role postgis_reader

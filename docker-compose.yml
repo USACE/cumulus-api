@@ -35,6 +35,7 @@ services:
       - CUMULUS_ASYNC_ENGINE_STATISTICS_TARGET=local/http://elasticmq:9324/queue/cumulus-statistics
       - CUMULUS_MIN_RECONN=10s
       - CUMULUS_MAX_RECONN=1m
+    restart: always
   packager:
     build:
       context: async_packager
@@ -59,6 +60,7 @@ services:
     # Volume to persist packager created file
     volumes:
       - ./data:/output
+    restart: always
   statistics:
     build:
       context: async_statistics

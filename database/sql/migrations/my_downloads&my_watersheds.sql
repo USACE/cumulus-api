@@ -1,3 +1,19 @@
+-- 28-Dec-2020
+-- Adds objects for my_downloads & my_watersheds
+
+-- Add profile_id to DOWNLOAD table
+ALTER TABLE public.download ADD COLUMN profile_id UUID REFERENCES profile(id);
+
+-- Add new PROFILE_WATERSHEDS table
+CREATE TABLE IF NOT EXISTS public.profile_watersheds (
+    id UUID PRIMARY KEY NOT NULL DEFAULT uuid_generate_v4(),
+    watershed_id UUID NOT NULL REFERENCES watershed(id) ON DELETE CASCADE,
+    profile_id UUID NOT NULL REFERENCES profile(id) ON DELETE CASCADE,
+    CONSTRAINT profile_unique_watershed UNIQUE(watershed_id, profile_id)
+
+);
+
+-- Replace v_download
 CREATE OR REPLACE VIEW v_download AS (
         SELECT d.id AS id,
             d.datetime_start AS datetime_start,
@@ -25,34 +41,7 @@ CREATE OR REPLACE VIEW v_download AS (
             ORDER BY d.processing_start DESC
     );
 
-CREATE OR REPLACE VIEW v_watershed AS (
-    SELECT w.id,
-           w.slug,
-           w.name,
-           w.geometry AS geometry,
-           COALESCE(ag.area_groups, '{}') AS area_groups,
-           f.symbol AS office_symbol
-	FROM   watershed w
-	LEFT JOIN (
-		SELECT array_agg(id) as area_groups, watershed_id
-		FROM area_group
-		GROUP BY watershed_id
-	) ag ON ag.watershed_id = w.id
-    LEFT JOIN office f ON w.office_id = f.id
-);
-
--- Basins; Projected to EPSG 5070
-CREATE OR REPLACE VIEW v_area_5070 AS (
-        SELECT id,
-	        slug,
-	        name,
-                ST_SnapToGrid(
-                    ST_Transform(
-                        geometry,
-                        '+proj=aea +lat_0=23 +lon_0=-96 +lat_1=29.5 +lat_2=45.5 +x_0=0 +y_0=0 +datum=NAD83 +units=us-ft +no_defs',
-                        5070
-                    ),
-                    1
-                ) AS geometry
-        FROM area
-    );
+-- Role cumulus_reader
+GRANT SELECT ON profile_watersheds,v_download TO cumulus_reader;
+-- Role cumulus_writer
+GRANT SELECT ON profile_watersheds TO cumulus_writer;

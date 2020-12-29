@@ -5,8 +5,6 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/USACE/go-simple-asyncer/asyncer"
-
 	"github.com/google/uuid"
 	"github.com/jmoiron/sqlx"
 	"github.com/lib/pq"
@@ -27,6 +25,7 @@ type DownloadStatus struct {
 
 // DownloadRequest holds all information from a download request coming from a user
 type DownloadRequest struct {
+	ProfileID     *uuid.UUID  `json:"profile_id" db:"profile_id"`
 	DatetimeStart time.Time   `json:"datetime_start" db:"datetime_start"`
 	DatetimeEnd   time.Time   `json:"datetime_end" db:"datetime_end"`
 	WatershedID   uuid.UUID   `json:"watershed_id" db:"watershed_id"`
@@ -94,6 +93,19 @@ func ListDownloads(db *sqlx.DB) ([]Download, error) {
 	}
 	return dd, nil
 
+}
+
+// ListMyDownloads returns all downloads for a given ProfileID
+func ListMyDownloads(db *sqlx.DB, profileID *uuid.UUID) ([]Download, error) {
+	rows, err := db.Queryx(listDownloadsSQL+" WHERE profile_id = $1", profileID)
+	if err != nil {
+		return make([]Download, 0), err
+	}
+	dd, err := DownloadStructFactory(rows)
+	if err != nil {
+		return make([]Download, 0), err
+	}
+	return dd, nil
 }
 
 // GetDownload returns a single download record
@@ -179,7 +191,7 @@ func GetDownloadPackagerRequest(db *sqlx.DB, downloadID *uuid.UUID) (*PackagerRe
 }
 
 // CreateDownload creates a download record in
-func CreateDownload(db *sqlx.DB, dr *DownloadRequest, ae asyncer.Asyncer) (*Download, error) {
+func CreateDownload(db *sqlx.DB, dr *DownloadRequest) (*Download, error) {
 
 	// Creates a download record and scans into a new struct (with UUID)
 	// Pre-Load Download with DownloadRequest
@@ -191,12 +203,14 @@ func CreateDownload(db *sqlx.DB, dr *DownloadRequest, ae asyncer.Asyncer) (*Down
 	if err != nil {
 		return nil, err
 	}
+	fmt.Printf("PROFILE ID TO SAVE: %s\n", dr.ProfileID)
 
 	if err := tx.Get(
 		&d,
-		`INSERT INTO download (datetime_start, datetime_end, status_id, watershed_id)
-		VALUES ($1, $2, '94727878-7a50-41f8-99eb-a80eb82f737a', $3)
-		RETURNING *`, dr.DatetimeStart, dr.DatetimeEnd, dr.WatershedID,
+		`INSERT INTO download (datetime_start, datetime_end, status_id, watershed_id, profile_id)
+		VALUES ($1, $2, '94727878-7a50-41f8-99eb-a80eb82f737a', $3, $4)
+		RETURNING id, datetime_start, datetime_end, progress, status_id, watershed_id, 
+		file, processing_start, processing_end`, dr.DatetimeStart, dr.DatetimeEnd, dr.WatershedID, dr.ProfileID,
 	); err != nil {
 		tx.Rollback()
 		return nil, err

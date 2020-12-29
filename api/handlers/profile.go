@@ -18,12 +18,14 @@ func edipiFromContext(c echo.Context) int {
 // profileFromContext is a helper function that uses the current context to return
 // the corresponding profile
 func profileFromContext(c echo.Context, db *sqlx.DB) (*models.Profile, error) {
-	edipi := c.Get("actor").(int)
-	p, err := models.GetProfileFromEDIPI(db, edipi)
-	if err != nil {
-		return nil, err
+	if edipi, ok := c.Get("actor").(int); ok {
+		p, err := models.GetProfileFromEDIPI(db, edipi)
+		if err != nil {
+			return nil, err
+		}
+		return p, nil
 	}
-	return p, nil
+	return nil, nil
 }
 
 // CreateProfile creates a user profile

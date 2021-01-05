@@ -44,4 +44,4 @@ CREATE OR REPLACE VIEW v_download AS (
 -- Role cumulus_reader
 GRANT SELECT ON profile_watersheds,v_download TO cumulus_reader;
 -- Role cumulus_writer
-GRANT SELECT ON profile_watersheds TO cumulus_writer;
+GRANT INSERT,UPDATE,DELETE ON profile_watersheds TO cumulus_writer;

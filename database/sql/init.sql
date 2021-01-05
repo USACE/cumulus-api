@@ -1,3 +1,6 @@
+\i '/sql/00-databases.sql'
+
+-- Cumulus Database Init
 \set ON_ERROR_STOP 1
 begin;
 

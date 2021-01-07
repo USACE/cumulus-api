@@ -18,19 +18,37 @@ jobs:
     steps:
     # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
       - uses: actions/checkout@v2
+
+      - name: Docker Compose; Test API
+        run: docker-compose up -d
+      
+      - name: Run tests
+        run: ./test_and_report.sh
     
       - name: Configure AWS credentials
+        if: ${{ always() }}
         uses: aws-actions/configure-aws-credentials@v1
         with:
           aws-access-key-id: ${{ secrets.RSGISCI_AWS_ACCESS_KEY_ID }}
           aws-secret-access-key: ${{ secrets.RSGISCI_AWS_SECRET_ACCESS_KEY }}
           aws-region: ${{ secrets.RSGISCI_AWS_DEFAULT_REGION }}
-    
+      
+      - name: Upload Test Results
+        if: ${{ always() }}
+        run: |
+          - name: Upload Test Results
+        if: ${{ always() }}
+        run: |
+          aws s3 rm s3://corpsmap-appz/api_test_results/cumulus
+          aws s3 cp ./tests/cumulus s3://corpsmap-appz/api_test_results/cumulus
+
       - name: Login to Amazon ECR
+        if: ${{ success() }}
         id: login-ecr
         uses: aws-actions/amazon-ecr-login@v1
 
       - name: Build, tag, and push image to Amazon ECR (cumulus-api)
+        if: ${{ success() }}
         env:
           ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
           ECR_REPOSITORY: cumulus-api
@@ -41,5 +59,5 @@ jobs:
           docker push $ECR_REGISTRY/$ECR_REPOSITORY:latest
 
       - name: Logout of Amazon ECR
-        if: always()
+        if: ${{ always() }}
         run: docker logout ${{ steps.login-ecr.outputs.registry }}

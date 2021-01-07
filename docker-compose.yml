@@ -113,3 +113,11 @@ services:
       dockerfile: Dockerfile-nginx
     volumes:
       - ./data:/usr/share/nginx/html/cumulus/download/dss
+  pgadmin:
+    image: dpage/pgadmin4
+    environment:
+      - PGADMIN_DEFAULT_EMAIL=postgres@postgres.com
+      - PGADMIN_DEFAULT_PASSWORD=postgres
+    ports:
+      - "7000:80"
+    restart: always

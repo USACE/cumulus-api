@@ -1,0 +1,44 @@
+version: "3"
+
+services:
+  airflow_init:
+    build:
+      context: airflow
+    # environment commented because airflow.cfg baked into extended image
+    # environment:
+    #   - AIRFLOW__CORE__SQL_ALCHEMY_CONN=postgresql+psycopg2://postgres:postgres@cumulusdb:5432/airflow
+    #   - AIRFLOW__CORE__FERNET_KEY=u1rsP4UVZf5_uREVUhAjqYYygN328ASxeNYdy0yd6_Q=
+    command: bash /init.sh
+  airflow_scheduler:
+    build:
+      context: airflow
+    depends_on:
+      - airflow_init
+    restart: always
+    # environment:
+      # - AIRFLOW__CORE__SQL_ALCHEMY_CONN=postgresql+psycopg2://postgres:postgres@cumulusdb:5432/airflow
+      # - AIRFLOW__CORE__EXECUTOR=LocalExecutor
+      # - AIRFLOW__CORE__FERNET_KEY=u1rsP4UVZf5_uREVUhAjqYYygN328ASxeNYdy0yd6_Q=
+      # - AIRFLOW__LOGGING__REMOTE_LOGGING=TRUE
+      # - AIRFLOW__LOGGING__REMOTE_LOG_CONN_ID=local_minio
+      # - AIRFLOW__LOGGING__REMOTE_BASE_LOG_FOLDER=s3://corpsmap-data/airflow/logs
+    command: scheduler
+    volumes:
+      - ./airflow/logs:/opt/airflow/logs
+  airflow_ui:
+    build:
+      context: airflow
+    depends_on:
+      - airflow_init
+      - airflow_scheduler
+    restart: always
+    # environment:
+    #   - AIRFLOW__CORE__SQL_ALCHEMY_CONN=postgresql+psycopg2://postgres:postgres@cumulusdb:5432/airflow
+    #   - AIRFLOW__CORE__EXECUTOR=LocalExecutor
+    #   - AIRFLOW__CORE__FERNET_KEY=u1rsP4UVZf5_uREVUhAjqYYygN328ASxeNYdy0yd6_Q=
+    #   - AIRFLOW__LOGGING__REMOTE_LOGGING=TRUE
+    #   - AIRFLOW__LOGGING__REMOTE_LOG_CONN_ID=local_minio
+    #   - AIRFLOW__LOGGING__REMOTE_BASE_LOG_FOLDER=s3://corpsmap-data/airflow/logs
+    ports:
+      - "8000:8080"
+    command: webserver

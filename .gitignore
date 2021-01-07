@@ -21,5 +21,8 @@ vendor
 **.DS_Store
 
 database/packager_files/**
+airflow/logs/**
+
+**.pyc
 
 **/__debug*

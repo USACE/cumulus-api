@@ -113,39 +113,11 @@ services:
       dockerfile: Dockerfile-nginx
     volumes:
       - ./data:/usr/share/nginx/html/cumulus/download/dss
-  airflow:
-    image: puckel/docker-airflow:1.10.9
-    restart: always
-    depends_on:
-      - cumulusdb
-    environment:
-      - LOAD_EX=n
-      - EXECUTOR=Local
-      - POSTGRES_HOST=cumulusdb
-      - POSTGRES_USER=airflow
-      - POSTGRES_PASSWORD=airflow
-      - POSTGRES_DB=airflow
-    logging:
-      options:
-        max-size: 10m
-        max-file: "3"
-    volumes:
-      - ./airflow_dags:/usr/local/airflow/dags
-      # - ./plugins:/usr/local/airflow/plugins
-    ports:
-      - "8081:8080"
-    command: webserver
-    healthcheck:
-      test: ["CMD-SHELL", "[ -f /usr/local/airflow/airflow-webserver.pid ]"]
-      interval: 30s
-      timeout: 30s
-      retries: 3
   pgadmin:
     image: dpage/pgadmin4
     environment:
       - PGADMIN_DEFAULT_EMAIL=postgres@postgres.com
       - PGADMIN_DEFAULT_PASSWORD=postgres
     ports:
-      - "8082:80"
+      - "7000:80"
     restart: always
-

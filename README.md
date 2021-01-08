@@ -27,7 +27,6 @@ These commands launch the following services, availale in the browser
 | Service               | URI/Port              |
 | --------------------- | --------------------- |
 | Cumulus API           | http://localhost:80   |
-| Cumulus UI            | http://localhost:3000 |
 | Pgadmin (Running SQL) | http://localhost:7000 |
 | Airflow Admin         | http://localhost:8000 |
 | Minio Browser (S3)    | http://localhost:9000 |

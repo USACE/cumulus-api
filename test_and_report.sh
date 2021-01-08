@@ -7,4 +7,4 @@ docker run \
         --reporter-htmlextra-browserTitle 'Cumulus' \
         --reporter-htmlextra-title 'Cumulus Regression Tests' \
         --reporter-htmlextra-titleSize 4 \
-        -r htmlextra --reporter-htmlextra-export /etc/newman/cumulus"
+        -r htmlextra --reporter-htmlextra-export /etc/newman/cumulus.html"

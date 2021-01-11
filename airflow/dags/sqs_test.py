@@ -26,15 +26,12 @@ default_args = {
 sqs_test = DAG(
     'sqs_test',
     default_args=default_args,
-    schedule_interval='* * * * *'
+    schedule_interval='1 * * * *'
 )
 
 test = PythonOperator(
     task_id='sqstest',
     python_callable=trigger_sqs,
-    op_kwargs={
-        'queue_name': 'cumulus-test',
-        'message': 'HAVE A NICE DAY'
-    },
+    op_kwargs={'queue_name': 'cumulus-test', 'message': 'HAVE A NICE DAY'},
     dag=sqs_test
 )

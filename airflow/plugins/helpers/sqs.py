@@ -1,15 +1,17 @@
+import os
+
 from airflow.providers.amazon.aws.hooks.sqs import SQSHook
 
 
+SQS_BASE_URL = os.getenv("SQS_BASE_URL", default='http://elasticmq:9324/queue')
+
 def trigger_sqs(*args, **kwargs):
 
-    # IF Using SQS "Local" (i.e. ElasticMQ)
-    # Endpoint should be http://elasticmq:9324
-    # Queue Name Should be 
-    # Queue URL should be http://elasticmq:9324/queue/cumulus-packager
+    queue_name = kwargs['queue_name']
+    message = kwargs['message']
 
-    QUEUE_URL = f'http://elasticmq:9324/queue/{kwargs["queue_name"]}'
-    print(f'Queue URL is: {QUEUE_URL}')
-
+    print(f'SEND MESSAGE; queue {SQS_BASE_URL}/{queue_name}; message: {message}')
     SQS = SQSHook(aws_conn_id='SQS')
-    SQS.send_message(QUEUE_URL, kwargs['message'])
+    SQS.send_message(f'{SQS_BASE_URL}/{queue_name}', message)
+    
+    return

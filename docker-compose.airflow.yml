@@ -15,13 +15,18 @@ services:
     depends_on:
       - airflow_init
     restart: always
-    # environment:
+    environment:
       # - AIRFLOW__CORE__SQL_ALCHEMY_CONN=postgresql+psycopg2://postgres:postgres@cumulusdb:5432/airflow
       # - AIRFLOW__CORE__EXECUTOR=LocalExecutor
       # - AIRFLOW__CORE__FERNET_KEY=u1rsP4UVZf5_uREVUhAjqYYygN328ASxeNYdy0yd6_Q=
       # - AIRFLOW__LOGGING__REMOTE_LOGGING=TRUE
       # - AIRFLOW__LOGGING__REMOTE_LOG_CONN_ID=local_minio
       # - AIRFLOW__LOGGING__REMOTE_BASE_LOG_FOLDER=s3://corpsmap-data/airflow/logs
+      # Download or Fire Lambda Function to Handle Download
+      - DOWNLOAD_OPERATOR_USE_CONNECTION=local_minio
+      - DOWNLOAD_OPERATOR_USE_LAMBDA=FALSE
+      - DOWNLOAD_OPERATOR_USE_LAMBDA_NAME=""
+      - DOWNLOAD_OPERATOR_USE_LAMBDA_REGION=us-east-1
     command: scheduler
     volumes:
       - ./airflow/logs:/opt/airflow/logs

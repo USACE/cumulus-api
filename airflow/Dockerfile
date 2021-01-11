@@ -6,4 +6,7 @@ RUN chown airflow:airflow /init.sh
 
 USER airflow
 COPY airflow.cfg /opt/airflow/airflow.cfg
+
 COPY ./dags/* /opt/airflow/dags/
+
+COPY ./plugins /opt/airflow/plugins

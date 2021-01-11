@@ -21,8 +21,11 @@ vendor
 **.DS_Store
 
 database/packager_files/**
-airflow/logs/**
 
 **.pyc
 
 **/__debug*
+
+# Airflow Logs Directory
+airflow/logs/**
+!airflow/logs/README.md

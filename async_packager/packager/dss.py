@@ -52,8 +52,8 @@ def write_contents_to_dssfile(outfile, watershed, items, callback):
                 ('grid_transform', affine_transform),
                 ('data_type', item['dss_datatype'].lower()),
                 ('data_units', item['dss_unit'].lower()),
-                ('opt_lower_left_x', watershed['bbox'][0] / cellsize),
-                ('opt_lower_left_y', watershed['bbox'][1] / cellsize),
+                ('opt_lower_left_x', 0),
+                ('opt_lower_left_y', 0),
                 ('opt_time_stamped',False)
             ])
 
@@ -62,5 +62,5 @@ def write_contents_to_dssfile(outfile, watershed, items, callback):
                 data,
                 grid_info
             )
-        
+
     return os.path.abspath(outfile)

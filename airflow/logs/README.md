@@ -1,0 +1,1 @@
+## Airflow logs directory can be mounted here

@@ -23,6 +23,8 @@ vendor
 database/packager_files/**
 
 **.pyc
+**__pycache__
+
 
 **/__debug*
 

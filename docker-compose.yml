@@ -36,6 +36,20 @@ services:
       - CUMULUS_MIN_RECONN=10s
       - CUMULUS_MAX_RECONN=1m
     restart: always
+  geoprocess:
+    restart: always
+    build:
+      context:
+        async_geoprocess
+    environment:
+      - WRITE_TO_BUCKET=corpsmap-data
+      - AWS_REGION=elasticmq
+      - AWS_ACCESS_KEY_ID=AKIAIOSFODNN7EXAMPLE
+      - AWS_SECRET_ACCESS_KEY=wJalrXUtnFEMI/K7MDENG/bPxRfiCYEXAMPLEKEY
+      - ENDPOINT_URL=http://elasticmq:9324
+      - QUEUE_NAME=cumulus-test
+      - USE_SSL=FALSE
+      - WAIT_TIME_SECONDS=20
   packager:
     build:
       context: async_packager

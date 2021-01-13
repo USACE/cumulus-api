@@ -15,6 +15,9 @@ from packager_update_functions import updateStatus_api, updateStatus_db
 
 from dss import write_contents_to_dssfile
 
+logger = logging.getLogger()
+logger.setLevel(logging.INFO)
+logger.addHandler(logging.StreamHandler())
 
 CLIENT = boto3.resource(
     'sqs',

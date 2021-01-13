@@ -19,7 +19,7 @@ DOWNLOAD_OPERATOR_USE_LAMBDA_REGION = os.getenv("DOWNLOAD_OPERATOR_USE_LAMBDA_RE
 def upload_file(file_name, bucket, object_name=None):
     """Upload a file to an S3 bucket"""
     hook = S3Hook(aws_conn_id=DOWNLOAD_OPERATOR_USE_CONNECTION)
-    load_file = hook.load_file(file_name, object_name, bucket)
+    load_file = hook.load_file(file_name, object_name, bucket, True)
     return load_file
 
 
@@ -49,15 +49,14 @@ def trigger_download_local(payload):
         # Save file to specified S3 path
         success = upload_file(_file, bucket, key)
         
-    return json.dumps({"success": success, "url": url, "s3_bucket": bucket, "s3_key": key})
+    return {"success": success, "url": url, "s3_bucket": bucket, "s3_key": key}
 
 
 def trigger_download(*args, **kwargs):
     """Wrapper function. Accepts same signature expected by Airflow Callable"""
 
     print(f'Download URL: {kwargs["url"]}')
-
     if DOWNLOAD_OPERATOR_USE_LAMBDA:
-        trigger_download_lambda(kwargs)
+        return trigger_download_lambda(kwargs)
     else:
-        trigger_download_local(kwargs)
+        return trigger_download_local(kwargs)

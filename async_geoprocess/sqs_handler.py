@@ -4,6 +4,7 @@ import logging
 import os
 import tempfile
 from urllib.parse import unquote_plus
+import requests
 
 import boto3
 import botocore
@@ -26,10 +27,25 @@ if QUEUE_NAME == "":
     logging.fatal('Missing Environment Variable "QUEUE_NAME"')
     exit(1)
 
+# Get Cumulus API Root; Fail fast if not provided
+CUMULUS_API_ROOT = os.getenv('CUMULUS_API_ROOT', '')
+if CUMULUS_API_ROOT == '':
+    logging.fatal('Missing Environment Variable "CUMULUS_API_ROOT"')
+    exit(1)
+
+S3_ENDPOINT = os.getenv('S3_ENDPOINT', default=None)
+
+def _get_s3_resource(endpoint_url=S3_ENDPOINT):
+
+    if endpoint_url:
+        s3 = boto3.resource('s3', endpoint_url=endpoint_url)
+    else:
+        s3 = boto3.resource('s3')
+
 
 def get_infile(bucket, key, filepath):
-    
-    s3 = boto3.resource('s3', endpoint_url='http://minio:9000')
+
+    s3 = _get_s3_resource()
 
     try:
         s3.Bucket(bucket).download_file(key, filepath)
@@ -51,17 +67,18 @@ def upload_file(file_name, bucket, object_name=None):
     :param object_name: S3 object name. If not specified then file_name is used
     :return: True if file was uploaded, else False
     Copied from https://boto3.amazonaws.com/v1/documentation/api/latest/guide/s3-uploading-files.html
+    And 
     """
+
+    # Upload the file    
+    s3 = _get_s3_resource()
 
     # If S3 object_name was not specified, use file_name
     if object_name is None:
         object_name = file_name
 
-    # Upload the file    
-    s3_client = boto3.client('s3')
-
     try:
-        response = s3_client.upload_file(file_name, bucket, object_name)
+        response = s3.Bucket(bucket).upload_file(file_name, object_name)
     except botocore.exceptions.ClientError as e:
         logger.error('Unable to upload file to S3.')
         logger.error(e)
@@ -79,7 +96,7 @@ def get_infile_processor(name):
 
 def get_products():
 
-    r = requests.get("http://api/cumulus/v1/products")
+    r = requests.get(f'{CUMULUS_API_ROOT}/cumulus/v1/products')
     if r.status_code == 200:
         return { item['name']: item["id"] for item in r.json() }
     return None
@@ -130,7 +147,7 @@ def handle_message(msg):
                 # count = write_database(successes)
         
     return {
-        "count": count,
+        "count": len(successes),
         "productfiles": successes
     }
 
@@ -140,7 +157,7 @@ if __name__ == "__main__":
 
     CLIENT = boto3.resource(
         'sqs',
-        endpoint_url=os.getenv('ENDPOINT_URL', default='http://elasticmq:9324'),
+        endpoint_url=os.getenv('SQS_ENDPOINT_URL', default='http://elasticmq:9324'),
         region_name=os.getenv('AWS_REGION', default='elasticmq'),
         aws_secret_access_key=os.getenv('AWS_SECRET_ACCESS_KEY', default='x'),
         aws_access_key_id=os.getenv('AWS_ACCESS_KEY_ID', default='x'),

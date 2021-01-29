@@ -39,7 +39,9 @@ def write_contents_to_dssfile(outfile, watershed, items, callback):
             data = ds.GetRasterBand(1).ReadAsArray().astype(np.dtype('float32'))
 
             # Projection
-            proj = ds.GetProjection()
+            # proj = ds.GetProjection()
+            proj = '"PROJCS[\"USA_Contiguous_Albers_Equal_Area_Conic_USGS_version\",GEOGCS[\"GCS_North_American_1983\",DATUM[\"D_North_American_1983\",SPHEROID[\"GRS_1980\",6378137.0,298.257222101]],PRIMEM[\"Greenwich\",0.0],UNIT[\"Degree\",0.0174532925199433]],PROJECTION[\"Albers\"],PARAMETER[\"False_Easting\",0.0],PARAMETER[\"False_Northing\",0.0],PARAMETER[\"Central_Meridian\",-96.0],PARAMETER[\"Standard_Parallel_1\",29.5],PARAMETER[\"Standard_Parallel_2\",45.5],PARAMETER[\"Latitude_Of_Origin\",23.0],UNIT[\"Meter\",1.0]]"'
+
             # Affine Transform
             geo_transform = ds.GetGeoTransform()
             affine_transform = Affine.from_gdal(*geo_transform)
@@ -49,12 +51,14 @@ def write_contents_to_dssfile(outfile, watershed, items, callback):
             grid_info.update([
                 ('grid_type','shg-time'),
                 ('grid_crs', proj),
-                ('grid_transform', affine_transform),
+                ('grid_transform', Affine(cellsize,0,0,0,0,0)),
                 ('data_type', item['dss_datatype'].lower()),
                 ('data_units', item['dss_unit'].lower()),
+                ('opt_crs_name', 'AlbersInfo'),
+                ('opt_is_interval', True),
+                ('opt_time_stamped', True),
                 ('opt_lower_left_x', watershed['bbox'][0] / cellsize),
                 ('opt_lower_left_y', watershed['bbox'][1] / cellsize),
-                ('opt_time_stamped',False)
             ])
 
             fid.put_grid(
@@ -62,5 +66,5 @@ def write_contents_to_dssfile(outfile, watershed, items, callback):
                 data,
                 grid_info
             )
-        
+
     return os.path.abspath(outfile)

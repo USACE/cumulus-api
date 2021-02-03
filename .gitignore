@@ -26,3 +26,5 @@ airflow/logs/**
 **.pyc
 
 **/__debug*
+
+airflow/logs/**

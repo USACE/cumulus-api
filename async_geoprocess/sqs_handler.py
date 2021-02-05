@@ -104,52 +104,56 @@ def get_products():
 
 def handle_message(msg):
     """Converts JSON-Formatted message string to dictionary and calls package()"""
+    print(msg)
+    print(type(msg))
     msg_body = json.loads(msg.body)
+    print(msg_body)
+    return msg_body
 
-    bucket, key = msg_body['s3_bucket'], unquote_plus(msg_body['s3_key'])
+    # bucket, key = msg_body['s3_bucket'], unquote_plus(msg_body['s3_key'])
 
-    # # Filename and product_name
-    pathparts = key.split('/')
-    acquirable_name, filename = pathparts[1], pathparts[-1]
-    logger.info(f'Process acquirable_name: {acquirable_name}; file: {filename}')
+    # # # Filename and product_name
+    # pathparts = key.split('/')
+    # acquirable_name, filename = pathparts[1], pathparts[-1]
+    # logger.info(f'Process acquirable_name: {acquirable_name}; file: {filename}')
 
-    # Find library to unleash on file
-    processor = get_infile_processor(acquirable_name)
-    logger.info(f'Using processor: {processor}')
+    # # Find library to unleash on file
+    # processor = get_infile_processor(acquirable_name)
+    # logger.info(f'Using processor: {processor}')
        
-    with tempfile.TemporaryDirectory() as td:
+    # with tempfile.TemporaryDirectory() as td:
         
-        _file = get_infile(bucket, key, os.path.join(td, filename))
-        print(_file)
-        # Process the file and return a list of files
-        outfiles = processor.process(_file, td)
-        logger.debug(f'outfiles: {outfiles}')
+    #     _file = get_infile(bucket, key, os.path.join(td, filename))
+    #     print(_file)
+    #     # Process the file and return a list of files
+    #     outfiles = processor.process(_file, td)
+    #     logger.debug(f'outfiles: {outfiles}')
         
-        # Keep track of successes to send as single database query at the end
-        successes = []
-        # Valid products in the database
-        product_map = get_products()
-        for _f in outfiles:
-            # See that we have a valid 
-            if _f["filetype"] in product_map.keys():
-                # Write output files to different bucket
-                write_key = 'cumulus/{}/{}'.format(_f["filetype"], _f["file"].split("/")[-1])
+    #     # Keep track of successes to send as single database query at the end
+    #     successes = []
+    #     # Valid products in the database
+    #     product_map = get_products()
+    #     for _f in outfiles:
+    #         # See that we have a valid 
+    #         if _f["filetype"] in product_map.keys():
+    #             # Write output files to different bucket
+    #             write_key = 'cumulus/{}/{}'.format(_f["filetype"], _f["file"].split("/")[-1])
                 
-                upload_success = upload_file(_f["file"], WRITE_TO_BUCKET, write_key)
-                # Write Productfile Entry to Database
-                if upload_success:
-                    successes.append({
-                        "product_id": product_map[_f["filetype"]],
-                        "datetime": _f['datetime'],
-                        "file": write_key,
-                    })
+    #             upload_success = upload_file(_f["file"], WRITE_TO_BUCKET, write_key)
+    #             # Write Productfile Entry to Database
+    #             if upload_success:
+    #                 successes.append({
+    #                     "product_id": product_map[_f["filetype"]],
+    #                     "datetime": _f['datetime'],
+    #                     "file": write_key,
+    #                 })
             
                 # count = write_database(successes)
         
-    return {
-        "count": len(successes),
-        "productfiles": successes
-    }
+    # return {}
+        # "count": len(successes),
+        # "productfiles": successes
+    
 
 
 if __name__ == "__main__":

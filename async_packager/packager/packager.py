@@ -15,6 +15,11 @@ from packager_update_functions import updateStatus_api, updateStatus_db
 
 from dss import write_contents_to_dssfile
 
+print("-- CONFIGURATION VARIABLES --- ")
+print(CONFIG.AWS_ACCESS_KEY_ID)
+print(CONFIG.AWS_ACCESS_KEY_ID_SQS)
+print(CONFIG.AWS_REGION_SQS)
+print("------------------------------ ")
 
 CLIENT = boto3.resource(
     'sqs',

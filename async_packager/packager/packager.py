@@ -15,20 +15,21 @@ from packager_update_functions import updateStatus_api, updateStatus_db
 
 from dss import write_contents_to_dssfile
 
-print("-- CONFIGURATION VARIABLES --- ")
-print(CONFIG.AWS_ACCESS_KEY_ID)
-print(CONFIG.AWS_ACCESS_KEY_ID_SQS)
-print(CONFIG.AWS_REGION_SQS)
-print("------------------------------ ")
-
-CLIENT = boto3.resource(
-    'sqs',
-    endpoint_url=CONFIG.ENDPOINT_URL,
-    region_name=CONFIG.AWS_REGION_SQS,
-    aws_secret_access_key=CONFIG.AWS_SECRET_ACCESS_KEY_SQS,
-    aws_access_key_id=CONFIG.AWS_ACCESS_KEY_ID_SQS,
-    use_ssl=CONFIG.USE_SSL
-)
+if CONFIG.AWS_ACCESS_KEY_ID == 'x':
+    # Running in AWS
+    # Using IAM Role for Credentials
+    CLIENT = boto3.resource('sqs')
+else:
+    # Local Testing
+    # ElasticMQ with Credentials via AWS_ environment variables
+    CLIENT = boto3.resource(
+        'sqs',
+        endpoint_url=CONFIG.ENDPOINT_URL,
+        region_name=CONFIG.AWS_REGION_SQS,
+        aws_secret_access_key=CONFIG.AWS_SECRET_ACCESS_KEY_SQS,
+        aws_access_key_id=CONFIG.AWS_ACCESS_KEY_ID_SQS,
+        use_ssl=CONFIG.USE_SSL
+    )
 
 # Incoming Requests for Packager
 queue_packager = CLIENT.get_queue_by_name(QueueName=CONFIG.QUEUE_NAME_PACKAGER)

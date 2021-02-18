@@ -5,7 +5,8 @@ on:
     branches: [develop]
     paths:
       - 'async_packager/**'
-
+      - '.github/workflows/packager.yml'
+  workflow_dispatch:
 jobs:
 
   PackagerDockerImage:

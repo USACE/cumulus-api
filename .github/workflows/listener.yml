@@ -5,7 +5,8 @@ on:
     branches: [develop]
     paths:
       - 'async_listener/**'
-
+      - '.github/workflows/listener.yml'
+  workflow_dispatch:
 jobs:
   
   ListenerDockerImage:

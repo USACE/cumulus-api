@@ -6,7 +6,7 @@ on:
     paths:
       - 'api/**'
       - '.github/workflows/api.yml'
-
+  workflow_dispatch:
 jobs:
 
   APIDockerImage:

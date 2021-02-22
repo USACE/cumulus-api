@@ -105,6 +105,6 @@ INSERT INTO acquirable (name, schedule) VALUES
 ('prism_tmax_early', '30 14 * * *'),
 ('prism_tmin_early', '30 14 * * *'),
 ('ncep_rtma_ru_anl', '20 * * * *'),
-('ncep_mrms_gaugecorr_qpe_01h', '5 * * * *'),
 ('ncep_mrms_v12_MultiSensor_QPE_01H_Pass1', '5 * * * *'),
+('wpc_qpf_2p5km', '5 * * * *'),
 ('ncep_mrms_v12_MultiSensor_QPE_01H_Pass2', '5 * * * *');

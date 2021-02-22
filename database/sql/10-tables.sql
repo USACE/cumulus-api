@@ -123,7 +123,9 @@ CREATE TABLE IF NOT EXISTS public.productfile (
     id UUID PRIMARY KEY NOT NULL DEFAULT uuid_generate_v4(),
     datetime TIMESTAMPTZ NOT NULL,
     file VARCHAR(1200) NOT NULL,
-    product_id UUID REFERENCES product (id)
+    product_id UUID REFERENCES product (id),
+    version TIMESTAMPTZ,
+    CONSTRAINT unique_product_version_datetime UNIQUE(product_id, version, datetime)
 );
 
 -- acquirable

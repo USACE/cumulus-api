@@ -28,3 +28,6 @@ airflow/logs/**
 **/__debug*
 
 airflow/logs/**
+
+!tmp/README.md
+tmp/*

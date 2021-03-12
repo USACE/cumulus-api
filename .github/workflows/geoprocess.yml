@@ -1,16 +1,16 @@
-name: Build Listener
+name: Build Geoprocess
 
 on:
   push:
     branches: [develop]
     paths:
-      - 'async_listener/**'
-      - '.github/workflows/listener.yml'
+      - 'async_geoprocess/**'
+      - '.github/workflows/geoprocess.yml'
   workflow_dispatch:
 jobs:
-  
-  ListenerDockerImage:
-    name: Listener Container Image
+
+  GeoprocessDockerImage:
+    name: Geoprocess Container Image
     # The type of runner that the job will run on
     runs-on: ubuntu-latest
 
@@ -30,13 +30,13 @@ jobs:
         id: login-ecr
         uses: aws-actions/amazon-ecr-login@v1
 
-      - name: Build, tag, and push image to Amazon ECR (cumulus-packager)
+      - name: Build, tag, and push image to Amazon ECR (cumulus-geoprocess)
         env:
           ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
-          ECR_REPOSITORY: cumulus-listener
+          ECR_REPOSITORY: cumulus-geoprocess
           IMAGE_TAG: ${{ github.sha }}
         run: |
-          docker build -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG -t $ECR_REGISTRY/$ECR_REPOSITORY:latest async_listener
+          docker build -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG -t $ECR_REGISTRY/$ECR_REPOSITORY:latest async_geoprocess
           docker push $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
           docker push $ECR_REGISTRY/$ECR_REPOSITORY:latest
 

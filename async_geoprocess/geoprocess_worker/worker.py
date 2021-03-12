@@ -1,0 +1,97 @@
+import boto3
+import json
+import os
+import shutil
+from tempfile import TemporaryDirectory
+
+import config as CONFIG
+import helpers
+
+# PROCESSORS
+import p_snodas_interpolate
+
+
+import logging
+logger = logging.getLogger(__name__)
+logger.setLevel(logging.INFO)
+logger.addHandler(logging.StreamHandler())
+
+
+if CONFIG.AWS_ACCESS_KEY_ID == 'x':
+    # Running in AWS
+    # Using IAM Role for Credentials
+    CLIENT = boto3.resource('sqs')
+else:
+    # Local Testing
+    # ElasticMQ with Credentials via AWS_ environment variables
+    CLIENT = boto3.resource(
+        'sqs',
+        endpoint_url=CONFIG.ENDPOINT_URL,
+        region_name=CONFIG.AWS_REGION_SQS,
+        aws_secret_access_key=CONFIG.AWS_SECRET_ACCESS_KEY_SQS,
+        aws_access_key_id=CONFIG.AWS_ACCESS_KEY_ID_SQS,
+        use_ssl=CONFIG.USE_SSL
+    )
+
+# Incoming Requests
+queue = CLIENT.get_queue_by_name(QueueName=CONFIG.QUEUE_NAME)
+print(f'queue;       : {queue}')
+
+
+def handle_message(msg):
+    """Converts JSON-Formatted message string to dictionary and calls geoprocessor"""
+
+    print('\n\nmessage received\n\n')
+    payload = json.loads(msg.body)
+    print(json.dumps(payload, indent=2))
+
+    with TemporaryDirectory() as td:
+
+        process = payload["process"]
+        if process == 'snodas-interpolate':
+            outfiles = p_snodas_interpolate.process(payload, td)
+        else:
+            print("processor not implemented")
+            return {}
+        
+        # Keep track of successes to send as single database query at the end
+        successes = []
+        # Valid products in the database
+        product_map = helpers.get_products()
+        for _f in outfiles:
+            # See that we have a valid 
+            if _f["filetype"] in product_map.keys():
+                # Write output files to different bucket
+                write_key = 'cumulus/{}/{}'.format(_f["filetype"], _f["file"].split("/")[-1])
+                if CONFIG.CUMULUS_MOCK_S3_UPLOAD:
+                    # Mock good upload to S3
+                    upload_success = True
+                    # Copy file to tmp directory on host
+                    # shutil.copy2 will overwrite a file if it already exists.
+                    shutil.copy2(_f["file"], "/tmp")
+                else:
+                    upload_success = upload_file(
+                        _f["file"], CONFIG.WRITE_TO_BUCKET, write_key
+                    )
+                # Write Productfile Entry to Database
+                if upload_success:
+                    successes.append({
+                        "product_id": product_map[_f["filetype"]],
+                        "datetime": _f['datetime'],
+                        "file": write_key,
+                        "version": _f['version']
+                    })
+        
+        count = helpers.write_database(successes)
+
+
+    return {"count": count, "productfiles": successes}
+
+
+while 1:
+    messages = queue.receive_messages(WaitTimeSeconds=CONFIG.WAIT_TIME_SECONDS)
+    print(f'message count: {len(messages)}')
+    
+    for message in messages:
+        handle_message(message)
+        message.delete()

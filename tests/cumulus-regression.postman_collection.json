@@ -1,6 +1,6 @@
 {
 	"info": {
-		"_postman_id": "72cc1ca3-c4a2-4cfa-949e-36744220955e",
+		"_postman_id": "a0c32a16-9da1-48f4-a60b-8b8b592ccb56",
 		"name": "cumulus-regression",
 		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
 	},
@@ -14,7 +14,6 @@
 						{
 							"listen": "test",
 							"script": {
-								"id": "bad9967e-e3f6-4e01-83f0-165d4bfd45fe",
 								"exec": [
 									"// status code is 201",
 									"pm.test(\"Status code is 201\", function () {",
@@ -55,7 +54,6 @@
 						{
 							"listen": "test",
 							"script": {
-								"id": "77dfe49b-65fa-45b7-b614-1c34fc42d70c",
 								"exec": [
 									"// status code is 201",
 									"pm.test(\"Status code is 201\", function () {",
@@ -96,7 +94,6 @@
 						{
 							"listen": "test",
 							"script": {
-								"id": "20e7cb7d-043e-4fec-ad1f-e279f4464634",
 								"exec": [
 									""
 								],
@@ -119,8 +116,7 @@
 					},
 					"response": []
 				}
-			],
-			"protocolProfileBehavior": {}
+			]
 		},
 		{
 			"name": "profile",
@@ -131,7 +127,6 @@
 						{
 							"listen": "test",
 							"script": {
-								"id": "4fd973ab-2265-4302-a7ce-1adac18959d4",
 								"exec": [
 									"// status code is 201",
 									"pm.test(\"Status code is 201\", function () {",
@@ -172,7 +167,6 @@
 						{
 							"listen": "test",
 							"script": {
-								"id": "9ad370c3-3d02-41cd-a179-f73f60ef04b4",
 								"exec": [
 									"// status code is 201",
 									"pm.test(\"Status code is 201\", function () {",
@@ -204,7 +198,6 @@
 						{
 							"listen": "test",
 							"script": {
-								"id": "1afc72eb-342a-4dfc-ad31-c6a14cbfcbde",
 								"exec": [
 									"// status code is 200",
 									"pm.test(\"Status code is 200\", function () {",
@@ -236,7 +229,6 @@
 						{
 							"listen": "test",
 							"script": {
-								"id": "c3f5b97a-a3f1-45cb-a2f9-59555c718d51",
 								"exec": [
 									"// status code is 200",
 									"pm.test(\"Status code is 200\", function () {",
@@ -263,8 +255,7 @@
 					},
 					"response": []
 				}
-			],
-			"protocolProfileBehavior": {}
+			]
 		},
 		{
 			"name": "products",
@@ -275,7 +266,6 @@
 						{
 							"listen": "test",
 							"script": {
-								"id": "4ccc04fe-9aab-4bd3-a3dd-626909c6ab95",
 								"exec": [
 									"// status code is 200",
 									"pm.test(\"Status code is 200\", function () {",
@@ -301,8 +291,7 @@
 					},
 					"response": []
 				}
-			],
-			"protocolProfileBehavior": {}
+			]
 		},
 		{
 			"name": "watersheds",
@@ -313,7 +302,6 @@
 						{
 							"listen": "test",
 							"script": {
-								"id": "e6d015b3-7371-46fc-96a1-2ec6c9b97c53",
 								"exec": [
 									"// status code is 200",
 									"pm.test(\"Status code is 200\", function () {",
@@ -345,7 +333,6 @@
 						{
 							"listen": "test",
 							"script": {
-								"id": "dcb7af34-531b-4e6d-95dd-905be18db8b4",
 								"exec": [
 									"// status code is 200",
 									"pm.test(\"Status code is 200\", function () {",
@@ -378,7 +365,6 @@
 						{
 							"listen": "test",
 							"script": {
-								"id": "4e7ab2f7-2ecf-467a-beba-2c6656f29421",
 								"exec": [
 									"// status code is 201",
 									"pm.test(\"Status code is 201\", function () {",
@@ -419,7 +405,6 @@
 						{
 							"listen": "test",
 							"script": {
-								"id": "ee80c9d1-e167-48bf-946d-5efa36de1742",
 								"exec": [
 									"// status code is 200",
 									"pm.test(\"Status code is 201\", function () {",
@@ -461,7 +446,6 @@
 						{
 							"listen": "test",
 							"script": {
-								"id": "a30d9388-1735-4d8f-b30a-c7813f9d3f49",
 								"exec": [
 									"// status code is 200",
 									"pm.test(\"Status code is 200\", function () {",
@@ -497,8 +481,7 @@
 					},
 					"response": []
 				}
-			],
-			"protocolProfileBehavior": {}
+			]
 		},
 		{
 			"name": "area_group",
@@ -509,7 +492,6 @@
 						{
 							"listen": "test",
 							"script": {
-								"id": "a99611a9-bbab-484e-a177-ee71a3bd1fbc",
 								"exec": [
 									"// status code is 200",
 									"pm.test(\"Status code is 200\", function () {",
@@ -548,7 +530,6 @@
 						{
 							"listen": "test",
 							"script": {
-								"id": "b937254d-cb4e-4e82-88b9-ee29f5dc68df",
 								"exec": [
 									"// status code is 200",
 									"pm.test(\"Status code is 200\", function () {",
@@ -588,7 +569,6 @@
 						{
 							"listen": "test",
 							"script": {
-								"id": "91b870a9-b9fd-4b18-afdf-b47a08dbb6cc",
 								"exec": [
 									"// status code is 200",
 									"pm.test(\"Status code is 200\", function () {",
@@ -622,7 +602,6 @@
 						{
 							"listen": "test",
 							"script": {
-								"id": "27e6fc2d-90c5-4f93-884d-17b02aad2433",
 								"exec": [
 									"// status code is 200",
 									"pm.test(\"Status code is 200\", function () {",
@@ -652,89 +631,7 @@
 					},
 					"response": []
 				}
-			],
-			"protocolProfileBehavior": {}
-		},
-		{
-			"name": "DoAcquisition",
-			"event": [
-				{
-					"listen": "test",
-					"script": {
-						"id": "eaa0d9e3-0b17-4a1e-b9e5-f3e1c3aa03d6",
-						"exec": [
-							"// status code is 200",
-							"pm.test(\"Status code is 201\", function () {",
-							"    pm.response.to.have.status(201);",
-							"});",
-							"",
-							"",
-							"// validate JSON schema",
-							"var schema = {",
-							"    \"type\": \"object\",",
-							"    \"properties\": {",
-							"        \"id\": { \"type\": \"string\" },",
-							"        \"datetime\": { \"type\": \"string\" }",
-							"    },",
-							"    \"required\": [\"id\", \"datetime\"],",
-							"    \"additionalProperties\": false",
-							"}",
-							"",
-							"",
-							"",
-							"pm.test(\"Schema validation\", function () {",
-							"    pm.response.to.have.jsonSchema(schema)",
-							"});",
-							""
-						],
-						"type": "text/javascript"
-					}
-				}
-			],
-			"request": {
-				"method": "POST",
-				"header": [],
-				"body": {
-					"mode": "raw",
-					"raw": "",
-					"options": {
-						"raw": {
-							"language": "json"
-						}
-					}
-				},
-				"url": {
-					"raw": "{{base_url}}/acquire?key=appkey",
-					"host": [
-						"{{base_url}}"
-					],
-					"path": [
-						"acquire"
-					],
-					"query": [
-						{
-							"key": "name",
-							"value": "cheese",
-							"disabled": true
-						},
-						{
-							"key": "height",
-							"value": "20.0",
-							"disabled": true
-						},
-						{
-							"key": "type",
-							"value": "0fd1f9ba-2731-4ff9-96dd-3c03215ab06f",
-							"disabled": true
-						},
-						{
-							"key": "key",
-							"value": "appkey"
-						}
-					]
-				}
-			},
-			"response": []
+			]
 		}
 	],
 	"auth": {
@@ -751,7 +648,6 @@
 		{
 			"listen": "prerequest",
 			"script": {
-				"id": "2e17676d-ba7c-4b33-ad7c-74e231b9405e",
 				"type": "text/javascript",
 				"exec": [
 					""
@@ -761,13 +657,11 @@
 		{
 			"listen": "test",
 			"script": {
-				"id": "bce92742-7001-439f-a163-c487c1fd16cd",
 				"type": "text/javascript",
 				"exec": [
 					""
 				]
 			}
 		}
-	],
-	"protocolProfileBehavior": {}
+	]
 }

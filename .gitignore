@@ -12,6 +12,9 @@ vendor
 *.dylib
 *.zip
 
+# Exception to above for raw data sample files
+!*bil.zip
+
 # Test binary, build with `go test -c`
 *.test
 

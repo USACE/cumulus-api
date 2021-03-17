@@ -84,8 +84,8 @@ INSERT INTO product (id, group_id, name, temporal_duration, temporal_resolution,
 ('33407c74-cdc2-4ab2-bd9a-3dff99ea02e4','57bda84f-ecec-4cd7-b3b1-c0c36f838a05','nohrsc_snodas_coldcontent_interpolated',0,86400,'SNODAS-INTERP',True,False,'2b3f8cf3-d3f5-440b-b7e7-0c8090eda80f','e245d39f-3209-4e58-bfb7-4eae94b3f8dd'),
 ('e97fbc56-ebe2-4d5a-bcd4-4bf3744d8a1b','57bda84f-ecec-4cd7-b3b1-c0c36f838a05','nohrsc_snodas_snowpack_avg_temperature_interpolated',0,86400,'SNODAS-INTERP',True,False,'ccc8c81a-ddb0-4738-857b-f0ef69aa1dc0','855ee63c-d623-40d5-a551-3655ce2d7b47'),
 ('10011d9c-04a4-454d-88a0-fb7ba0d64d37','57bda84f-ecec-4cd7-b3b1-c0c36f838a05','nohrsc_snodas_snowmelt_interpolated',86400,86400,'SNODAS-INTERP',True,False,'d3f49557-2aef-4dc2-a2dd-01b353b301a4','e245d39f-3209-4e58-bfb7-4eae94b3f8dd'),
-('816abf9e-d9b8-4ba8-9532-78e36409b0b0','d9613031-7cf0-4722-923e-e5c3675a163b','ncep_rtma_airtemp',0,3600,'NDGD-RTMA',True,False,'5fab39b9-90ba-482a-8156-d863ad7c45ad','8f51e5b5-08be-4ea7-9ebc-ad44b465dbc6'),
-('ba1cc336-6cc0-4648-85a4-dd100e0ff411','726039da-2f21-4393-a15c-5f6e7ea41b1f','ncep_rtma_precip',3600,3600,'NDGD-RTMA',True,False,'eb82d661-afe6-436a-b0df-2ab0b478a1af','e245d39f-3209-4e58-bfb7-4eae94b3f8dd'),
+--('816abf9e-d9b8-4ba8-9532-78e36409b0b0','d9613031-7cf0-4722-923e-e5c3675a163b','ncep_rtma_airtemp',0,3600,'NDGD-RTMA',True,False,'5fab39b9-90ba-482a-8156-d863ad7c45ad','8f51e5b5-08be-4ea7-9ebc-ad44b465dbc6'),
+--('ba1cc336-6cc0-4648-85a4-dd100e0ff411','726039da-2f21-4393-a15c-5f6e7ea41b1f','ncep_rtma_precip',3600,3600,'NDGD-RTMA',True,False,'eb82d661-afe6-436a-b0df-2ab0b478a1af','e245d39f-3209-4e58-bfb7-4eae94b3f8dd'),
 ('64756f41-75e2-40ce-b91a-fda5aeb441fc','726039da-2f21-4393-a15c-5f6e7ea41b1f','prism_ppt_early',86400,86400,'PRISM-EARLY',True,False,'eb82d661-afe6-436a-b0df-2ab0b478a1af','e245d39f-3209-4e58-bfb7-4eae94b3f8dd'),
 ('6357a677-5e77-4c37-8aeb-3300707ca885','d9613031-7cf0-4722-923e-e5c3675a163b','prism_tmax_early',86400,86400,'PRISM-EARLY',True,False,'5fab39b9-90ba-482a-8156-d863ad7c45ad','8f51e5b5-08be-4ea7-9ebc-ad44b465dbc6'),
 ('62e08d34-ff6b-45c9-8bb9-80df922d0779','d9613031-7cf0-4722-923e-e5c3675a163b','prism_tmin_early',86400,86400,'PRISM-EARLY',True,False,'5fab39b9-90ba-482a-8156-d863ad7c45ad','8f51e5b5-08be-4ea7-9ebc-ad44b465dbc6'),
@@ -96,7 +96,7 @@ INSERT INTO product (id, group_id, name, temporal_duration, temporal_resolution,
 ('7c7ba37a-efad-499e-9c3a-5354370b8e9e','726039da-2f21-4393-a15c-5f6e7ea41b1f','ncep_mrms_v12_MultiSensor_QPE_01H_Pass2',3600,3600,'NCEP-MRMSV12-QPE-01H-PASS2',True,False,'eb82d661-afe6-436a-b0df-2ab0b478a1af','e245d39f-3209-4e58-bfb7-4eae94b3f8dd'),
 ('0ac60940-35c2-4c0d-8a3b-49c20e455ff5','726039da-2f21-4393-a15c-5f6e7ea41b1f','wpc_qpf_2p5km',21600,21600,'WPC-QPF-2.5KM',False,True,'eb82d661-afe6-436a-b0df-2ab0b478a1af','e245d39f-3209-4e58-bfb7-4eae94b3f8dd'),
 ('5e6ca7ed-007d-4944-93aa-0a7a6116bdcd','d9613031-7cf0-4722-923e-e5c3675a163b','ndgd_ltia98_airtemp',0,3600,'NDGD-LTIA98-AIRTEMP',True,False,'5fab39b9-90ba-482a-8156-d863ad7c45ad','8f51e5b5-08be-4ea7-9ebc-ad44b465dbc6'),
-('1ba5498c-d507-4c82-a80b-9b0af952b02f','726039da-2f21-4393-a15c-5f6e7ea41b1f','ndgd_leia98_precip',0,3600,'NDGD-LEIA98-PRECIP',True,False,'eb82d661-afe6-436a-b0df-2ab0b478a1af','e245d39f-3209-4e58-bfb7-4eae94b3f8dd');
+('1ba5498c-d507-4c82-a80b-9b0af952b02f','726039da-2f21-4393-a15c-5f6e7ea41b1f','ndgd_leia98_precip',3600,3600,'NDGD-LEIA98-PRECIP',True,False,'eb82d661-afe6-436a-b0df-2ab0b478a1af','e245d39f-3209-4e58-bfb7-4eae94b3f8dd');
 
 
 -- product_acquirable

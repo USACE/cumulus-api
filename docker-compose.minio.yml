@@ -24,7 +24,9 @@ services:
       /usr/bin/mc mb   minio/corpsmap-data-incoming   minio/corpsmap-data;
       /usr/bin/mc policy set public minio/corpsmap-data;
       /usr/bin/mc cp --recursive /media/ minio/corpsmap-data/cumulus/;
+      /usr/bin/mc cp --recursive /media-incoming/ minio/corpsmap-data-incoming/cumulus/;
       exit 0;
       "
     volumes:
       - ./data:/media
+      - ./data-incoming:/media-incoming

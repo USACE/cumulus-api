@@ -4,10 +4,10 @@ import json
 # from requests.packages.urllib3.exceptions import InsecureRequestWarning
 # requests.packages.urllib3.disable_warnings(InsecureRequestWarning)
 
-apiBaseURL = 'https://cumulus-api.rsgis.dev'
+apiBaseURL = 'https://water-api.rsgis.dev'
 
-start = '2020-11-01T17:00:00'
-end   = '2020-12-10T17:00:00'
+start = '2019-10-01T01:00:00'
+end   = '2021-03-31T23:00:00'
 
 r = requests.get(f'{apiBaseURL}/cumulus/v1/products', verify=True)
 products = r.json()

@@ -80,7 +80,7 @@ def process(payload, outdir):
     # ============================
     # SNOWPACK AVERAGE TEMPERATURE
     # ============================
-    product_name = 'nohrsc_snodas_snowpack_avg_temperature'
+    product_name = 'nohrsc_snodas_snowpack_average_temperature'
     key = f'cumulus/nohrsc_snodas_snowpack_average_temperature/zz_ssmv11038wS__A0024TTNATS{dt.strftime("%Y%m%d")}05DP001_cloud_optimized.tif'
     snowtemp = get_infile(CONFIG.WRITE_TO_BUCKET, key, os.path.join(outdir, f'snowtemp_{uuid.uuid4()}'))
     if not snowtemp:

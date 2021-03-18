@@ -124,7 +124,7 @@ CREATE TABLE IF NOT EXISTS public.productfile (
     datetime TIMESTAMPTZ NOT NULL,
     file VARCHAR(1200) NOT NULL,
     product_id UUID REFERENCES product (id),
-    version TIMESTAMPTZ,
+    version TIMESTAMPTZ NOT NULL DEFAULT '1111-11-11T11:11:11.11Z',
     CONSTRAINT unique_product_version_datetime UNIQUE(product_id, version, datetime)
 );
 

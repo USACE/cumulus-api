@@ -268,6 +268,37 @@ def translate(infile, outfile, extra_args=None):
     return outfile
 
 
+def translate_cog(infile, outfile, extra_args=None):
+    """
+    Convert SNODAS file to cloud optimized geotiff format
+    """
+
+    logging.info('gdal_translate; infile: {}; outfile: {}'.format(infile, outfile))
+
+    # Basics of creating a tiled and compressed geotiff
+    cmd = [
+        'gdal_translate',
+        '-of', 'COG',
+    ]
+
+    if extra_args is not None:
+        cmd += extra_args
+
+    cmd += [infile, outfile]
+
+    logging.debug('run command: {}'.format(' '.join(cmd)))
+
+    p = subprocess.Popen(
+        cmd,
+        stdout=subprocess.PIPE,
+        stderr=subprocess.STDOUT,
+    )
+
+    out, err = p.communicate()
+
+    return outfile
+
+
 def warp(infile, outfile, extra_args=[]):
     """Subprocess wrapper for calling gdalwarp"""
 

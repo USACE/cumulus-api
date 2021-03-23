@@ -1,6 +1,6 @@
 FROM osgeo/gdal
 
-ENV PYTHONUNBUFFERED=1 GDAL_DISABLE_READDIR_ON_OPEN=EMPTY_DIR
+ENV PYTHONUNBUFFERED=1
 
 RUN apt-get update -y \
   && apt-get install -y python3-pip

@@ -2,6 +2,7 @@ import boto3
 import json
 import os
 import shutil
+import sys
 from tempfile import TemporaryDirectory
 
 import config as CONFIG
@@ -9,15 +10,15 @@ import helpers
 
 # PROCESSORS
 import p_snodas_interpolate
+import p_incoming_file_to_cogs
 
 
 import logging
 logger = logging.getLogger(__name__)
-logger.setLevel(logging.INFO)
-logger.addHandler(logging.StreamHandler())
+logger.setLevel(CONFIG.LOGLEVEL)
+logger.addHandler(logging.StreamHandler(sys.stdout))
 
-
-if CONFIG.AWS_ACCESS_KEY_ID == 'x':
+if CONFIG.AWS_ACCESS_KEY_ID is None:
     # Running in AWS
     # Using IAM Role for Credentials
     CLIENT = boto3.resource('sqs')
@@ -26,7 +27,7 @@ else:
     # ElasticMQ with Credentials via AWS_ environment variables
     CLIENT = boto3.resource(
         'sqs',
-        endpoint_url=CONFIG.ENDPOINT_URL,
+        endpoint_url=CONFIG.ENDPOINT_URL_SQS,
         region_name=CONFIG.AWS_REGION_SQS,
         aws_secret_access_key=CONFIG.AWS_SECRET_ACCESS_KEY_SQS,
         aws_access_key_id=CONFIG.AWS_ACCESS_KEY_ID_SQS,
@@ -35,23 +36,25 @@ else:
 
 # Incoming Requests
 queue = CLIENT.get_queue_by_name(QueueName=CONFIG.QUEUE_NAME)
-print(f'queue;       : {queue}')
+logger.info(f'queue;       : {queue}')
 
 
 def handle_message(msg):
     """Converts JSON-Formatted message string to dictionary and calls geoprocessor"""
 
-    print('\n\nmessage received\n\n')
+    logger.info('\n\nmessage received\n\n')
     payload = json.loads(msg.body)
-    print(json.dumps(payload, indent=2))
+    logger.debug(json.dumps(payload, indent=2))
 
     with TemporaryDirectory() as td:
 
         process = payload["process"]
         if process == 'snodas-interpolate':
             outfiles = p_snodas_interpolate.process(payload, td)
+        elif process == 'incoming-file-to-cogs':
+            outfiles = p_incoming_file_to_cogs.process(payload, td)
         else:
-            print("processor not implemented")
+            logger.critical("processor not implemented")
             return {}
         
         # Keep track of successes to send as single database query at the end
@@ -70,7 +73,7 @@ def handle_message(msg):
                     # shutil.copy2 will overwrite a file if it already exists.
                     shutil.copy2(_f["file"], "/tmp")
                 else:
-                    upload_success = upload_file(
+                    upload_success = helpers.upload_file(
                         _f["file"], CONFIG.WRITE_TO_BUCKET, write_key
                     )
                 # Write Productfile Entry to Database
@@ -90,7 +93,7 @@ def handle_message(msg):
 
 while 1:
     messages = queue.receive_messages(WaitTimeSeconds=CONFIG.WAIT_TIME_SECONDS)
-    print(f'message count: {len(messages)}')
+    logger.info(f'message count: {len(messages)}')
     
     for message in messages:
         handle_message(message)

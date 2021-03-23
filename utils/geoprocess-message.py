@@ -11,8 +11,16 @@ import botocore.exceptions
 SNODAS_INTERPOLATE_MESSAGE = {
     "process": "snodas-interpolate",
     "process_config": {
-        "datetime": datetime(2014, 4, 1, tzinfo=timezone.utc).strftime("%Y%m%d"),
+        "datetime": datetime(2014, 1, 1, tzinfo=timezone.utc).strftime("%Y%m%d"),
         "max_distance": 16,
+    }
+}
+
+INCOMING_FILE_TO_COGS_MESSAGE = {
+    "process": "incoming-file-to-cogs",
+    "process_config": {
+        "bucket": "corpsmap-data-incoming",
+        "key": "cumulus/cbrfc_mpe/xmrg0316202100z.grb"
     }
 }
 
@@ -30,9 +38,8 @@ queue = CLIENT.get_queue_by_name(QueueName="cumulus-geoprocess")
 
 print(f'queue;       : {queue}')
 
-msg = SNODAS_INTERPOLATE_MESSAGE
+msg = INCOMING_FILE_TO_COGS_MESSAGE
+# msg = SNODAS_INTERPOLATE_MESSAGE
 
 response = queue.send_message(MessageBody=json.dumps(msg, separators=(',', ':')))
-
-
 

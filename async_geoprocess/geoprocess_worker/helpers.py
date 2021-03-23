@@ -1,6 +1,7 @@
 import boto3
 import botocore
 import botocore.exceptions
+from botocore.client import Config
 
 import psycopg2
 import psycopg2.extras
@@ -12,6 +13,26 @@ import config as CONFIG
 import logging
 logger = logging.getLogger(__name__)
 
+def s3_kwargs():
+    kwargs = {}
+    if CONFIG.ENDPOINT_URL_S3:
+        kwargs['endpoint_url'] = CONFIG.ENDPOINT_URL_S3
+    
+    if CONFIG.AWS_ACCESS_KEY_ID:
+        kwargs['aws_access_key_id'] = CONFIG.AWS_ACCESS_KEY_ID
+    
+    if CONFIG.AWS_SECRET_ACCESS_KEY:
+        kwargs['aws_secret_access_key'] = CONFIG.AWS_SECRET_ACCESS_KEY
+    
+    return kwargs
+
+def s3_resource():
+    kwargs = s3_kwargs()
+    return boto3.resource('s3', **kwargs)
+
+def s3_client():
+    kwargs = s3_kwargs()
+    return boto3.client('s3', **kwargs)
 
 def db_connection():
     
@@ -65,9 +86,9 @@ def get_products():
 
 def get_infile(bucket, key, filepath):
     
-    s3 = boto3.resource('s3')
+    resource = s3_resource()
     try:
-        s3.Bucket(bucket).download_file(key, filepath)
+        resource.Bucket(bucket).download_file(key, filepath)
         return os.path.abspath(filepath)
 
     except botocore.exceptions.ClientError as e:
@@ -93,10 +114,10 @@ def upload_file(file_name, bucket, object_name=None):
         object_name = file_name
 
     # Upload the file    
-    s3_client = boto3.resource('s3')
+    client = s3_client()
 
     try:
-        response = s3_client.upload_file(file_name, bucket, object_name)
+        response = client.upload_file(file_name, bucket, object_name)
     except botocore.exceptions.ClientError as e:
         logger.error('Unable to upload file to S3.')
         logger.error(e)

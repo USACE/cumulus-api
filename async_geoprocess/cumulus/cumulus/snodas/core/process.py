@@ -1,11 +1,12 @@
 #!/usr/env python3
+import logging
+logging.basicConfig()
 
 import argparse
 import datetime
 import numpy as np
 from osgeo import gdal
 import gzip
-import logging
 import os
 import re
 import shutil

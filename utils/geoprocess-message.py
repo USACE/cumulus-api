@@ -20,7 +20,7 @@ INCOMING_FILE_TO_COGS_MESSAGE = {
     "process": "incoming-file-to-cogs",
     "process_config": {
         "bucket": "corpsmap-data-incoming",
-        "key": "cumulus/nohrsc_snodas_unmasked/SNODAS_unmasked_20140101.tar"
+        "key": "cumulus/cbrfc_mpe/xmrg0316202100z.grb"
     }
 }
 
@@ -38,8 +38,8 @@ queue = CLIENT.get_queue_by_name(QueueName="cumulus-geoprocess")
 
 print(f'queue;       : {queue}')
 
-# msg = INCOMING_FILE_TO_COGS_MESSAGE
-msg = SNODAS_INTERPOLATE_MESSAGE
+msg = INCOMING_FILE_TO_COGS_MESSAGE
+# msg = SNODAS_INTERPOLATE_MESSAGE
 
 response = queue.send_message(MessageBody=json.dumps(msg, separators=(',', ':')))
 

@@ -96,7 +96,7 @@ INSERT INTO product (id, group_id, name, temporal_duration, temporal_resolution,
 ('7c7ba37a-efad-499e-9c3a-5354370b8e9e','726039da-2f21-4393-a15c-5f6e7ea41b1f','ncep_mrms_v12_MultiSensor_QPE_01H_Pass2',3600,3600,'NCEP-MRMSV12-QPE-01H-PASS2',True,False,'eb82d661-afe6-436a-b0df-2ab0b478a1af','e245d39f-3209-4e58-bfb7-4eae94b3f8dd'),
 ('0ac60940-35c2-4c0d-8a3b-49c20e455ff5','726039da-2f21-4393-a15c-5f6e7ea41b1f','wpc_qpf_2p5km',21600,21600,'WPC-QPF-2.5KM',False,True,'eb82d661-afe6-436a-b0df-2ab0b478a1af','e245d39f-3209-4e58-bfb7-4eae94b3f8dd'),
 ('5e6ca7ed-007d-4944-93aa-0a7a6116bdcd','d9613031-7cf0-4722-923e-e5c3675a163b','ndgd_ltia98_airtemp',0,3600,'NDGD-LTIA98-AIRTEMP',True,False,'5fab39b9-90ba-482a-8156-d863ad7c45ad','8f51e5b5-08be-4ea7-9ebc-ad44b465dbc6'),
-('1ba5498c-d507-4c82-a80b-9b0af952b02f','726039da-2f21-4393-a15c-5f6e7ea41b1f','ndgd_leia98_precip',0,3600,'NDGD-LEIA98-PRECIP',True,False,'eb82d661-afe6-436a-b0df-2ab0b478a1af','e245d39f-3209-4e58-bfb7-4eae94b3f8dd'),
+('1ba5498c-d507-4c82-a80b-9b0af952b02f','726039da-2f21-4393-a15c-5f6e7ea41b1f','ndgd_leia98_precip',3600,3600,'NDGD-LEIA98-PRECIP',True,False,'eb82d661-afe6-436a-b0df-2ab0b478a1af','e245d39f-3209-4e58-bfb7-4eae94b3f8dd'),
 ('c500f609-428f-4c38-b658-e7dde63de2ea','726039da-2f21-4393-a15c-5f6e7ea41b1f','cbrfc_mpe',3600,3600,'CBRFC-MPE',True,False,'eb82d661-afe6-436a-b0df-2ab0b478a1af','e245d39f-3209-4e58-bfb7-4eae94b3f8dd');
 
 

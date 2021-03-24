@@ -24,14 +24,14 @@ for product in products:
     if len(productFiles) > 0:
 
         sql += f"\n\n-- Product: {product['name']}  Count: {len(productFiles)}"
-        sql += "\nINSERT INTO productfile (id, file, datetime, product_id) VALUES"
+        sql += "\nINSERT INTO productfile (id, file, datetime, product_id, version) VALUES"
 
         last_pf = len(productFiles)
 
         for idx, pf in enumerate(productFiles):
             # print(record)        
             file = pf['file'].replace('https://api.rsgis.dev/', '')
-            sql += f"\n('{pf['id']}', '{file}', '{pf['datetime']}', '{product['id']}')"
+            sql += f"\n('{pf['id']}', '{file}', '{pf['datetime']}', '{product['id']}', '1111-11-11T11:11:11.11Z')"
             
             # handle last set of values
             if idx+1 == last_pf:

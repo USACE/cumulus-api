@@ -23,6 +23,7 @@ type Product struct {
 	DssFpart           string     `json:"dss_fpart" db:"dss_fpart"`
 	Parameter          string     `json:"parameter"`
 	Unit               string     `json:"unit"`
+	Description        string     `json:"description" db:"description"`
 	CoverageSummary
 }
 
@@ -148,6 +149,7 @@ func listProductsSQL() string {
 	               a.temporal_resolution AS temporal_resolution,
 	               a.temporal_duration   AS temporal_duration,
 	               a.dss_fpart           AS dss_fpart,
+				   a.description		 AS description,
 	               p.name                AS parameter,
 	               u.name                AS unit,
 	               pf.after              AS after,

@@ -6,7 +6,7 @@ import json
 
 apiBaseURL = 'https://water-api.rsgis.dev'
 
-start = '2019-10-01T01:00:00'
+start = '2018-10-01T01:00:00'
 end   = '2021-03-31T23:00:00'
 
 r = requests.get(f'{apiBaseURL}/cumulus/v1/products', verify=True)
@@ -14,35 +14,38 @@ products = r.json()
 
 sql = ''
 
-for product in products:          
+for product in products:
 
-    print(f"\n##### {product['name']} ##### ID: {product['id']}")
+    if product['name'] not in ['wpc_qpf_2p5km']:         
 
-    r = requests.get(f"{apiBaseURL}/cumulus/v1/products/{product['id']}/files?before={end}&after={start}", verify=True)
-    productFiles = r.json()
+        print(f"\n##### {product['name']} ##### ID: {product['id']}")
 
-    if len(productFiles) > 0:
+        r = requests.get(f"{apiBaseURL}/cumulus/v1/products/{product['id']}/files?before={end}&after={start}", verify=True)
+        productFiles = r.json()
 
-        sql += f"\n\n-- Product: {product['name']}  Count: {len(productFiles)}"
-        sql += "\nINSERT INTO productfile (id, file, datetime, product_id, version) VALUES"
+        if len(productFiles) > 0:
 
-        last_pf = len(productFiles)
+            sql += f"\n\n-- Product: {product['name']}  Count: {len(productFiles)}"
+            sql += "\nINSERT INTO productfile (id, file, datetime, product_id, version) VALUES"
 
-        for idx, pf in enumerate(productFiles):
-            # print(record)        
-            file = pf['file'].replace('https://api.rsgis.dev/', '')
-            sql += f"\n('{pf['id']}', '{file}', '{pf['datetime']}', '{product['id']}', '1111-11-11T11:11:11.11Z')"
+            last_pf = len(productFiles)
+
+            for idx, pf in enumerate(productFiles):
+               
+                # print(record)        
+                file = pf['file'].replace('https://api.rsgis.dev/', '')
+                sql += f"\n('{pf['id']}', '{file}', '{pf['datetime']}', '{product['id']}', '1111-11-11T11:11:11.11Z')"
+                
+                # handle last set of values
+                if idx+1 == last_pf:
+                    sql += ';'
+                else:
+                    sql += ','
+
             
-            # handle last set of values
-            if idx+1 == last_pf:
-                sql += ';'
-            else:
-                sql += ','
-
-        
-        print(sql)
-    else:
-        print('No product files.')
+            print(sql)
+        else:
+            print('No product files.')
 
 sql += '\n'
 

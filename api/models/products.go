@@ -13,6 +13,7 @@ import (
 // Product is a product structure
 type Product struct {
 	ID                 uuid.UUID  `json:"id"`
+	Slug               string     `json:"slug" db:"slug"`
 	GroupID            *uuid.UUID `json:"group_id" db:"group_id"`
 	Group              *string    `json:"group" db:"group"`
 	IsForecast         bool       `json:"is_forecast" db:"is_forecast"`
@@ -141,6 +142,7 @@ func GetProductAvailability(db *sqlx.DB, ID *uuid.UUID) (*Availability, error) {
 
 func listProductsSQL() string {
 	return `SELECT a.id                  AS id,
+				   a.slug				 AS slug,
 				   a.name                AS name,
 				   a.group_id            AS group_id,
 				   g.name                AS group,

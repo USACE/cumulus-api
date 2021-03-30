@@ -107,6 +107,7 @@ CREATE TABLE IF NOT EXISTS public.product_group (
 -- product
 CREATE TABLE IF NOT EXISTS public.product (
     id UUID PRIMARY KEY NOT NULL DEFAULT uuid_generate_v4(),
+    slug VARCHAR(120) UNIQUE NOT NULL,
     group_id UUID REFERENCES product_group(id),
     name VARCHAR(120) NOT NULL,
     temporal_duration INTEGER NOT NULL,

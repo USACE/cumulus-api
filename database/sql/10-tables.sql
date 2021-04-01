@@ -104,6 +104,36 @@ CREATE TABLE IF NOT EXISTS public.product_group (
     name VARCHAR NOT NULL
 );
 
+-- acquirable
+CREATE TABLE IF NOT EXISTS public.acquirable (
+    id UUID PRIMARY KEY NOT NULL DEFAULT uuid_generate_v4(),
+    name VARCHAR(120) NOT NULL,
+    slug VARCHAR(120) UNIQUE NOT NULL
+);
+
+-- acquirablefile
+CREATE TABLE IF NOT EXISTS public.acquirablefile (
+    id UUID PRIMARY KEY NOT NULL DEFAULT uuid_generate_v4(),
+    datetime TIMESTAMPTZ NOT NULL,
+    file VARCHAR(1200) NOT NULL,
+    create_date TIMESTAMPTZ NOT NULL,
+    process_date TIMESTAMPTZ,
+    acquirable_id UUID not null REFERENCES acquirable (id)
+);
+
+-- acquisition
+CREATE TABLE IF NOT EXISTS public.acquisition (
+    id UUID PRIMARY KEY NOT NULL DEFAULT uuid_generate_v4(),
+    datetime TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP
+);
+
+-- acquirable_acquisition
+CREATE TABLE IF NOT EXISTS public.acquirable_acquisition (
+    id UUID PRIMARY KEY NOT NULL DEFAULT uuid_generate_v4(),
+    acquisition_id UUID REFERENCES acquisition (id),
+    acquirable_id UUID REFERENCES acquirable (id)
+);
+
 -- product
 CREATE TABLE IF NOT EXISTS public.product (
     id UUID PRIMARY KEY NOT NULL DEFAULT uuid_generate_v4(),
@@ -127,27 +157,8 @@ CREATE TABLE IF NOT EXISTS public.productfile (
     file VARCHAR(1200) NOT NULL,
     product_id UUID REFERENCES product (id),
     version TIMESTAMPTZ NOT NULL DEFAULT '1111-11-11T11:11:11.11Z',
+    acquirablefile_id UUID REFERENCES acquirablefile (id),
     CONSTRAINT unique_product_version_datetime UNIQUE(product_id, version, datetime)
-);
-
--- acquirable
-CREATE TABLE IF NOT EXISTS public.acquirable (
-    id UUID PRIMARY KEY NOT NULL DEFAULT uuid_generate_v4(),
-    name VARCHAR(120) NOT NULL,
-    schedule VARCHAR(120)
-);
-
--- acquisition
-CREATE TABLE IF NOT EXISTS public.acquisition (
-    id UUID PRIMARY KEY NOT NULL DEFAULT uuid_generate_v4(),
-    datetime TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP
-);
-
--- acquirable_acquisition
-CREATE TABLE IF NOT EXISTS public.acquirable_acquisition (
-    id UUID PRIMARY KEY NOT NULL DEFAULT uuid_generate_v4(),
-    acquisition_id UUID REFERENCES acquisition (id),
-    acquirable_id UUID REFERENCES acquirable (id)
 );
 
 -- download_status_id

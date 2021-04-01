@@ -98,16 +98,15 @@ INSERT INTO product (id, group_id, name, slug, temporal_duration, temporal_resol
 
 
 -- product_acquirable
--- ('ncep_rtma_ru_ges', '20 * * * *') <- Removed from acquirables 2020-11-09
-INSERT INTO acquirable (name, schedule) VALUES
-('cbrfc_mpe', '30 8 * * *'),
-('ndgd_ltia98_airtemp', '30 8 * * *'),
-('ndgd_leia98_precip', '30 8 * * *'),
-('nohrsc_snodas_unmasked', '30 8 * * *'),
-('prism_ppt_early', '30 14 * * *'),
-('prism_tmax_early', '30 14 * * *'),
-('prism_tmin_early', '30 14 * * *'),
-('ncep_rtma_ru_anl', '20 * * * *'),
-('ncep_mrms_v12_MultiSensor_QPE_01H_Pass1', '5 * * * *'),
-('wpc_qpf_2p5km', '5 * * * *'),
-('ncep_mrms_v12_MultiSensor_QPE_01H_Pass2', '5 * * * *');
+INSERT INTO acquirable (id, name, slug) VALUES
+('2429db9a-9872-488a-b7e3-de37afc52ca4', 'cbrfc_mpe', 'cbrfc-mpe'),
+('b27a8724-d34d-4045-aa87-c6d88f9858d0', 'ndgd_ltia98_airtemp', 'ndgd-ltia98-airtemp'),
+('4d5eb062-5726-4822-9962-f531d9c6caef', 'ndgd_leia98_precip', 'ndgd-leia98-precip'),
+('87819ceb-72ee-496d-87db-70eb302302dc', 'nohrsc_snodas_unmasked', 'nohrsc-snodas-unmasked'),
+('099916d1-83af-48ed-85d7-6688ae96023d', 'prism_ppt_early', 'prism-ppt-early'),
+('97064e4d-453b-4761-8c9a-4a1b979d359e', 'prism_tmax_early', 'prism-tmax-early'),
+('11e87d14-ec54-4550-bd95-bc6eba0eba08', 'prism_tmin_early', 'prism-tmin-early'),
+('22678c3d-8ac0-4060-b750-6d27a91d0fb3', 'ncep_rtma_ru_anl', 'ncep-rtma-ru-anl'),
+('87a8efb7-af6f-4ece-a97f-53272d1a151d', 'ncep_mrms_v12_MultiSensor_QPE_01H_Pass1', 'ncep-mrms-v12-multisensor-qpe-01h-pass1'),
+('0c725458-deb7-45bb-84c6-e98083874c0e', 'wpc_qpf_2p5km', 'wpc-qpf-2p5km'),
+('ccc252f9-defc-4b25-817b-2e14c87073a0', 'ncep_mrms_v12_MultiSensor_QPE_01H_Pass2', 'ncep-mrms-v12-multisensor-qpe-01h-pass2');

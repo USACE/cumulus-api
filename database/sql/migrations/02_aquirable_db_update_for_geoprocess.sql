@@ -8,7 +8,7 @@ alter table acquirable drop column schedule;
 -- Add 'slug' column
 alter table acquirable add column slug varchar(120) not null default '';
 update acquirable set slug = replace(lower(name), '_', '-');
-alter table acquirable add unique (slug)
+alter table acquirable add unique (slug);
 
 -- ####################
 -- AcquirableFile Table

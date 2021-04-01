@@ -114,8 +114,8 @@ CREATE TABLE IF NOT EXISTS public.acquirable (
 -- acquirablefile
 CREATE TABLE IF NOT EXISTS public.acquirablefile (
     id UUID PRIMARY KEY NOT NULL DEFAULT uuid_generate_v4(),
-    name VARCHAR(120) NOT NULL,
-    slug VARCHAR(120) UNIQUE NOT NULL,
+    datetime TIMESTAMPTZ NOT NULL,
+    file VARCHAR(1200) NOT NULL,
     create_date TIMESTAMPTZ NOT NULL,
     process_date TIMESTAMPTZ,
     acquirable_id UUID not null REFERENCES acquirable (id)

@@ -34,6 +34,8 @@ services:
       - CUMULUS_ASYNC_ENGINE_PACKAGER_TARGET=local/http://elasticmq:9324/queue/cumulus-packager
       - CUMULUS_ASYNC_ENGINE_STATISTICS=AWSSQS
       - CUMULUS_ASYNC_ENGINE_STATISTICS_TARGET=local/http://elasticmq:9324/queue/cumulus-statistics
+      - CUMULUS_ASYNC_ENGINE_GEOPROCESS=AWSSQS
+      - CUMULUS_ASYNC_ENGINE_GEOPROCESS_TARGET=local/http://elasticmq:9324/queue/cumulus-geoprocess
       - CUMULUS_MIN_RECONN=10s
       - CUMULUS_MAX_RECONN=1m
     restart: always

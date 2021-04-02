@@ -24,7 +24,7 @@ func ListAcquirables(db *sqlx.DB) echo.HandlerFunc {
 	}
 }
 
-// GetProductProductfiles returns an array of Productfiles
+// ListAcquirablefiles returns an array of Acquirablefiles
 func ListAcquirablefiles(db *sqlx.DB) echo.HandlerFunc {
 	return func(c echo.Context) error {
 		// uuid
@@ -64,19 +64,19 @@ func CreateAcquirablefiles(db *sqlx.DB) echo.HandlerFunc {
 		//Get this payload and 400 if bad request
 		var a models.Acquirablefile
 		if err := c.Bind(&a); err != nil {
-			// return c.JSON(http.StatusBadRequest, models.DefaultMessageBadRequest)
-			return c.String(http.StatusBadRequest, err.Error())
+			return c.JSON(http.StatusBadRequest, models.DefaultMessageBadRequest)
+			// return c.String(http.StatusBadRequest, err.Error())
 
 		}
 
 		//Save acquirablefile to database, 500 if internal server error
 		aNew, err := models.CreateAcquirablefiles(db, a)
 		if err != nil {
-			// return c.JSON(
-			// 	http.StatusInternalServerError,
-			// 	models.DefaultMessageInternalServerError,
-			// )
-			return c.String(http.StatusInternalServerError, err.Error())
+			return c.JSON(
+				http.StatusInternalServerError,
+				models.DefaultMessageInternalServerError,
+			)
+			// return c.String(http.StatusInternalServerError, err.Error())
 		}
 
 		//Return payload response

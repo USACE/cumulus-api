@@ -1,134 +1,81 @@
 package models
 
 import (
-	"encoding/json"
-	"fmt"
-	"log"
 	"strings"
+	"time"
 
-	"api/acquirable"
-	"api/acquisition"
-
-	"github.com/USACE/go-simple-asyncer/asyncer"
+	"github.com/google/uuid"
 
 	"github.com/jmoiron/sqlx"
 )
 
+//Acquirable is like a product, but not
+type Acquirable struct {
+	ID   uuid.UUID `json:"id"`
+	Name string    `json:"name"`
+	Slug string    `json:"slug"`
+}
+
+// Acquirablefile is a file associated with an acquirable
+type Acquirablefile struct {
+	ID           uuid.UUID  `json:"id"`
+	Datetime     time.Time  `json:"datetime"`
+	File         string     `json:"file"`
+	CreateDate   time.Time  `json:"create_date" db:"create_date"`
+	ProcessDate  *time.Time `json:"process_date" db:"process_date"`
+	AcquirableID uuid.UUID  `json:"acquirable_id" db:"acquirable_id"`
+}
+
 // ListAcquirableInfo returns acquirable.Info from the database
-func ListAcquirableInfo(db *sqlx.DB) ([]acquirable.Info, error) {
-	nn := make([]acquirable.Info, 0)
-	if err := db.Select(&nn, `SELECT * FROM ACQUIRABLE`); err != nil {
-		return make([]acquirable.Info, 0), err
+func ListAcquirables(db *sqlx.DB) ([]Acquirable, error) {
+	nn := make([]Acquirable, 0)
+	if err := db.Select(&nn, `SELECT id, name, slug FROM ACQUIRABLE`); err != nil {
+		return make([]Acquirable, 0), err
 	}
 	return nn, nil
 }
 
-// ListAcquirables returns acquirable.Info from the database
-func ListAcquirables(db *sqlx.DB) ([]acquirable.Acquirable, error) {
-
-	nn, err := ListAcquirableInfo(db)
-	if err != nil {
-		return make([]acquirable.Acquirable, 0), err
-	}
-
-	// Create Concrete Types
-	aa := make([]acquirable.Acquirable, len(nn))
-	for idx := range nn {
-		// Concrete type from info
-		a, err := acquirable.Factory(nn[idx])
-		if err != nil {
-			return make([]acquirable.Acquirable, 0), err
-		}
-		aa[idx] = a
-	}
-
-	return aa, nil
-}
-
-// CreateAcquisitionAttempt creates a acquisiton record in the database
-func CreateAcquisitionAttempt(db *sqlx.DB) (acquirable.AcquisitionAttempt, error) {
-
-	sql := `INSERT INTO acquisition DEFAULT VALUES
-			RETURNING id, datetime
+// GetAcquisitionAcquirablefiles returns array of productfiles
+func ListAcquirablefiles(db *sqlx.DB, ID uuid.UUID, after string, before string) ([]Acquirablefile, error) {
+	sql := `SELECT id, datetime, file, create_date, process_date, acquirable_id FROM acquirablefile
+	         WHERE acquirable_id = $1 AND
+	               datetime >= $2 AND
+	               datetime <= $3
 	`
+	rows, err := db.Query(sql, ID, after, before)
 
-	// Create record of acquisition in database
-	var a acquirable.AcquisitionAttempt
-	if err := db.QueryRowx(sql).StructScan(&a); err != nil {
-		return acquirable.AcquisitionAttempt{}, err
-	}
-	return a, nil
-}
-
-// DoAcquire creates a new acquisition and triggers acquisition functions
-func DoAcquire(db *sqlx.DB, ae asyncer.Asyncer) (*acquirable.AcquisitionAttempt, error) {
-
-	// Create a new Acquisition
-	acq, err := CreateAcquisitionAttempt(db)
 	if err != nil {
-		return nil, err
+		return make([]Acquirablefile, 0), err
 	}
 
-	// Start a transaction
-	txn := db.MustBegin()
+	defer rows.Close()
+	result := make([]Acquirablefile, 0)
+	for rows.Next() {
+		af := Acquirablefile{}
+		var file string
+		err := rows.Scan(&af.ID, &af.Datetime, &file, &af.CreateDate, &af.ProcessDate)
 
-	// Get Acquirables
-	aa, err := ListAcquirables(db)
-	if err != nil {
-		txn.Rollback()
-		return nil, err
-	}
-
-	// Check if Cron should run for each acquirable
-	for _, a := range aa {
-		log.Printf("Checking cron for Acquirable %s : %s", a.Info().ID, a.Info().Name)
-
-		if acquisition.CronShouldRunNow(a.Info().Schedule, "5m") {
-			// Create AquirableAcquisition
-			if err := CreateAcquirableAcquisition(
-				db,
-				acquirable.Acquisition{AcquisitionID: acq.ID, AcquirableID: a.Info().ID},
-			); err != nil {
-				log.Printf(err.Error())
-			}
-
-			// Fire Acquisition Event for each URL
-			for _, url := range a.URLS() {
-				urlSplit := strings.Split(url, "/")
-				payload, err := json.Marshal(
-					map[string]string{
-						"s3_bucket": "corpsmap-data-incoming",
-						"s3_key":    fmt.Sprintf("cumulus/%s/%s", a.Info().Name, urlSplit[len(urlSplit)-1]),
-						"url":       url,
-					},
-				)
-				if err != nil {
-					txn.Rollback()
-					return &acq, err
-				}
-				// Invoke AWS Lambda
-				if err := ae.CallAsync(payload); err != nil {
-					txn.Rollback()
-					return &acq, err
-				}
-			}
+		if err != nil {
+			return make([]Acquirablefile, 0), err
 		}
+
+		//pf.File = strings.Join([]string{"https://cumulus.rsgis.dev/apimedia", file}, "/")
+		af.File = strings.Join([]string{"https://api.rsgis.dev", file}, "/")
+
+		result = append(result, af)
 	}
-
-	txn.Commit()
-
-	return &acq, nil
+	return result, nil
 }
 
-// CreateAcquirableAcquisition creates a record of an acquirable being acquired
-func CreateAcquirableAcquisition(db *sqlx.DB, a acquirable.Acquisition) error {
+func CreateAcquirablefiles(db *sqlx.DB, a Acquirablefile) (*Acquirablefile, error) {
+	sql := `INSERT INTO acquirablefile (datetime, file, acquirable_id)
+			VALUES($1, $2, $3) 
+			RETURNING id, datetime, file, create_date, process_date, acquirable_id`
 
-	if _, err := db.Exec(
-		`INSERT INTO acquirable_acquisition (acquisition_id, acquirable_id) VALUES ($1, $2)`,
-		a.AcquisitionID, a.AcquirableID,
-	); err != nil {
-		return err
+	var aNew Acquirablefile
+	if err := db.Get(&aNew, sql, a.Datetime, a.File, a.AcquirableID); err != nil {
+		return nil, err
 	}
 
-	return nil
+	return &aNew, nil
 }

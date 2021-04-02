@@ -110,3 +110,9 @@ INSERT INTO acquirable (id, name, slug) VALUES
 ('87a8efb7-af6f-4ece-a97f-53272d1a151d', 'ncep_mrms_v12_MultiSensor_QPE_01H_Pass1', 'ncep-mrms-v12-multisensor-qpe-01h-pass1'),
 ('0c725458-deb7-45bb-84c6-e98083874c0e', 'wpc_qpf_2p5km', 'wpc-qpf-2p5km'),
 ('ccc252f9-defc-4b25-817b-2e14c87073a0', 'ncep_mrms_v12_MultiSensor_QPE_01H_Pass2', 'ncep-mrms-v12-multisensor-qpe-01h-pass2');
+
+-- acquirablefile
+INSERT INTO acquirablefile (id, datetime, file, process_date, acquirable_id) VALUES
+(uuid_generate_v4(), '20210331T15:00:00Z', 'cumulus/ndgd_leia98_precip/LEIA98_KWBR_202103311500', null, '4d5eb062-5726-4822-9962-f531d9c6caef'),
+(uuid_generate_v4(), '20210331T16:00:00Z', 'cumulus/ndgd_leia98_precip/LEIA98_KWBR_202103311600', null, '4d5eb062-5726-4822-9962-f531d9c6caef'),
+(uuid_generate_v4(), '20210331T17:00:00Z', 'cumulus/ndgd_leia98_precip/LEIA98_KWBR_202103311700', null, '4d5eb062-5726-4822-9962-f531d9c6caef');

@@ -26,6 +26,8 @@ type Config struct {
 	AsyncEnginePackagerTarget   string `envconfig:"ASYNC_ENGINE_PACKAGER_TARGET"`
 	AsyncEngineStatistics       string `envconfig:"ASYNC_ENGINE_STATISTICS"`
 	AsyncEngineStatisticsTarget string `envconfig:"ASYNC_ENGINE_STATISTICS_TARGET"`
+	AsyncEngineGeoprocess       string `envconfig:"ASYNC_ENGINE_GEOPROCESS"`
+	AsyncEngineGeoprocessTarget string `envconfig:"ASYNC_ENGINE_GEOPROCESS_TARGET"`
 	MaxReconn                   string `envconfig:"MAX_RECONN"`
 	MinReconn                   string `envconfig:"MIN_RECONN"`
 }
@@ -72,7 +74,7 @@ func NewAsyncNotificationHandler(a asyncer.Asyncer) NotificationHandler {
 	}
 }
 
-func waitForNotification(l *pq.Listener, handleDownload, handleStatistics NotificationHandler) {
+func waitForNotification(l *pq.Listener, handleDownload, handleStatistics, handleAcquirablefile NotificationHandler) {
 	select {
 	case n := <-l.Notify:
 		fmt.Println("notification on channel: " + n.Channel)
@@ -85,6 +87,8 @@ func waitForNotification(l *pq.Listener, handleDownload, handleStatistics Notifi
 			go handleDownload(n)
 		case "statistics":
 			go handleStatistics(n)
+		case "acquirablefile":
+			go handleAcquirablefile(n)
 		default:
 			fmt.Printf("Unimplemented handler for new records in table %s\n", m.Table)
 		}
@@ -128,8 +132,15 @@ func main() {
 	}
 	s := NewAsyncNotificationHandler(statisticsAsyncer)
 
+	// acquirablefileAsyncer defines async engine for processing new acquirable files
+	acquirablefileAsyncer, err := asyncer.NewAsyncer(asyncer.Config{Engine: cfg.AsyncEngineGeoprocess, Target: cfg.AsyncEngineGeoprocessTarget})
+	if err != nil {
+		log.Fatal(err.Error())
+	}
+	a := NewAsyncNotificationHandler(acquirablefileAsyncer)
+
 	fmt.Println("entering main loop")
 	for {
-		waitForNotification(listener, d, s)
+		waitForNotification(listener, d, s, a)
 	}
 }

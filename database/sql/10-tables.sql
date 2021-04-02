@@ -116,7 +116,7 @@ CREATE TABLE IF NOT EXISTS public.acquirablefile (
     id UUID PRIMARY KEY NOT NULL DEFAULT uuid_generate_v4(),
     datetime TIMESTAMPTZ NOT NULL,
     file VARCHAR(1200) NOT NULL,
-    create_date TIMESTAMPTZ NOT NULL,
+    create_date TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
     process_date TIMESTAMPTZ,
     acquirable_id UUID not null REFERENCES acquirable (id)
 );
@@ -197,7 +197,7 @@ CREATE TABLE IF NOT EXISTS public.area_group_product_statistics_enabled (
 );
 
 -- Function; Notify New Record in Table
-CREATE OR REPLACE FUNCTION public.notify_new ()
+CREATE OR REPLACE FUNCTION public.notify_new()
   returns trigger
   language plpgsql
 AS $$
@@ -225,6 +225,12 @@ EXECUTE PROCEDURE public.notify_new();
 CREATE TRIGGER notify_new_productfile
 AFTER INSERT
 ON public.productfile
+FOR EACH ROW
+EXECUTE PROCEDURE public.notify_new();
+
+-- Trigger; NOTIFY NEW ACQUIRABLEFILE ON INSERT
+CREATE TRIGGER notify_new_acquirablefile
+AFTER INSERT ON public.acquirablefile
 FOR EACH ROW
 EXECUTE PROCEDURE public.notify_new();
 

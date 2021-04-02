@@ -3,46 +3,83 @@ package handlers
 import (
 	"net/http"
 
+	"github.com/google/uuid"
 	"github.com/jmoiron/sqlx"
 	"github.com/labstack/echo/v4"
 
 	"api/models"
 
-	"github.com/USACE/go-simple-asyncer/asyncer"
-
 	// SQL Interface
 	_ "github.com/lib/pq"
 )
 
-// CreateAcquisitionAttempt creates an acquisition record and fires acquisition events
-func CreateAcquisitionAttempt(db *sqlx.DB) echo.HandlerFunc {
+// ListAcquirable lists all acquirables
+func ListAcquirables(db *sqlx.DB) echo.HandlerFunc {
 	return func(c echo.Context) error {
-		acquisition, err := models.CreateAcquisitionAttempt(db)
-		if err != nil {
-			return c.JSON(http.StatusInternalServerError, err)
-		}
-		return c.JSON(http.StatusCreated, acquisition)
-	}
-}
-
-// DoAcquire triggers data acquisition for all acquirables in the database
-func DoAcquire(db *sqlx.DB, ae asyncer.Asyncer) echo.HandlerFunc {
-	return func(c echo.Context) error {
-		acquisition, err := models.DoAcquire(db, ae)
-		if err != nil {
-			return c.JSON(http.StatusInternalServerError, err)
-		}
-		return c.JSON(http.StatusCreated, &acquisition)
-	}
-}
-
-// ListAcquirableInfo lists all acquirables
-func ListAcquirableInfo(db *sqlx.DB) echo.HandlerFunc {
-	return func(c echo.Context) error {
-		aa, err := models.ListAcquirableInfo(db)
+		aa, err := models.ListAcquirables(db)
 		if err != nil {
 			return c.JSON(http.StatusBadRequest, err)
 		}
 		return c.JSON(http.StatusOK, aa)
+	}
+}
+
+// ListAcquirablefiles returns an array of Acquirablefiles
+func ListAcquirablefiles(db *sqlx.DB) echo.HandlerFunc {
+	return func(c echo.Context) error {
+		// uuid
+		id, err := uuid.Parse(c.Param("acquirable_id"))
+		if err != nil {
+			return c.String(http.StatusBadRequest, "Malformed ID")
+		}
+		// after
+		after := c.QueryParam("after")
+		// before
+		before := c.QueryParam("before")
+
+		if after == "" || before == "" {
+			return c.String(
+				http.StatusBadRequest,
+				"Missing query parameter 'after' or 'before'",
+			)
+		}
+		//Call the model, verify return value
+		aa, err := models.ListAcquirablefiles(db, id, after, before)
+
+		//handle any error from model
+		if err != nil {
+			return c.JSON(
+				http.StatusInternalServerError,
+				models.DefaultMessageInternalServerError,
+			)
+		}
+		//otherwise return valid response from model above
+		return c.JSON(http.StatusOK, aa)
+	}
+}
+
+func CreateAcquirablefiles(db *sqlx.DB) echo.HandlerFunc {
+	return func(c echo.Context) error {
+
+		//Get this payload and 400 if bad request
+		var a models.Acquirablefile
+		if err := c.Bind(&a); err != nil {
+			return c.JSON(http.StatusBadRequest, models.DefaultMessageBadRequest)
+			// return c.String(http.StatusBadRequest, err.Error())
+
+		}
+
+		//Save acquirablefile to database, 500 if internal server error
+		aNew, err := models.CreateAcquirablefiles(db, a)
+		if err != nil {
+			return c.JSON(
+				http.StatusInternalServerError,
+				models.DefaultMessageInternalServerError,
+			)
+			// return c.String(http.StatusInternalServerError, err.Error())
+		}
+
+		//Return payload response
+		return c.JSON(http.StatusCreated, aNew)
 	}
 }

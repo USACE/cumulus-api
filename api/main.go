@@ -10,7 +10,6 @@ import (
 	"api/handlers"
 	"api/middleware"
 
-	"github.com/USACE/go-simple-asyncer/asyncer"
 	"github.com/jmoiron/sqlx"
 
 	"github.com/apex/gateway"
@@ -59,14 +58,6 @@ func main() {
 	// Database
 	db := Connection(cfg)
 
-	// acquisitionAsyncer defines async engine used to package DSS files for download
-	acquisitionAsyncer, err := asyncer.NewAsyncer(
-		asyncer.Config{Engine: cfg.AsyncEngineAcquisition, Target: cfg.AsyncEngineAcquisitionTarget},
-	)
-	if err != nil {
-		log.Fatal(err.Error())
-	}
-
 	e := echo.New()
 	// Middleware for All Routes
 	e.Use(middleware.CORS, middleware.GZIP)
@@ -111,7 +102,11 @@ func main() {
 	public.GET("/products/:id", handlers.GetProduct(db))
 	public.GET("/products/:id/availability", handlers.GetProductAvailability(db))
 	public.GET("/products/:id/files", handlers.GetProductProductfiles(db))
-	public.GET("/acquirables", handlers.ListAcquirableInfo(db))
+	public.GET("/acquirables", handlers.ListAcquirables(db))
+
+	// Acquirables/Acquirablefiles
+	public.GET("/acquirables/:acquirable_id/files", handlers.ListAcquirablefiles(db))
+	cacOrToken.POST("/acquirablefiles", handlers.CreateAcquirablefiles(db))
 
 	// Downloads
 	public.GET("/downloads", handlers.ListDownloads(db))
@@ -123,8 +118,6 @@ func main() {
 	public.PUT("/downloads/:id", handlers.UpdateDownload(db))
 
 	// Restricted Routes (JWT or Key)
-	cacOrToken.POST("/acquire", handlers.DoAcquire(db, acquisitionAsyncer))
-	cacOrToken.POST("/products/:id/acquire", handlers.CreateAcquisitionAttempt(db))
 
 	// Watersheds
 	public.GET("/watersheds", handlers.ListWatersheds(db))

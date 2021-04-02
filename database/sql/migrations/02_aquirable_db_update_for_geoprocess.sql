@@ -18,7 +18,7 @@ CREATE TABLE IF NOT EXISTS public.acquirablefile (
     id UUID PRIMARY KEY NOT NULL DEFAULT uuid_generate_v4(),
     datetime TIMESTAMPTZ NOT NULL,
     file VARCHAR(1200) NOT NULL,
-    create_date TIMESTAMPTZ NOT NULL,
+    create_date TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
     process_date TIMESTAMPTZ,
     acquirable_id UUID not null REFERENCES acquirable (id)
 );

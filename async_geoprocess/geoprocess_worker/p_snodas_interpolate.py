@@ -23,10 +23,8 @@ logger = logging.getLogger(__name__)
 
 def process(payload, outdir):
 
-    cfg = payload['process_config']
-
-    dt = datetime.strptime(cfg['datetime'], "%Y%m%d").replace(tzinfo=utc).replace(hour=6)
-    max_distance = int(cfg['max_distance'])
+    dt = datetime.strptime(payload['datetime'], "%Y%m%d").replace(tzinfo=utc).replace(hour=6)
+    max_distance = int(payload['max_distance'])
 
     # Keep track of the files that are processed
     processed_productfiles = []

@@ -44,15 +44,15 @@ def handle_message(msg):
 
     logger.info('\n\nmessage received\n\n')
     payload = json.loads(msg.body)
+    geoprocess, geoprocess_config = payload['geoprocess'], payload['geoprocess_config']
     logger.debug(json.dumps(payload, indent=2))
 
     with TemporaryDirectory() as td:
 
-        process = payload["process"]
-        if process == 'snodas-interpolate':
-            outfiles = p_snodas_interpolate.process(payload, td)
-        elif process == 'incoming-file-to-cogs':
-            outfiles = p_incoming_file_to_cogs.process(payload, td)
+        if geoprocess == 'snodas-interpolate':
+            outfiles = p_snodas_interpolate.process(geoprocess_config, td)
+        elif geoprocess == 'incoming-file-to-cogs':
+            outfiles = p_incoming_file_to_cogs.process(geoprocess_config, td)
         else:
             logger.critical("processor not implemented")
             return {}
@@ -82,7 +82,7 @@ def handle_message(msg):
                         "product_id": product_map[_f["filetype"]],
                         "datetime": _f['datetime'],
                         "file": write_key,
-                        "version": _f['version']
+                        "version": _f['version'] if _f['version'] is not None else '1111-11-11T11:11:11.11Z'
                     })
         
         count = helpers.write_database(successes)

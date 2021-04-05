@@ -24,8 +24,7 @@ def get_infile_processor(name):
 
 def process(payload, outdir):
 
-    cfg = payload['process_config']
-    bucket, key = cfg['bucket'], cfg['key']
+    bucket, key = payload['bucket'], payload['key']
     
     # Filename and product_name
     pathparts = key.split('/')

@@ -1,3 +1,16 @@
+CREATE OR REPLACE VIEW v_acquirablefile AS (
+    SELECT a.id           AS acquirable_id,
+           a.name         AS acquirable_name,
+           a.slug         AS acquirable_slug,
+           f.id           AS id,
+           f.datetime     AS datetime,
+           f.file         AS file,
+           f.create_date  AS create_date,
+           f.process_date AS process_date
+    FROM acquirablefile f
+    LEFT JOIN acquirable a ON a.id = f.acquirable_id
+);
+
 CREATE OR REPLACE VIEW v_download AS (
         SELECT d.id AS id,
             d.datetime_start AS datetime_start,

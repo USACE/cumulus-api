@@ -13,7 +13,6 @@ require (
 	github.com/kelseyhightower/envconfig v1.4.0
 	github.com/labstack/echo/v4 v4.1.17
 	github.com/lib/pq v1.9.0
-	github.com/robfig/cron v1.2.0
 	golang.org/x/crypto v0.0.0-20201203163018-be400aefbc4c
 	google.golang.org/appengine v1.6.7 // indirect
 )

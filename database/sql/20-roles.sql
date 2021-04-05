@@ -34,6 +34,7 @@ GRANT SELECT ON
     download_product,
     watershed,
     profile_watersheds,
+    v_acquirablefile,
     v_download,
     v_area_5070,
     v_watershed

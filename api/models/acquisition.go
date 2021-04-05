@@ -37,7 +37,7 @@ func ListAcquirables(db *sqlx.DB) ([]Acquirable, error) {
 
 // GetAcquisitionAcquirablefiles returns array of productfiles
 func ListAcquirablefiles(db *sqlx.DB, ID uuid.UUID, after string, before string) ([]Acquirablefile, error) {
-	sql := `SELECT id, datetime, file, create_date, process_date, acquirable_id FROM acquirablefile
+	sql := `SELECT id, datetime, file, create_date, process_date, acquirable_id FROM v_acquirablefile
 	         WHERE acquirable_id = $1 AND
 	               datetime >= $2 AND
 	               datetime <= $3
@@ -53,7 +53,7 @@ func ListAcquirablefiles(db *sqlx.DB, ID uuid.UUID, after string, before string)
 	for rows.Next() {
 		af := Acquirablefile{}
 		var file string
-		err := rows.Scan(&af.ID, &af.Datetime, &file, &af.CreateDate, &af.ProcessDate)
+		err := rows.Scan(&af.ID, &af.Datetime, &file, &af.CreateDate, &af.ProcessDate, &af.AcquirableID)
 
 		if err != nil {
 			return make([]Acquirablefile, 0), err

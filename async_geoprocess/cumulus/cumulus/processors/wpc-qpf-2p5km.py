@@ -32,7 +32,7 @@ def process(infile, outdir):
     )
 
     outfile_list = [
-        { "filetype": "wpc_qpf_2p5km", "file": cog, "datetime": dt.isoformat(), "version": vt.isoformat() },
+        { "filetype": "wpc-qpf-2p5km", "file": cog, "datetime": dt.isoformat(), "version": vt.isoformat() },
     ]
 
     return outfile_list

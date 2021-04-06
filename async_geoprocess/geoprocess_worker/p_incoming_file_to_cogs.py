@@ -28,7 +28,7 @@ def process(payload, outdir):
     
     # Filename and product_name
     pathparts = key.split('/')
-    acquirable_name, filename = pathparts[1], pathparts[-1]
+    acquirable_name, filename = pathparts[2], pathparts[-1]
 
     _file = get_infile(bucket, key, os.path.join(outdir, filename))
 

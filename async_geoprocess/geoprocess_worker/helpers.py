@@ -70,12 +70,12 @@ def write_database(entries):
 
 # TODO make all data access through RESTful API; Do not allow direct database connection
 def get_products():
-    '''Map of <name>:<product_id> for all products in the database'''
+    '''Map of <slug>:<product_id> for all products in the database'''
     
     try:
         conn = db_connection()
         c = conn.cursor()
-        c.execute("SELECT name, id from product")
+        c.execute("SELECT slug, id from product")
         rows = c.fetchall()
     finally:
         c.close()

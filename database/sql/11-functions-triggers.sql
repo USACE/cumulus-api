@@ -55,7 +55,7 @@ CREATE OR REPLACE FUNCTION public.notify_acquirablefile_geoprocess() RETURNS tri
                 SELECT id                        AS acquirablefile_id,
                        acquirable_id             AS acquirable_id,
                        acquirable_slug           AS acquirable_slug,
-                       'corpsmap-data-incoming'  AS bucket,
+                       'corpsmap-data'  AS bucket,
                        file                      AS key
                 FROM v_acquirablefile
                 WHERE id = NEW.id

@@ -65,7 +65,8 @@ def handle_message(msg):
             # See that we have a valid 
             if _f["filetype"] in product_map.keys():
                 # Write output files to different bucket
-                write_key = 'cumulus/{}/{}'.format(_f["filetype"], _f["file"].split("/")[-1])
+                write_key = 'cumulus/products/{}/{}'.format(_f["filetype"], _f["file"].split("/")[-1])
+                print(f'write_key is: {write_key}')               
                 if CONFIG.CUMULUS_MOCK_S3_UPLOAD:
                     # Mock good upload to S3
                     upload_success = True

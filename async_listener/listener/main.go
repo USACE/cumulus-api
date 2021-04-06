@@ -79,7 +79,7 @@ func waitForNotification(l *pq.Listener, handlers map[string]NotificationHandler
 		fmt.Println("notification on channel: " + n.Channel)
 		var m Message
 		if err := json.Unmarshal([]byte(n.Extra), &m); err != nil {
-			print("ERROR: %s", err.Error())
+			fmt.Printf("ERROR: %s\n", err.Error())
 		}
 		if handler, ok := handlers[m.Fn]; ok {
 			go handler(m.Details)

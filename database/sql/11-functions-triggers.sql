@@ -1,10 +1,12 @@
 -- Async Listener Function JSON Format
 -- {
 --   "fn": "new-download",
---   "details": {
---       Object Containing Anything ...
---   }
+--   "details": "{\"geoprocess\" : \"inco...}"
 -- }
+-- Note: ^^^ value of "details": must be a string. A native JSON object for "details" can be converted
+-- to a string using Postgres type casting, for example: json_build_object('id', NEW.id)::text
+-- will produce string like "{\"id\" : \"f1105618-047e-40bc-bd2e-961ad0e05084\"}"
+-- where required JSON special characters are escaped.
 
 
 -- Shared Function to Notify Cumulus Async Listener Functions (ALF) Listener
@@ -26,7 +28,7 @@ CREATE OR REPLACE FUNCTION public.notify_new_download() RETURNS trigger AS $$
             SELECT public.notify_async_listener(
                 json_build_object(
                     'fn',     'new-download',
-                    'details', json_build_object('id', NEW.id)
+                    'details', json_build_object('id', NEW.id)::text
                 )::text
 			)
 		);
@@ -64,7 +66,7 @@ CREATE OR REPLACE FUNCTION public.notify_acquirablefile_geoprocess() RETURNS tri
                     'details', json_build_object(
                         'geoprocess', 'incoming-file-to-cogs',
                         'geoprocess_config', row_to_json(geoprocess_config)
-                    )
+                    )::text
                 )::text
             ) FROM geoprocess_config
         );

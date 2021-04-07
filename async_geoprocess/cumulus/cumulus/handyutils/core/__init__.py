@@ -83,6 +83,19 @@ def change_file_extension(infile, extension):
         extension
     ])
 
+def change_final_file_extension(infile, extension):
+    """Replace last file extension from rightmost '.' with provided <extension>
+    Note: provided <extension> should not include leading '.'
+
+    Method uses os.path.splitext() to handle extensions and
+    will only change the final extension on the file..
+    """
+
+    return '.'.join([
+        os.path.splitext(os.path.basename(infile))[0],
+        extension
+    ])
+
 
 def mkdir_p(path):
     '''Simulate mkdir_p.

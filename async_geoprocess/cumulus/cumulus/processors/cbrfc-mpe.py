@@ -2,6 +2,7 @@ from datetime import datetime
 import os
 from uuid import uuid4
 from ..geoprocess.core.base import info, translate, create_overviews
+from ..handyutils.core import change_final_file_extension
 
 def process(infile, outdir):
     """Takes an infile to process and path to a directory where output files should be saved
@@ -28,9 +29,7 @@ def process(infile, outdir):
         tif_with_overviews,
         os.path.join(
             outdir,
-            "{}.tif".format(
-                os.path.basename(infile)
-            )
+            change_final_file_extension(os.path.basename(infile), 'tif')            
         )
     )
 

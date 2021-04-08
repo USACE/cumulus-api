@@ -28,7 +28,7 @@ def process(infile, outdir):
     )
 
     outfile_list = [
-        { "filetype": "ncep-mrms-v12-MultiSensor-QPE-01H-Pass1", "file": cog, "datetime": dt.isoformat(), "version": None },
+        { "filetype": "ncep-mrms-v12-multisensor-qpe-01h-pass1", "file": cog, "datetime": dt.isoformat(), "version": None },
     ]
 
     return outfile_list

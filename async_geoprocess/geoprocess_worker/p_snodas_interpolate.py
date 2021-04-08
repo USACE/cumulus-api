@@ -32,8 +32,8 @@ def process(payload, outdir):
     # ======
     # SWE
     # ======
-    product_name = 'nohrsc_snodas_swe'
-    key = f'cumulus/nohrsc_snodas_swe/zz_ssmv11034tS__T0001TTNATS{dt.strftime("%Y%m%d")}05HP001_cloud_optimized.tif'
+    product_name = 'nohrsc-snodas-swe'
+    key = f'cumulus/nohrsc-snodas-swe/zz_ssmv11034tS__T0001TTNATS{dt.strftime("%Y%m%d")}05HP001_cloud_optimized.tif'
 
     swe = get_infile(CONFIG.WRITE_TO_BUCKET, key, os.path.join(outdir, f'swe_{uuid.uuid4()}'))
     if not swe:
@@ -55,8 +55,8 @@ def process(payload, outdir):
     # ==========
     # SNOW DEPTH
     # ==========
-    product_name = "nohrsc_snodas_snowdepth"
-    key = f'cumulus/nohrsc_snodas_snowdepth/zz_ssmv11036tS__T0001TTNATS{dt.strftime("%Y%m%d")}05HP001_cloud_optimized.tif'
+    product_name = "nohrsc-snodas-snowdepth"
+    key = f'cumulus/nohrsc-snodas-snowdepth/zz_ssmv11036tS__T0001TTNATS{dt.strftime("%Y%m%d")}05HP001_cloud_optimized.tif'
     snowdepth = get_infile(CONFIG.WRITE_TO_BUCKET, key, os.path.join(outdir, f'snowdepth_{uuid.uuid4()}'))
     if not snowdepth:
         logger.error(f'Unable to retrieve object with key: {key}')
@@ -66,20 +66,20 @@ def process(payload, outdir):
         snowdepth,
         dt,
         os.path.join(
-            outdir, f'{product_name}_interpolated_{max_distance}_{dt.strftime("%Y%m%d")}.tif'
+            outdir, f'{product_name}-interpolated-{max_distance}-{dt.strftime("%Y%m%d")}.tif'
         ),
         max_distance
     )
 
     processed_productfiles.append(
-        {"filetype": f'{product_name}_interpolated', "file": snowdepth_interpolated, "datetime": dt, "version": None}
+        {"filetype": f'{product_name}-interpolated', "file": snowdepth_interpolated, "datetime": dt, "version": None}
     )
 
     # ============================
     # SNOWPACK AVERAGE TEMPERATURE
     # ============================
-    product_name = 'nohrsc_snodas_snowpack_average_temperature'
-    key = f'cumulus/nohrsc_snodas_snowpack_average_temperature/zz_ssmv11038wS__A0024TTNATS{dt.strftime("%Y%m%d")}05DP001_cloud_optimized.tif'
+    product_name = 'nohrsc-snodas-snowpack-average-temperature'
+    key = f'cumulus/nohrsc-snodas-snowpack-average-temperature/zz_ssmv11038wS__A0024TTNATS{dt.strftime("%Y%m%d")}05DP001_cloud_optimized.tif'
     snowtemp = get_infile(CONFIG.WRITE_TO_BUCKET, key, os.path.join(outdir, f'snowtemp_{uuid.uuid4()}'))
     if not snowtemp:
         logger.error(f'Unable to retrieve object with key: {key}')
@@ -91,19 +91,19 @@ def process(payload, outdir):
         dt,
         max_distance,
         os.path.join(
-            outdir, f'{product_name}_interpolated_{max_distance}_{dt.strftime("%Y%m%d")}.tif'
+            outdir, f'{product_name}-interpolated-{max_distance}-{dt.strftime("%Y%m%d")}.tif'
         )
     )
 
     processed_productfiles.append(
-        {"filetype": f'{product_name}_interpolated', "file": snowtemp_interpolated, "datetime": dt, "version": None}
+        {"filetype": f'{product_name}-interpolated', "file": snowtemp_interpolated, "datetime": dt, "version": None}
     )        
 
     # ========
     # SNOWMELT
     # ========
-    product_name = 'nohrsc_snodas_snowmelt'
-    key = f'cumulus/nohrsc_snodas_snowmelt/zz_snowmeltmm_{dt.strftime("%Y%m%d")}_cloud_optimized.tif'
+    product_name = 'nohrsc-snodas-snowmelt'
+    key = f'cumulus/nohrsc-snodas-snowmelt/zz_snowmeltmm_{dt.strftime("%Y%m%d")}_cloud_optimized.tif'
     snowmelt = get_infile(CONFIG.WRITE_TO_BUCKET, key, os.path.join(outdir, f'snowmelt_{uuid.uuid4()}'))
     if not snowmelt:
         logger.error(f'Unable to retrieve object with key: {key}')
@@ -115,18 +115,18 @@ def process(payload, outdir):
         dt,
         max_distance,
         os.path.join(
-            outdir, f'{product_name}_interpolated_{max_distance}_{dt.strftime("%Y%m%d")}.tif'
+            outdir, f'{product_name}-interpolated-{max_distance}-{dt.strftime("%Y%m%d")}.tif'
         )
     )
     processed_productfiles.append(
-        {"filetype": f'{product_name}_interpolated', "file": snowmelt_interpolated, "datetime": dt, "version": None}
+        {"filetype": f'{product_name}-interpolated', "file": snowmelt_interpolated, "datetime": dt, "version": None}
     )
 
     # ============
     # COLD CONTENT
     # ============
-    product_name = 'nohrsc_snodas_coldcontent'
-    key = f'cumulus/nohrsc_snodas_coldcontent/zz_coldcontent_{dt.strftime("%Y%m%d")}_cloud_optimized.tif'
+    product_name = 'nohrsc-snodas-coldcontent'
+    key = f'cumulus/nohrsc-snodas-coldcontent/zz_coldcontent_{dt.strftime("%Y%m%d")}_cloud_optimized.tif'
     coldcontent = get_infile(CONFIG.WRITE_TO_BUCKET, key, os.path.join(outdir, f'coldcontent_{uuid.uuid4()}'))
     if not coldcontent:
         logger.error(f'Unable to retrieve object with key: {key}')
@@ -135,11 +135,11 @@ def process(payload, outdir):
     coldcontent_interpolated = create_interpolated_coldcontent(
         snowtemp_interpolated,
         swe_interpolated,
-        os.path.join(outdir, f'{product_name}_interpolated_{max_distance}_{dt.strftime("%Y%m%d")}.tif')
+        os.path.join(outdir, f'{product_name}-interpolated-{max_distance}-{dt.strftime("%Y%m%d")}.tif')
     )
 
     processed_productfiles.append(
-        {"filetype": f'{product_name}_interpolated', "file": coldcontent_interpolated, "datetime": dt, "version": None}
+        {"filetype": f'{product_name}-interpolated', "file": coldcontent_interpolated, "datetime": dt, "version": None}
     )
 
     return processed_productfiles

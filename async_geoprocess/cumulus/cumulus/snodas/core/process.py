@@ -50,10 +50,10 @@ def snodas_filenames(datetime, infile_type):
     prefix = snodas_filename_prefix(infile_type)
 
     filenames = {
-        'nohrsc_snodas_swe': '{}_ssmv11034tS__T0001TTNATS{}05HP001',
-        'nohrsc_snodas_snowdepth': '{}_ssmv11036tS__T0001TTNATS{}05HP001',
-        'nohrsc_snodas_snowpack_average_temperature': '{}_ssmv11038wS__A0024TTNATS{}05DP001',
-        'nohrsc_snodas_snowmelt': '{}_ssmv11044bS__T0024TTNATS{}05DP000',
+        'nohrsc-snodas-swe': '{}_ssmv11034tS__T0001TTNATS{}05HP001',
+        'nohrsc-snodas-snowdepth': '{}_ssmv11036tS__T0001TTNATS{}05HP001',
+        'nohrsc-snodas-snowpack-average-temperature': '{}_ssmv11038wS__A0024TTNATS{}05DP001',
+        'nohrsc-snodas-snowmelt': '{}_ssmv11044bS__T0024TTNATS{}05DP000',
     }
 
     return {k: v.format(prefix, dtstr) for k, v in filenames.items()}
@@ -65,8 +65,8 @@ def computed_filenames(datetime, infile_type):
     prefix = snodas_filename_prefix(infile_type)
 
     return {
-        'nohrsc_snodas_coldcontent': '{}_coldcontent_{}'.format(prefix, dtstr),
-        'nohrsc_snodas_snowmeltmm': '{}_snowmeltmm_{}'.format(prefix, dtstr)
+        'nohrsc-snodas-coldcontent': '{}_coldcontent_{}'.format(prefix, dtstr),
+        'nohrsc-snodas-snowmeltmm': '{}_snowmeltmm_{}'.format(prefix, dtstr)
     }
 
 
@@ -269,19 +269,19 @@ def process_snodas_for_date(dt, infile, infile_type, outdir):
     # COMPUTE COLD CONTENT GRID FROM SWE AND SNOWPACK AVERAGE TEMPERATURE
     # -------------------------------------------------------------------
     coldcontent = snodas_write_coldcontent(
-        path_factory(outdir, 'cog', snodas_filenames(dt, infile_type)['nohrsc_snodas_snowpack_average_temperature']),
-        path_factory(outdir, 'cog', snodas_filenames(dt, infile_type)['nohrsc_snodas_swe']),
-        path_factory(outdir, 'tif', computed_filenames(dt, infile_type)['nohrsc_snodas_coldcontent'])
+        path_factory(outdir, 'cog', snodas_filenames(dt, infile_type)['nohrsc-snodas-snowpack-average-temperature']),
+        path_factory(outdir, 'cog', snodas_filenames(dt, infile_type)['nohrsc-snodas-swe']),
+        path_factory(outdir, 'tif', computed_filenames(dt, infile_type)['nohrsc-snodas-coldcontent'])
     )
     # Overviews
     create_overviews(coldcontent)
     # Cloud Optimized Geotiff
     coldcontent_cog = translate(
         coldcontent,
-        path_factory(outdir, 'cog', computed_filenames(dt, infile_type)['nohrsc_snodas_coldcontent']),
+        path_factory(outdir, 'cog', computed_filenames(dt, infile_type)['nohrsc-snodas-coldcontent']),
     )
     # Add tif and cloud optimized geotiff to list of outfiles if they were created
-    add_to_outdict_if_exists(coldcontent_cog, 'nohrsc_snodas_coldcontent', processed_files)
+    add_to_outdict_if_exists(coldcontent_cog, 'nohrsc-snodas-coldcontent', processed_files)
 
     # Delete tif after cloud optimized geotiff is created
     os.remove(coldcontent)
@@ -292,19 +292,19 @@ def process_snodas_for_date(dt, infile, infile_type, outdir):
     # Snowmelt in Millimeters, Native Projection
     snowmeltmm = scale_raster_values(
         0.01,
-        path_factory(outdir, 'cog', snodas_filenames(dt, infile_type)['nohrsc_snodas_snowmelt']),
-        path_factory(outdir, 'tif', computed_filenames(dt, infile_type)['nohrsc_snodas_snowmeltmm'])
+        path_factory(outdir, 'cog', snodas_filenames(dt, infile_type)['nohrsc-snodas-snowmelt']),
+        path_factory(outdir, 'tif', computed_filenames(dt, infile_type)['nohrsc-snodas-snowmeltmm'])
     )
     # Overviews
     create_overviews(snowmeltmm)
     # Cloud Optimized Geotiff
     snowmeltmm_cog = translate(
         snowmeltmm,
-        path_factory(outdir, 'cog', computed_filenames(dt, infile_type)['nohrsc_snodas_snowmeltmm']),
+        path_factory(outdir, 'cog', computed_filenames(dt, infile_type)['nohrsc-snodas-snowmeltmm']),
     )
 
     # Add tif and cloud optimized geotiff to list of outfiles if they were created
-    add_to_outdict_if_exists(snowmeltmm_cog, 'nohrsc_snodas_snowmelt', processed_files)
+    add_to_outdict_if_exists(snowmeltmm_cog, 'nohrsc-snodas-snowmelt', processed_files)
 
     # Delete tif after cloud optimized geotiff is created
     os.remove(snowmeltmm)

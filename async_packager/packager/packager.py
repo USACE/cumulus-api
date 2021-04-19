@@ -104,7 +104,8 @@ def package(msg, packager_update_fn):
 
     # Get needed information from msg
     id = msg['download_id']
-    output_bucket = msg['output_bucket']
+    # output_bucket = msg['output_bucket']
+    output_bucket = CONFIG.WRITE_TO_BUCKET
     output_key = msg['output_key']
     contents = msg['contents']
     watershed = msg['watershed']

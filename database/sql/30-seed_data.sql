@@ -109,9 +109,9 @@ INSERT INTO acquirable (id, name, slug) VALUES
 ('97064e4d-453b-4761-8c9a-4a1b979d359e', 'prism_tmax_early', 'prism-tmax-early'),
 ('11e87d14-ec54-4550-bd95-bc6eba0eba08', 'prism_tmin_early', 'prism-tmin-early'),
 ('22678c3d-8ac0-4060-b750-6d27a91d0fb3', 'ncep_rtma_ru_anl', 'ncep-rtma-ru-anl'),
-('87a8efb7-af6f-4ece-a97f-53272d1a151d', 'ncep_mrms_v12_multiSensor_qpe_01h_pass1', 'ncep-mrms-v12-multisensor-qpe-01h-pass1'),
+('87a8efb7-af6f-4ece-a97f-53272d1a151d', 'ncep_mrms_v12_multisensor_qpe_01h_pass1', 'ncep-mrms-v12-multisensor-qpe-01h-pass1'),
 ('0c725458-deb7-45bb-84c6-e98083874c0e', 'wpc_qpf_2p5km', 'wpc-qpf-2p5km'),
-('ccc252f9-defc-4b25-817b-2e14c87073a0', 'ncep_mrms_v12_multiSensor_qpe_01h_Pass2', 'ncep-mrms-v12-multisensor-qpe-01h-pass2');
+('ccc252f9-defc-4b25-817b-2e14c87073a0', 'ncep_mrms_v12_multisensor_qpe_01h_pass2', 'ncep-mrms-v12-multisensor-qpe-01h-pass2');
 
 -- acquirablefile
 INSERT INTO acquirablefile (id, datetime, file, process_date, acquirable_id) VALUES

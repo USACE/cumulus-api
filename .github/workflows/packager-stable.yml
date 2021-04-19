@@ -1,16 +1,16 @@
-name: Build Geoprocess
+name: Build Packager Stable
 
 on:
   push:
-    branches: [old-develop]
+    branches: [stable]
     paths:
-      - 'async_geoprocess/**'
-      - '.github/workflows/geoprocess.yml'
+      - 'async_packager/**'
+      - '.github/workflows/packager-stable.yml'
   workflow_dispatch:
 jobs:
 
-  GeoprocessDockerImage:
-    name: Geoprocess Container Image
+  PackagerDockerImage:
+    name: Packager Image Stable
     # The type of runner that the job will run on
     runs-on: ubuntu-latest
 
@@ -30,15 +30,15 @@ jobs:
         id: login-ecr
         uses: aws-actions/amazon-ecr-login@v1
 
-      - name: Build, tag, and push image to Amazon ECR (cumulus-geoprocess)
+      - name: Build, tag, and push image to Amazon ECR (cumulus-packager)
         env:
           ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
-          ECR_REPOSITORY: cumulus-geoprocess
+          ECR_REPOSITORY: cumulus-packager
           IMAGE_TAG: ${{ github.sha }}
         run: |
-          docker build -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG -t $ECR_REGISTRY/$ECR_REPOSITORY:latest async_geoprocess
+          docker build -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG -t $ECR_REGISTRY/$ECR_REPOSITORY:stable async_packager
           docker push $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
-          docker push $ECR_REGISTRY/$ECR_REPOSITORY:latest
+          docker push $ECR_REGISTRY/$ECR_REPOSITORY:stable
 
       - name: Logout of Amazon ECR
         if: always()

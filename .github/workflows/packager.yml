@@ -2,7 +2,7 @@ name: Build Packager
 
 on:
   push:
-    branches: [develop]
+    branches: [old-develop]
     paths:
       - 'async_packager/**'
       - '.github/workflows/packager.yml'

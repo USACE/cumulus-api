@@ -36,7 +36,7 @@ USE_SSL = os.getenv('USE_SSL', default=False)
 
 WAIT_TIME_SECONDS = os.getenv('WAIT_TIME_SECONDS', default=20)
 
-WRITE_TO_BUCKET = os.getenv('WRITE_TO_BUCKET', default='corpsmap-data')
+WRITE_TO_BUCKET = os.getenv('WRITE_TO_BUCKET', default='cwbi-data-develop')
 
 # MOCK File Uploads to S3 (i.e. print) or actually upload
 if os.getenv('CUMULUS_MOCK_S3_UPLOAD', default="False").upper() == "TRUE":

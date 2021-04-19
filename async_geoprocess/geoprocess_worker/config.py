@@ -22,7 +22,7 @@ AWS_REGION_SQS = os.getenv('AWS_REGION_SQS', default=AWS_REGION)
 
 # S3
 ENDPOINT_URL_S3 = os.getenv('ENDPOINT_URL_S3', default=None)
-WRITE_TO_BUCKET = 'corpsmap-data'
+WRITE_TO_BUCKET = os.getenv('WRITE_TO_BUCKET', default='cwbi-data-develop')
 
 # MOCK File Uploads to S3 (i.e. print) or actually upload
 if os.getenv('CUMULUS_MOCK_S3_UPLOAD', default="False").upper() == "TRUE":

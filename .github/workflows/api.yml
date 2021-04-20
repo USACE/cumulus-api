@@ -2,7 +2,7 @@ name: Build API
 
 on:
   push:
-    branches: [develop]
+    branches: [old-develop]
     paths:
       - 'api/**'
       - '.github/workflows/api.yml'

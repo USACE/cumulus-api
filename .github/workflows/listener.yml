@@ -2,7 +2,7 @@ name: Build Listener
 
 on:
   push:
-    branches: [develop]
+    branches: [old-develop]
     paths:
       - 'async_listener/**'
       - '.github/workflows/listener.yml'

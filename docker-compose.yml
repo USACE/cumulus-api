@@ -66,8 +66,11 @@ services:
       context: async_packager
     environment:
       - AWS_REGION=us-east-1
-      - AWS_ACCESS_KEY_ID=$AWS_ACCESS_KEY_ID
-      - AWS_SECRET_ACCESS_KEY=$AWS_SECRET_ACCESS_KEY
+      - AWS_S3_ENDPOINT=minio:9000
+      - AWS_VIRTUAL_HOSTING=FALSE
+      - AWS_HTTPS=NO
+      - AWS_ACCESS_KEY_ID=AKIAIOSFODNN7EXAMPLE
+      - AWS_SECRET_ACCESS_KEY=wJalrXUtnFEMI/K7MDENG/bPxRfiCYEXAMPLEKEY
       - AWS_ACCESS_KEY_ID_SQS=x
       - AWS_SECRET_ACCESS_KEY_SQS=x
       - AWS_REGION_SQS=elasticmq
@@ -80,8 +83,10 @@ services:
       - CUMULUS_DBNAME=postgres
       - CUMULUS_DBHOST=cumulusdb
       - CUMULUS_DBSSLMODE=disable
-      - ENDPOINT_URL=http://elasticmq:9324
+      - ENDPOINT_URL_SQS=http://elasticmq:9324
       - PACKAGER_UPDATE_INTERVAL=5
+      - CPL_DEBUG=YES
+      - CPL_CURL_VERBOSE=YES
     # Volume to persist packager created file
     volumes:
       - ./data:/output

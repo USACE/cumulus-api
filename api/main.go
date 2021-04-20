@@ -63,12 +63,12 @@ func main() {
 	e.Use(middleware.CORS, middleware.GZIP)
 
 	// Public Routes
-	public := e.Group("/cumulus/v1")
+	public := e.Group("")
 
 	/////////////////////////
 	// Key or CAC Auth Routes
 	/////////////////////////
-	cacOrToken := e.Group("/cumulus/v1")
+	cacOrToken := e.Group("")
 	if cfg.AuthJWTMocked {
 		cacOrToken.Use(middleware.JWTMock(cfg.AuthDisabled, true))
 	} else {
@@ -89,7 +89,7 @@ func main() {
 	/////////////////////////////////////////
 	// CAC Only Routes (API Keys Not Allowed)
 	/////////////////////////////////////////
-	cacOnly := e.Group("/cumulus/v1")
+	cacOnly := e.Group("")
 	if cfg.AuthJWTMocked {
 		cacOnly.Use(middleware.JWTMock(cfg.AuthDisabled, false))
 	} else {

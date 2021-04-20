@@ -2,6 +2,7 @@ from datetime import datetime
 import os
 from uuid import uuid4
 from ..geoprocess.core.base import info, translate, create_overviews
+from ..handyutils.core import change_final_file_extension
 
 
 def process(infile, outdir):
@@ -28,13 +29,13 @@ def process(infile, outdir):
             outdir,
             "{}_{}".format(
                 dt.strftime("%Y%m%d"),
-                os.path.basename(infile)
+                change_final_file_extension(infile, 'tif')
             )
         )
     )
 
     outfile_list = [
-        { "filetype": "ncep_rtma_ru_anl_airtemp", "file": cog, "datetime": dt.isoformat(), "version": None },
+        { "filetype": "ncep-rtma-ru-anl-airtemp", "file": cog, "datetime": dt.isoformat(), "version": None },
     ]
 
     return outfile_list

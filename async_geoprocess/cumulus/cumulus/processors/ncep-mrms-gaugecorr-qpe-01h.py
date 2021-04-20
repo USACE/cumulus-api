@@ -14,7 +14,7 @@ def process(infile, outdir):
     # Get Datetime from String Like "1599008400 sec UTC"
     dt = datetime.fromtimestamp(int(dtStr.split(" ")[0]))
 
-    # Extract Band 0 (QPE); Convert to COG
+    # Extract Band 3 (Temperature); Convert to COG
     tif = translate(f'/vsigzip/{infile}', os.path.join(outdir, f"temp-tif-{uuid4()}"))
     tif_with_overviews = create_overviews(tif)
     cog = translate(
@@ -28,7 +28,7 @@ def process(infile, outdir):
     )
 
     outfile_list = [
-        { "filetype": "ncep_mrms_v12_MultiSensor_QPE_01H_Pass2", "file": cog, "datetime": dt.isoformat(), "version": None },
+        { "filetype": "ncep-mrms-gaugecorr-qpe-01h", "file": cog, "datetime": dt.isoformat()},
     ]
 
     return outfile_list

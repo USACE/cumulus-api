@@ -7,13 +7,18 @@ import (
 	"time"
 
 	"github.com/USACE/go-simple-asyncer/asyncer"
-	"github.com/google/uuid"
 	"github.com/kelseyhightower/envconfig"
 	"github.com/lib/pq"
 )
 
+// Message holds Fn (function name) and details (string to send to queue / used by specific worker)
+type Message struct {
+	Fn      string `json:"fn"`
+	Details string `json:"details"`
+}
+
 // NotificationHandler is a function that takes a notification and returns an error
-type NotificationHandler func(*pq.Notification) error
+type NotificationHandler func(string) error
 
 // Config holds application configuration variables
 type Config struct {
@@ -56,16 +61,10 @@ func (c Config) maxReconn() time.Duration {
 	return d
 }
 
-// Message holds ID of new record and table/entity name
-type Message struct {
-	ID    uuid.UUID `json:"id"`
-	Table string    `json:"table"`
-}
-
 // NewAsyncNotificationHandler handles dependency injection of asyncer.Asyncer
 func NewAsyncNotificationHandler(a asyncer.Asyncer) NotificationHandler {
-	return func(n *pq.Notification) error {
-		if err := a.CallAsync([]byte(n.Extra)); err != nil {
+	return func(d string) error {
+		if err := a.CallAsync([]byte(d)); err != nil {
 			fmt.Println("Error calling async")
 			fmt.Println(err.Error())
 			return err
@@ -74,23 +73,18 @@ func NewAsyncNotificationHandler(a asyncer.Asyncer) NotificationHandler {
 	}
 }
 
-func waitForNotification(l *pq.Listener, handleDownload, handleStatistics, handleAcquirablefile NotificationHandler) {
+func waitForNotification(l *pq.Listener, handlers map[string]NotificationHandler) {
 	select {
 	case n := <-l.Notify:
 		fmt.Println("notification on channel: " + n.Channel)
 		var m Message
 		if err := json.Unmarshal([]byte(n.Extra), &m); err != nil {
-			print("ERROR: %s", err.Error())
+			fmt.Printf("ERROR: %s\n", err.Error())
 		}
-		switch m.Table {
-		case "download":
-			go handleDownload(n)
-		case "statistics":
-			go handleStatistics(n)
-		case "acquirablefile":
-			go handleAcquirablefile(n)
-		default:
-			fmt.Printf("Unimplemented handler for new records in table %s\n", m.Table)
+		if handler, ok := handlers[m.Fn]; ok {
+			go handler(m.Details)
+		} else {
+			fmt.Printf("Unimplemented handler for Function (fn) %s\n", m.Fn)
 		}
 	case <-time.After(90 * time.Second):
 		go l.Ping()
@@ -118,29 +112,36 @@ func main() {
 		panic(err)
 	}
 
-	// packagerAsyncer defines async engine used to package DSS files for download
+	// downloadAsyncer defines async engine used to package DSS files for download
 	downloadAsyncer, err := asyncer.NewAsyncer(asyncer.Config{Engine: cfg.AsyncEnginePackager, Target: cfg.AsyncEnginePackagerTarget})
 	if err != nil {
 		log.Fatal(err.Error())
 	}
 	d := NewAsyncNotificationHandler(downloadAsyncer)
 
-	// statisticsAsyncer defines async engine for computing raster statistics
-	statisticsAsyncer, err := asyncer.NewAsyncer(asyncer.Config{Engine: cfg.AsyncEngineStatistics, Target: cfg.AsyncEngineStatisticsTarget})
-	if err != nil {
-		log.Fatal(err.Error())
-	}
-	s := NewAsyncNotificationHandler(statisticsAsyncer)
-
 	// acquirablefileAsyncer defines async engine for processing new acquirable files
-	acquirablefileAsyncer, err := asyncer.NewAsyncer(asyncer.Config{Engine: cfg.AsyncEngineGeoprocess, Target: cfg.AsyncEngineGeoprocessTarget})
+	geoprocessAsyncer, err := asyncer.NewAsyncer(asyncer.Config{Engine: cfg.AsyncEngineGeoprocess, Target: cfg.AsyncEngineGeoprocessTarget})
 	if err != nil {
 		log.Fatal(err.Error())
 	}
-	a := NewAsyncNotificationHandler(acquirablefileAsyncer)
+	g := NewAsyncNotificationHandler(geoprocessAsyncer)
+
+	// statisticsAsyncer defines async engine for computing raster statistics
+	// statisticsAsyncer, err := asyncer.NewAsyncer(asyncer.Config{Engine: cfg.AsyncEngineStatistics, Target: cfg.AsyncEngineStatisticsTarget})
+	// if err != nil {
+	// 	log.Fatal(err.Error())
+	// }
+	// // AddstatisticsAsyncer to map of registered handlers
+	// handlers["notify_statistics"] = NewAsyncNotificationHandler(statisticsAsyncer)
+
+	// Map of handlers
+	handlers := map[string]NotificationHandler{
+		"geoprocess-acquirablefile": g,
+		"new-download":              d,
+	}
 
 	fmt.Println("entering main loop")
 	for {
-		waitForNotification(listener, d, s, a)
+		waitForNotification(listener, handlers)
 	}
 }

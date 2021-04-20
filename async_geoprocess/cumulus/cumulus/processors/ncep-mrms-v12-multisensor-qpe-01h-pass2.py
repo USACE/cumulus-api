@@ -8,34 +8,27 @@ def process(infile, outdir):
     Returns array of objects [{ "filetype": "nohrsc_snodas_swe", "file": "file.tif", ... }, {}, ]
     """
 
-    fileinfo = info(infile)
-
-    for band in fileinfo["bands"]:
-        band_number = str(band["band"])
-        band_meta = band["metadata"][""]
-        dtStr = band_meta["GRIB_VALID_TIME"]
-        if "Total precipitation" in band_meta["GRIB_COMMENT"]: break
+    # Only Get Air Temperature to Start; Band 3 (i.e. array position 2 because zero-based indexing)
+    dtStr = info(f'/vsigzip/{infile}')['bands'][0]["metadata"][""]['GRIB_VALID_TIME']
 
     # Get Datetime from String Like "1599008400 sec UTC"
     dt = datetime.fromtimestamp(int(dtStr.split(" ")[0]))
 
-    print(f"Band number is {band_number}, date string is {dtStr}, and date is {dt}")
-
-    # # Extract Band 0 (QPE); Convert to COG
-    tif = translate(infile, os.path.join(outdir, f"temp-tif-{uuid4()}"), extra_args=["-b", band_number])
+    # Extract Band 0 (QPE); Convert to COG
+    tif = translate(f'/vsigzip/{infile}', os.path.join(outdir, f"temp-tif-{uuid4()}"))
     tif_with_overviews = create_overviews(tif)
     cog = translate(
         tif_with_overviews,
         os.path.join(
             outdir,
             "{}.tif".format(
-                os.path.basename(infile)
+                os.path.basename(infile).split(".grib2.gz")[0]
             )
         )
     )
 
     outfile_list = [
-        { "filetype": "cbrfc_mpe", "file": cog, "datetime": dt.isoformat(), "version": None },
+        { "filetype": "ncep-mrms-v12-multisensor-qpe-01h-pass2", "file": cog, "datetime": dt.isoformat(), "version": None },
     ]
 
     return outfile_list

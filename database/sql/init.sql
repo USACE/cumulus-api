@@ -4,6 +4,7 @@ begin;
 
 \i '/sql/10-tables.sql'
 \i '/sql/10a-views.sql'
+\i '/sql/11-functions-triggers.sql'
 \i '/sql/20-roles.sql'
 \i '/sql/30-seed_data.sql'
 \i '/sql/30a-seed_watershed.sql'

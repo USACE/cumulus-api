@@ -2,6 +2,7 @@ from datetime import datetime
 import os
 from uuid import uuid4
 from ..geoprocess.core.base import info, translate, create_overviews
+from ..handyutils.core import change_final_file_extension
 
 def process(infile, outdir):
     """Takes an infile to process and path to a directory where output files should be saved
@@ -9,13 +10,12 @@ def process(infile, outdir):
     """
 
     fileinfo = info(infile)
+
     for band in fileinfo["bands"]:
         band_number = str(band["band"])
         band_meta = band["metadata"][""]
         dtStr = band_meta["GRIB_VALID_TIME"]
         if "Total precipitation" in band_meta["GRIB_COMMENT"]: break
-
-    # dtStr = info(infile)['bands'][1]["metadata"][""]['GRIB_VALID_TIME']
 
     # Get Datetime from String Like "1599008400 sec UTC"
     dt = datetime.fromtimestamp(int(dtStr.split(" ")[0]))
@@ -29,14 +29,12 @@ def process(infile, outdir):
         tif_with_overviews,
         os.path.join(
             outdir,
-            "{}.tif".format(
-                os.path.basename(infile)
-            )
+            change_final_file_extension(os.path.basename(infile), 'tif')            
         )
     )
 
     outfile_list = [
-        { "filetype": "ndgd_leia98_precip", "file": cog, "datetime": dt.isoformat(), "version": None },
+        { "filetype": "cbrfc-mpe", "file": cog, "datetime": dt.isoformat(), "version": None },
     ]
 
     return outfile_list

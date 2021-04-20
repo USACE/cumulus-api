@@ -17,6 +17,7 @@ GRANT SELECT ON
     area,
     area_group,
     area_group_product_statistics_enabled,
+    config,
     profile,
     profile_token,
     office,
@@ -34,6 +35,7 @@ GRANT SELECT ON
     download_product,
     watershed,
     profile_watersheds,
+    v_acquirablefile,
     v_download,
     v_area_5070,
     v_watershed
@@ -45,6 +47,7 @@ GRANT INSERT,UPDATE,DELETE ON
     area,
     area_group,
     area_group_product_statistics_enabled,
+    config,
     profile,
     profile_token,
     office,

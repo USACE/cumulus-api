@@ -196,9 +196,17 @@ CREATE TABLE IF NOT EXISTS public.area_group_product_statistics_enabled (
     CONSTRAINT unique_area_group_product UNIQUE(area_group_id, product_id)
 );
 
+-- config (application config variables)
+CREATE TABLE IF NOT EXISTS public.config (
+    config_name VARCHAR UNIQUE NOT NULL,
+    config_value VARCHAR NOT NULL
+);
+
 ------------------------
 -- SEED DATA FOR DOMAINS
 ------------------------
+INSERT INTO config (config_name, config_value) VALUES
+('write_to_bucket', 'cwbi-data-develop');
 
 -- product_group
 INSERT INTO product_group (id, name) VALUES

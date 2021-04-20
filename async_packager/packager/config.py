@@ -1,6 +1,6 @@
 import os
 
-ENDPOINT_URL = os.getenv('ENDPOINT_URL', default='http://elasticmq:9324')
+ENDPOINT_URL_SQS = os.getenv('ENDPOINT_URL_SQS', default='http://elasticmq:9324')
 QUEUE_NAME_PACKAGER=os.getenv('QUEUE_NAME_PACKAGER', 'packager')
 QUEUE_NAME_PACKAGER_UPDATE=os.getenv('QUEUE_NAME_PACKAGER_UPDATE', 'packager_update')
 # How often to send status updates
@@ -36,7 +36,7 @@ USE_SSL = os.getenv('USE_SSL', default=False)
 
 WAIT_TIME_SECONDS = os.getenv('WAIT_TIME_SECONDS', default=20)
 
-WRITE_TO_BUCKET = os.getenv('WRITE_TO_BUCKET', default='corpsmap-data')
+WRITE_TO_BUCKET = os.getenv('WRITE_TO_BUCKET', default='cwbi-data-develop')
 
 # MOCK File Uploads to S3 (i.e. print) or actually upload
 if os.getenv('CUMULUS_MOCK_S3_UPLOAD', default="False").upper() == "TRUE":

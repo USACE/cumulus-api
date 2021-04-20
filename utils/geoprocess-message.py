@@ -10,8 +10,8 @@ import botocore.exceptions
 SNODAS_INCOMING_FILE_TO_COGS = {
     "geoprocess": "incoming-file-to-cogs",
     "geoprocess_config": {
-        "bucket": "corpsmap-data-incoming",
-        "key": "cumulus/nohrsc_snodas_unmasked/SNODAS_unmasked_20140101.tar"
+        "bucket": "cwbi-data-develop",
+        "key": "cumulus/nohrsc-snodas-unmasked/SNODAS_unmasked_20140101.tar"
     }
 }
 
@@ -28,8 +28,8 @@ SNODAS_INTERPOLATE_MESSAGE = {
 INCOMING_FILE_TO_COGS_MESSAGE = {
     "geoprocess": "incoming-file-to-cogs",
     "geoprocess_config": {
-        "bucket": "corpsmap-data-incoming",
-        "key": "cumulus/cbrfc_mpe/xmrg0316202100z.grb"
+        "bucket": "cwbi-data-develop",
+        "key": "cumulus/cbrfc-mpe/xmrg0316202100z.grb"
     }
 }
 

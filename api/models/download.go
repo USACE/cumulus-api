@@ -53,11 +53,10 @@ type PackagerInfo struct {
 
 // PackagerRequest holds all information sent to Packager necessary to package files
 type PackagerRequest struct {
-	DownloadID   uuid.UUID             `json:"download_id"`
-	OutputBucket string                `json:"output_bucket"`
-	OutputKey    string                `json:"output_key"`
-	Watershed    Watershed             `json:"watershed"`
-	Contents     []PackagerContentItem `json:"contents"`
+	DownloadID uuid.UUID             `json:"download_id"`
+	OutputKey  string                `json:"output_key"`
+	Watershed  Watershed             `json:"watershed"`
+	Contents   []PackagerContentItem `json:"contents"`
 }
 
 // PackagerContentItem is a single item for Packager to include in output file
@@ -126,10 +125,9 @@ func GetDownload(db *sqlx.DB, id *uuid.UUID) (*Download, error) {
 func GetDownloadPackagerRequest(db *sqlx.DB, downloadID *uuid.UUID) (*PackagerRequest, error) {
 
 	pr := PackagerRequest{
-		DownloadID:   *downloadID,
-		OutputBucket: "corpsmap-data",
-		OutputKey:    fmt.Sprintf("cumulus/download/dss/download_%s.dss", downloadID),
-		Contents:     make([]PackagerContentItem, 0),
+		DownloadID: *downloadID,
+		OutputKey:  fmt.Sprintf("cumulus/download/dss/download_%s.dss", downloadID),
+		Contents:   make([]PackagerContentItem, 0),
 	}
 
 	if err = db.Select(
@@ -154,7 +152,7 @@ func GetDownloadPackagerRequest(db *sqlx.DB, downloadID *uuid.UUID) (*PackagerRe
 			   dss_unit
 		FROM (
 			SELECT f.file as key,
-			'corpsmap-data' AS bucket,
+			(SELECT config_value from config where config_name = 'write_to_bucket') AS bucket,
 			 CASE WHEN p.temporal_duration = 0 THEN 'INST-VAL'
 				  ELSE 'PER-CUM'
 				  END as dss_datatype,

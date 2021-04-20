@@ -1,6 +1,6 @@
 import os
 
-ENDPOINT_URL = os.getenv('ENDPOINT_URL', default='http://elasticmq:9324')
+ENDPOINT_URL_SQS = os.getenv('ENDPOINT_URL_SQS', default='http://elasticmq:9324')
 QUEUE_NAME_PACKAGER=os.getenv('QUEUE_NAME_PACKAGER', 'packager')
 QUEUE_NAME_PACKAGER_UPDATE=os.getenv('QUEUE_NAME_PACKAGER_UPDATE', 'packager_update')
 # How often to send status updates

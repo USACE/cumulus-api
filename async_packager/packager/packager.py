@@ -24,7 +24,7 @@ else:
     # ElasticMQ with Credentials via AWS_ environment variables
     CLIENT = boto3.resource(
         'sqs',
-        endpoint_url=CONFIG.ENDPOINT_URL,
+        endpoint_url=CONFIG.ENDPOINT_URL_SQS,
         region_name=CONFIG.AWS_REGION_SQS,
         aws_secret_access_key=CONFIG.AWS_SECRET_ACCESS_KEY_SQS,
         aws_access_key_id=CONFIG.AWS_ACCESS_KEY_ID_SQS,
@@ -104,8 +104,6 @@ def package(msg, packager_update_fn):
 
     # Get needed information from msg
     id = msg['download_id']
-    # output_bucket = msg['output_bucket']
-    output_bucket = CONFIG.WRITE_TO_BUCKET
     output_key = msg['output_key']
     contents = msg['contents']
     watershed = msg['watershed']

@@ -198,8 +198,8 @@ CREATE TABLE IF NOT EXISTS public.area_group_product_statistics_enabled (
 
 -- config (application config variables)
 CREATE TABLE IF NOT EXISTS public.config (
-    config_name VARCHAR UNIQUE NOT NULL DEFAULT 'static_host',
-    config_value VARCHAR NOT NULL DEFAULT 'http://localhost'
+    config_name VARCHAR UNIQUE NOT NULL,
+    config_value VARCHAR NOT NULL
 );
 
 ------------------------

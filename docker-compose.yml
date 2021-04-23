@@ -55,7 +55,7 @@ services:
       - CUMULUS_DBNAME=postgres
       - CUMULUS_DBHOST=cumulusdb
       - QUEUE_NAME=cumulus-geoprocess
-      - CUMULUS_API_URL=http://api:80/cumulus/v1
+      - CUMULUS_API_URL=http://api:80
       - ENDPOINT_URL_SQS=http://elasticmq:9324
       - ENDPOINT_URL_S3=http://minio:9000
     volumes:
@@ -77,7 +77,7 @@ services:
       - CUMULUS_MOCK_S3_UPLOAD=TRUE
       - QUEUE_NAME_PACKAGER=cumulus-packager
       - QUEUE_NAME_PACKAGER_UPDATE=cumulus-packager-update
-      - CUMULUS_API_URL=http://api:80/cumulus/v1
+      - CUMULUS_API_URL=http://api:80
       - CUMULUS_DBUSER=postgres
       - CUMULUS_DBPASS=postgres
       - CUMULUS_DBNAME=postgres
@@ -112,8 +112,9 @@ services:
     build:
       context: api
     environment:
-      - AWS_ACCESS_KEY_ID=x
-      - AWS_SECRET_ACCESS_KEY=x
+      - AWS_ACCESS_KEY_ID=AKIAIOSFODNN7EXAMPLE
+      - AWS_SECRET_ACCESS_KEY=wJalrXUtnFEMI/K7MDENG/bPxRfiCYEXAMPLEKEY
+      - AWS_DEFAULT_REGION=us-east-1
       - AWS_REGION=us-east-1
       - CUMULUS_APPLICATION_KEY=appkey
       - CUMULUS_AUTH_DISABLED=FALSE
@@ -130,19 +131,15 @@ services:
       - CUMULUS_ASYNC_ENGINE_PACKAGER_TARGET=local/http://localhost:9324/queue/cumulus-packager
       - CUMULUS_ASYNC_ENGINE_STATISTICS=AWSSQS
       - CUMULUS_ASYNC_ENGINE_STATISTICS_TARGET=local/http://localhost:9324/queue/cumulus-statistics
-      - CUMULUS_STATIC_HOST=https://api.rsgis.dev
+      - CUMULUS_STATIC_HOST=http://localhost
+      - CUMULUS_AWS_S3_REGION=us-east-1
+      - CUMULUS_AWS_S3_BUCKET=cwbi-data-develop
+      - CUMULUS_AWS_S3_ENDPOINT=http://minio:9000
+      - CUMULUS_AWS_S3_DISABLE_SSL=True
+      - CUMULUS_AWS_S3_FORCE_PATH_STYLE=True
     ports:
       - "80:80"
     restart: always
-  nginx:
-    image: nginx
-    ports: 
-        - "8080:80"
-    build: 
-      context: async_packager
-      dockerfile: Dockerfile-nginx
-    volumes:
-      - ./data:/usr/share/nginx/html/cumulus/download/dss
   pgadmin:
     image: dpage/pgadmin4
     environment:

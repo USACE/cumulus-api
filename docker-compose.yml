@@ -130,7 +130,7 @@ services:
       - CUMULUS_ASYNC_ENGINE_PACKAGER_TARGET=local/http://localhost:9324/queue/cumulus-packager
       - CUMULUS_ASYNC_ENGINE_STATISTICS=AWSSQS
       - CUMULUS_ASYNC_ENGINE_STATISTICS_TARGET=local/http://localhost:9324/queue/cumulus-statistics
-      - CUMULUS_STATIC_HOST=http://localhost:8080
+      - CUMULUS_STATIC_HOST=http://localhost
       - CUMULUS_AWS_S3_REGION=us-east-1
       - CUMULUS_AWS_S3_BUCKET=cwbi-data-develop
       - CUMULUS_AWS_S3_ENDPOINT=http://minio:9000

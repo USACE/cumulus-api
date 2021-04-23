@@ -3,6 +3,8 @@ package config
 import (
 	"log"
 
+	"github.com/aws/aws-sdk-go/aws"
+
 	"github.com/kelseyhightower/envconfig"
 )
 
@@ -24,6 +26,24 @@ type Config struct {
 	AsyncEngineStatisticsTarget  string `envconfig:"ASYNC_ENGINE_STATISTICS_TARGET"`
 	StaticHost                   string `envconfig:"STATIC_HOST"`
 	ApplicationKey               string `envconfig:"APPLICATION_KEY"`
+	AWSS3Endpoint                string `envconfig:"AWS_S3_ENDPOINT"`
+	AWSS3Region                  string `envconfig:"AWS_S3_REGION"`
+	AWSS3DisableSSL              bool   `envconfig:"AWS_S3_DISABLE_SSL"`
+	AWSS3ForcePathStyle          bool   `envconfig:"AWS_S3_FORCE_PATH_STYLE"`
+	AWSS3Bucket                  string `envconfig:"AWS_S3_BUCKET"`
+}
+
+func (cfg Config) AWSConfig() aws.Config {
+
+	a := aws.NewConfig().WithRegion(cfg.AWSS3Region)
+
+	// Used for "minio" during development
+	a.WithDisableSSL(cfg.AWSS3DisableSSL)
+	a.WithS3ForcePathStyle(cfg.AWSS3ForcePathStyle)
+	if cfg.AWSS3Endpoint != "" {
+		a.WithEndpoint(cfg.AWSS3Endpoint)
+	}
+	return *a
 }
 
 // GetConfig returns environment variable config

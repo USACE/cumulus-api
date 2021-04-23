@@ -5,6 +5,7 @@ go 1.15
 require (
 	github.com/USACE/go-simple-asyncer v0.0.0-20201015223104-446ae10887a8
 	github.com/apex/gateway v1.1.2
+	github.com/aws/aws-sdk-go v1.35.7
 	github.com/btcsuite/btcutil v1.0.2
 	github.com/dgrijalva/jwt-go v3.2.0+incompatible
 	github.com/google/uuid v1.1.2

@@ -55,6 +55,9 @@ func main() {
 		log.Fatal(err.Error())
 	}
 
+	// AWS Config
+	awsCfg := cfg.AWSConfig()
+
 	// Database
 	db := Connection(cfg)
 
@@ -116,6 +119,8 @@ func main() {
 	public.GET("/downloads/:id/packager_request", handlers.GetDownloadPackagerRequest(db))
 	public.POST("/downloads", handlers.CreateDownload(db))
 	public.PUT("/downloads/:id", handlers.UpdateDownload(db))
+	// Serve Download Files
+	public.GET("/cumulus/download/dss/*", handlers.ServeMedia(&awsCfg, &cfg.AWSS3Bucket))
 
 	// Restricted Routes (JWT or Key)
 

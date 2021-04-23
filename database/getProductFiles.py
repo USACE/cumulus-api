@@ -4,12 +4,12 @@ import json
 # from requests.packages.urllib3.exceptions import InsecureRequestWarning
 # requests.packages.urllib3.disable_warnings(InsecureRequestWarning)
 
-apiBaseURL = 'https://water-api.rsgis.dev'
+apiBaseURL = 'https://cumulus-api.rsgis.dev'
 
 start = '2018-10-01T01:00:00'
 end   = '2021-03-31T23:00:00'
 
-r = requests.get(f'{apiBaseURL}/cumulus/v1/products', verify=True)
+r = requests.get(f'{apiBaseURL}/products', verify=True)
 products = r.json()
 
 sql = ''
@@ -20,7 +20,7 @@ for product in products:
 
         print(f"\n##### {product['name']} ##### ID: {product['id']}")
 
-        r = requests.get(f"{apiBaseURL}/cumulus/v1/products/{product['id']}/files?before={end}&after={start}", verify=True)
+        r = requests.get(f"{apiBaseURL}/products/{product['id']}/files?before={end}&after={start}", verify=True)
         productFiles = r.json()
 
         if len(productFiles) > 0:

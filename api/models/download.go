@@ -171,7 +171,7 @@ func GetDownloadPackagerRequest(db *sqlx.DB, downloadID *uuid.UUID) (*PackagerRe
 			INNER JOIN unit u on p.unit_id = u.id
 			INNER JOIN parameter a on a.id = p.parameter_id
 			WHERE f.datetime >= dp.datetime_start AND f.datetime <= dp.datetime_end
-			ORDER BY f.product_id, f.datetime
+			ORDER BY f.product_id, f.version, f.datetime
 		) as dss`,
 		downloadID,
 	); err != nil {

@@ -136,8 +136,9 @@ func main() {
 
 	// Map of handlers
 	handlers := map[string]NotificationHandler{
-		"geoprocess-acquirablefile": g,
-		"new-download":              d,
+		"geoprocess-acquirablefile":     g,
+		"geoprocess-snodas-interpolate": g,
+		"new-download":                  d,
 	}
 
 	fmt.Println("entering main loop")

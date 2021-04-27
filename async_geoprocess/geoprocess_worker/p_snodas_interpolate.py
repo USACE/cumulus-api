@@ -49,7 +49,7 @@ def process(payload, outdir):
     )
 
     processed_productfiles.append(
-        {"filetype": f'{product_name}_interpolated', "file": swe_interpolated, "datetime": dt, "version": None}
+        {"filetype": f'{product_name}-interpolated', "file": swe_interpolated, "datetime": dt, "version": None}
     )
 
 

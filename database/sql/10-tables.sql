@@ -158,6 +158,7 @@ CREATE TABLE IF NOT EXISTS public.productfile (
     product_id UUID REFERENCES product (id),
     version TIMESTAMPTZ NOT NULL DEFAULT '1111-11-11T11:11:11.11Z',
     acquirablefile_id UUID REFERENCES acquirablefile (id),
+    update_date TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
     CONSTRAINT unique_product_version_datetime UNIQUE(product_id, version, datetime)
 );
 

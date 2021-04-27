@@ -113,6 +113,6 @@ $$ LANGUAGE plpgsql;
 
 -- Trigger; NOTIFY NEW ACQUIRABLEFILE ON INSERT
 CREATE TRIGGER notify_snodas_interpolate_geoprocess
-AFTER INSERT ON public.productfile
+AFTER INSERT or UPDATE ON public.productfile
 FOR EACH ROW
 EXECUTE PROCEDURE public.notify_snodas_interpolate_geoprocess();

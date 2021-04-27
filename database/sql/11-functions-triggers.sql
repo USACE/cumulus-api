@@ -89,13 +89,10 @@ CREATE OR REPLACE FUNCTION public.notify_snodas_interpolate_geoprocess() RETURNS
     BEGIN
         PERFORM (
             WITH geoprocess_config as (
-                SELECT id                             AS productfile_id,
-                       product_id                     AS product_id,
-                       product_slug                   AS product_slug,
+                SELECT 
                        (SELECT config_value from config where config_name = 'write_to_bucket') AS bucket,
                        to_char(datetime, 'YYYYMMDD')  AS datetime,
-                       CAST(16 as real)               AS max_distance,
-                       file                           AS key
+                       CAST(16 as real)               AS max_distance
                 FROM v_productfile
                 WHERE id = NEW.id
                 AND product_slug = 'nohrsc-snodas-swe'

@@ -6,8 +6,8 @@ import json
 
 apiBaseURL = 'https://cumulus-api.rsgis.dev'
 
-start = '2018-10-01T01:00:00'
-end   = '2021-03-31T23:00:00'
+start = '2021-01-01T01:00:00'
+end   = '2021-04-20T23:00:00'
 
 r = requests.get(f'{apiBaseURL}/products', verify=True)
 products = r.json()
@@ -16,7 +16,7 @@ sql = ''
 
 for product in products:
 
-    if product['name'] not in ['wpc_qpf_2p5km']:         
+    if product['name'] not in ['wpc_qpf_2p5km', 'hrrr_total_precip']:         
 
         print(f"\n##### {product['name']} ##### ID: {product['id']}")
 

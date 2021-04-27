@@ -11,6 +11,18 @@ CREATE OR REPLACE VIEW v_acquirablefile AS (
     LEFT JOIN acquirable a ON a.id = f.acquirable_id
 );
 
+CREATE OR REPLACE VIEW v_productfile AS (
+    SELECT p.id           AS product_id,
+           p.name         AS product_name,
+           p.slug         AS product_slug,
+           f.id           AS id,
+           f.datetime     AS datetime,
+           f.file         AS file,
+           f.version      AS version
+    FROM productfile f
+    LEFT JOIN product p ON p.id = f.product_id
+);
+
 CREATE OR REPLACE VIEW v_download AS (
         SELECT d.id AS id,
             d.datetime_start AS datetime_start,

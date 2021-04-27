@@ -26,9 +26,7 @@ services:
       /usr/bin/mc policy set public minio/cwbi-data-develop;
       /usr/bin/mc policy set public minio/cwbi-data-stable;
       /usr/bin/mc cp --recursive /media/ minio/cwbi-data-develop/cumulus/;
-      /usr/bin/mc cp --recursive /media-incoming/ minio/cwbi-data-develop/cumulus/acquirables;
       exit 0;
       "
     volumes:
       - ./data:/media
-      - ./data-incoming:/media-incoming

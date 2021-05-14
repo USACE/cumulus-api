@@ -102,8 +102,7 @@ INSERT INTO product (id, group_id, name, slug, temporal_duration, temporal_resol
 
 -- product_acquirable
 INSERT INTO acquirable (id, name, slug) VALUES
-('19ff4f06-9761-40b1-878a-b3613c1a9f9d', 'nbm-co-airtemp', 'nbm-co-airtemp'),
-('d4aa1d8d-ce06-47a0-9768-e817b43a20dd', 'nbm-co-qpf', 'nbm-co-qpf'),
+('d4aa1d8d-ce06-47a0-9768-e817b43a20dd', 'nbm-co-01h', 'nbm-co-01h'),
 ('d4e67bee-2320-4281-b6ef-a040cdeafeb8', 'hrrr_total_precip', 'hrrr-total-precip'),
 ('2429db9a-9872-488a-b7e3-de37afc52ca4', 'cbrfc_mpe', 'cbrfc-mpe'),
 ('b27a8724-d34d-4045-aa87-c6d88f9858d0', 'ndgd_ltia98_airtemp', 'ndgd-ltia98-airtemp'),

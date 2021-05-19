@@ -29,7 +29,7 @@ INCOMING_FILE_TO_COGS_MESSAGE = {
     "geoprocess": "incoming-file-to-cogs",
     "geoprocess_config": {
         "bucket": "cwbi-data-develop",
-        "key": "cumulus/cbrfc-mpe/xmrg0316202100z.grb"
+        "key": "cumulus/acquirables/ndfd-conus-temp-4to7/ds.temp47.bin"
     }
 }
 
@@ -47,8 +47,8 @@ queue = CLIENT.get_queue_by_name(QueueName="cumulus-geoprocess")
 
 print(f'queue;       : {queue}')
 
-# msg = INCOMING_FILE_TO_COGS_MESSAGE
-msg = SNODAS_INCOMING_FILE_TO_COGS
+msg = INCOMING_FILE_TO_COGS_MESSAGE
+# msg = SNODAS_INCOMING_FILE_TO_COGS
 # msg = SNODAS_INTERPOLATE_MESSAGE
 
 response = queue.send_message(MessageBody=json.dumps(msg, separators=(',', ':')))

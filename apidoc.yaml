@@ -327,7 +327,7 @@ paths:
     delete:
       tags:
         - products
-      description: Delete a Product
+      description: Delete Product
       responses:
         "200":
           description: Empty Object
@@ -443,7 +443,7 @@ paths:
     post:
       tags:
         - tags
-      description: Create a Tag
+      description: Create Tag
       responses:
         "201":
           description: A Single Tag
@@ -464,7 +464,7 @@ paths:
     put:
       tags:
         - tags
-      description: Update a Tag
+      description: Update Tag
       responses:
         "200":
           description: A Single Tag
@@ -475,7 +475,7 @@ paths:
     delete:
       tags:
         - tags
-      description: Delete a Tag
+      description: Delete Tag
       responses:
         "200":
           description: Empty Object

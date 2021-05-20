@@ -130,6 +130,14 @@ func DeleteProduct(db *pgxpool.Pool, pID *uuid.UUID) error {
 	return nil
 }
 
+// UndeleteProduct undeletes a single product
+func UndeleteProduct(db *pgxpool.Pool, pID *uuid.UUID) (*Product, error) {
+	if _, err := db.Exec(context.Background(), `UPDATE product SET deleted=false WHERE id=$1`, pID); err != nil {
+		return nil, err
+	}
+	return GetProduct(db, pID)
+}
+
 // GetProductAvailability returns Availability for a product
 func GetProductAvailability(db *pgxpool.Pool, ID *uuid.UUID) (*Availability, error) {
 	// https://stackoverflow.com/questions/29023336/generate-series-in-postgres-from-start-and-end-date-in-a-table
@@ -169,4 +177,25 @@ func ListProductfiles(db *pgxpool.Pool, ID uuid.UUID, after string, before strin
 		return make([]Productfile, 0), err
 	}
 	return ff, nil
+}
+
+func TagProduct(db *pgxpool.Pool, productID *uuid.UUID, tagID *uuid.UUID) (*Product, error) {
+	if _, err := db.Exec(
+		context.Background(),
+		`INSERT INTO product_tags (product_id, tag_id) VALUES ($1, $2)
+		 ON CONFLICT ON CONSTRAINT unique_tag_product DO NOTHING`,
+		productID, tagID,
+	); err != nil {
+		return nil, err
+	}
+	return GetProduct(db, productID)
+}
+
+func UntagProduct(db *pgxpool.Pool, productID *uuid.UUID, tagID *uuid.UUID) (*Product, error) {
+	if _, err := db.Exec(
+		context.Background(), `DELETE FROM product_tags WHERE product_id=$1 AND tag_id=$2`, productID, tagID,
+	); err != nil {
+		return nil, err
+	}
+	return GetProduct(db, productID)
 }

@@ -98,6 +98,22 @@ func DeleteProduct(db *pgxpool.Pool) echo.HandlerFunc {
 	}
 }
 
+// UndeleteProduct un-deletes a single product
+func UndeleteProduct(db *pgxpool.Pool) echo.HandlerFunc {
+	return func(c echo.Context) error {
+		// Product ID from Route Params
+		pID, err := uuid.Parse(c.Param("product_id"))
+		if err != nil {
+			return c.JSON(http.StatusBadRequest, models.DefaultMessageBadRequest)
+		}
+		p, err := models.UndeleteProduct(db, &pID)
+		if err != nil {
+			return c.JSON(http.StatusInternalServerError, models.DefaultMessageInternalServerError)
+		}
+		return c.JSON(http.StatusOK, p)
+	}
+}
+
 // ListProductfiles returns an array of Productfiles
 func ListProductfiles(db *pgxpool.Pool) echo.HandlerFunc {
 	return func(c echo.Context) error {
@@ -141,5 +157,47 @@ func GetProductAvailability(db *pgxpool.Pool) echo.HandlerFunc {
 			return c.JSON(http.StatusBadRequest, err.Error())
 		}
 		return c.JSON(http.StatusOK, a)
+	}
+}
+
+func TagProduct(db *pgxpool.Pool) echo.HandlerFunc {
+	return func(c echo.Context) error {
+		// Product ID
+		pID, err := uuid.Parse(c.Param("product_id"))
+		if err != nil {
+			return c.JSON(http.StatusBadRequest, models.DefaultMessageBadRequest)
+		}
+		// Tag ID
+		tID, err := uuid.Parse(c.Param("tag_id"))
+		if err != nil {
+			return c.JSON(http.StatusBadRequest, models.DefaultMessageBadRequest)
+		}
+		// Tag Product
+		p, err := models.TagProduct(db, &pID, &tID)
+		if err != nil {
+			return c.String(http.StatusInternalServerError, err.Error())
+		}
+		return c.JSON(http.StatusOK, &p)
+	}
+}
+
+func UntagProduct(db *pgxpool.Pool) echo.HandlerFunc {
+	return func(c echo.Context) error {
+		// Product ID
+		pID, err := uuid.Parse(c.Param("product_id"))
+		if err != nil {
+			return c.JSON(http.StatusBadRequest, models.DefaultMessageBadRequest)
+		}
+		// Tag ID
+		tID, err := uuid.Parse(c.Param("tag_id"))
+		if err != nil {
+			return c.JSON(http.StatusBadRequest, models.DefaultMessageBadRequest)
+		}
+		// Tag Product
+		p, err := models.UntagProduct(db, &pID, &tID)
+		if err != nil {
+			return c.JSON(http.StatusInternalServerError, models.DefaultMessageInternalServerError)
+		}
+		return c.JSON(http.StatusOK, &p)
 	}
 }

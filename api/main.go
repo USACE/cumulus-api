@@ -112,6 +112,7 @@ func main() {
 	public.GET("/products/:product_id", handlers.GetProduct(db))
 	private.PUT("/products/:product_id", handlers.UpdateProduct(db))
 	private.DELETE("/products/:product_id", handlers.DeleteProduct(db))
+	private.POST("/products/:product_id/undelete", handlers.UndeleteProduct(db))
 	// Additional Information About Products
 	public.GET("/products/:product_id/availability", handlers.GetProductAvailability(db))
 	public.GET("/products/:product_id/files", handlers.ListProductfiles(db))
@@ -123,8 +124,8 @@ func main() {
 	private.PUT("/tags/:tag_id", handlers.UpdateTag(db))
 	private.DELETE("/tags/:tag_id", handlers.DeleteTag(db))
 	// Tag or Untag Product
-	// private.POST("/product_groups/:product_group_id/products/:product_id/add", handlers.AddProductToProductGroup(db))
-	// private.POST("/product_groups/:product_group_id/products/:product_id/remove", handlers.AddProductToProductGroup(db))
+	private.POST("/products/:product_id/tags/:tag_id", handlers.TagProduct(db))
+	private.DELETE("/products/:product_id/tags/:tag_id", handlers.UntagProduct(db))
 
 	// public.GET("/acquirables", handlers.ListAcquirables(db))
 

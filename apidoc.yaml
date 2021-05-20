@@ -335,6 +335,29 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/empty_object"
+  
+  /products/{product_id}/undelete:
+    parameters:
+      - name: product_id
+        in: path
+        required: true
+        description: ID of Product to Undelete
+        schema:
+          type: string
+          format: uuid
+    post:
+      tags:
+        - products
+      description: Undo Product Delete
+      responses:
+        "200":
+          description: Product
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/product"
+              example:
+                $ref: "#/components/examples/productExample"
 
   /products/{product_id}/files?after={after}&before={before}:
     get:
@@ -460,3 +483,63 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/empty_object"
+
+  /products/{product_id}/tags/{tag_id}:
+    post:
+      tags:
+        - tags
+      summary: Tag Product
+      description: Add a tag to a product
+      parameters:
+        - name: product_id
+          in: path
+          required: true
+          description: ID of the product to be tagged
+          schema:
+            type: string
+            format: uuid
+        - name: tag_id
+          in: path
+          required: true
+          description: Tag ID
+          schema:
+            type: string
+            format: uuid
+      responses:
+        "200":
+          description: Product Tagged Successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/product"
+              example:
+                $ref: "#/components/examples/productExample"
+    delete:
+      tags:
+        - tags
+      summary: Untag Product
+      description: Remove a tag from a product
+      parameters:
+        - name: product_id
+          in: path
+          required: true
+          description: Product ID
+          schema:
+            type: string
+            format: uuid
+        - name: tag_id
+          in: path
+          required: true
+          description: ID of Tag to be Removed
+          schema:
+            type: string
+            format: uuid
+      responses:
+        "200":
+          description: Product Tag Removed Successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/product"
+              example:
+                $ref: "#/components/examples/productExample"

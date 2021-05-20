@@ -200,6 +200,245 @@
 			]
 		},
 		{
+			"name": "tags",
+			"item": [
+				{
+					"name": "GetTag",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"// validate JSON schema",
+									"var schema = {",
+									"    \"type\": \"object\",",
+									"    \"properties\": {",
+									"        \"id\": { \"type\": \"string\" },",
+									"        \"name\": { \"type\": \"string\" },",
+									"        \"description\": { \"type\": \"string\" },",
+									"        \"color\": { \"type\": \"string\" }",
+									"    },",
+									"    \"required\": [\"id\", \"name\", \"description\", \"color\"],",
+									"    \"additionalProperties\": false",
+									"}",
+									"",
+									"pm.globals.set('TAG_OBJECT', JSON.stringify(schema));",
+									"",
+									"// status code is 200",
+									"pm.test(\"Status code is 200\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"// validate schema",
+									"pm.test(\"Schema validation\", function () {",
+									"    pm.response.to.have.jsonSchema(schema)",
+									"});",
+									""
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/tags/cc93b3f9-fbe1-4b35-8f9c-2d1515961c6a",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"tags",
+								"cc93b3f9-fbe1-4b35-8f9c-2d1515961c6a"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "ListTags",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"// schema validator",
+									"var schema = {",
+									"    \"type\": \"array\",",
+									"    \"items\": JSON.parse(pm.globals.get('TAG_OBJECT'))",
+									"}",
+									"",
+									"pm.globals.set('TAG_ARRAY', JSON.stringify(schema));",
+									"",
+									"// status code is 200",
+									"pm.test(\"Status code is 200\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"// schema validation",
+									"pm.test(\"Schema validation\", function () {",
+									"    pm.response.to.have.jsonSchema(schema)",
+									"});",
+									""
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/tags",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"tags"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "UpdateTag",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"// status code is 200",
+									"pm.test(\"Status code is 200\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"",
+									"// schema validation",
+									"pm.test(\"Schema validation\", function () {",
+									"    pm.response.to.have.jsonSchema(",
+									"        JSON.parse(pm.globals.get('TAG_OBJECT'))",
+									"    )",
+									"});",
+									""
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "PUT",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"id\": \"cc93b3f9-fbe1-4b35-8f9c-2d1515961c6a\",\n    \"name\": \"Forecast Tag Updated Name\",\n    \"description\": \"Products represent a forecast updated description\",\n    \"color\": \"2ca25f\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{base_url}}/tags/cc93b3f9-fbe1-4b35-8f9c-2d1515961c6a",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"tags",
+								"cc93b3f9-fbe1-4b35-8f9c-2d1515961c6a"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "CreateTag",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"// status code is 201",
+									"pm.test(\"Status code is 201\", function () {",
+									"    pm.response.to.have.status(201);",
+									"});",
+									"",
+									"// schema validation",
+									"pm.test(\"Schema validation\", function () {",
+									"    pm.response.to.have.jsonSchema(",
+									"        JSON.parse(pm.globals.get('TAG_OBJECT'))",
+									"    )",
+									"});",
+									""
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "    {\n        \"name\": \"Preferred\",\n        \"description\": \"Preferred Product for a Given Parameter\",\n        \"color\": \"A7F3D0\"\n    }",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{base_url}}/tags",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"tags"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "DeleteTag",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"// status code is 200",
+									"pm.test(\"Status code is 200\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "DELETE",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"id\": \"757c809c-dda0-412b-9831-cb9bd0f62d1d\",\n    \"slug\": \"nohrsc-snodas-swe\",\n    \"tags\": [\n        \"57bda84f-ecec-4cd7-b3b1-c0c36f838a05\"\n    ],\n    \"name\": \"New Name for NOHRSC SNODAS SWE\",\n    \"temporal_resolution\": 86400,\n    \"temporal_duration\": 0,\n    \"dss_fpart\": \"SNODAS\",\n    \"parameter_id\": \"683a55b9-4a94-46b5-9f47-26e66f3037a8\",\n    \"parameter\": \"SWE\",\n    \"unit_id\": \"e245d39f-3209-4e58-bfb7-4eae94b3f8dd\",\n    \"unit\": \"MM\",\n    \"description\": \"New Description for NOHRSC SNODAS SWE\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{base_url}}/tags/cc93b3f9-fbe1-4b35-8f9c-2d1515961c6a",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"tags",
+								"cc93b3f9-fbe1-4b35-8f9c-2d1515961c6a"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
 			"name": "products",
 			"item": [
 				{
@@ -437,6 +676,54 @@
 					"response": []
 				},
 				{
+					"name": "CreateProduct",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"// status code is 201",
+									"pm.test(\"Status code is 201\", function () {",
+									"    pm.response.to.have.status(201);",
+									"});",
+									"",
+									"// schema validation",
+									"pm.test(\"Schema validation\", function () {",
+									"    pm.response.to.have.jsonSchema(",
+									"        JSON.parse(pm.globals.get('PRODUCT_OBJECT'))",
+									"    )",
+									"});",
+									""
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"name\": \"New Product Created by Integration Tests\",\n    \"temporal_resolution\": 200,\n    \"temporal_duration\": 0,\n    \"dss_fpart\": \"INTEGRATION TEST PRODUCT\",\n    \"parameter_id\": \"683a55b9-4a94-46b5-9f47-26e66f3037a8\",\n    \"parameter\": \"SWE\",\n    \"unit_id\": \"e245d39f-3209-4e58-bfb7-4eae94b3f8dd\",\n    \"unit\": \"MM\",\n    \"description\": \"Example Product Description\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{base_url}}/products",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"products"
+							]
+						}
+					},
+					"response": []
+				},
+				{
 					"name": "UpdateProduct",
 					"event": [
 						{
@@ -486,15 +773,15 @@
 					"response": []
 				},
 				{
-					"name": "CreateProduct",
+					"name": "TagProduct",
 					"event": [
 						{
 							"listen": "test",
 							"script": {
 								"exec": [
-									"// status code is 201",
-									"pm.test(\"Status code is 201\", function () {",
-									"    pm.response.to.have.status(201);",
+									"// status code is 200",
+									"pm.test(\"Status code is 200\", function () {",
+									"    pm.response.to.have.status(200);",
 									"});",
 									"",
 									"// schema validation",
@@ -522,12 +809,66 @@
 							}
 						},
 						"url": {
-							"raw": "{{base_url}}/products",
+							"raw": "{{base_url}}/products/757c809c-dda0-412b-9831-cb9bd0f62d1d/tags/2d64c718-e7af-41c0-be53-035af341c464",
 							"host": [
 								"{{base_url}}"
 							],
 							"path": [
-								"products"
+								"products",
+								"757c809c-dda0-412b-9831-cb9bd0f62d1d",
+								"tags",
+								"2d64c718-e7af-41c0-be53-035af341c464"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "UntagProduct",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"// status code is 200",
+									"pm.test(\"Status code is 200\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"",
+									"// schema validation",
+									"pm.test(\"Schema validation\", function () {",
+									"    pm.response.to.have.jsonSchema(",
+									"        JSON.parse(pm.globals.get('PRODUCT_OBJECT'))",
+									"    )",
+									"});",
+									""
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "DELETE",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"name\": \"New Product Created by Integration Tests\",\n    \"temporal_resolution\": 200,\n    \"temporal_duration\": 0,\n    \"dss_fpart\": \"INTEGRATION TEST PRODUCT\",\n    \"parameter_id\": \"683a55b9-4a94-46b5-9f47-26e66f3037a8\",\n    \"parameter\": \"SWE\",\n    \"unit_id\": \"e245d39f-3209-4e58-bfb7-4eae94b3f8dd\",\n    \"unit\": \"MM\",\n    \"description\": \"Example Product Description\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{base_url}}/products/757c809c-dda0-412b-9831-cb9bd0f62d1d/tags/2d64c718-e7af-41c0-be53-035af341c464",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"products",
+								"757c809c-dda0-412b-9831-cb9bd0f62d1d",
+								"tags",
+								"2d64c718-e7af-41c0-be53-035af341c464"
 							]
 						}
 					},
@@ -573,110 +914,9 @@
 						}
 					},
 					"response": []
-				}
-			]
-		},
-		{
-			"name": "tags",
-			"item": [
-				{
-					"name": "GetTag",
-					"event": [
-						{
-							"listen": "test",
-							"script": {
-								"exec": [
-									"// validate JSON schema",
-									"var schema = {",
-									"    \"type\": \"object\",",
-									"    \"properties\": {",
-									"        \"id\": { \"type\": \"string\" },",
-									"        \"name\": { \"type\": \"string\" },",
-									"        \"description\": { \"type\": \"string\" },",
-									"        \"color\": { \"type\": \"string\" }",
-									"    },",
-									"    \"required\": [\"id\", \"name\", \"description\", \"color\"],",
-									"    \"additionalProperties\": false",
-									"}",
-									"",
-									"pm.globals.set('TAG_OBJECT', JSON.stringify(schema));",
-									"",
-									"// status code is 200",
-									"pm.test(\"Status code is 200\", function () {",
-									"    pm.response.to.have.status(200);",
-									"});",
-									"// validate schema",
-									"pm.test(\"Schema validation\", function () {",
-									"    pm.response.to.have.jsonSchema(schema)",
-									"});",
-									""
-								],
-								"type": "text/javascript"
-							}
-						}
-					],
-					"request": {
-						"method": "GET",
-						"header": [],
-						"url": {
-							"raw": "{{base_url}}/tags/cc93b3f9-fbe1-4b35-8f9c-2d1515961c6a",
-							"host": [
-								"{{base_url}}"
-							],
-							"path": [
-								"tags",
-								"cc93b3f9-fbe1-4b35-8f9c-2d1515961c6a"
-							]
-						}
-					},
-					"response": []
 				},
 				{
-					"name": "ListTags",
-					"event": [
-						{
-							"listen": "test",
-							"script": {
-								"exec": [
-									"// schema validator",
-									"var schema = {",
-									"    \"type\": \"array\",",
-									"    \"items\": JSON.parse(pm.globals.get('TAG_OBJECT'))",
-									"}",
-									"",
-									"pm.globals.set('TAG_ARRAY', JSON.stringify(schema));",
-									"",
-									"// status code is 200",
-									"pm.test(\"Status code is 200\", function () {",
-									"    pm.response.to.have.status(200);",
-									"});",
-									"// schema validation",
-									"pm.test(\"Schema validation\", function () {",
-									"    pm.response.to.have.jsonSchema(schema)",
-									"});",
-									""
-								],
-								"type": "text/javascript"
-							}
-						}
-					],
-					"request": {
-						"method": "GET",
-						"header": [],
-						"url": {
-							"raw": "{{base_url}}/tags",
-							"host": [
-								"{{base_url}}"
-							],
-							"path": [
-								"tags"
-							]
-						}
-					},
-					"response": []
-				},
-				{
-					"name": "UpdateTag",
+					"name": "UndeleteProduct",
 					"event": [
 						{
 							"listen": "test",
@@ -690,56 +930,7 @@
 									"// schema validation",
 									"pm.test(\"Schema validation\", function () {",
 									"    pm.response.to.have.jsonSchema(",
-									"        JSON.parse(pm.globals.get('TAG_OBJECT'))",
-									"    )",
-									"});",
-									""
-								],
-								"type": "text/javascript"
-							}
-						}
-					],
-					"request": {
-						"method": "PUT",
-						"header": [],
-						"body": {
-							"mode": "raw",
-							"raw": "{\n    \"id\": \"cc93b3f9-fbe1-4b35-8f9c-2d1515961c6a\",\n    \"name\": \"Forecast Tag Updated Name\",\n    \"description\": \"Products represent a forecast updated description\",\n    \"color\": \"2ca25f\"\n}",
-							"options": {
-								"raw": {
-									"language": "json"
-								}
-							}
-						},
-						"url": {
-							"raw": "{{base_url}}/tags/cc93b3f9-fbe1-4b35-8f9c-2d1515961c6a",
-							"host": [
-								"{{base_url}}"
-							],
-							"path": [
-								"tags",
-								"cc93b3f9-fbe1-4b35-8f9c-2d1515961c6a"
-							]
-						}
-					},
-					"response": []
-				},
-				{
-					"name": "CreateTag",
-					"event": [
-						{
-							"listen": "test",
-							"script": {
-								"exec": [
-									"// status code is 201",
-									"pm.test(\"Status code is 201\", function () {",
-									"    pm.response.to.have.status(201);",
-									"});",
-									"",
-									"// schema validation",
-									"pm.test(\"Schema validation\", function () {",
-									"    pm.response.to.have.jsonSchema(",
-									"        JSON.parse(pm.globals.get('TAG_OBJECT'))",
+									"        JSON.parse(pm.globals.get('PRODUCT_OBJECT'))",
 									"    )",
 									"});",
 									""
@@ -753,46 +944,6 @@
 						"header": [],
 						"body": {
 							"mode": "raw",
-							"raw": "    {\n        \"name\": \"Preferred\",\n        \"description\": \"Preferred Product for a Given Parameter\",\n        \"color\": \"A7F3D0\"\n    }",
-							"options": {
-								"raw": {
-									"language": "json"
-								}
-							}
-						},
-						"url": {
-							"raw": "{{base_url}}/tags",
-							"host": [
-								"{{base_url}}"
-							],
-							"path": [
-								"tags"
-							]
-						}
-					},
-					"response": []
-				},
-				{
-					"name": "DeleteTag",
-					"event": [
-						{
-							"listen": "test",
-							"script": {
-								"exec": [
-									"// status code is 200",
-									"pm.test(\"Status code is 200\", function () {",
-									"    pm.response.to.have.status(200);",
-									"});"
-								],
-								"type": "text/javascript"
-							}
-						}
-					],
-					"request": {
-						"method": "DELETE",
-						"header": [],
-						"body": {
-							"mode": "raw",
 							"raw": "{\n    \"id\": \"757c809c-dda0-412b-9831-cb9bd0f62d1d\",\n    \"slug\": \"nohrsc-snodas-swe\",\n    \"tags\": [\n        \"57bda84f-ecec-4cd7-b3b1-c0c36f838a05\"\n    ],\n    \"name\": \"New Name for NOHRSC SNODAS SWE\",\n    \"temporal_resolution\": 86400,\n    \"temporal_duration\": 0,\n    \"dss_fpart\": \"SNODAS\",\n    \"parameter_id\": \"683a55b9-4a94-46b5-9f47-26e66f3037a8\",\n    \"parameter\": \"SWE\",\n    \"unit_id\": \"e245d39f-3209-4e58-bfb7-4eae94b3f8dd\",\n    \"unit\": \"MM\",\n    \"description\": \"New Description for NOHRSC SNODAS SWE\"\n}",
 							"options": {
 								"raw": {
@@ -801,13 +952,14 @@
 							}
 						},
 						"url": {
-							"raw": "{{base_url}}/tags/cc93b3f9-fbe1-4b35-8f9c-2d1515961c6a",
+							"raw": "{{base_url}}/products/757c809c-dda0-412b-9831-cb9bd0f62d1d/undelete",
 							"host": [
 								"{{base_url}}"
 							],
 							"path": [
-								"tags",
-								"cc93b3f9-fbe1-4b35-8f9c-2d1515961c6a"
+								"products",
+								"757c809c-dda0-412b-9831-cb9bd0f62d1d",
+								"undelete"
 							]
 						}
 					},

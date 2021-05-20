@@ -52,7 +52,7 @@ func AttachProfileMiddleware(db *pgxpool.Pool) echo.MiddlewareFunc {
 			// lookup superuser profile; the "EDIPI" of the Superuser is consistently 79.
 			// The superuser is initialized as part of database and seed data initialization
 			if c.Get("ApplicationKeyAuthSuccess") == true {
-				p, err := models.GetProfileFromEDIPI(db, 79)
+				p, err := models.GetProfileFromEDIPI(db, 29)
 				if err != nil {
 					return c.JSON(http.StatusForbidden, models.DefaultMessageUnauthorized)
 				}

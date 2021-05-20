@@ -1,5 +1,5 @@
 from datetime import datetime, timedelta
-import os
+import os, sys
 from uuid import uuid4
 from ..geoprocess.core.base import info, translate, create_overviews
 from ..handyutils.core import change_final_file_extension
@@ -50,7 +50,6 @@ def process(infile, outdir):
     Returns array of objects [{ "filetype": "nohrsc_snodas_swe", "file": "file.tif", ... }, {}, ]
     """
     outfile_list = list()
-
     infilename = os.path.basename(infile)
     tdelta2 = timedelta()
     
@@ -58,7 +57,10 @@ def process(infile, outdir):
     fileinfo: dict = info(infile)
     all_bands: List = fileinfo["bands"]
     
-    # Get the band numbers for the products we want
+    # Build a list of dictionaries then run through that to translate the grid
+    # The first band will have a tdelt of 'None' and assumed to be equal
+    # to the next band's computed interval.
+    all_bands_list = list()
     for bandx in all_bands:
         tdelta1 = tdelta2
         band_ = Band(**bandx)
@@ -74,17 +76,29 @@ def process(infile, outdir):
         # Check the time deltas to see if they are consistant
         tdelta_seconds = float(meta.GRIB_FORECAST_SECONDS.split()[0])
         tdelta2 = timedelta(seconds=tdelta_seconds)
-        interval_seconds = (tdelta2 - tdelta1).seconds
+        tdelta = (tdelta2 - tdelta1).seconds
 
+        all_bands_list.append(
+            {"band_number": band_number,
+             "ref_time": ref_time,
+             "valid_time": valid_time,
+             "tdelta": tdelta})
 
-        if interval_seconds == 3600:
-            f_type = "ndfd-conus-temp-01h"
-            tdelta = 3600
-        elif interval_seconds == 10800:
-            f_type = "ndfd-conus-temp-03h"
-            tdelta = 10800
+    # Create a dictionary of time deltas and equivalent filetype
+    f_type_dict = {3600: "ndfd-conus-temp-01h",
+                   10800: "ndfd-conus-temp-03h",
+                   21600: "ndfd-conus-temp-06h"}
 
-        if (interval_seconds == tdelta or interval_seconds == 0):
+    # Create the tif files based on the list of dictionaries from above
+    for i, band_list in enumerate(all_bands_list):
+        if i == 0 and len(all_bands_list) > 1:
+            if all_bands_list[0]["tdelta"] != all_bands_list[1]["tdelta"]:
+                band_list["tdelta"] = all_bands_list[1]["tdelta"]
+
+        try:
+            f_type = f_type_dict[band_list["tdelta"]]
+            valid_time = band_list["valid_time"]
+            ref_time = band_list["ref_time"]
             tif = translate(infile, os.path.join(outdir, f"temp-tif-{uuid4()}"), extra_args=["-b", str(band_number)])
             tif_with_overviews = create_overviews(tif)
             cog = translate(
@@ -96,5 +110,7 @@ def process(infile, outdir):
             )
 
             outfile_list.append({ "filetype": f_type, "file": cog, "datetime": valid_time.isoformat(), "version": ref_time })
-        
+        except KeyError as ex:
+            print(ex)
+            
     return outfile_list

@@ -2,41 +2,27 @@ package handlers
 
 import (
 	"api/models"
-	"database/sql"
-	"errors"
 	"net/http"
 
-	"github.com/jmoiron/sqlx"
+	"github.com/jackc/pgx/v4/pgxpool"
 	"github.com/labstack/echo/v4"
 )
 
-//
-func edipiFromContext(c echo.Context) int {
-	return c.Get("actor").(int)
-}
-
-// profileFromContext is a helper function that uses the current context to return
-// the corresponding profile
-func profileFromContext(c echo.Context, db *sqlx.DB) (*models.Profile, error) {
-	if edipi, ok := c.Get("actor").(int); ok {
-		p, err := models.GetProfileFromEDIPI(db, edipi)
-		if err != nil {
-			return nil, err
-		}
-		return p, nil
-	}
-	return nil, nil
-}
-
 // CreateProfile creates a user profile
-func CreateProfile(db *sqlx.DB) echo.HandlerFunc {
+func CreateProfile(db *pgxpool.Pool) echo.HandlerFunc {
 	return func(c echo.Context) error {
+		// Attach EDIPI
+		edipi, ok := c.Get("EDIPI").(int)
+		if !ok {
+			return c.JSON(http.StatusUnauthorized, models.DefaultMessageUnauthorized)
+		}
+		// Get info to create profile
 		var n models.ProfileInfo
 		if err := c.Bind(&n); err != nil {
 			return c.String(http.StatusBadRequest, err.Error())
 		}
-		// Set EDIPI
-		n.EDIPI = edipiFromContext(c)
+		// Set EDIPI from JWT that authorized request
+		n.EDIPI = edipi
 
 		p, err := models.CreateProfile(db, &n)
 		if err != nil {
@@ -47,23 +33,22 @@ func CreateProfile(db *sqlx.DB) echo.HandlerFunc {
 }
 
 // GetMyProfile returns profile for current authenticated user or 404
-func GetMyProfile(db *sqlx.DB) echo.HandlerFunc {
+func GetMyProfile(db *pgxpool.Pool) echo.HandlerFunc {
 	return func(c echo.Context) error {
-		p, err := profileFromContext(c, db)
-		if err != nil {
-			if errors.Is(err, sql.ErrNoRows) {
-				return c.NoContent(http.StatusNotFound)
-			}
-			return c.NoContent(http.StatusInternalServerError)
+		// Profile Always Attached in Middleware for Private Routes
+		p, ok := c.Get("profile").(*models.Profile)
+		if !ok {
+			return c.JSON(http.StatusNotFound, models.DefaultMessageNotFound)
 		}
 		return c.JSON(http.StatusOK, &p)
 	}
 }
 
 // CreateToken returns a list of all products
-func CreateToken(db *sqlx.DB) echo.HandlerFunc {
+func CreateToken(db *pgxpool.Pool) echo.HandlerFunc {
 	return func(c echo.Context) error {
-		p, err := profileFromContext(c, db)
+		EDIPI := c.Get("EDIPI").(int)
+		p, err := models.GetProfileFromEDIPI(db, EDIPI)
 		if err != nil {
 			return c.String(
 				http.StatusBadRequest,
@@ -79,12 +64,12 @@ func CreateToken(db *sqlx.DB) echo.HandlerFunc {
 }
 
 // DeleteToken deletes a token
-func DeleteToken(db *sqlx.DB) echo.HandlerFunc {
+func DeleteToken(db *pgxpool.Pool) echo.HandlerFunc {
 	return func(c echo.Context) error {
-		// Get ProfileID
-		p, err := profileFromContext(c, db)
-		if err != nil {
-			return c.NoContent(http.StatusBadRequest)
+		// Get Profile ID Used to make the request
+		p, ok := c.Get("profile").(*models.Profile)
+		if !ok {
+			return c.JSON(http.StatusUnauthorized, models.DefaultMessageUnauthorized)
 		}
 		// Get Token ID
 		tokenID := c.Param("token_id")
@@ -93,7 +78,7 @@ func DeleteToken(db *sqlx.DB) echo.HandlerFunc {
 		}
 		// Delete Token
 		if err := models.DeleteToken(db, &p.ID, &tokenID); err != nil {
-			return c.String(http.StatusInternalServerError, err.Error())
+			return c.JSON(http.StatusInternalServerError, models.DefaultMessageInternalServerError)
 		}
 		return c.JSON(http.StatusOK, make(map[string]interface{}))
 	}

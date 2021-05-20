@@ -1,53 +1,48 @@
 package main
 
 import (
-	"api/models"
+	"context"
 	"fmt"
 	"log"
 	"net/http"
+	"time"
 
 	"api/config"
 	"api/handlers"
 	"api/middleware"
+	"api/models"
 
-	"github.com/jmoiron/sqlx"
-
-	"github.com/apex/gateway"
 	"github.com/labstack/echo/v4"
 
-	_ "github.com/lib/pq"
+	_ "github.com/jackc/pgx/v4"
+	"github.com/jackc/pgx/v4/pgxpool"
 )
 
 // Connection returns a database connection from configuration parameters
-func Connection(cfg *config.Config) *sqlx.DB {
-	connStr := func(cfg *config.Config) string {
-		return fmt.Sprintf(
-			"user=%s password=%s dbname=%s host=%s sslmode=%s binary_parameters=yes",
+func Connection(cfg *config.Config) *pgxpool.Pool {
+
+	poolConfig, err := pgxpool.ParseConfig(
+		fmt.Sprintf(
+			"user=%s password=%s dbname=%s host=%s sslmode=%s",
 			cfg.DBUser, cfg.DBPass, cfg.DBName, cfg.DBHost, cfg.DBSSLMode,
-		)
+		),
+	)
+	if err != nil {
+		log.Panic(err.Error())
 	}
-	return sqlx.MustOpen("postgres", connStr(cfg))
+	poolConfig.MaxConns = 15
+	poolConfig.MaxConnIdleTime = time.Minute * 30
+	poolConfig.MinConns = 10
+
+	db, err := pgxpool.ConnectConfig(context.Background(), poolConfig)
+	if err != nil {
+		log.Panic(err.Error())
+	}
+
+	return db
 }
 
 func main() {
-	//  Here's what would typically be here:
-	// lambda.Start(Handler)
-	//
-	// There were a few options on how to incorporate Echo v4 on Lambda.
-	//
-	// Landed here for now:
-	//
-	//     https://github.com/apex/gateway
-	//     https://github.com/labstack/echo/issues/1195
-	//
-	// With this for local development:
-	//     https://medium.com/a-man-with-no-server/running-go-aws-lambdas-locally-with-sls-framework-and-sam-af3d648d49cb
-	//
-	// This looks promising and is from awslabs, but Echo v4 support isn't quite there yet.
-	// There is a pull request in progress, Re-evaluate in April 2020.
-	//
-	//    https://github.com/awslabs/aws-lambda-go-api-proxy
-	//
 
 	// Environment Variable Config
 	cfg, err := config.GetConfig()
@@ -56,7 +51,7 @@ func main() {
 	}
 
 	// AWS Config
-	awsCfg := cfg.AWSConfig()
+	// awsCfg := cfg.AWSConfig()
 
 	// Database
 	db := Connection(cfg)
@@ -68,16 +63,16 @@ func main() {
 	// Public Routes
 	public := e.Group("")
 
-	/////////////////////////
-	// Key or CAC Auth Routes
-	/////////////////////////
-	cacOrToken := e.Group("")
+	// Private Routes Supporting CAC (JWT) or Key Auth
+	private := e.Group("")
+	// JWT (CAC) Middleware
 	if cfg.AuthJWTMocked {
-		cacOrToken.Use(middleware.JWTMock(cfg.AuthDisabled, true))
+		private.Use(middleware.JWTMock(cfg.AuthDisabled, true))
 	} else {
-		cacOrToken.Use(middleware.JWT(cfg.AuthDisabled, true))
+		private.Use(middleware.JWT(cfg.AuthDisabled, true))
 	}
-	cacOrToken.Use(middleware.KeyAuth(
+	// Key Auth Middleware
+	private.Use(middleware.KeyAuth(
 		cfg.AuthDisabled,
 		cfg.ApplicationKey,
 		func(keyID string) (string, error) {
@@ -86,8 +81,8 @@ func main() {
 				return "", err
 			}
 			return k.Hash, nil
-		}),
-	)
+		},
+	))
 
 	/////////////////////////////////////////
 	// CAC Only Routes (API Keys Not Allowed)
@@ -98,66 +93,80 @@ func main() {
 	} else {
 		cacOnly.Use(middleware.JWT(cfg.AuthDisabled, false))
 	}
-	cacOnly.Use(middleware.IsLoggedIn)
+	// AttachProfileMiddleware attaches ProfileID to context, whether
+	// authenticated by token or api key
+	private.Use(middleware.EDIPIMiddleware, middleware.AttachProfileMiddleware(db))
+	cacOnly.Use(middleware.EDIPIMiddleware, middleware.CACOnlyMiddleware)
 
-	// Public Routes
-	public.GET("/products", handlers.ListProducts(db))
-	public.GET("/products/:id", handlers.GetProduct(db))
-	public.GET("/products/:id/availability", handlers.GetProductAvailability(db))
-	public.GET("/products/:id/files", handlers.GetProductProductfiles(db))
-	public.GET("/acquirables", handlers.ListAcquirables(db))
+	// Profile
+	private.GET("/my_profile", handlers.GetMyProfile(db))
+	cacOnly.POST("/my_profile", handlers.CreateProfile(db))
 
-	// Acquirables/Acquirablefiles
-	public.GET("/acquirables/:acquirable_id/files", handlers.ListAcquirablefiles(db))
-	cacOrToken.POST("/acquirablefiles", handlers.CreateAcquirablefiles(db))
-
-	// Downloads
-	public.GET("/downloads", handlers.ListDownloads(db))
-	cacOnly.GET("/my_downloads", handlers.ListMyDownloads(db))
-	cacOnly.POST("/my_downloads", handlers.CreateDownload(db))
-	public.GET("/downloads/:id", handlers.GetDownload(db))
-	public.GET("/downloads/:id/packager_request", handlers.GetDownloadPackagerRequest(db))
-	public.POST("/downloads", handlers.CreateDownload(db))
-	public.PUT("/downloads/:id", handlers.UpdateDownload(db))
-	// Serve Download Files
-	public.GET("/cumulus/download/dss/*", handlers.ServeMedia(&awsCfg, &cfg.AWSS3Bucket))
-
-	// Restricted Routes (JWT or Key)
-
-	// Watersheds
-	public.GET("/watersheds", handlers.ListWatersheds(db))
-	public.GET("/watersheds/:watershed_id", handlers.GetWatershed(db))
-	cacOrToken.POST("/watersheds", handlers.CreateWatershed(db))
-	cacOrToken.PUT("/watersheds/:watershed_id", handlers.UpdateWatershed(db))
-	cacOrToken.DELETE("/watersheds/:watershed_id", handlers.DeleteWatershed(db))
-
-	// My Watersheds
-	cacOnly.GET("/my_watersheds", handlers.ListMyWatersheds(db))
-	cacOnly.POST("/my_watersheds/:watershed_id/add", handlers.MyWatershedsAdd(db))
-	cacOnly.POST("/my_watersheds/:watershed_id/remove", handlers.MyWatershedsRemove(db))
-
-	// Area Groups
-	// TODO: CRUD Handlers for area_groups
-	public.GET("/watersheds/:watershed_id/area_groups", handlers.ListWatershedAreaGroups(db))
-	public.GET("/watersheds/:watershed_id/area_groups/:area_group_id/areas", handlers.ListAreaGroupAreas(db))
-	// cacOrToken.POST("watersheds/:watershed_id/area_groups", handlers.CreateAreaGroup(db))
-	// cacOrToken.PUT("watersheds/:watershed_id/area_groups/:area_group_id", handlers.UpdateAreaGroup(db))
-	// cacOrToken.DELETE("watersheds/:watershed_id/area_groups/:area_group_id", handlers.DeleteAreaGroup(db))
-	cacOrToken.POST("/watersheds/:watershed_id/area_groups/:area_group_id/products/:product_id/statistics/enable", handlers.EnableAreaGroupProductStatistics(db))
-	cacOrToken.POST("/watersheds/:watershed_id/area_groups/:area_group_id/products/:product_id/statistics/disable", handlers.DisableAreaGroupProductStatistics(db))
-
-	// JWT Only Restricted Routes (JWT Only)
-	cacOnly.POST("/profiles", handlers.CreateProfile(db))
-	cacOnly.GET("/my_profile", handlers.GetMyProfile(db))
+	// API Tokens
 	cacOnly.POST("/my_tokens", handlers.CreateToken(db))
-	cacOnly.DELETE("/my_tokens/:token_id", handlers.DeleteToken(db))
+	private.DELETE("/my_tokens/:token_id", handlers.DeleteToken(db))
+
+	// Products
+	private.POST("/products", handlers.CreateProduct(db))
+	public.GET("/products", handlers.ListProducts(db))
+	public.GET("/products/:product_id", handlers.GetProduct(db))
+	private.PUT("/products/:product_id", handlers.UpdateProduct(db))
+	private.DELETE("/products/:product_id", handlers.DeleteProduct(db))
+	// Additional Information About Products
+	public.GET("/products/:product_id/availability", handlers.GetProductAvailability(db))
+	public.GET("/products/:product_id/files", handlers.ListProductfiles(db))
+
+	// Tags
+	private.POST("/tags", handlers.CreateTag(db))
+	public.GET("/tags", handlers.ListTags(db))
+	public.GET("/tags/:tag_id", handlers.GetTag(db))
+	private.PUT("/tags/:tag_id", handlers.UpdateTag(db))
+	private.DELETE("/tags/:tag_id", handlers.DeleteTag(db))
+	// Tag or Untag Product
+	// private.POST("/product_groups/:product_group_id/products/:product_id/add", handlers.AddProductToProductGroup(db))
+	// private.POST("/product_groups/:product_group_id/products/:product_id/remove", handlers.AddProductToProductGroup(db))
+
+	// public.GET("/acquirables", handlers.ListAcquirables(db))
+
+	// // Acquirables/Acquirablefiles
+	// public.GET("/acquirables/:acquirable_id/files", handlers.ListAcquirablefiles(db))
+	// cacOrToken.POST("/acquirablefiles", handlers.CreateAcquirablefiles(db))
+
+	// // Downloads
+	// public.GET("/downloads", handlers.ListDownloads(db))
+	// cacOnly.GET("/my_downloads", handlers.ListMyDownloads(db))
+	// cacOnly.POST("/my_downloads", handlers.CreateDownload(db))
+	// public.GET("/downloads/:id", handlers.GetDownload(db))
+	// public.GET("/downloads/:id/packager_request", handlers.GetDownloadPackagerRequest(db))
+	// public.POST("/downloads", handlers.CreateDownload(db))
+	// public.PUT("/downloads/:id", handlers.UpdateDownload(db))
+	// // Serve Download Files
+	// public.GET("/cumulus/download/dss/*", handlers.ServeMedia(&awsCfg, &cfg.AWSS3Bucket))
+
+	// // Restricted Routes (JWT or Key)
+
+	// // Watersheds
+	// public.GET("/watersheds", handlers.ListWatersheds(db))
+	// public.GET("/watersheds/:watershed_id", handlers.GetWatershed(db))
+	// cacOrToken.POST("/watersheds", handlers.CreateWatershed(db))
+	// cacOrToken.PUT("/watersheds/:watershed_id", handlers.UpdateWatershed(db))
+	// cacOrToken.DELETE("/watersheds/:watershed_id", handlers.DeleteWatershed(db))
+
+	// // My Watersheds
+	// cacOnly.GET("/my_watersheds", handlers.ListMyWatersheds(db))
+	// cacOnly.POST("/my_watersheds/:watershed_id/add", handlers.MyWatershedsAdd(db))
+	// cacOnly.POST("/my_watersheds/:watershed_id/remove", handlers.MyWatershedsRemove(db))
+
+	// // Area Groups
+	// // TODO: CRUD Handlers for area_groups
+	// public.GET("/watersheds/:watershed_id/area_groups", handlers.ListWatershedAreaGroups(db))
+	// public.GET("/watersheds/:watershed_id/area_groups/:area_group_id/areas", handlers.ListAreaGroupAreas(db))
+	// // cacOrToken.POST("watersheds/:watershed_id/area_groups", handlers.CreateAreaGroup(db))
+	// // cacOrToken.PUT("watersheds/:watershed_id/area_groups/:area_group_id", handlers.UpdateAreaGroup(db))
+	// // cacOrToken.DELETE("watersheds/:watershed_id/area_groups/:area_group_id", handlers.DeleteAreaGroup(db))
+	// cacOrToken.POST("/watersheds/:watershed_id/area_groups/:area_group_id/products/:product_id/statistics/enable", handlers.EnableAreaGroupProductStatistics(db))
+	// cacOrToken.POST("/watersheds/:watershed_id/area_groups/:area_group_id/products/:product_id/statistics/disable", handlers.DisableAreaGroupProductStatistics(db))
 
 	// Start server
-	lambda := cfg.LambdaContext
-	log.Printf("starting server; Running On AWS LAMBDA: %t", lambda)
-	if lambda {
-		log.Fatal(gateway.ListenAndServe("localhost:3030", e))
-	} else {
-		log.Fatal(http.ListenAndServe(":80", e))
-	}
+	log.Fatal(http.ListenAndServe(":80", e))
 }

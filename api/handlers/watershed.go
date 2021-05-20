@@ -4,6 +4,7 @@ import (
 	"net/http"
 
 	"github.com/google/uuid"
+	"github.com/jackc/pgx/v4/pgxpool"
 	"github.com/jmoiron/sqlx"
 	"github.com/labstack/echo/v4"
 
@@ -39,7 +40,7 @@ func GetWatershed(db *sqlx.DB) echo.HandlerFunc {
 }
 
 // CreateWatershed creates a new watershed
-func CreateWatershed(db *sqlx.DB) echo.HandlerFunc {
+func CreateWatershed(db *pgxpool.Pool) echo.HandlerFunc {
 	return func(c echo.Context) error {
 		var w models.Watershed
 		if err := c.Bind(&w); err != nil {

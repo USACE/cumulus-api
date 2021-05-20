@@ -25,7 +25,8 @@ GRANT SELECT ON
     unit,
     product,
     productfile,
-    product_group,
+    product_tags,
+    tag,
     acquirable,
     acquisition,
     acquirable_acquisition,
@@ -34,11 +35,15 @@ GRANT SELECT ON
     download,
     download_product,
     watershed,
-    profile_watersheds,
+    my_watersheds,
+    watershed_roles,
     v_acquirablefile,
     v_download,
     v_area_5070,
-    v_watershed
+    v_product,
+    v_watershed,
+    v_watershed_roles,
+    v_profile
 TO cumulus_reader;
 
 -- Role cumulus_writer
@@ -55,7 +60,8 @@ GRANT INSERT,UPDATE,DELETE ON
     unit,
     product,
     productfile,
-    product_group,
+    tag,
+    product_tags,
     acquirable,
     acquisition,
     acquirable_acquisition,
@@ -64,7 +70,7 @@ GRANT INSERT,UPDATE,DELETE ON
     download,
     download_product,
     watershed,
-    profile_watersheds
+    my_watersheds
 TO cumulus_writer;
 
 -- Role postgis_reader

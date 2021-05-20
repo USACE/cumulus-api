@@ -1,182 +1,111 @@
-openapi: "3.0.0"
+openapi: "3.0.2"
 info:
-  version: 0.1.0
-  title: US Army Corps of Engineers Cumulus API
-  license:
-    name: MIT
+  title: Cumulus REST API
+  version: "0.8.0"
 servers:
-  - url: https://ci7914nmcb.execute-api.us-east-1.amazonaws.com/development/
-paths:
-  /instruments:
-    get:
-      summary: List Instruments
-      operationId: GetInstruments
-      tags:
-        - instruments
-      responses:
-        '200':
-          description: Array of instruments
-          headers:
-            x-next:
-              description: A link to the next page of responses
-              schema:
-                type: string
-          content:
-            application/json:    
-              schema:
-                $ref: "#/components/schemas/instruments"
-        default:
-          description: unexpected error
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/Error"
-    post:
-      summary: Create Instrument
-      operationId: CreateInstrument
-      tags:
-        - instruments
-      responses:
-        '201':
-          description: Null response
-        default:
-          description: unexpected error
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/Error"
-  /instrument/{id}:
-    get:
-      summary: Get Instrument
-      operationId: GetInstrument
-      tags:
-        - instruments
-      parameters:
-        - name: id
-          in: path
-          required: true
-          description: The ID of the instrument to retrieve
-          schema:
-            type: string
-            format: uuid
-
-      responses:
-        '200':
-          description: Expected response to a valid request
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/instrument"
-        default:
-          description: unexpected error
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/Error"
-  /instrument_groups:
-    get:
-      summary: List Instrument Groups
-      operationId: GetInstrumentGroups
-      tags:
-        - instrument_groups
-      responses:
-        '200':
-          description: A list of instrument groups
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/instrument_groups"
-  /instrument_groups/{id}:
-    get:
-      summary: Get Instrument Group
-      operationId: GetInstrumentGroup
-      tags:
-        - instrument_groups
-      parameters:
-        - name: id
-          in: path
-          required: true
-          description: The ID of the instrument group to retrieve
-          schema:
-            type: string
-            format: uuid
-      responses:
-        '200':
-          description: Instrument Group
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/instrument_group'
-
-  /instrument_groups/{id}/instruments:
-    get:
-      summary: List Instrument Group Instruments
-      operationId: ListInstrumentGroupInstruments
-      tags:
-        - instrument_groups
-      parameters:
-        - name: id
-          in: path
-          required: true
-          description: The ID of the instrument group to retrieve
-          schema:
-            type: string
-            format: uuid
-      responses:
-        '200':
-          description: Expected response to a valid request
-  /domains:
-    get:
-      summary: List Domains
-      operationId: ListDomains
-      tags:
-        - other
-      responses:
-        '200':
-          description: Expected response to a valid request
+  - url: "https://cumulus-api.rsgis.dev"
+    description: Stable API
+  - url: "https://develop-cumulus-api.rsgis.dev"
+    description: Development API
 
 components:
   schemas:
-    instrument:
+    empty_object:
       type: object
-      required:
-        - id
-        - name
-        - type
-        - height
-        - geometry
+    profile:
+      type: object
       properties:
         id:
           type: string
           format: uuid
+        username:
+          type: string
+        email:
+          type: string
+        tokens:
+          type: array
+          items:
+            type: object
+            properties:
+              token_id:
+                type: string
+              issued:
+                type: string
+                format: date-time
+        is_admin:
+          type: boolean
+        roles:
+          type: array
+          items:
+            type: string
+    token:
+      type: object
+      properties:
+        secret_token:
+          type: string
+          format: password
+        token_id:
+          type: string
+        profile_id:
+          type: string
+          format: uuid
+        issued:
+          type: string
+          format: date-time
+    product:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        slug:
+          type: string
         name:
           type: string
-        type:
+        tags:
+          type: array
+          items:
+            type: string
+            format: uuid
+        temporal_resolution:
+          type: integer
+        temporal_duration:
+          type: integer
+        dss_fpart:
           type: string
-        height:
-          type: number
-          format: float
-        geometry:
-          type: object
-          description: GeoJSON PointGeometry
-          required:
-            - type
-            - coordinates
-          properties:
-            type:
-              type: string
-            coordinates:
-              type: array
-              items:
-                type: number
-              minItems: 2
-              maxItems: 2
-    instrument_group:
+        parameter_id:
+          type: string
+          format: uuid
+        parameter:
+          type: string
+        unit_id:
+          type: string
+          format: uuid
+        unit:
+          type: string
+        description:
+          type: string
+    products:
+      type: array
+      items:
+        $ref: "#/components/schemas/product"
+    productfile:
       type: object
-      required:
-        - id
-        - name
-        - description
+      properties:
+        id:
+          type: string
+          format: uuid
+        datetime:
+          type: string
+          format: date-time
+        file:
+          type: string
+    productfiles:
+      type: array
+      items:
+        $ref: "#/components/schemas/productfile"
+    tag:
+      type: object
       properties:
         id:
           type: string
@@ -185,22 +114,349 @@ components:
           type: string
         description:
           type: string
-    instruments:
-      type: array
-      items:
-        $ref: "#/components/schemas/instrument"
-    instrument_groups:
-      type: array
-      items:
-        $ref: "#/components/schemas/instrument_group"
-    Error:
-      type: object
-      required:
-        - code
-        - message
-      properties:
-        code:
-          type: integer
-          format: int32
-        message:
+        color:
           type: string
+    tags:
+      type: array
+      items:
+        $ref: "#/components/schemas/tag"
+  examples:
+    createProductRequest:
+      value:
+        name: "NOHRSC Snodas SWE"
+        temporal_resolution: 86400
+        temporal_duration: 0
+        dss_fpart: "SNODAS"
+        parameter_id: "683a55b9-4a94-46b5-9f47-26e66f3037a8"
+        unit_id: "e245d39f-3209-4e58-bfb7-4eae94b3f8dd"
+        description: "Snow Water Equivalent dataset produced by NOHRSC"
+    createProductResponse:
+      value:
+        id: "757c809c-dda0-412b-9831-cb9bd0f62d1d"
+        slug: "nohrsc-snodas-swe"
+        tags: []
+        name: "NOHRSC Snodas SWE"
+        temporal_resolution: 86400
+        temporal_duration: 0
+        dss_fpart: "SNODAS"
+        parameter_id: "683a55b9-4a94-46b5-9f47-26e66f3037a8"
+        parameter: "SWE"
+        unit_id: "e245d39f-3209-4e58-bfb7-4eae94b3f8dd"
+        unit: "MM"
+        description: "Snow Water Equivalent dataset produced by NOHRSC"
+    productExample:
+      value:
+        id: "757c809c-dda0-412b-9831-cb9bd0f62d1d"
+        slug: "nohrsc-snodas-swe"
+        tags: ["57bda84f-ecec-4cd7-b3b1-c0c36f838a05"]
+        name: "NOHRSC Snodas SWE"
+        temporal_resolution: 86400
+        temporal_duration: 0
+        dss_fpart: "SNODAS"
+        parameter_id: "683a55b9-4a94-46b5-9f47-26e66f3037a8"
+        parameter: "SWE"
+        unit_id: "e245d39f-3209-4e58-bfb7-4eae94b3f8dd"
+        unit: "MM"
+        description: "Snow Water Equivalent dataset produced by NOHRSC"
+    productfileExample:
+      value:
+        id: "951d8838-75ac-4250-ad48-4cdb249484b2"
+        datetime: "2021-03-21T01:00:00-05:00"
+        file: "cumulus/nohrsc_snodas_swe/zz_ssmv11034tS__T0001TTNATS2021032105HP001_cloud_optimized.tif"
+    profile:
+      value:
+        id: "098fd0e1-76e1-4abe-8dce-d8cf52e94431"
+        username: "testuser"
+        email: "test.user@gmail.com"
+        tokens: []
+        is_admin: false
+        roles: []
+    token:
+      value:
+        secret_token: "DDy7AjiQ3ufiyiy3bmFvoPGAuoB4mhJoorHJUNojgG4ErGCkidwUvDp"
+        token_id: "AsQBxgeEpH9vZpsgW2ox4KCFSV6oKeX22AFni1GC884T9khAfjWCgXX"
+        profile_id: "098fd0e1-76e1-4abe-8dce-d8cf52e94431"
+        issued: "2021-05-20T13:03:49.865788-05:00"
+
+x-tagGroups:
+  - name: Products
+    tags:
+      - products
+      - tags
+  - name: Account Management
+    tags:
+      - accounts
+
+paths:
+  /my_profile:
+    post:
+      tags:
+        - accounts
+      description: Create My Profile
+      responses:
+        "201":
+          description: Profile of Logged-In User
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/profile"
+              example:
+                $ref: "#/components/examples/profile"
+    get:
+      tags:
+        - accounts
+      description: Get My Profile
+      responses:
+        "200":
+          description: Profile of Logged-In User
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/profile"
+              example:
+                $ref: "#/components/examples/profile"
+  /my_tokens:
+    post:
+      tags:
+        - accounts
+      description: Create API Token
+      responses:
+        "201":
+          description: API Token
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/token"
+              example:
+                $ref: "#/components/examples/token"
+
+
+
+
+  /products:
+    get:
+      tags:
+        - products
+      description: List Products
+      responses:
+        "200":
+          description: Array of Products
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/products"
+    post:
+      tags:
+        - products
+      description: Create Product
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                name:
+                  type: string
+                temporal_resolution:
+                  type: integer
+                temporal_duration:
+                  type: integer
+                dss_fpart:
+                  type: string
+                parameter_id:
+                  type: string
+                  format: uuid
+                unit_id:
+                  type: string
+                  format: uuid
+            example:
+              $ref: "#/components/examples/createProductRequest"
+      responses:
+        "201":
+          description: Product Object
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/product"
+              example:
+                $ref: "#/components/examples/createProductResponse"
+
+  /products/{product_id}:
+    parameters:
+      - name: product_id
+        in: path
+        required: true
+        description: The ID of the product to update or delete
+        schema:
+          type: string
+          format: uuid
+    get:
+      tags:
+        - products
+      description: Get Product
+      responses:
+        "200":
+          description: "A Single Product"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/product"
+              example:
+                $ref: "#/components/examples/productExample"
+
+    put:
+      tags:
+        - products
+      description: Update Product
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/product"
+      responses:
+        "200":
+          description: A Single Product
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/product"
+              example:
+                $ref: "#/components/examples/productExample"
+    delete:
+      tags:
+        - products
+      description: Delete a Product
+      responses:
+        "200":
+          description: Empty Object
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/empty_object"
+
+  /products/{product_id}/files?after={after}&before={before}:
+    get:
+      tags:
+        - products
+      summary: List Productfiles
+      description: List Productfiles for a single product within a specified date range
+      parameters:
+        - name: product_id
+          in: path
+          required: true
+          description: The ID of the product
+          schema:
+            type: string
+            format: uuid
+        - name: after
+          in: query
+          schema:
+            type: string
+            format: date-time
+        - name: before
+          in: query
+          schema:
+            type: string
+            format: date-time
+      responses:
+        "200":
+          description: List of Productfiles
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/productfiles"
+
+  /products/{product_id}/availability:
+    get:
+      tags:
+        - products
+      summary: Get Product Availability
+      description: Get file count by day for a single product
+      parameters:
+        - name: product_id
+          in: path
+          required: true
+          description: The ID of the product
+          schema:
+            type: string
+            format: uuid
+      responses:
+        "200":
+          description: Product Availability
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  product_id:
+                    type: string
+                    format: uuid
+                  date_counts:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        date:
+                          type: string
+                          format: date-time
+                        count:
+                          type: integer
+
+  /tags:
+    get:
+      tags:
+        - tags
+      description: List All Tags
+      responses:
+        "200":
+          description: Array of Tags
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/tags"
+
+    post:
+      tags:
+        - tags
+      description: Create a Tag
+      responses:
+        "201":
+          description: A Single Tag
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/tag"
+
+  /tags/{tag_id}:
+    parameters:
+      - name: tag_id
+        in: path
+        required: true
+        description: The ID of the tag to update or delete
+        schema:
+          type: string
+          format: uuid
+    put:
+      tags:
+        - tags
+      description: Update a Tag
+      responses:
+        "200":
+          description: A Single Tag
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/tag"
+    delete:
+      tags:
+        - tags
+      description: Delete a Tag
+      responses:
+        "200":
+          description: Empty Object
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/empty_object"

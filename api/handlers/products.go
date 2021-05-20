@@ -3,17 +3,18 @@ package handlers
 import (
 	"net/http"
 
+	"github.com/georgysavva/scany/pgxscan"
 	"github.com/google/uuid"
-	"github.com/jmoiron/sqlx"
 	"github.com/labstack/echo/v4"
 
 	"api/models"
 
+	"github.com/jackc/pgx/v4/pgxpool"
 	_ "github.com/lib/pq"
 )
 
 // ListProducts returns a list of all products
-func ListProducts(db *sqlx.DB) echo.HandlerFunc {
+func ListProducts(db *pgxpool.Pool) echo.HandlerFunc {
 	return func(c echo.Context) error {
 		products, err := models.ListProducts(db)
 		if err != nil {
@@ -24,25 +25,84 @@ func ListProducts(db *sqlx.DB) echo.HandlerFunc {
 }
 
 // GetProduct returns a single Product
-func GetProduct(db *sqlx.DB) echo.HandlerFunc {
+func GetProduct(db *pgxpool.Pool) echo.HandlerFunc {
 	return func(c echo.Context) error {
-		id, err := uuid.Parse(c.Param("id"))
+		id, err := uuid.Parse(c.Param("product_id"))
 		if err != nil {
-			return c.String(http.StatusBadRequest, "Malformed ID")
+			return c.JSON(http.StatusBadRequest, models.DefaultMessageBadRequest)
 		}
 		product, err := models.GetProduct(db, &id)
 		if err != nil {
-			return c.JSON(http.StatusInternalServerError, err)
+			if pgxscan.NotFound(err) {
+				return c.JSON(http.StatusNotFound, models.DefaultMessageNotFound)
+			}
+			return c.JSON(http.StatusInternalServerError, models.DefaultMessageInternalServerError)
 		}
 		return c.JSON(http.StatusOK, product)
 	}
 }
 
-// GetProductProductfiles returns an array of Productfiles
-func GetProductProductfiles(db *sqlx.DB) echo.HandlerFunc {
+// CreateProduct creates a single new product
+func CreateProduct(db *pgxpool.Pool) echo.HandlerFunc {
+	return func(c echo.Context) error {
+		var n models.ProductInfo
+		if err := c.Bind(&n); err != nil {
+			return c.JSON(http.StatusBadRequest, models.DefaultMessageBadRequest)
+		}
+		pNew, err := models.CreateProduct(db, &n)
+		if err != nil {
+			return c.String(http.StatusInternalServerError, err.Error())
+		}
+		return c.JSON(http.StatusCreated, &pNew)
+
+	}
+}
+
+// UpdateProduct updates a single product
+func UpdateProduct(db *pgxpool.Pool) echo.HandlerFunc {
+	return func(c echo.Context) error {
+		// Product ID from Route Params
+		pID, err := uuid.Parse(c.Param("product_id"))
+		if err != nil {
+			return c.String(http.StatusBadRequest, "Malformed ID")
+		}
+		// Product ID from Payload
+		var p models.Product
+		if err := c.Bind(&p); err != nil {
+			return c.JSON(http.StatusBadRequest, models.DefaultMessageBadRequest)
+		}
+		// Compare Product ID from Route Params to Product ID from Payload
+		if pID != p.ID {
+			return c.JSON(http.StatusBadRequest, models.DefaultMessageBadRequest)
+		}
+		pUpdated, err := models.UpdateProduct(db, &p)
+		if err != nil {
+			return c.JSON(http.StatusInternalServerError, models.DefaultMessageInternalServerError)
+		}
+		return c.JSON(http.StatusOK, pUpdated)
+	}
+}
+
+// DeleteProduct deletes a single product
+func DeleteProduct(db *pgxpool.Pool) echo.HandlerFunc {
+	return func(c echo.Context) error {
+		// Product ID from Route Params
+		pID, err := uuid.Parse(c.Param("product_id"))
+		if err != nil {
+			return c.String(http.StatusBadRequest, "Malformed ID")
+		}
+		if err := models.DeleteProduct(db, &pID); err != nil {
+			return c.String(http.StatusInternalServerError, err.Error())
+		}
+		return c.JSON(http.StatusOK, make(map[string]interface{}))
+	}
+}
+
+// ListProductfiles returns an array of Productfiles
+func ListProductfiles(db *pgxpool.Pool) echo.HandlerFunc {
 	return func(c echo.Context) error {
 		// uuid
-		id, err := uuid.Parse(c.Param("id"))
+		id, err := uuid.Parse(c.Param("product_id"))
 		if err != nil {
 			return c.String(http.StatusBadRequest, "Malformed ID")
 		}
@@ -58,19 +118,21 @@ func GetProductProductfiles(db *sqlx.DB) echo.HandlerFunc {
 			)
 		}
 
-		return c.JSON(
-			http.StatusOK,
-			models.GetProductProductfiles(db, id, after, before),
-		)
+		ff, err := models.ListProductfiles(db, id, after, before)
+		if err != nil {
+			return c.String(http.StatusInternalServerError, err.Error())
+		}
+
+		return c.JSON(http.StatusOK, ff)
 	}
 }
 
 // GetProductAvailability returns an availability object
-func GetProductAvailability(db *sqlx.DB) echo.HandlerFunc {
+func GetProductAvailability(db *pgxpool.Pool) echo.HandlerFunc {
 	return func(c echo.Context) error {
 
 		// uuid
-		id, err := uuid.Parse(c.Param("id"))
+		id, err := uuid.Parse(c.Param("product_id"))
 		if err != nil {
 			return c.String(http.StatusBadRequest, "Malformed ID")
 		}

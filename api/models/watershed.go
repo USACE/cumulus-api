@@ -1,7 +1,11 @@
 package models
 
 import (
+	"context"
+
+	"github.com/georgysavva/scany/pgxscan"
 	"github.com/google/uuid"
+	"github.com/jackc/pgx/v4/pgxpool"
 	"github.com/jmoiron/sqlx"
 	"github.com/lib/pq"
 )
@@ -87,14 +91,14 @@ func GetDownloadWatershed(db *sqlx.DB, downloadID *uuid.UUID) (*Watershed, error
 }
 
 // CreateWatershed creates a new watershed
-func CreateWatershed(db *sqlx.DB, w *Watershed) (*Watershed, error) {
+func CreateWatershed(db *pgxpool.Pool, w *Watershed) (*Watershed, error) {
 	slug, err := NextUniqueSlug(db, "watershed", "slug", w.Name, "", "")
 	if err != nil {
 		return nil, err
 	}
 	var wNew Watershed
-	if err := db.Get(
-		&wNew,
+	if err := pgxscan.Get(
+		context.Background(), db, &wNew,
 		`INSERT INTO watershed (name, slug) VALUES ($1,$2) 
 		RETURNING id, name, slug`,
 		&w.Name, slug,

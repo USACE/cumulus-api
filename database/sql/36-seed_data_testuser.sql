@@ -1,9 +1,9 @@
 -- Add test user
-INSERT INTO public.profile (id, edipi, email) VALUES 
-    ('659f787d-f069-4049-ba94-5b6d2f2dbfeb', 0, 'test@usace.army.mil');
+INSERT INTO public.profile (id, edipi, is_admin, username, email) VALUES 
+    ('659f787d-f069-4049-ba94-5b6d2f2dbfeb', 0, false, 'test.user', 'test@usace.army.mil');
 
 -- Add User's Watersheds
-INSERT INTO public.profile_watersheds (watershed_id, profile_id) VALUES 
+INSERT INTO public.my_watersheds (watershed_id, profile_id) VALUES 
     ('225faeef-4251-4e97-9901-2c3c480180d3', '659f787d-f069-4049-ba94-5b6d2f2dbfeb'),
     ('2778d7eb-5ef6-419a-823d-3cf5a1cdad0b', '659f787d-f069-4049-ba94-5b6d2f2dbfeb'),
     ('442e9ee0-d1d1-4f30-94b6-17d2bdcfe8f2', '659f787d-f069-4049-ba94-5b6d2f2dbfeb'),

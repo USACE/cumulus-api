@@ -1,31 +1,46 @@
 package models
 
 import (
-	"strings"
+	"context"
 	"time"
 
 	// Postgres Database Driver
+	"github.com/georgysavva/scany/pgxscan"
 	"github.com/google/uuid"
-	"github.com/jmoiron/sqlx"
-	_ "github.com/lib/pq"
+	_ "github.com/jackc/pgx/v4"
+	"github.com/jackc/pgx/v4/pgxpool"
 )
 
-// Product is a product structure
+var listProductsSQL = `SELECT id, slug, name, tags, temporal_resolution, temporal_duration,
+                              parameter_id, parameter, unit_id, unit, dss_fpart, description
+	                   FROM v_product`
+
+// ProductInfo holds information required to create a product
+type ProductInfo struct {
+	Name               string    `json:"name"`
+	TemporalResolution int       `json:"temporal_resolution" db:"temporal_resolution"`
+	TemporalDuration   int       `json:"temporal_duration" db:"temporal_duration"`
+	DssFpart           string    `json:"dss_fpart" db:"dss_fpart"`
+	ParameterID        uuid.UUID `json:"parameter_id" db:"parameter_id"`
+	Parameter          string    `json:"parameter"`
+	UnitID             uuid.UUID `json:"unit_id" db:"unit_id"`
+	Unit               string    `json:"unit"`
+	Description        string    `json:"description"`
+}
+
+// Product holds all information about a product
 type Product struct {
-	ID                 uuid.UUID  `json:"id"`
-	Slug               string     `json:"slug" db:"slug"`
-	GroupID            *uuid.UUID `json:"group_id" db:"group_id"`
-	Group              *string    `json:"group" db:"group"`
-	IsForecast         bool       `json:"is_forecast" db:"is_forecast"`
-	IsRealtime         bool       `json:"is_realtime" db:"is_realtime"`
-	Name               string     `json:"name"`
-	TemporalResolution string     `json:"temporal_resolution" db:"temporal_resolution"`
-	TemporalDuration   string     `json:"temporal_duration" db:"temporal_duration"`
-	DssFpart           string     `json:"dss_fpart" db:"dss_fpart"`
-	Parameter          string     `json:"parameter"`
-	Unit               string     `json:"unit"`
-	Description        string     `json:"description" db:"description"`
-	CoverageSummary
+	ID   uuid.UUID   `json:"id"`
+	Slug string      `json:"slug" db:"slug"`
+	Tags []uuid.UUID `json:"tags" db:"tags"`
+	ProductInfo
+}
+
+// Productfile is a file associated with a product
+type Productfile struct {
+	ID       uuid.UUID `json:"id"`
+	Datetime time.Time `json:"datetime"`
+	File     string    `json:"file"`
 }
 
 // CoverageSummary describes date ranges spanned by a product
@@ -43,14 +58,7 @@ type CoverageSummary struct {
 	PercentCoverage  float32    `json:"percent_coverage" db:"coverage"`
 }
 
-// Productfile is a file associated with a product
-type Productfile struct {
-	ID       uuid.UUID `json:"id"`
-	Datetime string    `json:"datetime"`
-	File     string    `json:"file"`
-}
-
-// Availability stores
+// Availability includes a date count for each product id
 type Availability struct {
 	ProductID  uuid.UUID   `json:"product_id"`
 	DateCounts []DateCount `json:"date_counts"`
@@ -63,118 +71,102 @@ type DateCount struct {
 }
 
 // ListProducts returns a list of products
-func ListProducts(db *sqlx.DB) ([]Product, error) {
-	sql := listProductsSQL()
+func ListProducts(db *pgxpool.Pool) ([]Product, error) {
 	pp := make([]Product, 0)
-	if err := db.Select(&pp, sql); err != nil {
+	if err := pgxscan.Select(context.Background(), db, &pp, listProductsSQL); err != nil {
 		return make([]Product, 0), err
 	}
 	return pp, nil
 }
 
 // GetProduct returns a single product
-func GetProduct(db *sqlx.DB, ID *uuid.UUID) (*Product, error) {
-	sql := listProductsSQL() + " WHERE a.id = $1"
+func GetProduct(db *pgxpool.Pool, productID *uuid.UUID) (*Product, error) {
 	var p Product
-	if err := db.Get(&p, sql, ID); err != nil {
+	if err := pgxscan.Get(context.Background(), db, &p, listProductsSQL+" WHERE id = $1", productID); err != nil {
 		return nil, err
 	}
 	return &p, nil
 }
 
-// GetProductProductfiles returns array of productfiles
-func GetProductProductfiles(db *sqlx.DB, ID uuid.UUID, after string, before string) []Productfile {
-	sql := `SELECT id, datetime, file FROM productfile
-	         WHERE product_id = $1 AND
-	               datetime >= $2 AND
-	               datetime <= $3
-	`
-	rows, err := db.Query(sql, ID, after, before)
-
+// CreateProduct creates a single product
+func CreateProduct(db *pgxpool.Pool, p *ProductInfo) (*Product, error) {
+	// Assign Slug Based on Product Name; Slug Must Be Table Unique
+	slug, err := NextUniqueSlug(db, "product", "slug", p.Name, "", "")
 	if err != nil {
-		panic(err)
+		return nil, err
 	}
-
-	defer rows.Close()
-	result := make([]Productfile, 0)
-	for rows.Next() {
-		pf := Productfile{}
-		var file string
-		err := rows.Scan(&pf.ID, &pf.Datetime, &file)
-
-		if err != nil {
-			panic(err)
-		}
-
-		//pf.File = strings.Join([]string{"https://cumulus.rsgis.dev/apimedia", file}, "/")
-		pf.File = strings.Join([]string{"https://api.rsgis.dev", file}, "/")
-
-		result = append(result, pf)
+	var pID uuid.UUID
+	if err := pgxscan.Get(
+		context.Background(), db, &pID,
+		`INSERT INTO product (slug, name, temporal_resolution, temporal_duration, dss_fpart, parameter_id, unit_id, description) VALUES
+			($1, $2, $3, $4, $5, $6, $7, $8)
+		RETURNING id`, slug, p.Name, p.TemporalResolution, p.TemporalDuration, p.DssFpart, p.ParameterID, p.UnitID, p.Description,
+	); err != nil {
+		return nil, err
 	}
-	return result
+	return GetProduct(db, &pID)
+}
+
+// UpdateProduct updates a single product
+func UpdateProduct(db *pgxpool.Pool, p *Product) (*Product, error) {
+	var pID uuid.UUID
+	if err := pgxscan.Get(
+		context.Background(), db, &pID,
+		`UPDATE product SET name=$2, temporal_resolution=$3, temporal_duration=$4, dss_fpart=$5,
+		                    parameter_id=$6, unit_id=$7, description=$8
+		 WHERE id = $1
+		 RETURNING id`, p.ID, p.Name, p.TemporalResolution, p.TemporalDuration, p.DssFpart, p.ParameterID, p.UnitID, p.Description,
+	); err != nil {
+		return nil, err
+	}
+	return GetProduct(db, &pID)
+}
+
+// DeleteProduct deletes a signle product
+func DeleteProduct(db *pgxpool.Pool, pID *uuid.UUID) error {
+	if _, err := db.Exec(context.Background(), `UPDATE product SET deleted=true WHERE id=$1`, pID); err != nil {
+		return err
+	}
+	return nil
 }
 
 // GetProductAvailability returns Availability for a product
-func GetProductAvailability(db *sqlx.DB, ID *uuid.UUID) (*Availability, error) {
-
+func GetProductAvailability(db *pgxpool.Pool, ID *uuid.UUID) (*Availability, error) {
 	// https://stackoverflow.com/questions/29023336/generate-series-in-postgres-from-start-and-end-date-in-a-table
-	sql := `SELECT series.day                      AS date,
-	               COALESCE(daily_counts.count, 0) AS count
-            FROM (
-				SELECT generate_series(MIN(pf.datetime)::date, MAX(pf.datetime)::date, '1 Day') AS day
-                FROM productfile pf
-             	WHERE product_id = $1
-			) series
-			LEFT OUTER JOIN (
-				SELECT datetime::date as day,
-				COUNT(*) as count
-				FROM productfile
-				WHERE product_id = $1
-				GROUP BY day
-			) daily_counts ON daily_counts.day = series.day
-	`
 	a := Availability{ProductID: *ID, DateCounts: make([]DateCount, 0)}
-	if err := db.Select(&a.DateCounts, sql, ID); err != nil {
+	if err := pgxscan.Select(
+		context.Background(), db, &a.DateCounts,
+		`SELECT series.day                      AS date,
+		        COALESCE(daily_counts.count, 0) AS count
+		 FROM (
+			 SELECT generate_series(MIN(pf.datetime)::date, MAX(pf.datetime)::date, '1 Day') AS day
+			 FROM productfile pf
+			 WHERE product_id = $1
+		 ) series
+		 LEFT OUTER JOIN (
+			 SELECT datetime::date as day,
+			        COUNT(*)       as count
+			 FROM productfile
+			 WHERE product_id = $1
+			 GROUP BY day
+		 ) daily_counts ON daily_counts.day = series.day`, ID,
+	); err != nil {
 		return nil, err
 	}
 	return &a, nil
 }
 
-func listProductsSQL() string {
-	return `SELECT a.id                  AS id,
-				   a.slug				 AS slug,
-				   a.name                AS name,
-				   a.group_id            AS group_id,
-				   g.name                AS group,
-				   a.is_realtime         AS is_realtime,
-				   a.is_forecast         AS is_forecast,
-	               a.temporal_resolution AS temporal_resolution,
-	               a.temporal_duration   AS temporal_duration,
-	               a.dss_fpart           AS dss_fpart,
-				   a.description		 AS description,
-	               p.name                AS parameter,
-	               u.name                AS unit,
-	               pf.after              AS after,
-				   pf.before             AS before,
-				   COALESCE(pf.productfile_count, 0)  AS productfile_count,
-				   CASE WHEN pf.productfile_count IS NULL THEN 0
-						WHEN pf.productfile_count = 0 THEN 0
-				   		WHEN pf.productfile_count = 1 THEN 100
-						WHEN pf.before = pf.after THEN 0
-				        ELSE ROUND(
-							(100*pf.productfile_count*a.temporal_resolution/EXTRACT('EPOCH' FROM age(pf.before, pf.after)))::numeric, 2
-						) END AS coverage
-            FROM product a
-            JOIN unit u ON u.id = a.unit_id
-			JOIN parameter p ON p.id = a.parameter_id
-			LEFT JOIN product_group g ON a.group_id = g.id
-            LEFT JOIN (
-                SELECT product_id    AS product_id,
-                       COUNT(id)     AS productfile_count,
-                       MIN(datetime) AS after,
-                       MAX(datetime) AS before
-            	FROM productfile
-                GROUP BY product_id
-            ) AS pf ON pf.product_id = a.id
-	`
+// ListProductfiles returns array of productfiles
+func ListProductfiles(db *pgxpool.Pool, ID uuid.UUID, after string, before string) ([]Productfile, error) {
+	ff := make([]Productfile, 0)
+	if err := pgxscan.Select(
+		context.Background(), db, &ff,
+		`SELECT id, datetime, file
+	     FROM productfile
+		 WHERE product_id = $1 AND datetime >= $2 AND datetime <= $3`,
+		ID, after, before,
+	); err != nil {
+		return make([]Productfile, 0), err
+	}
+	return ff, nil
 }

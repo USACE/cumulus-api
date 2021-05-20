@@ -1,10 +1,820 @@
 {
 	"info": {
-		"_postman_id": "dde5fc9a-cd66-4f28-ae0c-7e7f7f195284",
+		"_postman_id": "1815d57d-45ec-4cf3-b97e-0aa4ce02f7a6",
 		"name": "cumulus-regression",
 		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
 	},
 	"item": [
+		{
+			"name": "profile",
+			"item": [
+				{
+					"name": "CreateProfile",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"// validate JSON schema",
+									"var schema = {",
+									"    \"type\": \"object\",",
+									"    \"properties\": {",
+									"        \"id\": { \"type\": \"string\" },",
+									"        \"username\": { \"type\": \"string\" },",
+									"        \"email\": { \"type\": \"string\" },",
+									"        \"is_admin\": { \"type\": \"boolean\"},",
+									"        \"tokens\": {\"type\": \"array\"},",
+									"        \"roles\": {\"type\": \"array\"}",
+									"    },",
+									"    \"required\": [\"id\", \"username\", \"email\", \"is_admin\", \"tokens\", \"roles\"],",
+									"    \"additionalProperties\": false",
+									"}",
+									"",
+									"pm.globals.set('PROFILE_SCHEMA', JSON.stringify(schema));",
+									"",
+									"// status code is 201",
+									"pm.test(\"Status code is 201\", function () {",
+									"    pm.response.to.have.status(201);",
+									"});",
+									"",
+									"// validate schema",
+									"pm.test(\"Schema validation\", function () {",
+									"    pm.response.to.have.jsonSchema(schema)",
+									"});",
+									""
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"username\": \"testuser\",\n    \"email\": \"test.user@gmail.com\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{base_url}}/my_profile",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"my_profile"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "GetMyProfile",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"// status code is 200",
+									"pm.test(\"Status code is 200\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"",
+									"// schema validation",
+									"pm.test(\"Schema validation\", function () {",
+									"    pm.response.to.have.jsonSchema(",
+									"        JSON.parse(pm.globals.get('PROFILE_SCHEMA'))",
+									"    )",
+									"});",
+									""
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/my_profile",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"my_profile"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "CreateToken",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"// validate JSON schema",
+									"var schema = {",
+									"    \"type\": \"object\",",
+									"    \"properties\": {",
+									"        \"secret_token\": { \"type\": \"string\" },",
+									"        \"token_id\": { \"type\": \"string\" },",
+									"        \"profile_id\": { \"type\": \"string\" },",
+									"        \"issued\": { \"type\": \"string\"}",
+									"    },",
+									"    \"required\": [\"secret_token\", \"token_id\", \"profile_id\", \"issued\"],",
+									"    \"additionalProperties\": false",
+									"}",
+									"",
+									"pm.globals.set('TOKEN_OBJECT', JSON.stringify(schema));",
+									"",
+									"// status code is 201",
+									"pm.test(\"Status code is 201\", function () {",
+									"    pm.response.to.have.status(201);",
+									"});",
+									"",
+									"// validate schema",
+									"pm.test(\"Schema validation\", function () {",
+									"    pm.response.to.have.jsonSchema(schema)",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/my_tokens",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"my_tokens"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "DeleteToken",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"// status code is 200;",
+									"// NOTE: This test will always pass when run in automated tests because attempting to delete a token that",
+									"// does not exist will always return a RESTful 200 (i.e. 'It's gone'). This test is left in place for manual testing as needed.",
+									"// This is done using the CreateToken test, getting the token_id from the payload, manually deleting the token using this test,",
+									"// and verifying that the token has been deleted by fetching /my_profile and examining the return payload",
+									"pm.test(\"Status code is 200\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "DELETE",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/my_tokens/65GkUyQ4yyG9jeJVB8N3ebtcunYAnXKCJAtXB1ZtLz4FUVr7LLtKBFx",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"my_tokens",
+								"65GkUyQ4yyG9jeJVB8N3ebtcunYAnXKCJAtXB1ZtLz4FUVr7LLtKBFx"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "products",
+			"item": [
+				{
+					"name": "GetProduct",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"// validate JSON schema",
+									"var schema = {",
+									"    \"type\": \"object\",",
+									"    \"properties\": {",
+									"        \"id\": { \"type\": \"string\" },",
+									"        \"slug\": { \"type\": \"string\" },",
+									"        \"tags\": {",
+									"            \"type\": \"array\",",
+									"            \"items\": { \"type\": \"string\" },",
+									"        },",
+									"        \"name\": { \"type\": \"string\" },",
+									"        \"temporal_resolution\": { \"type\": \"number\" },",
+									"        \"temporal_duration\": { \"type\": \"number\" },",
+									"        \"dss_fpart\": { \"type\": \"string\" },",
+									"        \"parameter_id\": { \"type\": \"string\" },",
+									"        \"parameter\": { \"type\": \"string\" },",
+									"        \"unit_id\": { \"type\": \"string\" },",
+									"        \"unit\": { \"type\": \"string\" },",
+									"        \"description\": { \"type\": \"string\" }",
+									"    },",
+									"    \"required\": [\"id\", \"slug\", \"tags\", \"name\", \"temporal_resolution\", \"temporal_duration\", \"dss_fpart\",",
+									"                 \"parameter_id\", \"parameter\", \"unit_id\", \"unit\", \"description\"",
+									"    ],",
+									"    \"additionalProperties\": false",
+									"}",
+									"",
+									"pm.globals.set('PRODUCT_OBJECT', JSON.stringify(schema));",
+									"",
+									"// status code is 200",
+									"pm.test(\"Status code is 200\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"// validate schema",
+									"pm.test(\"Schema validation\", function () {",
+									"    pm.response.to.have.jsonSchema(schema)",
+									"});",
+									""
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/products/757c809c-dda0-412b-9831-cb9bd0f62d1d",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"products",
+								"757c809c-dda0-412b-9831-cb9bd0f62d1d"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "ListProducts",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"// schema validator",
+									"var schema = {",
+									"    \"type\": \"array\",",
+									"    \"items\": JSON.parse(pm.globals.get('PRODUCT_OBJECT'))",
+									"}",
+									"",
+									"pm.globals.set('PRODUCT_ARRAY', JSON.stringify(schema));",
+									"",
+									"// status code is 200",
+									"pm.test(\"Status code is 200\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"// schema validation",
+									"pm.test(\"Schema validation\", function () {",
+									"    pm.response.to.have.jsonSchema(schema)",
+									"});",
+									""
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/products",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"products"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "ListProductFiles",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"// schema validator",
+									"var schema = {",
+									"    \"type\": \"array\",",
+									"    \"items\": { ",
+									"        \"type\": \"object\",",
+									"        \"properties\": {",
+									"            \"id\": { \"type\": \"string\"},",
+									"            \"datetime\": { \"type\": \"string\"},",
+									"            \"file\": { \"type\": \"string\"}",
+									"        },",
+									"        \"required\": [\"id\", \"datetime\", \"file\"],",
+									"        \"additionalProperties\": false",
+									"    }",
+									"}",
+									"",
+									"pm.globals.set('PRODUCTFILE_ARRAY', JSON.stringify(schema));",
+									"",
+									"// status code is 200",
+									"pm.test(\"Status code is 200\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"// schema validation",
+									"pm.test(\"Schema validation\", function () {",
+									"    pm.response.to.have.jsonSchema(schema)",
+									"});",
+									""
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/products/757c809c-dda0-412b-9831-cb9bd0f62d1d/files?after=2020-01-01&before=2020-02-01",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"products",
+								"757c809c-dda0-412b-9831-cb9bd0f62d1d",
+								"files"
+							],
+							"query": [
+								{
+									"key": "after",
+									"value": "2020-01-01"
+								},
+								{
+									"key": "before",
+									"value": "2020-02-01"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "ListProductAvailability",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"// schema validator",
+									"var schema = {",
+									"    \"type\": \"object\",",
+									"    \"properties\": {",
+									"        \"product_id\":  { \"type\": \"string\"},",
+									"        \"date_counts\": { ",
+									"            \"type\": \"array\",",
+									"            \"items\": {",
+									"                \"type\": \"object\",",
+									"                \"properties\": {",
+									"                    \"date\": {\"type\": \"string\" },",
+									"                    \"count\": {\"type\": \"number\"}",
+									"                },",
+									"                \"required\": [\"date\", \"count\"],",
+									"                \"additionalProperties\": false",
+									"            }",
+									"        }",
+									"    },",
+									"    \"required\": [\"product_id\", \"date_counts\"],",
+									"    \"additionalProperties\": false",
+									"}",
+									"",
+									"// status code is 200",
+									"pm.test(\"Status code is 200\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"// schema validation",
+									"pm.test(\"Schema validation\", function () {",
+									"    pm.response.to.have.jsonSchema(schema)",
+									"});",
+									""
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/products/757c809c-dda0-412b-9831-cb9bd0f62d1d/availability",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"products",
+								"757c809c-dda0-412b-9831-cb9bd0f62d1d",
+								"availability"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "UpdateProduct",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"// status code is 200",
+									"pm.test(\"Status code is 200\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"",
+									"// schema validation",
+									"pm.test(\"Schema validation\", function () {",
+									"    pm.response.to.have.jsonSchema(",
+									"        JSON.parse(pm.globals.get('PRODUCT_OBJECT'))",
+									"    )",
+									"});",
+									""
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "PUT",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"id\": \"757c809c-dda0-412b-9831-cb9bd0f62d1d\",\n    \"slug\": \"nohrsc-snodas-swe\",\n    \"tags\": [\n        \"57bda84f-ecec-4cd7-b3b1-c0c36f838a05\"\n    ],\n    \"name\": \"New Name for NOHRSC SNODAS SWE\",\n    \"temporal_resolution\": 86400,\n    \"temporal_duration\": 0,\n    \"dss_fpart\": \"SNODAS\",\n    \"parameter_id\": \"683a55b9-4a94-46b5-9f47-26e66f3037a8\",\n    \"parameter\": \"SWE\",\n    \"unit_id\": \"e245d39f-3209-4e58-bfb7-4eae94b3f8dd\",\n    \"unit\": \"MM\",\n    \"description\": \"New Description for NOHRSC SNODAS SWE\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{base_url}}/products/757c809c-dda0-412b-9831-cb9bd0f62d1d",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"products",
+								"757c809c-dda0-412b-9831-cb9bd0f62d1d"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "CreateProduct",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"// status code is 201",
+									"pm.test(\"Status code is 201\", function () {",
+									"    pm.response.to.have.status(201);",
+									"});",
+									"",
+									"// schema validation",
+									"pm.test(\"Schema validation\", function () {",
+									"    pm.response.to.have.jsonSchema(",
+									"        JSON.parse(pm.globals.get('PRODUCT_OBJECT'))",
+									"    )",
+									"});",
+									""
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"name\": \"New Product Created by Integration Tests\",\n    \"temporal_resolution\": 200,\n    \"temporal_duration\": 0,\n    \"dss_fpart\": \"INTEGRATION TEST PRODUCT\",\n    \"parameter_id\": \"683a55b9-4a94-46b5-9f47-26e66f3037a8\",\n    \"parameter\": \"SWE\",\n    \"unit_id\": \"e245d39f-3209-4e58-bfb7-4eae94b3f8dd\",\n    \"unit\": \"MM\",\n    \"description\": \"Example Product Description\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{base_url}}/products",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"products"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "DeleteProduct",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"// status code is 200",
+									"pm.test(\"Status code is 200\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "DELETE",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"id\": \"757c809c-dda0-412b-9831-cb9bd0f62d1d\",\n    \"slug\": \"nohrsc-snodas-swe\",\n    \"tags\": [\n        \"57bda84f-ecec-4cd7-b3b1-c0c36f838a05\"\n    ],\n    \"name\": \"New Name for NOHRSC SNODAS SWE\",\n    \"temporal_resolution\": 86400,\n    \"temporal_duration\": 0,\n    \"dss_fpart\": \"SNODAS\",\n    \"parameter_id\": \"683a55b9-4a94-46b5-9f47-26e66f3037a8\",\n    \"parameter\": \"SWE\",\n    \"unit_id\": \"e245d39f-3209-4e58-bfb7-4eae94b3f8dd\",\n    \"unit\": \"MM\",\n    \"description\": \"New Description for NOHRSC SNODAS SWE\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{base_url}}/products/757c809c-dda0-412b-9831-cb9bd0f62d1d",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"products",
+								"757c809c-dda0-412b-9831-cb9bd0f62d1d"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "tags",
+			"item": [
+				{
+					"name": "GetTag",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"// validate JSON schema",
+									"var schema = {",
+									"    \"type\": \"object\",",
+									"    \"properties\": {",
+									"        \"id\": { \"type\": \"string\" },",
+									"        \"name\": { \"type\": \"string\" },",
+									"        \"description\": { \"type\": \"string\" },",
+									"        \"color\": { \"type\": \"string\" }",
+									"    },",
+									"    \"required\": [\"id\", \"name\", \"description\", \"color\"],",
+									"    \"additionalProperties\": false",
+									"}",
+									"",
+									"pm.globals.set('TAG_OBJECT', JSON.stringify(schema));",
+									"",
+									"// status code is 200",
+									"pm.test(\"Status code is 200\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"// validate schema",
+									"pm.test(\"Schema validation\", function () {",
+									"    pm.response.to.have.jsonSchema(schema)",
+									"});",
+									""
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/tags/cc93b3f9-fbe1-4b35-8f9c-2d1515961c6a",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"tags",
+								"cc93b3f9-fbe1-4b35-8f9c-2d1515961c6a"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "ListTags",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"// schema validator",
+									"var schema = {",
+									"    \"type\": \"array\",",
+									"    \"items\": JSON.parse(pm.globals.get('TAG_OBJECT'))",
+									"}",
+									"",
+									"pm.globals.set('TAG_ARRAY', JSON.stringify(schema));",
+									"",
+									"// status code is 200",
+									"pm.test(\"Status code is 200\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"// schema validation",
+									"pm.test(\"Schema validation\", function () {",
+									"    pm.response.to.have.jsonSchema(schema)",
+									"});",
+									""
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/tags",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"tags"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "UpdateTag",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"// status code is 200",
+									"pm.test(\"Status code is 200\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"",
+									"// schema validation",
+									"pm.test(\"Schema validation\", function () {",
+									"    pm.response.to.have.jsonSchema(",
+									"        JSON.parse(pm.globals.get('TAG_OBJECT'))",
+									"    )",
+									"});",
+									""
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "PUT",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"id\": \"cc93b3f9-fbe1-4b35-8f9c-2d1515961c6a\",\n    \"name\": \"Forecast Tag Updated Name\",\n    \"description\": \"Products represent a forecast updated description\",\n    \"color\": \"2ca25f\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{base_url}}/tags/cc93b3f9-fbe1-4b35-8f9c-2d1515961c6a",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"tags",
+								"cc93b3f9-fbe1-4b35-8f9c-2d1515961c6a"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "CreateTag",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"// status code is 201",
+									"pm.test(\"Status code is 201\", function () {",
+									"    pm.response.to.have.status(201);",
+									"});",
+									"",
+									"// schema validation",
+									"pm.test(\"Schema validation\", function () {",
+									"    pm.response.to.have.jsonSchema(",
+									"        JSON.parse(pm.globals.get('TAG_OBJECT'))",
+									"    )",
+									"});",
+									""
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "    {\n        \"name\": \"Preferred\",\n        \"description\": \"Preferred Product for a Given Parameter\",\n        \"color\": \"A7F3D0\"\n    }",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{base_url}}/tags",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"tags"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "DeleteTag",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"// status code is 200",
+									"pm.test(\"Status code is 200\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "DELETE",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"id\": \"757c809c-dda0-412b-9831-cb9bd0f62d1d\",\n    \"slug\": \"nohrsc-snodas-swe\",\n    \"tags\": [\n        \"57bda84f-ecec-4cd7-b3b1-c0c36f838a05\"\n    ],\n    \"name\": \"New Name for NOHRSC SNODAS SWE\",\n    \"temporal_resolution\": 86400,\n    \"temporal_duration\": 0,\n    \"dss_fpart\": \"SNODAS\",\n    \"parameter_id\": \"683a55b9-4a94-46b5-9f47-26e66f3037a8\",\n    \"parameter\": \"SWE\",\n    \"unit_id\": \"e245d39f-3209-4e58-bfb7-4eae94b3f8dd\",\n    \"unit\": \"MM\",\n    \"description\": \"New Description for NOHRSC SNODAS SWE\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{base_url}}/tags/cc93b3f9-fbe1-4b35-8f9c-2d1515961c6a",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"tags",
+								"cc93b3f9-fbe1-4b35-8f9c-2d1515961c6a"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
 		{
 			"name": "downloads",
 			"item": [
@@ -111,181 +921,6 @@
 							],
 							"path": [
 								"downloads"
-							]
-						}
-					},
-					"response": []
-				}
-			]
-		},
-		{
-			"name": "profile",
-			"item": [
-				{
-					"name": "CreateProfile",
-					"event": [
-						{
-							"listen": "test",
-							"script": {
-								"exec": [
-									"// status code is 201",
-									"pm.test(\"Status code is 201\", function () {",
-									"    pm.response.to.have.status(201);",
-									"});"
-								],
-								"type": "text/javascript"
-							}
-						}
-					],
-					"request": {
-						"method": "POST",
-						"header": [],
-						"body": {
-							"mode": "raw",
-							"raw": "{\n    \"email\": \"admin@testuser.gov\"\n}",
-							"options": {
-								"raw": {
-									"language": "json"
-								}
-							}
-						},
-						"url": {
-							"raw": "{{base_url}}/profiles",
-							"host": [
-								"{{base_url}}"
-							],
-							"path": [
-								"profiles"
-							]
-						}
-					},
-					"response": []
-				},
-				{
-					"name": "CreateToken",
-					"event": [
-						{
-							"listen": "test",
-							"script": {
-								"exec": [
-									"// status code is 201",
-									"pm.test(\"Status code is 201\", function () {",
-									"    pm.response.to.have.status(201);",
-									"});"
-								],
-								"type": "text/javascript"
-							}
-						}
-					],
-					"request": {
-						"method": "POST",
-						"header": [],
-						"url": {
-							"raw": "{{base_url}}/my_tokens",
-							"host": [
-								"{{base_url}}"
-							],
-							"path": [
-								"my_tokens"
-							]
-						}
-					},
-					"response": []
-				},
-				{
-					"name": "GetMyProfile",
-					"event": [
-						{
-							"listen": "test",
-							"script": {
-								"exec": [
-									"// status code is 200",
-									"pm.test(\"Status code is 200\", function () {",
-									"    pm.response.to.have.status(200);",
-									"});"
-								],
-								"type": "text/javascript"
-							}
-						}
-					],
-					"request": {
-						"method": "GET",
-						"header": [],
-						"url": {
-							"raw": "{{base_url}}/my_profile",
-							"host": [
-								"{{base_url}}"
-							],
-							"path": [
-								"my_profile"
-							]
-						}
-					},
-					"response": []
-				},
-				{
-					"name": "DeleteToken",
-					"event": [
-						{
-							"listen": "test",
-							"script": {
-								"exec": [
-									"// status code is 200",
-									"pm.test(\"Status code is 200\", function () {",
-									"    pm.response.to.have.status(200);",
-									"});"
-								],
-								"type": "text/javascript"
-							}
-						}
-					],
-					"request": {
-						"method": "DELETE",
-						"header": [],
-						"url": {
-							"raw": "{{base_url}}/my_tokens/AXZrRtC4TrTrYHnfXHPomZ41gXnDZh1KUro9LaG1uyVb8oR6mTY59Ho",
-							"host": [
-								"{{base_url}}"
-							],
-							"path": [
-								"my_tokens",
-								"AXZrRtC4TrTrYHnfXHPomZ41gXnDZh1KUro9LaG1uyVb8oR6mTY59Ho"
-							]
-						}
-					},
-					"response": []
-				}
-			]
-		},
-		{
-			"name": "products",
-			"item": [
-				{
-					"name": "ListProducts",
-					"event": [
-						{
-							"listen": "test",
-							"script": {
-								"exec": [
-									"// status code is 200",
-									"pm.test(\"Status code is 200\", function () {",
-									"    pm.response.to.have.status(200);",
-									"});"
-								],
-								"type": "text/javascript"
-							}
-						}
-					],
-					"request": {
-						"method": "GET",
-						"header": [],
-						"url": {
-							"raw": "{{base_url}}/products",
-							"host": [
-								"{{base_url}}"
-							],
-							"path": [
-								"products"
 							]
 						}
 					},

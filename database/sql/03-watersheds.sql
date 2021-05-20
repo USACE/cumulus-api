@@ -1,6 +1,248 @@
+-- extensions
+CREATE extension IF NOT EXISTS "uuid-ossp";
+
+
+-- drop tables if they already exist
+drop table if exists
+    public.office,
+    public.watershed,
+    public.watershed_roles,
+    public.my_watersheds,
+    public.area,
+    public.area_group,
+	public.role
+	CASCADE;
+
+
+-- office
+CREATE TABLE IF NOT EXISTS public.office (
+    id UUID PRIMARY KEY NOT NULL DEFAULT uuid_generate_v4(),
+    symbol VARCHAR(120) UNIQUE NOT NULL,
+    name VARCHAR(120) UNIQUE NOT NULL
+);
+
+-- watershed
+CREATE TABLE IF NOT EXISTS public.watershed (
+    id UUID PRIMARY KEY NOT NULL DEFAULT uuid_generate_v4(),
+    slug VARCHAR UNIQUE NOT NULL,
+    name VARCHAR,
+    geometry geometry,
+    office_id UUID REFERENCES office(id)
+);
+
+-- my_watersheds
+CREATE TABLE IF NOT EXISTS public.my_watersheds (
+    id UUID PRIMARY KEY NOT NULL DEFAULT uuid_generate_v4(),
+    watershed_id UUID NOT NULL REFERENCES watershed(id) ON DELETE CASCADE,
+    profile_id UUID NOT NULL REFERENCES profile(id) ON DELETE CASCADE,
+    CONSTRAINT profile_unique_watershed UNIQUE(watershed_id, profile_id)
+);
+
+-- area_group
+CREATE TABLE IF NOT EXISTS public.area_group (
+    id UUID PRIMARY KEY NOT NULL DEFAULT uuid_generate_v4(),
+    watershed_id UUID NOT NULL REFERENCES watershed(id) ON DELETE CASCADE,
+    slug VARCHAR NOT NULL,
+    name VARCHAR NOT NULL,
+    CONSTRAINT watershed_unique_slug UNIQUE(watershed_id, slug),
+    CONSTRAINT watershed_unique_name UNIQUE(watershed_id, name)
+);
+
+-- area
+CREATE TABLE IF NOT EXISTS public.area (
+    id UUID PRIMARY KEY NOT NULL DEFAULT uuid_generate_v4(),
+    slug VARCHAR UNIQUE NOT NULL,
+    name VARCHAR UNIQUE NOT NULL,
+    geometry geometry NOT NULL,
+    area_group_id UUID NOT NULL REFERENCES area_group(id) ON DELETE CASCADE,
+    CONSTRAINT area_group_unique_slug UNIQUE(area_group_id, slug),
+    CONSTRAINT area_group_unique_name UNIQUE(area_group_id, name)
+);
+
+
+------------------------
+-- Watershed Permissions
+------------------------
+-- role
+CREATE TABLE IF NOT EXISTS public.role (
+    id UUID PRIMARY KEY NOT NULL DEFAULT uuid_generate_v4(),
+    name VARCHAR NOT NULL
+);
+INSERT INTO role (id, name) VALUES
+    ('37f14863-8f3b-44ca-8deb-4b74ce8a8a69', 'ADMIN'),
+    ('2962bdde-7007-4ba0-943f-cb8e72e90704', 'MEMBER');
+
+-- watershed_roles
+CREATE TABLE IF NOT EXISTS public.watershed_roles (
+    id UUID PRIMARY KEY NOT NULL DEFAULT uuid_generate_v4(),
+    profile_id UUID NOT NULL REFERENCES profile(id),
+    role_id UUID NOT NULL REFERENCES role(id) ON DELETE CASCADE,
+    watershed_id UUID NOT NULL REFERENCES watershed(id),
+    granted_by UUID REFERENCES profile(id),
+    granted_date TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    CONSTRAINT unique_watershed_role UNIQUE(profile_id,watershed_id,role_id)
+);
+
+-- -----
+-- VIEWS
+-- -----
+
+CREATE OR REPLACE VIEW v_watershed AS (
+    SELECT w.id,
+           w.slug,
+           w.name,
+           w.geometry AS geometry,
+           COALESCE(ag.area_groups, '{}') AS area_groups,
+           f.symbol AS office_symbol
+	FROM   watershed w
+	LEFT JOIN (
+		SELECT array_agg(id) as area_groups, watershed_id
+		FROM area_group
+		GROUP BY watershed_id
+	) ag ON ag.watershed_id = w.id
+    LEFT JOIN office f ON w.office_id = f.id
+);
+
+
+-- Basins; Projected to EPSG 5070
+CREATE OR REPLACE VIEW v_area_5070 AS (
+	SELECT id,
+		slug,
+		name,
+			ST_SnapToGrid(
+				ST_Transform(
+					geometry,
+					'+proj=aea +lat_0=23 +lon_0=-96 +lat_1=29.5 +lat_2=45.5 +x_0=0 +y_0=0 +datum=NAD83 +units=us-ft +no_defs',
+					5070
+				),
+				1
+			) AS geometry
+	FROM area
+);
+
+-- v_watershed_roles
+CREATE OR REPLACE VIEW v_watershed_roles AS (
+    SELECT a.id,
+           a.profile_id,
+           b.edipi,
+           b.username,
+           b.email,
+           b.is_admin,
+           c.id AS watershed_id,
+           r.id   AS role_id,
+           r.name AS role,
+           UPPER(c.slug || '.' || r.name) AS rolename
+    FROM watershed_roles a
+    INNER JOIN profile b ON b.id = a.profile_id
+    INNER JOIN watershed c ON c.id = a.watershed_id
+    INNER JOIN role    r ON r.id = a.role_id
+    ORDER BY username, role
+);
+
+-- v_profile
+-- create statement here because watershed and watershed_roles
+-- tables must exist before creating this view
+CREATE OR REPLACE VIEW v_profile AS (
+    WITH roles_by_profile AS (
+        SELECT profile_id,
+               array_agg(UPPER(b.slug || '.' || c.name)) AS roles
+        FROM watershed_roles a
+        LEFT JOIN watershed b ON a.watershed_id = b.id
+        LEFT JOIN role    c ON a.role_id    = c.id
+        GROUP BY profile_id
+    )
+    SELECT p.id,
+           p.edipi,
+           p.username,
+           p.email,
+           p.is_admin,
+           COALESCE(r.roles,'{}') AS roles
+    FROM profile p
+    LEFT JOIN roles_by_profile r ON r.profile_id = p.id
+);
+
+-- ---------
+-- Seed Data
+------------
+
+-- office
+INSERT INTO office (id, symbol, name) VALUES
+    ('0088df5f-ec58-4654-9b71-3590266b475c','MVS','St. Louis District'),
+    ('0360bb56-92f8-4c1e-9b08-8396b216f2d3','LRDO','Ohio River Region'),
+    ('07c1c91e-2e42-4fbc-a550-f775a27eb419','NWK','Kansas City District'),
+    ('098c898f-7f0f-44e8-b2c1-329d7dd50166','SAW','Wilmington District'),
+    ('0cac2b45-a5df-49b3-9176-7d5145681958','NAD','North Atlantic Division'),
+    ('1f579664-d1db-4ee9-897e-47c16dc55012','NWO','Omaha District'),
+    ('2222f2f5-d512-41ee-83d7-3a6cfcbf5bfb','SPD','South Pacific Division'),
+    ('26dab361-76a0-4cb2-b5a5-01667ab7f7da','MVN','New Orleans District'),
+    ('26e6c300-480b-4e22-afae-7cc27dd9b116','SWT','Tulsa District'),
+    ('33f03e9a-711b-41e7-9bdd-66152b69128d','MVP','St. Paul District'),
+    ('4142c26c-0407-41ad-b660-8657ddb2be69','SAJ','Jacksonville District'),
+    ('4f4f6899-cac1-402f-adee-8109d5bc5db3','SWG','Galveston District'),
+    ('4ffaa895-0f05-4b59-8d12-86c901e2f229','LRN','Nashville District'),
+    ('586ac79a-083e-4c8c-8438-9585a88a4b3d','LRE','Detroit District'),
+    ('60754640-fef3-429b-b2f4-efdcf3b61e55','SWL','Little Rock District'),
+    ('60c46088-9c98-4927-991d-0bd126bbb62e','LRB','Buffalo District'),
+    ('64fb2c2f-e59a-44cc-a54d-22e8d7c909a0','NAE','New England District'),
+    ('6e3c2e48-a15a-4892-ba91-caab86499abc','NAP','Philadelphia District'),
+    ('74f7b6ff-b026-4272-b44a-cb1d536e1b8d','POD','Pacific Ocean Division'),
+    ('76bb611e-3fbf-4779-b251-203de3502670','SPN','San Francisco District'),
+    ('788cc853-235a-4e43-a136-b1f190a6a656','LRH','Huntington District'),
+    ('790ec8cf-8dad-48c9-bea9-9b8c26d29471','SAD','South Atlantic Division'),
+    ('7d7e962d-e554-48f0-8f82-b762a31441a6','NAB','Baltimore District'),
+    ('7fd53614-f484-4dfd-8fc4-d11b11fb071c','NAO','Norfolk District'),
+    ('834ea54d-2454-425f-b443-50ba4ab46e28','NWW','Walla Walla District'),
+    ('85ba21d8-ba4b-4060-a519-a3e69c1e29ed','NWDP','Pacific Northwest Region'),
+    ('89a1fe0c-03f3-47cf-8ee1-cd3de2e1ba7b','SPL','Los Angeles District'),
+    ('8fc88b15-9cd4-4e86-8b8c-6d956926010b','MVM','Memphis District'),
+    ('90173658-2de9-4329-926d-176c1b29089a','NWDM','Missouri River Region'),
+    ('90b958ea-0076-4925-87d8-670eb7da5551','SAS','Savannah District'),
+    ('99322682-b22f-4c47-972a-81c4d782b0d5','SAC','Charleston District'),
+    ('99a6b349-535a-4aab-b742-9bdd145461e7','LRDG','Great Lakes Region'),
+    ('9a631b0c-d8ad-4411-8220-04683c9c24f4','POH','Hawaii District'),
+    ('a0baec43-2817-4161-b654-c3c513b5276b','POA','Alaska District'),
+    ('a222e733-2fa7-4cd8-b3a6-065956e693f0','SWF','Fort Worth District'),
+    ('a9929dc4-7d7c-4ddb-b727-d752137ffc10','SPA','Albuquerque District'),
+    ('b952664c-4b11-4d85-89fa-a2cc405b1131','LRL','Louisville District'),
+    ('b9c56905-9dad-4418-9654-d1fcd9b3a57f','MVR','Rock Island District'),
+    ('c18588b6-25ab-42c9-b31a-a33c585d0b49','NWP','Portland District'),
+    ('c88758e9-4575-44b0-9d38-b6c0ee909061','NWS','Seattle District'),
+    ('d02f876f-eb00-425b-aeca-09fa105d5bc2','MVK','Vicksburg District'),
+    ('d0b7ddca-a321-44bd-bf2c-059c9c8cbe23','LRD','Great Lakes and Ohio River Division'),
+    ('d3da00c9-f839-4add-90a9-73053292d196','NWD','Northwestern Division'),
+    ('dd580032-c210-4f98-8ab7-bda92ff2fe5e','MVD','Mississippi Valley Division'),
+    ('df64a2de-91a2-4e6c-85c9-53d3d03f6794','SPK','Sacramento District'),
+    ('e7c9cfe8-99eb-4845-a058-46e53a75b28b','LRP','Pittsburgh District'),
+    ('eb545b18-5498-43c8-8652-f73e16446cc0','SAM','Mobile District'),
+    ('ede616b6-5ab7-42c6-9489-7c09bfb6a54b','NAN','New York District'),
+    ('fa9b344c-911c-43e9-966c-b0e1357e385c','LRC','Chicago District'),
+    ('fe551ee7-3b04-440c-89a4-162dffd99ed2','SWD','Southwestern Division'),
+    ('cf0e2fde-9156-4a96-a8bc-32640cb0043d','STUDY','Columbia  Study'),
+-- ('6757366f-136f-4233-98eb-e700a167bff5','EL','Environmental Laboratory'),
+-- ('9db3328b-73d9-4eb2-be67-79667173348a','WPC','Western Processing Center'),
+-- ('9efd790c-ad0f-4ff3-943d-c66e5dd631b8','HEC','Hydrologic Engineering Cennter'),
+-- ('b220e75d-29ad-45cf-8e34-b23648735654','CERL','Construction Engineering Research Laboratory'),
+-- ('ca6aa6f6-48ce-4532-b514-12a4464bdbe9','WCSC','Waterborne Commerce Statistics Center'),
+
+-- ('e03caac3-9e58-4cab-83bc-e2b6ad746124','IWR','Institute for Water Resources'),
+('e303450f-af6a-4272-a262-fdb94f8e3e86','SERFC','Southeast River Forecast Center');
+-- ('e8932733-872b-471d-9b81-6212b574da6d','LCRA','Lower Colorado River Authority'),
+-- ('fa8020b3-01ad-4ad1-859b-39fa883fc1eb','CRREL','Cold Regions Research and Engineering Lab'),
+-- ('1921eb45-d66d-42e0-a5a3-521bcc8d060e','ITL','Information Technology Laboratory'),
+-- ('28e05c71-e74b-4e64-bf69-252977ea9317','NDC','Navigation Data Center'),
+-- ('29e3de84-039d-4a9d-8623-e9a94ba4f710','CPC','Central Processing Center'),
+-- ('2d680d7f-3c62-4147-ab25-e5a288188aa9','HQ','Headquarters'),
+-- ('3ef77886-5fe6-4176-b740-1d72b18143dd','CWMS','All CWMS Offices'),
+-- ('5df16d60-00d7-4e03-afa6-8968baa0528d','GSL','Geotechnical and Structures Laboratory'),
+-- ('5e2d70fa-cbb8-4759-903b-cf4bd8318aa1','CHL','Coastal and Hydraulics Laboratory'),
+-- ('604c23ed-62a4-4c25-b613-f3d7e46b05ef','TEC','Topographic Engineering Center'),
+-- ('6b58ce44-bcb9-4780-9860-1368b4371394','UNK','Corps of Engineers Office Unknown'),
+-- ('7c18d4e5-a999-4c9e-a36a-9c89f2278891','ERD','Engineer Research and Development Center'),
+
+
+
 -- extent to polygon reference order - simple 4 point extents
 -- xmin,ymax (top left), xmax ymax (top right), xmax ymin (bottom right), xmin ymin (bottom left), xmin ymax (top left again)
-
 INSERT INTO public.watershed (id,slug,"name",geometry,office_id) VALUES
 	 ('01313583-8fed-4235-8cf2-df5fe23b4b2a','hatchie-river','Hatchie River',ST_GeomFromText('POLYGON ((542000 1444000, 694000 1444000, 694000 1296000, 542000 1296000, 542000 1444000))',5070),'8fc88b15-9cd4-4e86-8b8c-6d956926010b'),
 	 ('03206ff6-fe91-426c-a5e9-4c651b06f9c6','eau-galla-river','Eau Galla River',ST_GeomFromText('POLYGON ((284000 2460000, 326000 2460000, 326000 2404000, 284000 2404000, 284000 2460000))',5070),'33f03e9a-711b-41e7-9bdd-66152b69128d'),

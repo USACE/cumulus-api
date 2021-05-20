@@ -2,18 +2,33 @@ package models
 
 import (
 	"api/passwords"
+	"context"
 	"time"
 
+	"github.com/georgysavva/scany/pgxscan"
 	"github.com/google/uuid"
-	"github.com/jmoiron/sqlx"
-	_ "github.com/lib/pq"
+	"github.com/jackc/pgx/v4/pgxpool"
 )
 
 // Profile is a user profile
 type Profile struct {
 	ID uuid.UUID `json:"id"`
 	ProfileInfo
-	Tokens []TokenInfoProfile `json:"tokens"`
+	Tokens  []TokenInfoProfile `json:"tokens"`
+	IsAdmin bool               `json:"is_admin" db:"is_admin"`
+	Roles   []string           `json:"roles"`
+}
+
+func (p *Profile) attachTokens(db *pgxpool.Pool) error {
+	if err := pgxscan.Select(
+		context.Background(), db, &p.Tokens,
+		`SELECT token_id, issued
+		 FROM profile_token
+		 WHERE profile_id=$1`, p.ID,
+	); err != nil {
+		return err
+	}
+	return nil
 }
 
 // TokenInfoProfile is token information embedded in Profile
@@ -24,8 +39,9 @@ type TokenInfoProfile struct {
 
 // ProfileInfo is information necessary to construct a profile
 type ProfileInfo struct {
-	EDIPI int    `json:"edipi"`
-	Email string `json:"email"`
+	EDIPI    int    `json:"-"`
+	Username string `json:"username"`
+	Email    string `json:"email"`
 }
 
 // TokenInfo represents the information held in the database about a token
@@ -45,25 +61,48 @@ type Token struct {
 }
 
 // GetProfileFromEDIPI returns a profile given an edipi
-func GetProfileFromEDIPI(db *sqlx.DB, e int) (*Profile, error) {
-	// Would prefer to do this in one query using a join and postgres json/array aggregation
-	// for now it's implemented with two queries
-	var p Profile
-	if err := db.Get(&p, "SELECT id, edipi, email FROM profile WHERE edipi=$1", e); err != nil {
+func GetProfileFromEDIPI(db *pgxpool.Pool, e int) (*Profile, error) {
+	p := Profile{Tokens: make([]TokenInfoProfile, 0)}
+	if err := pgxscan.Get(
+		context.Background(), db, &p,
+		"SELECT id, edipi, username, email, is_admin, roles FROM v_profile WHERE edipi=$1", e,
+	); err != nil {
 		return nil, err
 	}
-	p.Tokens = make([]TokenInfoProfile, 0)
-	if err := db.Select(&p.Tokens, "SELECT token_id, issued FROM profile_token WHERE profile_id=$1", p.ID); err != nil {
+	if err := p.attachTokens(db); err != nil {
+		return nil, err
+	}
+	return &p, nil
+}
+
+func GetProfileFromTokenID(db *pgxpool.Pool, tokenID string) (*Profile, error) {
+	var p Profile
+	if err := pgxscan.Get(
+		context.Background(), db, &p,
+		`SELECT p.id, p.edipi, p.username, p.email, p.is_admin, p.roles
+		 FROM profile_token t
+		 LEFT JOIN v_profile p ON p.id = t.profile_id
+		 WHERE t.token_id=$1`, tokenID,
+	); err != nil {
+		return nil, err
+	}
+	if err := p.attachTokens(db); err != nil {
 		return nil, err
 	}
 	return &p, nil
 }
 
 // CreateProfile creates a new profile
-func CreateProfile(db *sqlx.DB, n *ProfileInfo) (*Profile, error) {
-	sql := "INSERT INTO profile (edipi, email) VALUES ($1, $2) RETURNING *"
-	var p Profile
-	if err := db.Get(&p, sql, n.EDIPI, n.Email); err != nil {
+func CreateProfile(db *pgxpool.Pool, n *ProfileInfo) (*Profile, error) {
+	p := Profile{
+		Tokens: make([]TokenInfoProfile, 0),
+		Roles:  make([]string, 0),
+	}
+	if err := pgxscan.Get(
+		context.Background(), db, &p,
+		`INSERT INTO profile (edipi, username, email) VALUES ($1, $2, $3)
+		 RETURNING id, username, email`, n.EDIPI, n.Username, n.Email,
+	); err != nil {
 		return nil, err
 	}
 	return &p, nil
@@ -72,7 +111,7 @@ func CreateProfile(db *sqlx.DB, n *ProfileInfo) (*Profile, error) {
 // CreateProfileToken creates a secret token and stores the HASH (not the actual token)
 // to the database. The return payload of this function is the first and last time you'll see
 // the raw token unless the user writes it down or stores it somewhere safe.
-func CreateProfileToken(db *sqlx.DB, profileID *uuid.UUID) (*Token, error) {
+func CreateProfileToken(db *pgxpool.Pool, profileID *uuid.UUID) (*Token, error) {
 	secretToken := passwords.GenerateRandom(40)
 	tokenID := passwords.GenerateRandom(40)
 
@@ -81,8 +120,9 @@ func CreateProfileToken(db *sqlx.DB, profileID *uuid.UUID) (*Token, error) {
 		return nil, err
 	}
 	var t Token
-	if err := db.Get(
-		&t, "INSERT INTO profile_token (token_id, profile_id, hash) VALUES ($1,$2,$3) RETURNING *",
+	if err := pgxscan.Get(
+		context.Background(), db, &t,
+		"INSERT INTO profile_token (token_id, profile_id, hash) VALUES ($1,$2,$3) RETURNING *",
 		tokenID, profileID, hash,
 	); err != nil {
 		return nil, err
@@ -92,10 +132,14 @@ func CreateProfileToken(db *sqlx.DB, profileID *uuid.UUID) (*Token, error) {
 }
 
 // GetTokenInfoByTokenID returns a single token by token id
-func GetTokenInfoByTokenID(db *sqlx.DB, tokenID *string) (*TokenInfo, error) {
+func GetTokenInfoByTokenID(db *pgxpool.Pool, tokenID *string) (*TokenInfo, error) {
 	var n TokenInfo
-	if err := db.Get(
-		&n, "SELECT * FROM profile_token WHERE token_id=$1 LIMIT 1",
+	if err := pgxscan.Get(
+		context.Background(), db, &n,
+		`SELECT id, token_id, profile_id, issued, hash
+		 FROM profile_token
+		 WHERE token_id=$1
+		 LIMIT 1`, tokenID,
 	); err != nil {
 		return nil, err
 	}
@@ -103,10 +147,10 @@ func GetTokenInfoByTokenID(db *sqlx.DB, tokenID *string) (*TokenInfo, error) {
 }
 
 // DeleteToken deletes a token by token_id
-func DeleteToken(db *sqlx.DB, profileID *uuid.UUID, tokenID *string) error {
-	sql := "DELETE FROM profile_token WHERE profile_id=$1 AND token_id=$2"
-	_, err := db.Exec(sql, profileID, tokenID)
-	if err != nil {
+func DeleteToken(db *pgxpool.Pool, profileID *uuid.UUID, tokenID *string) error {
+	if _, err := db.Exec(
+		context.Background(), "DELETE FROM profile_token WHERE profile_id=$1 AND token_id=$2", profileID, tokenID,
+	); err != nil {
 		return err
 	}
 	return nil

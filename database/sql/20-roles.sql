@@ -28,8 +28,6 @@ GRANT SELECT ON
     product_tags,
     tag,
     acquirable,
-    acquisition,
-    acquirable_acquisition,
     acquirablefile,
     download_status,
     download,
@@ -63,13 +61,12 @@ GRANT INSERT,UPDATE,DELETE ON
     tag,
     product_tags,
     acquirable,
-    acquisition,
-    acquirable_acquisition,
     acquirablefile,
     download_status,
     download,
     download_product,
     watershed,
+    watershed_roles,
     my_watersheds
 TO cumulus_writer;
 

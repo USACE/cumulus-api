@@ -9,8 +9,8 @@ import (
 
 	"api/models"
 
+	_ "github.com/jackc/pgx/v4"
 	"github.com/jackc/pgx/v4/pgxpool"
-	_ "github.com/lib/pq"
 )
 
 // ListProducts returns a list of all products

@@ -27,7 +27,8 @@ CREATE TABLE IF NOT EXISTS public.watershed (
     slug VARCHAR UNIQUE NOT NULL,
     name VARCHAR,
     geometry geometry,
-    office_id UUID REFERENCES office(id)
+    office_id UUID REFERENCES office(id),
+	deleted boolean NOT NULL DEFAULT false
 );
 
 -- my_watersheds
@@ -75,9 +76,9 @@ INSERT INTO role (id, name) VALUES
 -- watershed_roles
 CREATE TABLE IF NOT EXISTS public.watershed_roles (
     id UUID PRIMARY KEY NOT NULL DEFAULT uuid_generate_v4(),
-    profile_id UUID NOT NULL REFERENCES profile(id),
+    profile_id UUID NOT NULL REFERENCES profile(id) ON DELETE CASCADE,
     role_id UUID NOT NULL REFERENCES role(id) ON DELETE CASCADE,
-    watershed_id UUID NOT NULL REFERENCES watershed(id),
+    watershed_id UUID NOT NULL REFERENCES watershed(id) ON DELETE CASCADE,
     granted_by UUID REFERENCES profile(id),
     granted_date TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
     CONSTRAINT unique_watershed_role UNIQUE(profile_id,watershed_id,role_id)
@@ -101,6 +102,7 @@ CREATE OR REPLACE VIEW v_watershed AS (
 		GROUP BY watershed_id
 	) ag ON ag.watershed_id = w.id
     LEFT JOIN office f ON w.office_id = f.id
+	WHERE NOT w.deleted
 );
 
 
@@ -134,7 +136,7 @@ CREATE OR REPLACE VIEW v_watershed_roles AS (
            UPPER(c.slug || '.' || r.name) AS rolename
     FROM watershed_roles a
     INNER JOIN profile b ON b.id = a.profile_id
-    INNER JOIN watershed c ON c.id = a.watershed_id
+    INNER JOIN watershed c ON c.id = a.watershed_id AND NOT c.deleted
     INNER JOIN role    r ON r.id = a.role_id
     ORDER BY username, role
 );
@@ -147,8 +149,8 @@ CREATE OR REPLACE VIEW v_profile AS (
         SELECT profile_id,
                array_agg(UPPER(b.slug || '.' || c.name)) AS roles
         FROM watershed_roles a
-        LEFT JOIN watershed b ON a.watershed_id = b.id
-        LEFT JOIN role    c ON a.role_id    = c.id
+        INNER JOIN watershed b ON a.watershed_id = b.id AND NOT b.deleted
+        INNER JOIN role      c ON a.role_id    = c.id
         GROUP BY profile_id
     )
     SELECT p.id,

@@ -48,6 +48,16 @@
 						}
 					],
 					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{jwt_new_user}}",
+									"type": "string"
+								}
+							]
+						},
 						"method": "POST",
 						"header": [],
 						"body": {
@@ -192,6 +202,44 @@
 							"path": [
 								"my_tokens",
 								"65GkUyQ4yyG9jeJVB8N3ebtcunYAnXKCJAtXB1ZtLz4FUVr7LLtKBFx"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "GrantApplicationAdmin",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/profiles/f320df83-e2ea-4fe9-969a-4e0239b8da51/admin",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"profiles",
+								"f320df83-e2ea-4fe9-969a-4e0239b8da51",
+								"admin"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "RevokeApplicationAdmin",
+					"request": {
+						"method": "DELETE",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/profiles/f320df83-e2ea-4fe9-969a-4e0239b8da51/admin",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"profiles",
+								"f320df83-e2ea-4fe9-969a-4e0239b8da51",
+								"admin"
 							]
 						}
 					},
@@ -435,6 +483,145 @@
 						}
 					},
 					"response": []
+				}
+			]
+		},
+		{
+			"name": "acquirables",
+			"item": [
+				{
+					"name": "ListAcquirables",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"// status code is 200",
+									"pm.test(\"Status code is 200\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/acquirables",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"acquirables"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "CreateAcquirablefile",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"// status code is 201",
+									"pm.test(\"Status code is 201\", function () {",
+									"    pm.response.to.have.status(201);",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"datetime\": \"2014-01-01T00:00:00Z\",\n    \"file\": \"cumulus/nohrsc_snodas_unmasked/SNODAS_unmasked_20140101.tar\",\n    \"acquirable_id\": \"87819ceb-72ee-496d-87db-70eb302302dc\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{base_url}}/acquirablefiles",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"acquirablefiles"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "ListAcquirablefiles",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"// status code is 200",
+									"pm.test(\"Status code is 200\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/acquirables/87819ceb-72ee-496d-87db-70eb302302dc/files?after=2010-03-29&before=2030-01-01",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"acquirables",
+								"87819ceb-72ee-496d-87db-70eb302302dc",
+								"files"
+							],
+							"query": [
+								{
+									"key": "after",
+									"value": "2010-03-29"
+								},
+								{
+									"key": "before",
+									"value": "2030-01-01"
+								}
+							]
+						}
+					},
+					"response": []
+				}
+			],
+			"event": [
+				{
+					"listen": "prerequest",
+					"script": {
+						"type": "text/javascript",
+						"exec": [
+							""
+						]
+					}
+				},
+				{
+					"listen": "test",
+					"script": {
+						"type": "text/javascript",
+						"exec": [
+							""
+						]
+					}
 				}
 			]
 		},
@@ -1049,34 +1236,6 @@
 						}
 					},
 					"response": []
-				},
-				{
-					"name": "ListDownloads",
-					"event": [
-						{
-							"listen": "test",
-							"script": {
-								"exec": [
-									""
-								],
-								"type": "text/javascript"
-							}
-						}
-					],
-					"request": {
-						"method": "GET",
-						"header": [],
-						"url": {
-							"raw": "{{base_url}}/downloads",
-							"host": [
-								"{{base_url}}"
-							],
-							"path": [
-								"downloads"
-							]
-						}
-					},
-					"response": []
 				}
 			]
 		},
@@ -1207,7 +1366,7 @@
 						"header": [],
 						"body": {
 							"mode": "raw",
-							"raw": "{\n    \"id\": \"c785f4de-ab17-444b-b6e6-6f1ad16676e8\",\n    \"slug\": \"cumberland-basin-river\",\n    \"name\": \"Cumberland River Basin\"\n}",
+							"raw": "{\n    \"id\": \"c785f4de-ab17-444b-b6e6-6f1ad16676e8\",\n    \"slug\": \"cumberland-basin-river\",\n    \"name\": \"Cumberland River Basin Updated Name\"\n}",
 							"options": {
 								"raw": {
 									"language": "json"
@@ -1256,13 +1415,198 @@
 							}
 						},
 						"url": {
-							"raw": "{{base_url}}/watersheds/c54eab5b-1020-476b-a5f8-56d77802d9bf",
+							"raw": "{{base_url}}/watersheds/c785f4de-ab17-444b-b6e6-6f1ad16676e8",
 							"host": [
 								"{{base_url}}"
 							],
 							"path": [
 								"watersheds",
-								"c54eab5b-1020-476b-a5f8-56d77802d9bf"
+								"c785f4de-ab17-444b-b6e6-6f1ad16676e8"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "UndeleteWatershed",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"// status code is 200",
+									"pm.test(\"Status code is 200\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"id\": \"c785f4de-ab17-444b-b6e6-6f1ad16676e8\",\n    \"slug\": \"cumberland-basin-river\",\n    \"name\": \"Cumberland River Basin\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{base_url}}/watersheds/c785f4de-ab17-444b-b6e6-6f1ad16676e8/undelete",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"watersheds",
+								"c785f4de-ab17-444b-b6e6-6f1ad16676e8",
+								"undelete"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "watershed roles",
+			"item": [
+				{
+					"name": "ListWatershedRoles",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"// validate JSON schema",
+									"var obj_schema = {",
+									"    \"type\": \"object\",",
+									"    \"properties\": {",
+									"        \"id\": { \"type\": \"string\" },",
+									"        \"profile_id\": { \"type\": \"string\" },",
+									"        \"username\": { \"type\": [\"string\"] },",
+									"        \"email\": { \"type\": [\"string\"] },",
+									"        \"role_id\": { \"type\": [\"string\"] },",
+									"        \"role\": { \"type\": [\"string\"] }",
+									"    },",
+									"    \"required\": [\"id\", \"profile_id\", \"username\", \"email\", \"role_id\", \"role\"],",
+									"    \"additionalProperties\": false",
+									"}",
+									"",
+									"// schema validator",
+									"var array_schema = {",
+									"    \"type\": \"array\",",
+									"    \"items\": obj_schema",
+									"}",
+									"",
+									"pm.globals.set('PROJECT_MEMBERSHIP_OBJECT_SCHEMA', JSON.stringify(obj_schema));",
+									"pm.globals.set('PROJECT_MEMBERSHIP_ARRAY_SCHEMA', JSON.stringify(array_schema));",
+									"",
+									"// status code is 200",
+									"pm.test(\"Status code is 200\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"// validate schema",
+									"pm.test(\"Schema validation\", function () {",
+									"    pm.response.to.have.jsonSchema(array_schema)",
+									"});",
+									""
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/watersheds/c785f4de-ab17-444b-b6e6-6f1ad16676e8/members",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"watersheds",
+								"c785f4de-ab17-444b-b6e6-6f1ad16676e8",
+								"members"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "AddWatershedRole",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"",
+									"pm.test(\"Status code is 200\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"",
+									"// schema validation",
+									"pm.test(\"Schema validation\", function () {",
+									"    pm.response.to.have.jsonSchema(JSON.parse(pm.globals.get(\"PROJECT_MEMBERSHIP_OBJECT_SCHEMA\")))",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/watersheds/c785f4de-ab17-444b-b6e6-6f1ad16676e8/members/57329df6-9f7a-4dad-9383-4633b452efab/roles/37f14863-8f3b-44ca-8deb-4b74ce8a8a69",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"watersheds",
+								"c785f4de-ab17-444b-b6e6-6f1ad16676e8",
+								"members",
+								"57329df6-9f7a-4dad-9383-4633b452efab",
+								"roles",
+								"37f14863-8f3b-44ca-8deb-4b74ce8a8a69"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "RemoveWatershedRole",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 200\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "DELETE",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/watersheds/c785f4de-ab17-444b-b6e6-6f1ad16676e8/members/57329df6-9f7a-4dad-9383-4633b452efab/roles/37f14863-8f3b-44ca-8deb-4b74ce8a8a69",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"watersheds",
+								"c785f4de-ab17-444b-b6e6-6f1ad16676e8",
+								"members",
+								"57329df6-9f7a-4dad-9383-4633b452efab",
+								"roles",
+								"37f14863-8f3b-44ca-8deb-4b74ce8a8a69"
 							]
 						}
 					},
@@ -1312,7 +1656,7 @@
 					"response": []
 				},
 				{
-					"name": "DisableBasinProductStatistics",
+					"name": "DisableAreaGroupProductStatistics",
 					"event": [
 						{
 							"listen": "test",
@@ -1419,145 +1763,6 @@
 					"response": []
 				}
 			]
-		},
-		{
-			"name": "acquirable",
-			"item": [
-				{
-					"name": "ListAcquirables",
-					"event": [
-						{
-							"listen": "test",
-							"script": {
-								"exec": [
-									"// status code is 200",
-									"pm.test(\"Status code is 200\", function () {",
-									"    pm.response.to.have.status(200);",
-									"});"
-								],
-								"type": "text/javascript"
-							}
-						}
-					],
-					"request": {
-						"method": "GET",
-						"header": [],
-						"url": {
-							"raw": "{{base_url}}/acquirables",
-							"host": [
-								"{{base_url}}"
-							],
-							"path": [
-								"acquirables"
-							]
-						}
-					},
-					"response": []
-				},
-				{
-					"name": "CreateAcquirablefiles",
-					"event": [
-						{
-							"listen": "test",
-							"script": {
-								"exec": [
-									"// status code is 201",
-									"pm.test(\"Status code is 201\", function () {",
-									"    pm.response.to.have.status(201);",
-									"});"
-								],
-								"type": "text/javascript"
-							}
-						}
-					],
-					"request": {
-						"method": "POST",
-						"header": [],
-						"body": {
-							"mode": "raw",
-							"raw": "{\n    \"datetime\": \"2014-01-01T00:00:00Z\",\n    \"file\": \"cumulus/nohrsc_snodas_unmasked/SNODAS_unmasked_20140101.tar\",\n    \"acquirable_id\": \"87819ceb-72ee-496d-87db-70eb302302dc\"\n}",
-							"options": {
-								"raw": {
-									"language": "json"
-								}
-							}
-						},
-						"url": {
-							"raw": "{{base_url}}/acquirablefiles",
-							"host": [
-								"{{base_url}}"
-							],
-							"path": [
-								"acquirablefiles"
-							]
-						}
-					},
-					"response": []
-				},
-				{
-					"name": "ListAcquirablefiles",
-					"event": [
-						{
-							"listen": "test",
-							"script": {
-								"exec": [
-									"// status code is 200",
-									"pm.test(\"Status code is 200\", function () {",
-									"    pm.response.to.have.status(200);",
-									"});"
-								],
-								"type": "text/javascript"
-							}
-						}
-					],
-					"request": {
-						"method": "GET",
-						"header": [],
-						"url": {
-							"raw": "{{base_url}}/acquirables/4d5eb062-5726-4822-9962-f531d9c6caef/files?after=2021-03-29&before=2021-04-01",
-							"host": [
-								"{{base_url}}"
-							],
-							"path": [
-								"acquirables",
-								"4d5eb062-5726-4822-9962-f531d9c6caef",
-								"files"
-							],
-							"query": [
-								{
-									"key": "after",
-									"value": "2021-03-29"
-								},
-								{
-									"key": "before",
-									"value": "2021-04-01"
-								}
-							]
-						}
-					},
-					"response": []
-				}
-			],
-			"event": [
-				{
-					"listen": "prerequest",
-					"script": {
-						"type": "text/javascript",
-						"exec": [
-							""
-						]
-					}
-				},
-				{
-					"listen": "test",
-					"script": {
-						"type": "text/javascript",
-						"exec": [
-							""
-						]
-					}
-				}
-			]
 		}
 	],
 	"auth": {
@@ -1565,7 +1770,7 @@
 		"bearer": [
 			{
 				"key": "token",
-				"value": "{{jwt}}",
+				"value": "{{jwt_existing_admin}}",
 				"type": "string"
 			}
 		]

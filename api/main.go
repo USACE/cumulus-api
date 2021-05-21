@@ -51,7 +51,7 @@ func main() {
 	}
 
 	// AWS Config
-	// awsCfg := cfg.AWSConfig()
+	awsCfg := cfg.AWSConfig()
 
 	// Database
 	db := Connection(cfg)
@@ -102,61 +102,111 @@ func main() {
 	private.GET("/my_profile", handlers.GetMyProfile(db))
 	cacOnly.POST("/my_profile", handlers.CreateProfile(db))
 
+	// Grant/Remove Application Admin to a Profile
+	private.POST("/profiles/:profile_id/admin", handlers.GrantApplicationAdmin(db),
+		middleware.IsApplicationAdmin,
+	)
+	private.DELETE("/profiles/:profile_id/admin", handlers.RevokeApplicationAdmin(db),
+		middleware.IsApplicationAdmin,
+	)
+
 	// API Tokens
 	cacOnly.POST("/my_tokens", handlers.CreateToken(db))
 	private.DELETE("/my_tokens/:token_id", handlers.DeleteToken(db))
 
+	// Acquirables
+	public.GET("/acquirables", handlers.ListAcquirables(db))
+	public.GET("/acquirables/:acquirable_id/files", handlers.ListAcquirablefiles(db))
+	private.POST("/acquirablefiles", handlers.CreateAcquirablefiles(db),
+		middleware.IsApplicationAdmin,
+	)
+
 	// Products
-	private.POST("/products", handlers.CreateProduct(db))
 	public.GET("/products", handlers.ListProducts(db))
 	public.GET("/products/:product_id", handlers.GetProduct(db))
-	private.PUT("/products/:product_id", handlers.UpdateProduct(db))
-	private.DELETE("/products/:product_id", handlers.DeleteProduct(db))
-	private.POST("/products/:product_id/undelete", handlers.UndeleteProduct(db))
+	private.POST("/products", handlers.CreateProduct(db),
+		middleware.IsApplicationAdmin,
+	)
+	private.PUT("/products/:product_id", handlers.UpdateProduct(db),
+		middleware.IsApplicationAdmin,
+	)
+	private.DELETE("/products/:product_id", handlers.DeleteProduct(db),
+		middleware.IsApplicationAdmin,
+	)
+	private.POST("/products/:product_id/undelete", handlers.UndeleteProduct(db),
+		middleware.IsApplicationAdmin,
+	)
 	// Additional Information About Products
 	public.GET("/products/:product_id/availability", handlers.GetProductAvailability(db))
 	public.GET("/products/:product_id/files", handlers.ListProductfiles(db))
 
 	// Tags
-	private.POST("/tags", handlers.CreateTag(db))
 	public.GET("/tags", handlers.ListTags(db))
 	public.GET("/tags/:tag_id", handlers.GetTag(db))
-	private.PUT("/tags/:tag_id", handlers.UpdateTag(db))
-	private.DELETE("/tags/:tag_id", handlers.DeleteTag(db))
+	private.POST("/tags", handlers.CreateTag(db),
+		middleware.IsApplicationAdmin,
+	)
+	private.PUT("/tags/:tag_id", handlers.UpdateTag(db),
+		middleware.IsApplicationAdmin,
+	)
+	private.DELETE("/tags/:tag_id", handlers.DeleteTag(db),
+		middleware.IsApplicationAdmin,
+	)
 	// Tag or Untag Product
-	private.POST("/products/:product_id/tags/:tag_id", handlers.TagProduct(db))
-	private.DELETE("/products/:product_id/tags/:tag_id", handlers.UntagProduct(db))
+	private.POST("/products/:product_id/tags/:tag_id", handlers.TagProduct(db),
+		middleware.IsApplicationAdmin,
+	)
+	private.DELETE("/products/:product_id/tags/:tag_id", handlers.UntagProduct(db),
+		middleware.IsApplicationAdmin,
+	)
 
-	// public.GET("/acquirables", handlers.ListAcquirables(db))
-
-	// // Acquirables/Acquirablefiles
-	// public.GET("/acquirables/:acquirable_id/files", handlers.ListAcquirablefiles(db))
-	// cacOrToken.POST("/acquirablefiles", handlers.CreateAcquirablefiles(db))
-
-	// // Downloads
-	// public.GET("/downloads", handlers.ListDownloads(db))
-	// cacOnly.GET("/my_downloads", handlers.ListMyDownloads(db))
-	// cacOnly.POST("/my_downloads", handlers.CreateDownload(db))
-	// public.GET("/downloads/:id", handlers.GetDownload(db))
-	// public.GET("/downloads/:id/packager_request", handlers.GetDownloadPackagerRequest(db))
-	// public.POST("/downloads", handlers.CreateDownload(db))
-	// public.PUT("/downloads/:id", handlers.UpdateDownload(db))
-	// // Serve Download Files
-	// public.GET("/cumulus/download/dss/*", handlers.ServeMedia(&awsCfg, &cfg.AWSS3Bucket))
-
-	// // Restricted Routes (JWT or Key)
+	// Downloads
+	public.GET("/cumulus/download/dss/*", handlers.ServeMedia(&awsCfg, &cfg.AWSS3Bucket)) // Serve Downloads
+	// Create Download (Anonymous)
+	public.POST("/downloads", handlers.CreateDownload(db))
+	public.GET("/downloads/:download_id", handlers.GetDownload(db))
+	// Create Download (Authenticated)
+	private.POST("/my_downloads", handlers.CreateDownload(db))
+	private.GET("/my_downloads", handlers.ListMyDownloads(db))
+	// Routes used by packager to prepare download
+	public.GET("/downloads/:download_id/packager_request", handlers.GetDownloadPackagerRequest(db))
+	public.PUT("/downloads/:download_id", handlers.UpdateDownload(db))
+	// TODO: Authenticate PUT route for UpdateDownload ^^^
 
 	// // Watersheds
-	// public.GET("/watersheds", handlers.ListWatersheds(db))
-	// public.GET("/watersheds/:watershed_id", handlers.GetWatershed(db))
-	// cacOrToken.POST("/watersheds", handlers.CreateWatershed(db))
-	// cacOrToken.PUT("/watersheds/:watershed_id", handlers.UpdateWatershed(db))
-	// cacOrToken.DELETE("/watersheds/:watershed_id", handlers.DeleteWatershed(db))
+	public.GET("/watersheds", handlers.ListWatersheds(db))
+	public.GET("/watersheds/:watershed_id", handlers.GetWatershed(db))
+	private.POST("/watersheds", handlers.CreateWatershed(db),
+		middleware.IsApplicationAdmin,
+	)
+	private.PUT("/watersheds/:watershed_id", handlers.UpdateWatershed(db),
+		middleware.IsWatershedAdminMiddleware(db),
+	)
+	private.DELETE("/watersheds/:watershed_id", handlers.DeleteWatershed(db),
+		middleware.IsWatershedAdminMiddleware(db),
+	)
+	private.POST("/watersheds/:watershed_id/undelete", handlers.UndeleteWatershed(db),
+		middleware.IsApplicationAdmin,
+	)
 
-	// // My Watersheds
-	// cacOnly.GET("/my_watersheds", handlers.ListMyWatersheds(db))
-	// cacOnly.POST("/my_watersheds/:watershed_id/add", handlers.MyWatershedsAdd(db))
-	// cacOnly.POST("/my_watersheds/:watershed_id/remove", handlers.MyWatershedsRemove(db))
+	// Watershed Role Management
+	// List Watershed Member Roles
+	private.GET("/watersheds/:watershed_id/members", handlers.ListWatershedRoles(db),
+		middleware.IsWatershedAdminMiddleware(db),
+	)
+	// Add Role to a User
+	private.POST("/watersheds/:watershed_id/members/:profile_id/roles/:role_id", handlers.AddWatershedRole(db),
+		middleware.IsWatershedAdminMiddleware(db),
+	)
+	// Remove Role from a User
+	private.DELETE("/watersheds/:watershed_id/members/:profile_id/roles/:role_id", handlers.RemoveWatershedRole(db),
+		middleware.IsWatershedAdminMiddleware(db),
+	)
+
+	// My Watersheds
+	private.GET("/my_watersheds", handlers.ListMyWatersheds(db))
+	private.POST("/my_watersheds/:watershed_id", handlers.MyWatershedsAdd(db))
+	private.DELETE("/my_watersheds/:watershed_id", handlers.MyWatershedsRemove(db))
 
 	// // Area Groups
 	// // TODO: CRUD Handlers for area_groups

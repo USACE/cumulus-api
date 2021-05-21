@@ -9,8 +9,6 @@ drop table if exists
     public.product_tags,
     public.acquirable,
     public.acquirablefile,
-    public.acquisition,
-    public.acquirable_acquisition,
     public.tag
 	CASCADE;
 
@@ -29,19 +27,6 @@ CREATE TABLE IF NOT EXISTS public.acquirablefile (
     create_date TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
     process_date TIMESTAMPTZ,
     acquirable_id UUID not null REFERENCES acquirable (id)
-);
-
--- acquisition
-CREATE TABLE IF NOT EXISTS public.acquisition (
-    id UUID PRIMARY KEY NOT NULL DEFAULT uuid_generate_v4(),
-    datetime TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP
-);
-
--- acquirable_acquisition
-CREATE TABLE IF NOT EXISTS public.acquirable_acquisition (
-    id UUID PRIMARY KEY NOT NULL DEFAULT uuid_generate_v4(),
-    acquisition_id UUID REFERENCES acquisition (id),
-    acquirable_id UUID REFERENCES acquirable (id)
 );
 
 -- tag

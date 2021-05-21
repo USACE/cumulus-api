@@ -4,6 +4,7 @@ import (
 	"api/models"
 	"net/http"
 
+	"github.com/google/uuid"
 	"github.com/jackc/pgx/v4/pgxpool"
 	"github.com/labstack/echo/v4"
 )
@@ -78,6 +79,34 @@ func DeleteToken(db *pgxpool.Pool) echo.HandlerFunc {
 		}
 		// Delete Token
 		if err := models.DeleteToken(db, &p.ID, &tokenID); err != nil {
+			return c.JSON(http.StatusInternalServerError, models.DefaultMessageInternalServerError)
+		}
+		return c.JSON(http.StatusOK, make(map[string]interface{}))
+	}
+}
+
+// GrantApplicationAdmin grants Admin to a user
+func GrantApplicationAdmin(db *pgxpool.Pool) echo.HandlerFunc {
+	return func(c echo.Context) error {
+		pID, err := uuid.Parse(c.Param("profile_id"))
+		if err != nil {
+			return c.JSON(http.StatusBadRequest, models.DefaultMessageBadRequest)
+		}
+		if err := models.GrantApplicationAdmin(db, &pID); err != nil {
+			return c.String(http.StatusInternalServerError, err.Error())
+		}
+		return c.JSON(http.StatusOK, make(map[string]interface{}))
+	}
+}
+
+// RevokeApplicationAdmin Revokes Admin from a user
+func RevokeApplicationAdmin(db *pgxpool.Pool) echo.HandlerFunc {
+	return func(c echo.Context) error {
+		pID, err := uuid.Parse(c.Param("profile_id"))
+		if err != nil {
+			return c.JSON(http.StatusBadRequest, models.DefaultMessageBadRequest)
+		}
+		if err := models.RevokeApplicationAdmin(db, &pID); err != nil {
 			return c.JSON(http.StatusInternalServerError, models.DefaultMessageInternalServerError)
 		}
 		return c.JSON(http.StatusOK, make(map[string]interface{}))

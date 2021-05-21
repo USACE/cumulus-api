@@ -10,7 +10,6 @@ import (
 	jwt "github.com/dgrijalva/jwt-go"
 	"github.com/google/uuid"
 	"github.com/jackc/pgx/v4/pgxpool"
-	"github.com/jmoiron/sqlx"
 	"github.com/labstack/echo/v4"
 )
 
@@ -98,14 +97,14 @@ func IsApplicationAdmin(next echo.HandlerFunc) echo.HandlerFunc {
 	}
 }
 
-func IsWatershedAdminMiddleware(db *sqlx.DB) echo.MiddlewareFunc {
+func IsWatershedAdminMiddleware(db *pgxpool.Pool) echo.MiddlewareFunc {
 	return func(next echo.HandlerFunc) echo.HandlerFunc {
 		return func(c echo.Context) error {
 			p, ok := c.Get("profile").(*models.Profile)
 			if !ok {
 				return c.JSON(http.StatusForbidden, models.DefaultMessageUnauthorized)
 			}
-			// Application Admins Automatic Admin Status for All Projects
+			// Application Admins Automatic Admin Status for All Watersheds
 			if p.IsAdmin {
 				return next(c)
 			}

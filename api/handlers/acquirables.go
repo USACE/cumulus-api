@@ -4,17 +4,17 @@ import (
 	"net/http"
 
 	"github.com/google/uuid"
-	"github.com/jmoiron/sqlx"
+	"github.com/jackc/pgx/v4/pgxpool"
 	"github.com/labstack/echo/v4"
 
 	"api/models"
 
 	// SQL Interface
-	_ "github.com/lib/pq"
+	_ "github.com/jackc/pgx/v4"
 )
 
 // ListAcquirable lists all acquirables
-func ListAcquirables(db *sqlx.DB) echo.HandlerFunc {
+func ListAcquirables(db *pgxpool.Pool) echo.HandlerFunc {
 	return func(c echo.Context) error {
 		aa, err := models.ListAcquirables(db)
 		if err != nil {
@@ -25,7 +25,7 @@ func ListAcquirables(db *sqlx.DB) echo.HandlerFunc {
 }
 
 // ListAcquirablefiles returns an array of Acquirablefiles
-func ListAcquirablefiles(db *sqlx.DB) echo.HandlerFunc {
+func ListAcquirablefiles(db *pgxpool.Pool) echo.HandlerFunc {
 	return func(c echo.Context) error {
 		// uuid
 		id, err := uuid.Parse(c.Param("acquirable_id"))
@@ -43,22 +43,19 @@ func ListAcquirablefiles(db *sqlx.DB) echo.HandlerFunc {
 				"Missing query parameter 'after' or 'before'",
 			)
 		}
-		//Call the model, verify return value
+		// Call the model, verify return value
 		aa, err := models.ListAcquirablefiles(db, id, after, before)
 
-		//handle any error from model
+		// handle any error from model
 		if err != nil {
-			return c.JSON(
-				http.StatusInternalServerError,
-				models.DefaultMessageInternalServerError,
-			)
+			return c.String(http.StatusInternalServerError, err.Error())
 		}
 		//otherwise return valid response from model above
 		return c.JSON(http.StatusOK, aa)
 	}
 }
 
-func CreateAcquirablefiles(db *sqlx.DB) echo.HandlerFunc {
+func CreateAcquirablefiles(db *pgxpool.Pool) echo.HandlerFunc {
 	return func(c echo.Context) error {
 
 		//Get this payload and 400 if bad request
@@ -72,11 +69,7 @@ func CreateAcquirablefiles(db *sqlx.DB) echo.HandlerFunc {
 		//Save acquirablefile to database, 500 if internal server error
 		aNew, err := models.CreateAcquirablefiles(db, a)
 		if err != nil {
-			return c.JSON(
-				http.StatusInternalServerError,
-				models.DefaultMessageInternalServerError,
-			)
-			// return c.String(http.StatusInternalServerError, err.Error())
+			return c.JSON(http.StatusInternalServerError, models.DefaultMessageInternalServerError)
 		}
 
 		//Return payload response

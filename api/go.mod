@@ -10,6 +10,7 @@ require (
 	github.com/georgysavva/scany v0.2.8
 	github.com/google/uuid v1.1.2
 	github.com/gosimple/slug v1.9.0
+	github.com/jackc/pgx v3.6.2+incompatible
 	github.com/jackc/pgx/v4 v4.11.0
 	github.com/jmoiron/sqlx v1.2.0
 	github.com/kelseyhightower/envconfig v1.4.0

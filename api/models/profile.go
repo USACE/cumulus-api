@@ -155,3 +155,23 @@ func DeleteToken(db *pgxpool.Pool, profileID *uuid.UUID, tokenID *string) error 
 	}
 	return nil
 }
+
+// GrantApplicationAdmin adds application admin permission to an account
+func GrantApplicationAdmin(db *pgxpool.Pool, profileID *uuid.UUID) error {
+	if _, err := db.Exec(
+		context.Background(), "UPDATE profile SET is_admin=true WHERE id=$1", profileID,
+	); err != nil {
+		return err
+	}
+	return nil
+}
+
+// RevokeApplicationAdmin removes application admin permission from an account
+func RevokeApplicationAdmin(db *pgxpool.Pool, profileID *uuid.UUID) error {
+	if _, err := db.Exec(
+		context.Background(), "UPDATE profile SET is_admin=false WHERE id=$1", profileID,
+	); err != nil {
+		return err
+	}
+	return nil
+}

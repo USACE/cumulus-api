@@ -3,18 +3,18 @@ package handlers
 import (
 	"net/http"
 
+	"github.com/georgysavva/scany/pgxscan"
 	"github.com/google/uuid"
 	"github.com/jackc/pgx/v4/pgxpool"
-	"github.com/jmoiron/sqlx"
 	"github.com/labstack/echo/v4"
 
 	"api/models"
 
-	_ "github.com/lib/pq"
+	_ "github.com/jackc/pgx/v4"
 )
 
 // ListWatersheds returns an array of Watersheds
-func ListWatersheds(db *sqlx.DB) echo.HandlerFunc {
+func ListWatersheds(db *pgxpool.Pool) echo.HandlerFunc {
 	return func(c echo.Context) error {
 		ww, err := models.ListWatersheds(db)
 		if err != nil {
@@ -25,7 +25,7 @@ func ListWatersheds(db *sqlx.DB) echo.HandlerFunc {
 }
 
 // GetWatershed returns a single Watershed
-func GetWatershed(db *sqlx.DB) echo.HandlerFunc {
+func GetWatershed(db *pgxpool.Pool) echo.HandlerFunc {
 	return func(c echo.Context) error {
 		id, err := uuid.Parse(c.Param("watershed_id"))
 		if err != nil {
@@ -33,7 +33,10 @@ func GetWatershed(db *sqlx.DB) echo.HandlerFunc {
 		}
 		w, err := models.GetWatershed(db, &id)
 		if err != nil {
-			return c.String(http.StatusInternalServerError, err.Error())
+			if pgxscan.NotFound(err) {
+				return c.JSON(http.StatusNotFound, models.DefaultMessageNotFound)
+			}
+			return c.JSON(http.StatusInternalServerError, models.DefaultMessageInternalServerError)
 		}
 		return c.JSON(http.StatusOK, w)
 	}
@@ -55,10 +58,10 @@ func CreateWatershed(db *pgxpool.Pool) echo.HandlerFunc {
 }
 
 // UpdateWatershed creates a new watershed
-func UpdateWatershed(db *sqlx.DB) echo.HandlerFunc {
+func UpdateWatershed(db *pgxpool.Pool) echo.HandlerFunc {
 	return func(c echo.Context) error {
 		// Watershed Slug from route params
-		id, err := uuid.Parse(c.Param("watershed_id"))
+		wID, err := uuid.Parse(c.Param("watershed_id"))
 		if err != nil {
 			return c.String(http.StatusBadRequest, err.Error())
 		}
@@ -68,7 +71,7 @@ func UpdateWatershed(db *sqlx.DB) echo.HandlerFunc {
 			return c.String(http.StatusBadRequest, err.Error())
 		}
 		// Check route params v. payload
-		if id != w.ID {
+		if wID != w.ID {
 			return c.String(http.StatusBadRequest, "watershed_id in URL does not match request body")
 		}
 		wUpdated, err := models.UpdateWatershed(db, &w)
@@ -80,16 +83,31 @@ func UpdateWatershed(db *sqlx.DB) echo.HandlerFunc {
 }
 
 // DeleteWatershed creates a new watershed
-func DeleteWatershed(db *sqlx.DB) echo.HandlerFunc {
+func DeleteWatershed(db *pgxpool.Pool) echo.HandlerFunc {
 	return func(c echo.Context) error {
-		id, err := uuid.Parse(c.Param("watershed_id"))
+		wID, err := uuid.Parse(c.Param("watershed_id"))
 		if err != nil {
 			return c.String(http.StatusBadRequest, err.Error())
 		}
-		err = models.DeleteWatershed(db, &id)
+		err = models.DeleteWatershed(db, &wID)
 		if err != nil {
 			return c.String(http.StatusInternalServerError, err.Error())
 		}
 		return c.JSON(http.StatusOK, make(map[string]interface{}))
+	}
+}
+
+// UndeleteWatershed restores a deleted watershed
+func UndeleteWatershed(db *pgxpool.Pool) echo.HandlerFunc {
+	return func(c echo.Context) error {
+		wID, err := uuid.Parse(c.Param("watershed_id"))
+		if err != nil {
+			return c.String(http.StatusBadRequest, err.Error())
+		}
+		w, err := models.UndeleteWatershed(db, &wID)
+		if err != nil {
+			return c.String(http.StatusInternalServerError, err.Error())
+		}
+		return c.JSON(http.StatusOK, w)
 	}
 }

@@ -2,12 +2,13 @@ package models
 
 import (
 	"api/config"
+	"context"
 	"fmt"
 	"time"
 
+	"github.com/georgysavva/scany/pgxscan"
 	"github.com/google/uuid"
-	"github.com/jmoiron/sqlx"
-	"github.com/lib/pq"
+	"github.com/jackc/pgx/v4/pgxpool"
 )
 
 // Environment Variable Config
@@ -80,49 +81,34 @@ var listDownloadsSQL = fmt.Sprintf(
 )
 
 // ListDownloads returns all downloads from the database
-func ListDownloads(db *sqlx.DB) ([]Download, error) {
-
-	rows, err := db.Queryx(listDownloadsSQL)
-	if err != nil {
-		return make([]Download, 0), err
-	}
-	dd, err := DownloadStructFactory(rows)
-	if err != nil {
+func ListDownloads(db *pgxpool.Pool) ([]Download, error) {
+	dd := make([]Download, 0)
+	if err := pgxscan.Select(context.Background(), db, &dd, listDownloadsSQL); err != nil {
 		return make([]Download, 0), err
 	}
 	return dd, nil
-
 }
 
 // ListMyDownloads returns all downloads for a given ProfileID
-func ListMyDownloads(db *sqlx.DB, profileID *uuid.UUID) ([]Download, error) {
-	rows, err := db.Queryx(listDownloadsSQL+" WHERE profile_id = $1", profileID)
-	if err != nil {
-		return make([]Download, 0), err
-	}
-	dd, err := DownloadStructFactory(rows)
-	if err != nil {
+func ListMyDownloads(db *pgxpool.Pool, profileID *uuid.UUID) ([]Download, error) {
+	dd := make([]Download, 0)
+	if err := pgxscan.Select(context.Background(), db, &dd, listDownloadsSQL+" WHERE profile_id = $1", profileID); err != nil {
 		return make([]Download, 0), err
 	}
 	return dd, nil
 }
 
 // GetDownload returns a single download record
-func GetDownload(db *sqlx.DB, id *uuid.UUID) (*Download, error) {
-
-	rows, err := db.Queryx(listDownloadsSQL+" WHERE id = $1", id)
-	if err != nil {
+func GetDownload(db *pgxpool.Pool, downloadID *uuid.UUID) (*Download, error) {
+	var d Download
+	if err := pgxscan.Get(context.Background(), db, &d, listDownloadsSQL+" WHERE id = $1", downloadID); err != nil {
 		return nil, err
 	}
-	dd, err := DownloadStructFactory(rows)
-	if err != nil {
-		return nil, err
-	}
-	return &dd[0], nil
+	return &d, nil
 }
 
 // GetDownloadPackagerRequest retrieves the information packager needs to package a download
-func GetDownloadPackagerRequest(db *sqlx.DB, downloadID *uuid.UUID) (*PackagerRequest, error) {
+func GetDownloadPackagerRequest(db *pgxpool.Pool, downloadID *uuid.UUID) (*PackagerRequest, error) {
 
 	pr := PackagerRequest{
 		DownloadID: *downloadID,
@@ -130,8 +116,8 @@ func GetDownloadPackagerRequest(db *sqlx.DB, downloadID *uuid.UUID) (*PackagerRe
 		Contents:   make([]PackagerContentItem, 0),
 	}
 
-	if err = db.Select(
-		&pr.Contents,
+	if err = pgxscan.Select(
+		context.Background(), db, &pr.Contents,
 		`WITH download_products AS (
 			SELECT dp.product_id, d.datetime_start, d.datetime_end
 			FROM   download d
@@ -189,54 +175,56 @@ func GetDownloadPackagerRequest(db *sqlx.DB, downloadID *uuid.UUID) (*PackagerRe
 }
 
 // CreateDownload creates a download record in
-func CreateDownload(db *sqlx.DB, dr *DownloadRequest) (*Download, error) {
-
-	// Creates a download record and scans into a new struct (with UUID)
-	// Pre-Load Download with DownloadRequest
-	d := Download{DownloadRequest: *dr}
+func CreateDownload(db *pgxpool.Pool, dr *DownloadRequest) (*Download, error) {
 
 	// TRANSACTION
 	//////////////
-	tx, err := db.Beginx()
+	tx, err := db.Begin(context.Background())
 	if err != nil {
 		return nil, err
 	}
-	fmt.Printf("PROFILE ID TO SAVE: %s\n", dr.ProfileID)
+	defer tx.Rollback(context.Background())
 
-	if err := tx.Get(
-		&d,
+	// Insert Record of Download
+	rows, err := tx.Query(
+		context.Background(),
 		`INSERT INTO download (datetime_start, datetime_end, status_id, watershed_id, profile_id)
-		VALUES ($1, $2, '94727878-7a50-41f8-99eb-a80eb82f737a', $3, $4)
-		RETURNING id, datetime_start, datetime_end, progress, status_id, watershed_id, 
-		file, processing_start, processing_end`, dr.DatetimeStart, dr.DatetimeEnd, dr.WatershedID, dr.ProfileID,
-	); err != nil {
-		tx.Rollback()
-		return nil, err
-	}
-
-	stmt, err := tx.Preparex(`INSERT INTO download_product (product_id, download_id) VALUES ($1, $2)`)
+		 VALUES ($1, $2, '94727878-7a50-41f8-99eb-a80eb82f737a', $3, $4)
+		 RETURNING id`, dr.DatetimeStart, dr.DatetimeEnd, dr.WatershedID, dr.ProfileID,
+	)
 	if err != nil {
-		tx.Rollback()
+		tx.Rollback(context.Background())
 		return nil, err
 	}
-	for _, pID := range d.ProductID {
-		if _, err := stmt.Exec(pID, d.ID); err != nil {
-			tx.Rollback()
+	var dID uuid.UUID
+	if err := pgxscan.ScanOne(&dID, rows); err != nil {
+		tx.Rollback(context.Background())
+		return nil, err
+	}
+	// Insert Record for Each Product Associated with Download
+	for _, pID := range dr.ProductID {
+		if _, err := tx.Exec(
+			context.Background(),
+			`INSERT INTO download_product (product_id, download_id) VALUES ($1, $2)`,
+			pID, dID,
+		); err != nil {
+			tx.Rollback(context.Background())
 			return nil, err
 		}
 	}
-	stmt.Close()
-	tx.Commit()
+	if err := tx.Commit(context.Background()); err != nil {
+		return nil, err
+	}
 
-	return &d, nil
+	return GetDownload(db, &dID)
 }
 
 // UpdateDownload is called by Packager to update progress
-func UpdateDownload(db *sqlx.DB, downloadID *uuid.UUID, info *PackagerInfo) (*Download, error) {
+func UpdateDownload(db *pgxpool.Pool, downloadID *uuid.UUID, info *PackagerInfo) (*Download, error) {
 
 	UpdateProgress := func() error {
 		sql := `UPDATE download SET progress = $2 WHERE id = $1`
-		if _, err := db.Exec(sql, downloadID, info.Progress); err != nil {
+		if _, err := db.Exec(context.Background(), sql, downloadID, info.Progress); err != nil {
 			return err
 		}
 		return nil
@@ -244,7 +232,7 @@ func UpdateDownload(db *sqlx.DB, downloadID *uuid.UUID, info *PackagerInfo) (*Do
 
 	UpdateProgressSetComplete := func() error {
 		sql := `UPDATE download set progress = $2, processing_end = $3 WHERE id = $1`
-		if _, err := db.Exec(sql, downloadID, info.Progress); err != nil {
+		if _, err := db.Exec(context.Background(), sql, downloadID, info.Progress); err != nil {
 			return err
 		}
 		return nil
@@ -262,23 +250,4 @@ func UpdateDownload(db *sqlx.DB, downloadID *uuid.UUID, info *PackagerInfo) (*Do
 	}
 
 	return GetDownload(db, downloadID)
-}
-
-// DownloadStructFactory converts download rows to download structs
-// Necessary for scanning arrays created from postgres array_agg()
-func DownloadStructFactory(rows *sqlx.Rows) ([]Download, error) {
-	dd := make([]Download, 0)
-	defer rows.Close()
-	var d Download
-	for rows.Next() {
-		err := rows.Scan(
-			&d.ID, &d.DatetimeStart, &d.DatetimeEnd, &d.Progress, &d.File,
-			&d.ProcessingStart, &d.ProcessingEnd, &d.StatusID, &d.WatershedID, &d.WatershedSlug, &d.WatershedName, &d.Status, pq.Array(&d.ProductID),
-		)
-		if err != nil {
-			return make([]Download, 0), err
-		}
-		dd = append(dd, d)
-	}
-	return dd, nil
 }

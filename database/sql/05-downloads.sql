@@ -32,9 +32,9 @@ CREATE TABLE IF NOT EXISTS public.download (
 
 -- download_product
 CREATE TABLE IF NOT EXISTS public.download_product (
-    id UUID PRIMARY KEY NOT NULL DEFAULT uuid_generate_v4(),
+    download_id UUID REFERENCES download(id),
     product_id UUID REFERENCES product(id),
-    download_id UUID REFERENCES download(id)
+    PRIMARY KEY (download_id, product_id)
 );
 
 
@@ -61,8 +61,8 @@ CREATE OR REPLACE VIEW v_download AS (
             INNER JOIN download_status s ON d.status_id = s.id
             INNER JOIN watershed w on w.id = d.watershed_id
             INNER JOIN (
-                SELECT array_agg(id) as product_id,
-                    download_id
+                SELECT array_agg(product_id) as product_id,
+                       download_id
                 FROM download_product
                 GROUP BY download_id
             ) dp ON d.id = dp.download_id

@@ -29,7 +29,7 @@ INCOMING_FILE_TO_COGS_MESSAGE = {
     "geoprocess": "incoming-file-to-cogs",
     "geoprocess_config": {
         "bucket": "cwbi-data-develop",
-        "key": "cumulus/acquirables/ndfd-conus-airtemp/ds.temp13.bin"
+        "key": "cumulus/acquirables/nbm-co-01h/blend.t17z.core.f001.co.grib2"
     }
 }
 

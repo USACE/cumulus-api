@@ -34,3 +34,6 @@ airflow/logs/**
 
 !tmp/README.md
 tmp/*
+
+# Acquirable data directory
+data/

@@ -10,6 +10,44 @@ servers:
 
 components:
   schemas:
+    acquirable:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        name:
+          type: string
+        slug:
+          type: string
+    acquirables:
+      type: array
+      items:
+        $ref: "#/components/schemas/acquirable"
+    acquirablefile:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        datetime:
+          type: string
+          format: date-time
+        file:
+          type: string
+        create_date:
+          type: string
+          format: date-time
+        process_date:
+          type: string
+          format: date-time
+        acquirable_id:
+          type: string
+          format: uuid
+    acquirablefiles:
+      type: array
+      items:
+        $ref: "#/components/schemas/acquirablefile"
     empty_object:
       type: object
     profile:
@@ -38,6 +76,64 @@ components:
           type: array
           items:
             type: string
+    download:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        profile_id:
+          type: string
+          format: uuid
+        datetime_start:
+          type: string
+          format: date-time
+        datetime_end:
+          type: string
+          format: date-time
+        watershed_id:
+          type: string
+          format: uuid
+        product_id:
+          type: array
+          items:
+            type: string
+            format: uuid
+        status_id:
+          type: string
+          format: uuid
+        status:
+          type: string
+        progress:
+          type: integer
+        file:
+          type: string
+        processing_start:
+          type: string
+          format: date-time
+        processing_end:
+          type: string
+          format: date-time
+        watershed_slug:
+          type: string
+        watershed_name:
+          type: string
+    downloadRequest:
+      type: object
+      properties:
+        datetime_start:
+          type: string
+          format: date-time
+        datetime_end:
+          type: integer
+          format: date-time
+        watershed_id:
+          type: string
+        product_id:
+          type: array
+          items:
+            type: string
+            format: uuid
     token:
       type: object
       properties:
@@ -181,17 +277,27 @@ components:
 x-tagGroups:
   - name: Products
     tags:
-      - products
-      - tags
+      - Acquirables
+      - Products
+      - Tags
+  - name: Downloads
+    tags:
+      - Downloads
+      - My Downloads
+  - name: Watersheds
+    tags:
+      - Watersheds
+      - My Watersheds
+      - Role Management
   - name: Account Management
     tags:
-      - accounts
+      - Accounts
 
 paths:
   /my_profile:
     post:
       tags:
-        - accounts
+        - Accounts
       description: Create My Profile
       responses:
         "201":
@@ -204,7 +310,7 @@ paths:
                 $ref: "#/components/examples/profile"
     get:
       tags:
-        - accounts
+        - Accounts
       description: Get My Profile
       responses:
         "200":
@@ -218,7 +324,7 @@ paths:
   /my_tokens:
     post:
       tags:
-        - accounts
+        - Accounts
       description: Create API Token
       responses:
         "201":
@@ -230,13 +336,102 @@ paths:
               example:
                 $ref: "#/components/examples/token"
 
+  /profiles/{profile_id}/admin:
+    parameters:
+      - name: profile_id
+        in: path
+        required: true
+        description: Profile ID to Modify
+        schema:
+          type: string
+          format: uuid
+    post:
+      tags:
+        - Accounts
+      description: Grant Application Admin
+      responses:
+        "200":
+          description: Empty Object
+          content:
+            application/json:
+              schema:
+                $ref:  "#/components/schemas/empty_object"
+    delete:
+      tags:
+        - Accounts
+      description: Revoke Application Admin
+      responses:
+        "200":
+          description: Empty Object
+          content:
+            application/json:
+              schema:
+                $ref:  "#/components/schemas/empty_object"
 
+  /acquirables:
+    get:
+      tags:
+        - Acquirables
+      description: List Acquirables
+      responses:
+        "200":
+          description: Array of Acquirables
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/acquirables"
 
+  /acquirables/{acquirable_id}/files?after={after}&before={before}:
+    get:
+      tags:
+        - Acquirables
+      summary: List Acquirable Files
+      description: List Acquirable Files for a single Acquirable within a specified date range
+      parameters:
+        - name: acquirable_id
+          in: path
+          required: true
+          description: The ID of the acquirable
+          schema:
+            type: string
+            format: uuid
+        - name: after
+          in: query
+          schema:
+            type: string
+            format: date-time
+        - name: before
+          in: query
+          schema:
+            type: string
+            format: date-time
+      responses:
+        "200":
+          description: List of Acquirable Files
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/acquirablefiles"
+    
+  /acquirablefiles:
+    post:
+      tags:
+        - Acquirables
+      summary: Create Acquirable File
+      description: Create database record of an acquirablefile
+      responses:
+        "201":
+          description: Acquirable File
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/acquirablefile"
 
+      
   /products:
     get:
       tags:
-        - products
+        - Products
       description: List Products
       responses:
         "200":
@@ -247,7 +442,7 @@ paths:
                 $ref: "#/components/schemas/products"
     post:
       tags:
-        - products
+        - Products
       description: Create Product
       requestBody:
         required: true
@@ -293,7 +488,7 @@ paths:
           format: uuid
     get:
       tags:
-        - products
+        - Products
       description: Get Product
       responses:
         "200":
@@ -307,7 +502,7 @@ paths:
 
     put:
       tags:
-        - products
+        - Products
       description: Update Product
       requestBody:
         required: true
@@ -326,7 +521,7 @@ paths:
                 $ref: "#/components/examples/productExample"
     delete:
       tags:
-        - products
+        - Products
       description: Delete Product
       responses:
         "200":
@@ -347,7 +542,7 @@ paths:
           format: uuid
     post:
       tags:
-        - products
+        - Products
       description: Undo Product Delete
       responses:
         "200":
@@ -362,7 +557,7 @@ paths:
   /products/{product_id}/files?after={after}&before={before}:
     get:
       tags:
-        - products
+        - Products
       summary: List Productfiles
       description: List Productfiles for a single product within a specified date range
       parameters:
@@ -394,7 +589,7 @@ paths:
   /products/{product_id}/availability:
     get:
       tags:
-        - products
+        - Products
       summary: Get Product Availability
       description: Get file count by day for a single product
       parameters:
@@ -430,7 +625,7 @@ paths:
   /tags:
     get:
       tags:
-        - tags
+        - Tags
       description: List All Tags
       responses:
         "200":
@@ -442,7 +637,7 @@ paths:
 
     post:
       tags:
-        - tags
+        - Tags
       description: Create Tag
       responses:
         "201":
@@ -463,7 +658,7 @@ paths:
           format: uuid
     put:
       tags:
-        - tags
+        - Tags
       description: Update Tag
       responses:
         "200":
@@ -474,7 +669,7 @@ paths:
                 $ref: "#/components/schemas/tag"
     delete:
       tags:
-        - tags
+        - Tags
       description: Delete Tag
       responses:
         "200":
@@ -487,7 +682,7 @@ paths:
   /products/{product_id}/tags/{tag_id}:
     post:
       tags:
-        - tags
+        - Tags
       summary: Tag Product
       description: Add a tag to a product
       parameters:
@@ -516,7 +711,7 @@ paths:
                 $ref: "#/components/examples/productExample"
     delete:
       tags:
-        - tags
+        - Tags
       summary: Untag Product
       description: Remove a tag from a product
       parameters:
@@ -543,3 +738,333 @@ paths:
                 $ref: "#/components/schemas/product"
               example:
                 $ref: "#/components/examples/productExample"
+  /downloads:
+    post:
+      tags:
+        - Downloads
+      summary: Anonymous Download
+      description: Create an anonymous download; Currently supports DSS output format
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                datetime_start:
+                  type: string
+                  format: date-time
+                datetime_end:
+                  type: integer
+                  format: date-time
+                watershed_id:
+                  type: string
+                product_id:
+                  type: array
+                  items:
+                    type: string
+                    format: uuid
+      responses:
+        "201":
+          description: Download Object
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/download"
+
+  /downloads/{download_id}:
+    parameters:
+      - name: download_id
+        in: path
+        required: true
+        description: Download ID
+        schema:
+          type: string
+          format: uuid
+    get:
+      tags:
+        - Downloads
+      description: Get Download
+      responses:
+        "200":
+          description: Get A Single Download
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/download"
+    put:
+      tags:
+        - Downloads
+      description: Update Download
+      responses:
+        "200":
+          description: A Single Download
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/download"
+
+  /downloads/{download_id}/packager_request:
+    parameters:
+      - name: download_id
+        in: path
+        required: true
+        description: Download ID
+        schema:
+          type: string
+          format: uuid
+    get:
+      tags:
+        - Downloads
+      summary: Download Info for Packager
+      description: Returns all information required by packager service to create a DSS File to fulfill download request
+      responses:
+        "200":
+          description: Packager Download Info
+          content:
+            application/json:
+              schema:
+                type: object
+  
+  /my_downloads:
+    post:
+      tags:
+        - My Downloads
+      summary: Authenticated Download
+      description: Create an authenticated download; Currently supports DSS output format
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/downloadRequest"
+      responses:
+        "201":
+          description: Download Object
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/download"
+    get:
+      tags:
+        - My Downloads
+      summary: List My Downloads
+      description: Create a download associated with logged-in user's account
+      responses:
+        "200":
+          description: List of Downloads, All Belong to Logged-In User
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/download"
+
+
+
+  /watersheds:
+    get:
+      tags:
+        - Watersheds
+      summary: List Watersheds
+      responses:
+        "200":
+          description: Watershed List
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: object
+    post:
+      tags:
+        - Watersheds
+      summary: Create Watershed
+      responses:
+        "201":
+          description: Watershed Item
+          content:
+            application/json:
+              schema:
+                type: object
+
+  /watersheds/{watershed_id}:
+    parameters:
+      - name: watershed_id
+        in: path
+        required: true
+        description: Watershed ID
+        schema:
+          type: string
+          format: uuid
+    get:
+      tags:
+        - Watersheds
+      summary: Get Watershed
+      responses:
+        "200":
+          description: Watershed Item
+          content:
+            application/json:
+              schema:
+                type: object
+    put:
+      tags:
+        - Watersheds
+      summary: Update Watershed
+      responses:
+        "200":
+          description: Watershed Item
+          content:
+            application/json:
+              schema:
+                type: object
+    delete:
+      tags:
+        - Watersheds
+      summary: Delete Watershed
+      responses:
+        "200":
+          description: Watershed Item
+          content:
+            application/json:
+              schema:
+                type: object
+
+  /watersheds/{watershed_id}/undelete:
+    parameters:
+      - name: watershed_id
+        in: path
+        required: true
+        description: Watershed ID
+        schema:
+          type: string
+          format: uuid
+    post:
+      tags:
+        - Watersheds
+      summary: Undelete Watershed
+      description: Undo delete of a previously deleted watershed
+      responses:
+        "200":
+          description: Watershed Item
+          content:
+            application/json:
+              schema:
+                type: object
+
+  /my_watersheds:
+    get:
+      tags:
+        - My Watersheds
+      summary: List My Watersheds
+      description: List all watersheds logged-in user has added to their profile
+      responses:
+        "200":
+          description: Watershed List
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: object
+
+  /my_watersheds/{watershed_id}:
+    parameters:
+      - name: watershed_id
+        in: path
+        required: true
+        description: Watershed ID
+        schema:
+          type: string
+          format: uuid
+    post:
+      tags:
+        - My Watersheds
+      summary: My Watershed Add
+      description: Add Watershed to "My Watersheds"
+      responses:
+        "200":
+          description: Empty Object
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/empty_object"
+    delete:
+      tags:
+        - My Watersheds
+      summary: My Watershed Remove
+      description: Remove Watershed from "My Watersheds"
+      responses:
+        "200":
+          description: Empty Object
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/empty_object"
+  
+  /watersheds/{watershed_id}/members:
+    parameters:
+      - name: watershed_id
+        in: path
+        required: true
+        description: Watershed ID
+        schema:
+          type: string
+          format: uuid
+    get:
+      tags:
+        - Role Management
+      summary: List Watershed Roles
+      responses:
+        "200":
+          description: Watershed Role List
+          content:
+            application/json:
+              schema:
+                type: array
+  
+  /watersheds/{watershed_id}/members/{profile_id}/roles/{role_id}:
+    parameters:
+      - name: watershed_id
+        in: path
+        required: true
+        description: Watershed ID
+        schema:
+          type: string
+          format: uuid
+      - name: profile_id
+        in: path
+        required: true
+        description: Profile ID
+        schema:
+          type: string
+          format: uuid
+      - name: role_id
+        in: path
+        required: true
+        description: Role ID
+        schema:
+          type: string
+          format: uuid
+    post:
+      tags:
+        - Role Management
+      summary: Grant Watershed Role
+      responses:
+        "200":
+          description: Empty Object
+          content:
+            application/json:
+              schema:
+                type: object
+    delete:
+      tags:
+        - Role Management
+      summary: Remove Watershed Role
+      responses:
+        "200":
+          description: Empty Object
+          content:
+            application/json:
+              schema:
+                type: object
+  

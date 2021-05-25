@@ -49,7 +49,7 @@ def process(infile, outdir):
     """Takes an infile to process and path to a directory where output files should be saved
     Returns array of objects [{ "filetype": "nohrsc_snodas_swe", "file": "file.tif", ... }, {}, ]
     """
-    f_type = "ndfd-conus-qpf"
+    f_type = "ndfd-conus-qpf-06h"
     
     outfile_list = list()
 

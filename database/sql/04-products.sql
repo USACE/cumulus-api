@@ -125,6 +125,19 @@ CREATE OR REPLACE VIEW v_product AS (
     WHERE NOT a.deleted
 );
 
+-- v_productfile
+CREATE OR REPLACE VIEW v_productfile AS (
+    SELECT p.id           AS product_id,
+           p.name         AS product_name,
+           p.slug         AS product_slug,
+           f.id           AS id,
+           f.datetime     AS datetime,
+           f.file         AS file,
+           f.version      AS version
+    FROM productfile f
+    LEFT JOIN product p ON p.id = f.product_id
+);
+
 -- ---------
 -- SEED DATA
 -- ---------

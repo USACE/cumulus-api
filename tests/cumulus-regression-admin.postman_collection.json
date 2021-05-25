@@ -14,22 +14,35 @@
 						{
 							"listen": "test",
 							"script": {
+								"id": "1125b8fd-da78-4779-ba28-ad660d9afdf5",
 								"exec": [
+									"// validate JSON schema",
+									"var schema = {",
+									"    \"type\": \"object\",",
+									"    \"properties\": {",
+									"        \"id\": { \"type\": \"string\" },",
+									"        \"username\": { \"type\": \"string\" },",
+									"        \"email\": { \"type\": \"string\" },",
+									"        \"is_admin\": { \"type\": \"boolean\"},",
+									"        \"tokens\": {\"type\": \"array\"},",
+									"        \"roles\": {\"type\": \"array\"}",
+									"    },",
+									"    \"required\": [\"id\", \"username\", \"email\", \"is_admin\", \"tokens\", \"roles\"],",
+									"    \"additionalProperties\": false",
+									"}",
+									"",
+									"// validate schema",
+									"pm.test(\"Schema validation\", function () {",
+									"    pm.response.to.have.jsonSchema(schema)",
+									"});",
+									"",
 									"// status code is 200",
 									"pm.test(\"Status code is 200\", function () {",
 									"    pm.response.to.have.status(200);",
 									"});",
-									"",
-									"// schema validation",
-									"pm.test(\"Schema validation\", function () {",
-									"    pm.response.to.have.jsonSchema(",
-									"        JSON.parse(pm.globals.get('PROFILE_SCHEMA'))",
-									"    )",
-									"});",
 									""
 								],
-								"type": "text/javascript",
-								"id": "1125b8fd-da78-4779-ba28-ad660d9afdf5"
+								"type": "text/javascript"
 							}
 						}
 					],

@@ -14,7 +14,7 @@ begin;
 \i '/sql/32-seed_area_group_lrn.sql'
 \i '/sql/33-seed_area_lrn.sql'
 \i '/sql/34-seed_area_group_columbiariver.sql'
--- \i '/sql/35-seed_area_columbiariver.sql'
+\i '/sql/35-seed_area_columbiariver.sql'
 -- \i '/sql/36-seed_data_testuser.sql'
 
 commit;

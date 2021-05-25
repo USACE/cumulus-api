@@ -10,7 +10,7 @@
 
 
 -- Shared Function to Notify Cumulus Async Listener Functions (ALF) Listener
-CREATE OR REPLACE FUNCTION public.notify_async_listener(t text) RETURNS void AS $$
+CREATE OR REPLACE FUNCTION notify_async_listener(t text) RETURNS void AS $$
     BEGIN
         PERFORM (SELECT pg_notify('cumulus_new', t));
     END;
@@ -22,10 +22,10 @@ $$ LANGUAGE plpgsql;
 ------------------------------------------------------------
 
 -- Trigger Function; Inserts Into Download Table (New File Needed from Packager)
-CREATE OR REPLACE FUNCTION public.notify_new_download() RETURNS trigger AS $$
+CREATE OR REPLACE FUNCTION notify_new_download() RETURNS trigger AS $$
     BEGIN
         PERFORM (
-            SELECT public.notify_async_listener(
+            SELECT notify_async_listener(
                 json_build_object(
                     'fn',     'new-download',
                     'details', json_build_object('id', NEW.id)::text
@@ -38,9 +38,9 @@ $$ LANGUAGE plpgsql;
 
 -- Trigger; NOTIFY NEW DOWNLOAD ON INSERT
 CREATE TRIGGER notify_new_download
-AFTER INSERT ON public.download
+AFTER INSERT ON download
 FOR EACH ROW
-EXECUTE PROCEDURE public.notify_new_download();
+EXECUTE PROCEDURE notify_new_download();
 
 
 --------------------------------------------------------------
@@ -48,7 +48,7 @@ EXECUTE PROCEDURE public.notify_new_download();
 --------------------------------------------------------------
 
 -- Trigger Function; Inserts Into acquirablefile Table
-CREATE OR REPLACE FUNCTION public.notify_acquirablefile_geoprocess() RETURNS trigger AS $$
+CREATE OR REPLACE FUNCTION notify_acquirablefile_geoprocess() RETURNS trigger AS $$
     BEGIN
         PERFORM (
             WITH geoprocess_config as (
@@ -60,7 +60,7 @@ CREATE OR REPLACE FUNCTION public.notify_acquirablefile_geoprocess() RETURNS tri
                 FROM v_acquirablefile
                 WHERE id = NEW.id
             )
-            SELECT public.notify_async_listener(
+            SELECT notify_async_listener(
                 json_build_object(
                     'fn', 'geoprocess-acquirablefile',
                     'details', json_build_object(
@@ -76,6 +76,6 @@ $$ LANGUAGE plpgsql;
 
 -- Trigger; NOTIFY NEW ACQUIRABLEFILE ON INSERT
 CREATE TRIGGER notify_acquirablefile_geoprocess
-AFTER INSERT ON public.acquirablefile
+AFTER INSERT ON acquirablefile
 FOR EACH ROW
-EXECUTE PROCEDURE public.notify_acquirablefile_geoprocess();
+EXECUTE PROCEDURE notify_acquirablefile_geoprocess();

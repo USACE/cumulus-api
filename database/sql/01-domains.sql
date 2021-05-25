@@ -1,16 +1,15 @@
 -- extensions
 CREATE extension IF NOT EXISTS "uuid-ossp";
 
-
 -- drop tables if they already exist
 drop table if exists
-    public.config,
-    public.unit,
-    public.parameter
+    config,
+    unit,
+    parameter
     CASCADE;
 
 -- config (application config variables)
-CREATE TABLE IF NOT EXISTS public.config (
+CREATE TABLE IF NOT EXISTS config (
     config_name VARCHAR UNIQUE NOT NULL,
     config_value VARCHAR NOT NULL
 );
@@ -20,7 +19,7 @@ INSERT INTO config (config_name, config_value) VALUES
 
 
 -- unit
-CREATE TABLE IF NOT EXISTS public.unit (
+CREATE TABLE IF NOT EXISTS unit (
     id UUID PRIMARY KEY NOT NULL DEFAULT uuid_generate_v4(),
     name VARCHAR(120) UNIQUE NOT NULL,
     abbreviation VARCHAR(120) UNIQUE NOT NULL
@@ -33,7 +32,7 @@ INSERT INTO unit (id, name, abbreviation) VALUES
 
 
 -- parameter
-CREATE TABLE IF NOT EXISTS public.parameter (
+CREATE TABLE IF NOT EXISTS parameter (
     id UUID PRIMARY KEY NOT NULL DEFAULT uuid_generate_v4(),
     name VARCHAR(120) UNIQUE NOT NULL
 );

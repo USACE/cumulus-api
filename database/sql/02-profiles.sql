@@ -4,12 +4,12 @@ CREATE extension IF NOT EXISTS "uuid-ossp";
 
 -- drop tables if they already exist
 drop table if exists
-    public.profile,
-    public.profile_token
+    profile,
+    profile_token
     CASCADE;
 
 -- profile
-CREATE TABLE IF NOT EXISTS public.profile (
+CREATE TABLE IF NOT EXISTS profile (
     id UUID PRIMARY KEY NOT NULL DEFAULT uuid_generate_v4(),
     edipi BIGINT UNIQUE NOT NULL,
     username VARCHAR(240) UNIQUE NOT NULL,
@@ -34,7 +34,7 @@ INSERT INTO profile (id, edipi, is_admin, username, email) VALUES
 
 
 -- profile_token
-CREATE TABLE IF NOT EXISTS public.profile_token (
+CREATE TABLE IF NOT EXISTS profile_token (
     id UUID PRIMARY KEY NOT NULL DEFAULT uuid_generate_v4(),
     token_id VARCHAR NOT NULL,
     profile_id UUID NOT NULL REFERENCES profile(id),

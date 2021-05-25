@@ -4,33 +4,33 @@ CREATE extension IF NOT EXISTS "uuid-ossp";
 
 -- drop tables if they already exist
 drop table if exists
-    public.product,
-    public.productfile,
-    public.product_tags,
-    public.acquirable,
-    public.acquirablefile,
-    public.tag
+    product,
+    productfile,
+    product_tags,
+    acquirable,
+    acquirablefile,
+    tag
 	CASCADE;
 
 -- acquirable
-CREATE TABLE IF NOT EXISTS public.acquirable (
+CREATE TABLE IF NOT EXISTS acquirable (
     id UUID PRIMARY KEY NOT NULL DEFAULT uuid_generate_v4(),
     name VARCHAR(120) NOT NULL,
     slug VARCHAR(120) UNIQUE NOT NULL
 );
 
 -- acquirablefile
-CREATE TABLE IF NOT EXISTS public.acquirablefile (
+CREATE TABLE IF NOT EXISTS acquirablefile (
     id UUID PRIMARY KEY NOT NULL DEFAULT uuid_generate_v4(),
     datetime TIMESTAMPTZ NOT NULL,
     file VARCHAR(1200) NOT NULL,
     create_date TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
     process_date TIMESTAMPTZ,
-    acquirable_id UUID not null REFERENCES acquirable (id)
+    acquirable_id UUID not null REFERENCES acquirable(id)
 );
 
 -- tag
-CREATE TABLE IF NOT EXISTS public.tag (
+CREATE TABLE IF NOT EXISTS tag (
     id UUID PRIMARY KEY NOT NULL DEFAULT uuid_generate_v4(),
     name VARCHAR UNIQUE NOT NULL,
     description VARCHAR,
@@ -38,7 +38,7 @@ CREATE TABLE IF NOT EXISTS public.tag (
 );
 
 -- product
-CREATE TABLE IF NOT EXISTS public.product (
+CREATE TABLE IF NOT EXISTS product (
     id UUID PRIMARY KEY NOT NULL DEFAULT uuid_generate_v4(),
     slug VARCHAR(120) UNIQUE NOT NULL,
     name VARCHAR(120) NOT NULL,
@@ -52,18 +52,18 @@ CREATE TABLE IF NOT EXISTS public.product (
 );
 
 -- product_tags
-CREATE TABLE IF NOT EXISTS public.product_tags (
+CREATE TABLE IF NOT EXISTS product_tags (
     product_id UUID NOT NULL REFERENCES product(id),
     tag_id UUID NOT NULL REFERENCES tag(id),
     CONSTRAINT unique_tag_product UNIQUE(tag_id,product_id)
 );
 
 -- productfile
-CREATE TABLE IF NOT EXISTS public.productfile (
+CREATE TABLE IF NOT EXISTS productfile (
     id UUID PRIMARY KEY NOT NULL DEFAULT uuid_generate_v4(),
     datetime TIMESTAMPTZ NOT NULL,
     file VARCHAR(1200) NOT NULL,
-    product_id UUID REFERENCES product (id),
+    product_id UUID REFERENCES product(id),
     version TIMESTAMPTZ NOT NULL DEFAULT '1111-11-11T11:11:11.11Z',
     acquirablefile_id UUID REFERENCES acquirablefile (id),
     CONSTRAINT unique_product_version_datetime UNIQUE(product_id, version, datetime)
@@ -95,22 +95,33 @@ CREATE OR REPLACE VIEW v_product AS (
 	    FROM product_tags
 	    GROUP BY product_id
 	)
-	SELECT a.id                             AS id,
-           a.slug                           AS slug,
-           a.name                           AS name,
-           a.temporal_resolution            AS temporal_resolution,
-           a.temporal_duration              AS temporal_duration,
-           a.dss_fpart                      AS dss_fpart,
-           a.description                    AS description,
-           COALESCE(t.tags, '{}')           AS tags,
-           p.id                             AS parameter_id,
-           p.name                           AS parameter,
-           u.id                             AS unit_id,
-           u.name                           AS unit
+	SELECT a.id                              AS id,
+           a.slug                            AS slug,
+           a.name                            AS name,
+           a.temporal_resolution             AS temporal_resolution,
+           a.temporal_duration               AS temporal_duration,
+           a.dss_fpart                       AS dss_fpart,
+           a.description                     AS description,
+           COALESCE(t.tags, '{}')            AS tags,
+           p.id                              AS parameter_id,
+           p.name                            AS parameter,
+           u.id                              AS unit_id,
+           u.name                            AS unit,
+           pf.after                          AS after,
+           pf.before                         AS before,
+           COALESCE(pf.productfile_count, 0) AS productfile_count
 	FROM product a
 	JOIN unit u ON u.id = a.unit_id
 	JOIN parameter p ON p.id = a.parameter_id
 	LEFT JOIN tags_by_product t ON t.product_id = a.id
+    LEFT JOIN (
+        SELECT product_id    AS product_id,
+                COUNT(id)     AS productfile_count,
+                MIN(datetime) AS after,
+                MAX(datetime) AS before
+        FROM productfile
+        GROUP BY product_id
+    ) AS pf ON pf.product_id = a.id
     WHERE NOT a.deleted
 );
 
@@ -120,7 +131,11 @@ CREATE OR REPLACE VIEW v_product AS (
 
 -- acquirable
 INSERT INTO acquirable (id, name, slug) VALUES
+    ('f2fee5df-c51f-4774-bd41-8ded1eed6a64', 'ndfd_conus_qpf_06h', 'ndfd-conus-qpf-06h'),
+    ('5c0f1cfa-bcf8-4587-9513-88cb197ec863', 'ndfd_conus_airtemp', 'ndfd-conus-airtemp'),
     ('d4e67bee-2320-4281-b6ef-a040cdeafeb8', 'hrrr_total_precip','hrrr-total-precip'),
+    ('ec926de8-6872-4d2b-b7ce-6002221babcd', 'wrf_columbia_precip','wrf-columbia-precip'),
+    ('d4aa1d8d-ce06-47a0-9768-e817b43a20dd', 'nbm-co-01h', 'nbm-co-01h'),
     ('2429db9a-9872-488a-b7e3-de37afc52ca4', 'cbrfc_mpe', 'cbrfc-mpe'),
     ('b27a8724-d34d-4045-aa87-c6d88f9858d0', 'ndgd_ltia98_airtemp', 'ndgd-ltia98-airtemp'),
     ('4d5eb062-5726-4822-9962-f531d9c6caef', 'ndgd_leia98_precip', 'ndgd-leia98-precip'),
@@ -156,7 +171,14 @@ INSERT INTO product (id, name, slug, temporal_duration, temporal_resolution, dss
     ('5e6ca7ed-007d-4944-93aa-0a7a6116bdcd','ndgd_ltia98_airtemp','ndgd-ltia98-airtemp',0,3600,'NDGD-LTIA98-AIRTEMP','5fab39b9-90ba-482a-8156-d863ad7c45ad','8f51e5b5-08be-4ea7-9ebc-ad44b465dbc6', 'Lorem ipsum dolor sit amet, consectetur adipiscing elit. Vivamus tincidunt nisl sit amet urna mattis, ac ornare sapien volutpat. Nullam laoreet finibus auctor. Donec nisi diam, porttitor et pharetra id, sollicitudin vestibulum dolor. Aliquam porttitor purus non massa ullamcorper, sit amet bibendum risus ornare. Sed ac metus tristique, iaculis arcu a, consequat augue. In id maximus purus. In euismod volutpat velit, a congue est tempor a.'),
     ('1ba5498c-d507-4c82-a80b-9b0af952b02f','ndgd_leia98_precip','ndgd-leia98-precip',3600,3600,'NDGD-LEIA98-PRECIP','eb82d661-afe6-436a-b0df-2ab0b478a1af','e245d39f-3209-4e58-bfb7-4eae94b3f8dd', 'Lorem ipsum dolor sit amet, consectetur adipiscing elit. Vivamus tincidunt nisl sit amet urna mattis, ac ornare sapien volutpat. Nullam laoreet finibus auctor. Donec nisi diam, porttitor et pharetra id, sollicitudin vestibulum dolor. Aliquam porttitor purus non massa ullamcorper, sit amet bibendum risus ornare. Sed ac metus tristique, iaculis arcu a, consequat augue. In id maximus purus. In euismod volutpat velit, a congue est tempor a.'),
     ('c500f609-428f-4c38-b658-e7dde63de2ea','cbrfc_mpe','cbrfc-mpe',3600,3600,'CBRFC-MPE','eb82d661-afe6-436a-b0df-2ab0b478a1af','e245d39f-3209-4e58-bfb7-4eae94b3f8dd', 'Lorem ipsum dolor sit amet, consectetur adipiscing elit. Vivamus tincidunt nisl sit amet urna mattis, ac ornare sapien volutpat. Nullam laoreet finibus auctor. Donec nisi diam, porttitor et pharetra id, sollicitudin vestibulum dolor. Aliquam porttitor purus non massa ullamcorper, sit amet bibendum risus ornare. Sed ac metus tristique, iaculis arcu a, consequat augue. In id maximus purus. In euismod volutpat velit, a congue est tempor a.'),
-    ('002125d6-2c90-4c24-9382-10a535d398bb','hrrr_total_precip','hrrr-total-precip',3600,3600,'HRRR','eb82d661-afe6-436a-b0df-2ab0b478a1af','e245d39f-3209-4e58-bfb7-4eae94b3f8dd', 'Lorem ipsum dolor sit amet, consectetur adipiscing elit. Vivamus tincidunt nisl sit amet urna mattis, ac ornare sapien volutpat. Nullam laoreet finibus auctor. Donec nisi diam, porttitor et pharetra id, sollicitudin vestibulum dolor. Aliquam porttitor purus non massa ullamcorper, sit amet bibendum risus ornare. Sed ac metus tristique, iaculis arcu a, consequat augue. In id maximus purus. In euismod volutpat velit, a congue est tempor a.');
+    ('002125d6-2c90-4c24-9382-10a535d398bb','hrrr_total_precip','hrrr-total-precip',3600,3600,'HRRR','eb82d661-afe6-436a-b0df-2ab0b478a1af','e245d39f-3209-4e58-bfb7-4eae94b3f8dd', 'Lorem ipsum dolor sit amet, consectetur adipiscing elit. Vivamus tincidunt nisl sit amet urna mattis, ac ornare sapien volutpat. Nullam laoreet finibus auctor. Donec nisi diam, porttitor et pharetra id, sollicitudin vestibulum dolor. Aliquam porttitor purus non massa ullamcorper, sit amet bibendum risus ornare. Sed ac metus tristique, iaculis arcu a, consequat augue. In id maximus purus. In euismod volutpat velit, a congue est tempor a.'),
+    ('84a64026-0e5d-49ac-a48a-6a83efa2b77c','ndfd_conus_qpf_06h', 'ndfd-conus-qpf-06h',21600,21600,'NDFD-CONUS-QPF','eb82d661-afe6-436a-b0df-2ab0b478a1af','e245d39f-3209-4e58-bfb7-4eae94b3f8dd', 'Lorem ipsum dolor sit amet, consectetur adipiscing elit. Vivamus tincidunt nisl sit amet urna mattis, ac ornare sapien volutpat. Nullam laoreet finibus auctor. Donec nisi diam, porttitor et pharetra id, sollicitudin vestibulum dolor. Aliquam porttitor purus non massa ullamcorper, sit amet bibendum risus ornare. Sed ac metus tristique, iaculis arcu a, consequat augue. In id maximus purus. In euismod volutpat velit, a congue est tempor a.'),
+    ('b206a00b-9ed6-42e1-a34d-c67d43828810','ndfd_conus_temp_01h', 'ndfd-conus-temp-01h',3600,3600,'NDFD-CONUS-TEMP','5fab39b9-90ba-482a-8156-d863ad7c45ad','8f51e5b5-08be-4ea7-9ebc-ad44b465dbc6', 'Lorem ipsum dolor sit amet, consectetur adipiscing elit. Vivamus tincidunt nisl sit amet urna mattis, ac ornare sapien volutpat. Nullam laoreet finibus auctor. Donec nisi diam, porttitor et pharetra id, sollicitudin vestibulum dolor. Aliquam porttitor purus non massa ullamcorper, sit amet bibendum risus ornare. Sed ac metus tristique, iaculis arcu a, consequat augue. In id maximus purus. In euismod volutpat velit, a congue est tempor a.'),
+    ('dde59007-25ec-4bb4-b5e6-8f0f1fbab853','ndfd_conus_temp_03h', 'ndfd-conus-temp-03h',10800,10800,'NDFD-CONUS-TEMP','5fab39b9-90ba-482a-8156-d863ad7c45ad','8f51e5b5-08be-4ea7-9ebc-ad44b465dbc6', 'Lorem ipsum dolor sit amet, consectetur adipiscing elit. Vivamus tincidunt nisl sit amet urna mattis, ac ornare sapien volutpat. Nullam laoreet finibus auctor. Donec nisi diam, porttitor et pharetra id, sollicitudin vestibulum dolor. Aliquam porttitor purus non massa ullamcorper, sit amet bibendum risus ornare. Sed ac metus tristique, iaculis arcu a, consequat augue. In id maximus purus. In euismod volutpat velit, a congue est tempor a.'),
+    ('f48006a5-ad25-4a9f-9b58-639d75763dd7','ndfd_conus_temp_06h', 'ndfd-conus-temp-06h',21600,21600,'NDFD-CONUS-TEMP','5fab39b9-90ba-482a-8156-d863ad7c45ad','8f51e5b5-08be-4ea7-9ebc-ad44b465dbc6', 'Lorem ipsum dolor sit amet, consectetur adipiscing elit. Vivamus tincidunt nisl sit amet urna mattis, ac ornare sapien volutpat. Nullam laoreet finibus auctor. Donec nisi diam, porttitor et pharetra id, sollicitudin vestibulum dolor. Aliquam porttitor purus non massa ullamcorper, sit amet bibendum risus ornare. Sed ac metus tristique, iaculis arcu a, consequat augue. In id maximus purus. In euismod volutpat velit, a congue est tempor a.'),
+    ('b50f29f4-547b-4371-9365-60d44eef412e','wrf_columbia_precip','wrf-columbia-precip',3600,3600,'WRF-COLUMBIA','eb82d661-afe6-436a-b0df-2ab0b478a1af','e245d39f-3209-4e58-bfb7-4eae94b3f8dd', 'WRF Columbia precipitation data created for the entire Columbia River Basin'),
+    ('5317d1c4-c6db-40c2-b527-72f7603be8a0','nbm-co-qpf','nbm-co-qpf',3600,3600,'NBM-CO-QPF','eb82d661-afe6-436a-b0df-2ab0b478a1af','e245d39f-3209-4e58-bfb7-4eae94b3f8dd', 'Lorem ipsum dolor sit amet, consectetur adipiscing elit. Vivamus tincidunt nisl sit amet urna mattis, ac ornare sapien volutpat. Nullam laoreet finibus auctor. Donec nisi diam, porttitor et pharetra id, sollicitudin vestibulum dolor. Aliquam porttitor purus non massa ullamcorper, sit amet bibendum risus ornare. Sed ac metus tristique, iaculis arcu a, consequat augue. In id maximus purus. In euismod volutpat velit, a congue est tempor a.'),
+    ('d0c1d6f4-cf5d-4332-a17e-dd1757c99c94','nbm-co-airtemp','nbm-co-airtemp',3600,3600,'NBM-CO-AIRTEMP','5fab39b9-90ba-482a-8156-d863ad7c45ad','8f51e5b5-08be-4ea7-9ebc-ad44b465dbc6', 'Lorem ipsum dolor sit amet, consectetur adipiscing elit. Vivamus tincidunt nisl sit amet urna mattis, ac ornare sapien volutpat. Nullam laoreet finibus auctor. Donec nisi diam, porttitor et pharetra id, sollicitudin vestibulum dolor. Aliquam porttitor purus non massa ullamcorper, sit amet bibendum risus ornare. Sed ac metus tristique, iaculis arcu a, consequat augue. In id maximus purus. In euismod volutpat velit, a congue est tempor a.');
 
 
 -- tag

@@ -12,7 +12,8 @@ import (
 )
 
 var listProductsSQL = `SELECT id, slug, name, tags, temporal_resolution, temporal_duration,
-                              parameter_id, parameter, unit_id, unit, dss_fpart, description
+                              parameter_id, parameter, unit_id, unit, dss_fpart, description,
+							  after, before, productfile_count
 	                   FROM v_product`
 
 // ProductInfo holds information required to create a product
@@ -34,6 +35,7 @@ type Product struct {
 	Slug string      `json:"slug" db:"slug"`
 	Tags []uuid.UUID `json:"tags" db:"tags"`
 	ProductInfo
+	CoverageSummary
 }
 
 // Productfile is a file associated with a product
@@ -55,7 +57,6 @@ type CoverageSummary struct {
 	After            *time.Time `json:"after" db:"after"`
 	Before           *time.Time `json:"before" db:"before"`
 	ProductfileCount int        `json:"productfile_count" db:"productfile_count"`
-	PercentCoverage  float32    `json:"percent_coverage" db:"coverage"`
 }
 
 // Availability includes a date count for each product id

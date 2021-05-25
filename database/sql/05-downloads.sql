@@ -4,20 +4,20 @@ CREATE extension IF NOT EXISTS "uuid-ossp";
 
 -- drop tables if they already exist
 drop table if exists
-    public.download,
-    public.download_product,
-    public.download_status
+    download,
+    download_product,
+    download_status
 	CASCADE;
 
 
 -- download_status_id
-CREATE TABLE IF NOT EXISTS public.download_status (
+CREATE TABLE IF NOT EXISTS download_status (
     id UUID PRIMARY KEY NOT NULL DEFAULT uuid_generate_v4(),
     name VARCHAR(120) NOT NULL
 );
 
 -- download
-CREATE TABLE IF NOT EXISTS public.download (
+CREATE TABLE IF NOT EXISTS download (
     id UUID PRIMARY KEY NOT NULL DEFAULT uuid_generate_v4(),
     datetime_start TIMESTAMPTZ NOT NULL,
     datetime_end TIMESTAMPTZ NOT NULL,
@@ -31,7 +31,7 @@ CREATE TABLE IF NOT EXISTS public.download (
 );
 
 -- download_product
-CREATE TABLE IF NOT EXISTS public.download_product (
+CREATE TABLE IF NOT EXISTS download_product (
     download_id UUID REFERENCES download(id),
     product_id UUID REFERENCES product(id),
     PRIMARY KEY (download_id, product_id)

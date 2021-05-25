@@ -4,25 +4,25 @@ CREATE extension IF NOT EXISTS "uuid-ossp";
 
 -- drop tables if they already exist
 drop table if exists
-    public.office,
-    public.watershed,
-    public.watershed_roles,
-    public.my_watersheds,
-    public.area,
-    public.area_group,
-	public.role
+    office,
+    watershed,
+    watershed_roles,
+    my_watersheds,
+    area,
+    area_group,
+	role
 	CASCADE;
 
 
 -- office
-CREATE TABLE IF NOT EXISTS public.office (
+CREATE TABLE IF NOT EXISTS office (
     id UUID PRIMARY KEY NOT NULL DEFAULT uuid_generate_v4(),
     symbol VARCHAR(120) UNIQUE NOT NULL,
     name VARCHAR(120) UNIQUE NOT NULL
 );
 
 -- watershed
-CREATE TABLE IF NOT EXISTS public.watershed (
+CREATE TABLE IF NOT EXISTS watershed (
     id UUID PRIMARY KEY NOT NULL DEFAULT uuid_generate_v4(),
     slug VARCHAR UNIQUE NOT NULL,
     name VARCHAR,
@@ -32,7 +32,7 @@ CREATE TABLE IF NOT EXISTS public.watershed (
 );
 
 -- my_watersheds
-CREATE TABLE IF NOT EXISTS public.my_watersheds (
+CREATE TABLE IF NOT EXISTS my_watersheds (
     id UUID PRIMARY KEY NOT NULL DEFAULT uuid_generate_v4(),
     watershed_id UUID NOT NULL REFERENCES watershed(id) ON DELETE CASCADE,
     profile_id UUID NOT NULL REFERENCES profile(id) ON DELETE CASCADE,
@@ -40,7 +40,7 @@ CREATE TABLE IF NOT EXISTS public.my_watersheds (
 );
 
 -- area_group
-CREATE TABLE IF NOT EXISTS public.area_group (
+CREATE TABLE IF NOT EXISTS area_group (
     id UUID PRIMARY KEY NOT NULL DEFAULT uuid_generate_v4(),
     watershed_id UUID NOT NULL REFERENCES watershed(id) ON DELETE CASCADE,
     slug VARCHAR NOT NULL,
@@ -50,7 +50,7 @@ CREATE TABLE IF NOT EXISTS public.area_group (
 );
 
 -- area
-CREATE TABLE IF NOT EXISTS public.area (
+CREATE TABLE IF NOT EXISTS area (
     id UUID PRIMARY KEY NOT NULL DEFAULT uuid_generate_v4(),
     slug VARCHAR UNIQUE NOT NULL,
     name VARCHAR UNIQUE NOT NULL,
@@ -65,7 +65,7 @@ CREATE TABLE IF NOT EXISTS public.area (
 -- Watershed Permissions
 ------------------------
 -- role
-CREATE TABLE IF NOT EXISTS public.role (
+CREATE TABLE IF NOT EXISTS role (
     id UUID PRIMARY KEY NOT NULL DEFAULT uuid_generate_v4(),
     name VARCHAR NOT NULL
 );
@@ -74,7 +74,7 @@ INSERT INTO role (id, name) VALUES
     ('2962bdde-7007-4ba0-943f-cb8e72e90704', 'MEMBER');
 
 -- watershed_roles
-CREATE TABLE IF NOT EXISTS public.watershed_roles (
+CREATE TABLE IF NOT EXISTS watershed_roles (
     id UUID PRIMARY KEY NOT NULL DEFAULT uuid_generate_v4(),
     profile_id UUID NOT NULL REFERENCES profile(id) ON DELETE CASCADE,
     role_id UUID NOT NULL REFERENCES role(id) ON DELETE CASCADE,
@@ -245,7 +245,7 @@ INSERT INTO office (id, symbol, name) VALUES
 
 -- extent to polygon reference order - simple 4 point extents
 -- xmin,ymax (top left), xmax ymax (top right), xmax ymin (bottom right), xmin ymin (bottom left), xmin ymax (top left again)
-INSERT INTO public.watershed (id,slug,"name",geometry,office_id) VALUES
+INSERT INTO watershed (id,slug,"name",geometry,office_id) VALUES
 	 ('01313583-8fed-4235-8cf2-df5fe23b4b2a','hatchie-river','Hatchie River',ST_GeomFromText('POLYGON ((542000 1444000, 694000 1444000, 694000 1296000, 542000 1296000, 542000 1444000))',5070),'8fc88b15-9cd4-4e86-8b8c-6d956926010b'),
 	 ('03206ff6-fe91-426c-a5e9-4c651b06f9c6','eau-galla-river','Eau Galla River',ST_GeomFromText('POLYGON ((284000 2460000, 326000 2460000, 326000 2404000, 284000 2404000, 284000 2460000))',5070),'33f03e9a-711b-41e7-9bdd-66152b69128d'),
 	 ('048ce853-6642-4ac4-9fb2-81c01f67a85b','mississippi-river-headwaters','Mississippi River Headwaters',ST_GeomFromText('POLYGON ((24000 2760000, 254000 2760000, 254000 2402000, 24000 2402000, 24000 2760000))',5070),'33f03e9a-711b-41e7-9bdd-66152b69128d'),

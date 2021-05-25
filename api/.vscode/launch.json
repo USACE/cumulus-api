@@ -1,0 +1,43 @@
+{
+    // Use IntelliSense to learn about possible attributes.
+    // Hover to view descriptions of existing attributes.
+    // For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
+    "version": "0.2.0",
+    "configurations": [
+      {
+        "name": "Launch",
+        "type": "go",
+        "request": "launch",
+        "mode": "auto",
+        "program": "${workspaceFolder}/main.go",
+        "env": {
+          "AWS_ACCESS_KEY_ID": "AKIAIOSFODNN7EXAMPLE",
+          "AWS_SECRET_ACCESS_KEY": "wJalrXUtnFEMI/K7MDENG/bPxRfiCYEXAMPLEKEY",
+          "AWS_DEFAULT_REGION": "us-east-1",
+          "AWS_REGION": "us-east-1",
+          "CUMULUS_APPLICATION_KEY": "appkey",
+          "CUMULUS_AUTH_DISABLED": "FALSE",
+          "CUMULUS_AUTH_JWT_MOCKED": "TRUE",
+          "CUMULUS_DBUSER": "cumulus_user",
+          "CUMULUS_DBPASS": "password",
+          "CUMULUS_DBNAME": "postgres",
+          "CUMULUS_DBHOST": "localhost",
+          "CUMULUS_DBSSLMODE": "disable",
+          "CUMULUS_LAMBDACONTEXT": "FALSE",
+          "CUMULUS_ASYNC_ENGINE_ACQUISITION": "MOCK",
+          "CUMULUS_ASYNC_ENGINE_ACQUISITION_TARGET": "",
+          "CUMULUS_ASYNC_ENGINE_PACKAGER": "AWSSQS",
+          "CUMULUS_ASYNC_ENGINE_PACKAGER_TARGET": "local/http://localhost:9324/queue/cumulus-packager",
+          "CUMULUS_ASYNC_ENGINE_STATISTICS": "AWSSQS",
+          "CUMULUS_ASYNC_ENGINE_STATISTICS_TARGET": "local/http://localhost:9324/queue/cumulus-statistics",
+          "CUMULUS_STATIC_HOST": "http://localhost",
+          "CUMULUS_AWS_S3_REGION":"us-east-1",
+          "CUMULUS_AWS_S3_BUCKET":"cwbi-data-develop",
+          "CUMULUS_AWS_S3_ENDPOINT":"http://minio:9000",
+          "CUMULUS_AWS_S3_DISABLE_SSL":"True",
+          "CUMULUS_AWS_S3_FORCE_PATH_STYLE":"True"
+        },
+        "args": []
+      }
+    ]
+  }

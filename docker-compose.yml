@@ -2,7 +2,7 @@ version: "3"
 
 services:
   cumulusdb:
-    image: mdillon/postgis
+    image: postgis/postgis
     volumes:
         - ./database/sql:/sql
         - ./database/sql/init.sql:/docker-entrypoint-initdb.d/z_init.sql

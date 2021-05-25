@@ -42,10 +42,10 @@ GRANT SELECT ON
     my_watersheds,
     watershed_roles,
     v_acquirablefile,
-    v_productfile,
     v_download,
     v_area_5070,
     v_product,
+    v_productfile,
     v_watershed,
     v_watershed_roles,
     v_profile

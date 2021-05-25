@@ -10,12 +10,11 @@ require (
 	github.com/georgysavva/scany v0.2.8
 	github.com/google/uuid v1.1.2
 	github.com/gosimple/slug v1.9.0
-	github.com/jackc/pgx v3.6.2+incompatible
 	github.com/jackc/pgx/v4 v4.11.0
 	github.com/jmoiron/sqlx v1.2.0
 	github.com/kelseyhightower/envconfig v1.4.0
 	github.com/labstack/echo/v4 v4.1.17
-	github.com/lib/pq v1.9.0
+	github.com/lib/pq v1.9.0 // indirect
 	github.com/stretchr/testify v1.6.1 // indirect
 	golang.org/x/crypto v0.0.0-20210322153248-0c34fe9e7dc2
 	google.golang.org/appengine v1.6.7 // indirect

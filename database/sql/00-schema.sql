@@ -1,4 +1,4 @@
 SET search_path TO cumulus,topology,public;
 
-CREATE SCHEMA cumulus
+CREATE SCHEMA cumulus;
 

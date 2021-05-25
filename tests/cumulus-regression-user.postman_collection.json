@@ -1,0 +1,241 @@
+{
+	"info": {
+		"_postman_id": "4b1d7837-8d59-4ee3-9ddc-c78a2db1e91f",
+		"name": "cumulus-regression-user",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+	},
+	"item": [
+		{
+			"name": "profile",
+			"item": [
+				{
+					"name": "CreateProfile",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"id": "f3e39cdc-05e0-46a5-b97e-3c9cceef77f6",
+								"exec": [
+									"// validate JSON schema",
+									"var schema = {",
+									"    \"type\": \"object\",",
+									"    \"properties\": {",
+									"        \"id\": { \"type\": \"string\" },",
+									"        \"username\": { \"type\": \"string\" },",
+									"        \"email\": { \"type\": \"string\" },",
+									"        \"is_admin\": { \"type\": \"boolean\"},",
+									"        \"tokens\": {\"type\": \"array\"},",
+									"        \"roles\": {\"type\": \"array\"}",
+									"    },",
+									"    \"required\": [\"id\", \"username\", \"email\", \"is_admin\", \"tokens\", \"roles\"],",
+									"    \"additionalProperties\": false",
+									"}",
+									"",
+									"pm.globals.set('PROFILE_SCHEMA', JSON.stringify(schema));",
+									"",
+									"// status code is 201",
+									"pm.test(\"Status code is 201\", function () {",
+									"    pm.response.to.have.status(201);",
+									"});",
+									"",
+									"// validate schema",
+									"pm.test(\"Schema validation\", function () {",
+									"    pm.response.to.have.jsonSchema(schema)",
+									"});",
+									""
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"username\": \"testuser\",\n    \"email\": \"test.user@gmail.com\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{base_url}}/my_profile",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"my_profile"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "GetMyProfile",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"// status code is 200",
+									"pm.test(\"Status code is 200\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"",
+									"// schema validation",
+									"pm.test(\"Schema validation\", function () {",
+									"    pm.response.to.have.jsonSchema(",
+									"        JSON.parse(pm.globals.get('PROFILE_SCHEMA'))",
+									"    )",
+									"});",
+									""
+								],
+								"type": "text/javascript",
+								"id": "f4207108-9668-48a0-9634-62f3629e3f82"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/my_profile",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"my_profile"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "CreateToken",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"// validate JSON schema",
+									"var schema = {",
+									"    \"type\": \"object\",",
+									"    \"properties\": {",
+									"        \"secret_token\": { \"type\": \"string\" },",
+									"        \"token_id\": { \"type\": \"string\" },",
+									"        \"profile_id\": { \"type\": \"string\" },",
+									"        \"issued\": { \"type\": \"string\"}",
+									"    },",
+									"    \"required\": [\"secret_token\", \"token_id\", \"profile_id\", \"issued\"],",
+									"    \"additionalProperties\": false",
+									"}",
+									"",
+									"pm.globals.set('TOKEN_OBJECT', JSON.stringify(schema));",
+									"",
+									"// status code is 201",
+									"pm.test(\"Status code is 201\", function () {",
+									"    pm.response.to.have.status(201);",
+									"});",
+									"",
+									"// validate schema",
+									"pm.test(\"Schema validation\", function () {",
+									"    pm.response.to.have.jsonSchema(schema)",
+									"});"
+								],
+								"type": "text/javascript",
+								"id": "06c6fac8-3555-4986-a069-5f3b7c954254"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/my_tokens",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"my_tokens"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "DeleteToken",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"// status code is 200;",
+									"// NOTE: This test will always pass when run in automated tests because attempting to delete a token that",
+									"// does not exist will always return a RESTful 200 (i.e. 'It's gone'). This test is left in place for manual testing as needed.",
+									"// This is done using the CreateToken test, getting the token_id from the payload, manually deleting the token using this test,",
+									"// and verifying that the token has been deleted by fetching /my_profile and examining the return payload",
+									"pm.test(\"Status code is 200\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});"
+								],
+								"type": "text/javascript",
+								"id": "122f9cff-0aeb-4790-bd80-774a0c4d84d9"
+							}
+						}
+					],
+					"request": {
+						"method": "DELETE",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/my_tokens/65GkUyQ4yyG9jeJVB8N3ebtcunYAnXKCJAtXB1ZtLz4FUVr7LLtKBFx",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"my_tokens",
+								"65GkUyQ4yyG9jeJVB8N3ebtcunYAnXKCJAtXB1ZtLz4FUVr7LLtKBFx"
+							]
+						}
+					},
+					"response": []
+				}
+			],
+			"protocolProfileBehavior": {}
+		}
+	],
+	"auth": {
+		"type": "bearer",
+		"bearer": [
+			{
+				"key": "token",
+				"value": "{{jwt_new_user}}",
+				"type": "string"
+			}
+		]
+	},
+	"event": [
+		{
+			"listen": "prerequest",
+			"script": {
+				"id": "fb5a3e0d-fb9b-4b51-85b9-bc783a00173b",
+				"type": "text/javascript",
+				"exec": [
+					""
+				]
+			}
+		},
+		{
+			"listen": "test",
+			"script": {
+				"id": "eb8e91c7-e4d8-4b30-9d8c-9f2fda04b705",
+				"type": "text/javascript",
+				"exec": [
+					""
+				]
+			}
+		}
+	],
+	"protocolProfileBehavior": {}
+}

@@ -3,6 +3,7 @@ package handlers
 import (
 	"net/http"
 
+	"github.com/georgysavva/scany/pgxscan"
 	"github.com/google/uuid"
 	"github.com/labstack/echo/v4"
 
@@ -44,6 +45,9 @@ func GetTag(db *pgxpool.Pool) echo.HandlerFunc {
 		}
 		t, err := models.GetTag(db, &tagID)
 		if err != nil {
+			if pgxscan.NotFound(err) {
+				return c.JSON(http.StatusNotFound, models.DefaultMessageNotFound)
+			}
 			return c.JSON(http.StatusInternalServerError, models.DefaultMessageInternalServerError)
 		}
 		return c.JSON(http.StatusOK, t)

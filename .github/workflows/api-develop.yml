@@ -36,8 +36,11 @@ jobs:
       - name: Upload Test Results
         if: ${{ always() }}
         run: |
-          aws s3 rm s3://corpsmap-appz/api_test_results/develop-cumulus.html
-          aws s3 cp ./tests/cumulus.html s3://corpsmap-appz/api_test_results/develop-cumulus.html
+          aws s3 rm s3://corpsmap-appz/api_test_results/develop-cumulus-admin.html
+          aws s3 cp ./tests/cumulus-admin.html s3://corpsmap-appz/api_test_results/develop-cumulus-admin.html
+          aws s3 rm s3://corpsmap-appz/api_test_results/develop-cumulus-user.html
+          aws s3 cp ./tests/cumulus-user.html s3://corpsmap-appz/api_test_results/develop-cumulus-user.html
+
 
       - name: Login to Amazon ECR
         if: ${{ success() }}

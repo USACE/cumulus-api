@@ -10,6 +10,9 @@ CREATE ROLE postgis_reader;
 -- Set Search Path
 ALTER ROLE cumulus_user SET search_path TO cumulus,topology,public;
 
+-- Grant Schema Usage to cumulus_user
+GRANT USAGE ON SCHEMA cumulus TO cumulus_user;
+
 --------------------------------------------------------------------------
 -- NOTE: IF USERS ALREADY EXIST ON DATABASE, JUST RUN FROM THIS POINT DOWN
 --------------------------------------------------------------------------

@@ -4,8 +4,8 @@
 -- Add profile_id to DOWNLOAD table
 ALTER TABLE public.download ADD COLUMN profile_id UUID REFERENCES profile(id);
 
--- Add new PROFILE_WATERSHEDS table
-CREATE TABLE IF NOT EXISTS public.profile_watersheds (
+-- Add new my_watersheds table
+CREATE TABLE IF NOT EXISTS public.my_watersheds (
     id UUID PRIMARY KEY NOT NULL DEFAULT uuid_generate_v4(),
     watershed_id UUID NOT NULL REFERENCES watershed(id) ON DELETE CASCADE,
     profile_id UUID NOT NULL REFERENCES profile(id) ON DELETE CASCADE,
@@ -42,6 +42,6 @@ CREATE OR REPLACE VIEW v_download AS (
     );
 
 -- Role cumulus_reader
-GRANT SELECT ON profile_watersheds,v_download TO cumulus_reader;
+GRANT SELECT ON my_watersheds,v_download TO cumulus_reader;
 -- Role cumulus_writer
-GRANT INSERT,UPDATE,DELETE ON profile_watersheds TO cumulus_writer;
+GRANT INSERT,UPDATE,DELETE ON my_watersheds TO cumulus_writer;

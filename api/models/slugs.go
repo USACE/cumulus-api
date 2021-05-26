@@ -1,19 +1,21 @@
 package models
 
 import (
+	"context"
 	"fmt"
 	"strconv"
 	"strings"
 
+	"github.com/georgysavva/scany/pgxscan"
 	"github.com/gosimple/slug"
-	"github.com/jmoiron/sqlx"
+	"github.com/jackc/pgx/v4/pgxpool"
 )
 
 // NextUniqueSlug returns the next available slug given a table
 // contextField is a column name in table; contextString is a value in contextField;
 // If contextField="" or contextString="", returned string will be table unique
 // If contextField is provided, the returned string will be unique among rows having contextField = contextValue
-func NextUniqueSlug(db *sqlx.DB, table, field, inString, contextField, contextValue string) (string, error) {
+func NextUniqueSlug(db *pgxpool.Pool, table, field, inString, contextField, contextValue string) (string, error) {
 
 	// SQL Query Builder logic
 	sql := func() string {
@@ -33,7 +35,7 @@ func NextUniqueSlug(db *sqlx.DB, table, field, inString, contextField, contextVa
 	slugTry := slug.Make(inString)
 
 	ss := make([]string, 0)
-	if err := db.Select(&ss, sql(), slugTry); err != nil {
+	if err := pgxscan.Select(context.Background(), db, &ss, sql(), slugTry); err != nil {
 		return "", err
 	}
 

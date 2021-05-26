@@ -11,7 +11,7 @@ import (
 	"github.com/USACE/go-simple-asyncer/asyncer"
 
 	// SQL Interface
-	_ "github.com/lib/pq"
+	_ "github.com/jackc/pgx/v4"
 )
 
 // DoStatistics triggers statistics

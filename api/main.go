@@ -162,6 +162,8 @@ func main() {
 
 	// Downloads
 	public.GET("/cumulus/download/dss/*", handlers.ServeMedia(&awsCfg, &cfg.AWSS3Bucket)) // Serve Downloads
+	// List Downloads
+	private.GET("/downloads", handlers.ListDownloads(db), middleware.IsApplicationAdmin)
 	// Create Download (Anonymous)
 	public.POST("/downloads", handlers.CreateDownload(db))
 	public.GET("/downloads/:download_id", handlers.GetDownload(db))

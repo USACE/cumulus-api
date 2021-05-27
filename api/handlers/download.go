@@ -32,6 +32,17 @@ import (
 // }
 // */
 
+// ListDownloads returns an array of all downloads
+func ListDownloads(db *pgxpool.Pool) echo.HandlerFunc {
+	return func(c echo.Context) error {
+		dd, err := models.ListDownloads(db)
+		if err != nil {
+			return c.JSON(http.StatusInternalServerError, models.DefaultMessageInternalServerError)
+		}
+		return c.JSON(http.StatusOK, dd)
+	}
+}
+
 // ListMyDownloads returns an array of downloads for a ProfileID
 func ListMyDownloads(db *pgxpool.Pool) echo.HandlerFunc {
 	return func(c echo.Context) error {

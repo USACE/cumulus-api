@@ -1128,6 +1128,50 @@
 			"name": "downloads",
 			"item": [
 				{
+					"name": "ListDownloads",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"id": "f0e57628-78f6-43b4-b053-4dc2e1b0d0f9",
+								"exec": [
+									"// status code is 201",
+									"pm.test(\"Status code is 200\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"protocolProfileBehavior": {
+						"disableBodyPruning": true
+					},
+					"request": {
+						"method": "GET",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n\t\"datetime_start\": \"2020-12-01T01:00:00Z\",\n\t\"datetime_end\": \"2020-12-10T01:00:00Z\",\n\t\"watershed_id\": \"3e8db268-d9ca-47ec-ae93-21a3c2bcf0a1\",\n\t\"product_id\": [\n        \"30a6d443-80a5-49cc-beb0-5d3a18a84caa\"\n\t]\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{base_url}}/downloads",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"downloads"
+							]
+						}
+					},
+					"response": []
+				},
+				{
 					"name": "CreateDownload",
 					"event": [
 						{

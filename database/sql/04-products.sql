@@ -53,8 +53,8 @@ CREATE TABLE IF NOT EXISTS product (
 
 -- product_tags
 CREATE TABLE IF NOT EXISTS product_tags (
-    product_id UUID NOT NULL REFERENCES product(id),
-    tag_id UUID NOT NULL REFERENCES tag(id),
+    product_id UUID NOT NULL REFERENCES product(id) ON DELETE CASCADE,
+    tag_id UUID NOT NULL REFERENCES tag(id) ON DELETE CASCADE,
     CONSTRAINT unique_tag_product UNIQUE(tag_id,product_id)
 );
 
@@ -66,6 +66,7 @@ CREATE TABLE IF NOT EXISTS productfile (
     product_id UUID REFERENCES product(id),
     version TIMESTAMPTZ NOT NULL DEFAULT '1111-11-11T11:11:11.11Z',
     acquirablefile_id UUID REFERENCES acquirablefile (id),
+    update_date TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
     CONSTRAINT unique_product_version_datetime UNIQUE(product_id, version, datetime)
 );
 

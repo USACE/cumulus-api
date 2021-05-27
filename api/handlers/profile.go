@@ -4,6 +4,7 @@ import (
 	"api/models"
 	"net/http"
 
+	"github.com/georgysavva/scany/pgxscan"
 	"github.com/google/uuid"
 	"github.com/jackc/pgx/v4/pgxpool"
 	"github.com/labstack/echo/v4"
@@ -36,12 +37,18 @@ func CreateProfile(db *pgxpool.Pool) echo.HandlerFunc {
 // GetMyProfile returns profile for current authenticated user or 404
 func GetMyProfile(db *pgxpool.Pool) echo.HandlerFunc {
 	return func(c echo.Context) error {
-		// Profile Always Attached in Middleware for Private Routes
-		p, ok := c.Get("profile").(*models.Profile)
+		edipi, ok := c.Get("EDIPI").(int)
 		if !ok {
-			return c.JSON(http.StatusNotFound, models.DefaultMessageNotFound)
+			return c.JSON(http.StatusUnauthorized, models.DefaultMessageUnauthorized)
 		}
-		return c.JSON(http.StatusOK, &p)
+		p, err := models.GetProfileFromEDIPI(db, edipi)
+		if err != nil {
+			if pgxscan.NotFound(err) {
+				return c.JSON(http.StatusNotFound, models.DefaultMessageNotFound)
+			}
+			return c.JSON(http.StatusInternalServerError, models.DefaultMessageInternalServerError)
+		}
+		return c.JSON(http.StatusOK, p)
 	}
 }
 

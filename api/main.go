@@ -99,7 +99,7 @@ func main() {
 	cacOnly.Use(middleware.EDIPIMiddleware, middleware.CACOnlyMiddleware)
 
 	// Profile
-	private.GET("/my_profile", handlers.GetMyProfile(db))
+	cacOnly.GET("/my_profile", handlers.GetMyProfile(db))
 	cacOnly.POST("/my_profile", handlers.CreateProfile(db))
 
 	// Grant/Remove Application Admin to a Profile
@@ -111,7 +111,7 @@ func main() {
 	)
 
 	// API Tokens
-	cacOnly.POST("/my_tokens", handlers.CreateToken(db))
+	private.POST("/my_tokens", handlers.CreateToken(db))
 	private.DELETE("/my_tokens/:token_id", handlers.DeleteToken(db))
 
 	// Acquirables

@@ -53,8 +53,8 @@ CREATE TABLE IF NOT EXISTS product (
 
 -- product_tags
 CREATE TABLE IF NOT EXISTS product_tags (
-    product_id UUID NOT NULL REFERENCES product(id),
-    tag_id UUID NOT NULL REFERENCES tag(id),
+    product_id UUID NOT NULL REFERENCES product(id) ON DELETE CASCADE,
+    tag_id UUID NOT NULL REFERENCES tag(id) ON DELETE CASCADE,
     CONSTRAINT unique_tag_product UNIQUE(tag_id,product_id)
 );
 

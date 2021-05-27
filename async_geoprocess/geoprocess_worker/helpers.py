@@ -56,7 +56,7 @@ def write_database(entries):
         conn = db_connection()
         c = conn.cursor()
         psycopg2.extras.execute_values(
-            c, "INSERT INTO productfile (datetime, file, product_id, version) VALUES %s ON CONFLICT ON CONSTRAINT unique_product_version_datetime DO UPDATE SET datetime = CURRENT_TIMESTAMP", values,
+            c, "INSERT INTO productfile (datetime, file, product_id, version) VALUES %s ON CONFLICT ON CONSTRAINT unique_product_version_datetime DO UPDATE SET update_date = CURRENT_TIMESTAMP", values,
         )
         conn.commit()
     except Exception as e:

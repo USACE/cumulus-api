@@ -5,7 +5,7 @@ def process(infile, outdir):
     Returns array of objects [{ "filetype": "nohrsc_snodas_swe", "file": "file.tif", ... }, {}, ]
     """
 
-    varName = 'wrf-columbia-t2'
+    varName = 'wrf-columbia-airtemp'
     outfile_list = wrf2cog(infile, outdir, varName)
     return outfile_list
     

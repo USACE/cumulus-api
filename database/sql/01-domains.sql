@@ -27,6 +27,7 @@ CREATE TABLE IF NOT EXISTS unit (
 INSERT INTO unit (id, name, abbreviation) VALUES
     ('4bcfac2e-1a08-4484-bf7d-3cb937dc950b','DEGC-D','DEGC-D'),
     ('8f51e5b5-08be-4ea7-9ebc-ad44b465dbc6','DEG C','DEG-C'),
+    ('0c8dcd1f-93db-4e64-be1d-47b3462deb2a','DEG F','DEG-F'),
     ('e245d39f-3209-4e58-bfb7-4eae94b3f8dd','MM','MM'),
     ('855ee63c-d623-40d5-a551-3655ce2d7b47','K','K');
 

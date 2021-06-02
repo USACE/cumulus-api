@@ -1,7 +1,11 @@
 package models
 
 import (
+	"context"
+
+	"github.com/georgysavva/scany/pgxscan"
 	"github.com/google/uuid"
+	"github.com/jackc/pgx/v4/pgxpool"
 	"github.com/jmoiron/sqlx"
 )
 
@@ -34,14 +38,33 @@ func ListWatershedAreaGroups(db *sqlx.DB, wID *uuid.UUID) ([]AreaGroup, error) {
 }
 
 // ListAreaGroupAreas lists all areas for a given area group
-func ListAreaGroupAreas(db *sqlx.DB, agID *uuid.UUID) ([]Area, error) {
+func ListAreaGroupAreas(db *pgxpool.Pool, agID *uuid.UUID) ([]Area, error) {
 	aa := make([]Area, 0)
-	if err := db.Select(
-		&aa, `SELECT id, area_group_id, slug, name FROM area WHERE area_group_id=$1`, agID,
+	if err := pgxscan.Select(
+		context.Background(), db, &aa,
+		`SELECT id, area_group_id, slug, name FROM area WHERE area_group_id=$1`, agID,
 	); err != nil {
 		return make([]Area, 0), err
 	}
 	return aa, nil
+}
+
+func ListAreaGroupAreasGeoJSON(db *pgxpool.Pool, agID *uuid.UUID) ([]byte, error) {
+	var j []byte
+	if err := pgxscan.Get(context.Background(), db, &j,
+		`SELECT json_build_object(
+			'type', 'FeatureCollection',
+			'features', json_agg(ST_AsGeoJSON(t.*)::json)
+		)
+		FROM (
+			SELECT id, slug, name, ST_Simplify(geometry, 1000) AS geometry
+			FROM area
+			WHERE area_group_id = $1
+		) as t(id, slug, name, geometry)`, agID,
+	); err != nil {
+		return nil, err
+	}
+	return j, nil
 }
 
 // EnableAreaGroupProductStatistics turns on statistics for an area_group; If already "ENABLED", do nothing.

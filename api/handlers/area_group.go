@@ -5,6 +5,7 @@ import (
 	"net/http"
 
 	"github.com/google/uuid"
+	"github.com/jackc/pgx/v4/pgxpool"
 	"github.com/jmoiron/sqlx"
 	"github.com/labstack/echo/v4"
 )
@@ -26,18 +27,18 @@ func ListWatershedAreaGroups(db *sqlx.DB) echo.HandlerFunc {
 }
 
 // ListAreaGroupAreas returns all areas for an area group
-func ListAreaGroupAreas(db *sqlx.DB) echo.HandlerFunc {
+func ListAreaGroupAreas(db *pgxpool.Pool) echo.HandlerFunc {
 	return func(c echo.Context) error {
 		// Get Area Group ID
 		areaGroupID, err := uuid.Parse(c.Param("area_group_id"))
 		if err != nil {
 			return c.String(http.StatusBadRequest, err.Error())
 		}
-		aa, err := models.ListAreaGroupAreas(db, &areaGroupID)
+		aa, err := models.ListAreaGroupAreasGeoJSON(db, &areaGroupID)
 		if err != nil {
 			return c.String(http.StatusInternalServerError, err.Error())
 		}
-		return c.JSON(http.StatusOK, &aa)
+		return c.JSONBlob(http.StatusOK, aa)
 	}
 }
 

@@ -24,13 +24,10 @@ vendor
 **.DS_Store
 
 database/packager_files/**
-airflow/logs/**
 
 **.pyc
 
 **/__debug*
-
-airflow/logs/**
 
 !tmp/README.md
 tmp/*

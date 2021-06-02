@@ -7,6 +7,12 @@ CREATE ROLE cumulus_reader;
 CREATE ROLE cumulus_writer;
 CREATE ROLE postgis_reader;
 
+-- Set Search Path
+ALTER ROLE cumulus_user SET search_path TO cumulus,topology,public;
+
+-- Grant Schema Usage to cumulus_user
+GRANT USAGE ON SCHEMA cumulus TO cumulus_user;
+
 --------------------------------------------------------------------------
 -- NOTE: IF USERS ALREADY EXIST ON DATABASE, JUST RUN FROM THIS POINT DOWN
 --------------------------------------------------------------------------
@@ -25,21 +31,24 @@ GRANT SELECT ON
     unit,
     product,
     productfile,
-    product_group,
+    product_tags,
+    tag,
     acquirable,
-    acquisition,
-    acquirable_acquisition,
     acquirablefile,
     download_status,
     download,
     download_product,
     watershed,
-    profile_watersheds,
+    my_watersheds,
+    watershed_roles,
     v_acquirablefile,
-    v_productfile,
     v_download,
     v_area_5070,
-    v_watershed
+    v_product,
+    v_productfile,
+    v_watershed,
+    v_watershed_roles,
+    v_profile
 TO cumulus_reader;
 
 -- Role cumulus_writer
@@ -56,16 +65,16 @@ GRANT INSERT,UPDATE,DELETE ON
     unit,
     product,
     productfile,
-    product_group,
+    tag,
+    product_tags,
     acquirable,
-    acquisition,
-    acquirable_acquisition,
     acquirablefile,
     download_status,
     download,
     download_product,
     watershed,
-    profile_watersheds
+    watershed_roles,
+    my_watersheds
 TO cumulus_writer;
 
 -- Role postgis_reader

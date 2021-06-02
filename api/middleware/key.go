@@ -28,6 +28,7 @@ func KeyAuth(isDisabled bool, appKey string, h HashExtractor) echo.MiddlewareFun
 				// If Key is Master ApplicationKey; Grant Access
 				////////////////////////////////////////////////
 				if key == appKey {
+					c.Set("ApplicationKeyAuthSuccess", true)
 					return true, nil
 				}
 				// Check Key against stored hash in the database
@@ -49,6 +50,8 @@ func KeyAuth(isDisabled bool, appKey string, h HashExtractor) echo.MiddlewareFun
 				}
 				// Compare provided key with key hash; Allow access if match
 				if match {
+					c.Set("KeyAuthSuccess", true)
+					c.Set("KeyAuthKeyID", keyID)
 					return true, nil
 				}
 				// Deny Access otherwise

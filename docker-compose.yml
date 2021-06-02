@@ -2,7 +2,7 @@ version: "3"
 
 services:
   cumulusdb:
-    image: mdillon/postgis
+    image: postgis/postgis
     volumes:
         - ./database/sql:/sql
         - ./database/sql/init.sql:/docker-entrypoint-initdb.d/z_init.sql
@@ -25,8 +25,8 @@ services:
       - AWS_ACCESS_KEY_ID=x
       - AWS_SECRET_ACCESS_KEY=x
       - AWS_REGION=us-east-1
-      - CUMULUS_DBUSER=postgres
-      - CUMULUS_DBPASS=postgres
+      - CUMULUS_DBUSER=cumulus_user
+      - CUMULUS_DBPASS=password
       - CUMULUS_DBNAME=postgres
       - CUMULUS_DBHOST=cumulusdb
       - CUMULUS_DBSSLMODE=disable
@@ -50,8 +50,8 @@ services:
       - AWS_SECRET_ACCESS_KEY_SQS=x
       - AWS_REGION_SQS=elasticmq
       - CUMULUS_MOCK_S3_UPLOAD=FALSE
-      - CUMULUS_DBUSER=postgres
-      - CUMULUS_DBPASS=postgres
+      - CUMULUS_DBUSER=cumulus_user
+      - CUMULUS_DBPASS=password
       - CUMULUS_DBNAME=postgres
       - CUMULUS_DBHOST=cumulusdb
       - QUEUE_NAME=cumulus-geoprocess
@@ -78,8 +78,8 @@ services:
       - QUEUE_NAME_PACKAGER=cumulus-packager
       - QUEUE_NAME_PACKAGER_UPDATE=cumulus-packager-update
       - CUMULUS_API_URL=http://api:80
-      - CUMULUS_DBUSER=postgres
-      - CUMULUS_DBPASS=postgres
+      - CUMULUS_DBUSER=cumulus_user
+      - CUMULUS_DBPASS=password
       - CUMULUS_DBNAME=postgres
       - CUMULUS_DBHOST=cumulusdb
       - CUMULUS_DBSSLMODE=disable
@@ -101,8 +101,8 @@ services:
       - CUMULUS_MOCK_S3_UPLOAD=TRUE
       - QUEUE_NAME_STATISTICS=cumulus-statistics
       - CUMULUS_API_URL=http://api:80
-      - CUMULUS_DBUSER=postgres
-      - CUMULUS_DBPASS=postgres
+      - CUMULUS_DBUSER=cumulus_user
+      - CUMULUS_DBPASS=password
       - CUMULUS_DBNAME=postgres
       - CUMULUS_DBHOST=cumulusdb
       - CUMULUS_DBSSLMODE=disable

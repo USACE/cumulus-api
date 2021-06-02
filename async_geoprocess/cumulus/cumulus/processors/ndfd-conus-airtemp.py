@@ -58,8 +58,6 @@ def process(infile, outdir):
     all_bands: List = fileinfo["bands"]
     
     # Build a list of dictionaries then run through that to translate the grid
-    # The first band will have a tdelt of 'None' and assumed to be equal
-    # to the next band's computed interval.
     all_bands_list = list()
     for bandx in all_bands:
         tdelta1 = tdelta2
@@ -85,16 +83,15 @@ def process(infile, outdir):
              "tdelta": tdelta})
 
     # Create a dictionary of time deltas and equivalent filetype
-    f_type_dict = {3600: "ndfd-conus-temp-01h",
-                   10800: "ndfd-conus-temp-03h",
-                   21600: "ndfd-conus-temp-06h"}
+    f_type_dict = {3600: "ndfd-conus-airtemp-01h",
+                   10800: "ndfd-conus-airtemp-03h",
+                   21600: "ndfd-conus-airtemp-06h"}
+
+    # First 36 hours are the same time delta for hourly and all the same for 6-hourly
+    all_bands_list[0]["tdelta"] = all_bands_list[1]["tdelta"]
 
     # Create the tif files based on the list of dictionaries from above
     for i, band_list in enumerate(all_bands_list):
-        if i == 0 and len(all_bands_list) > 1:
-            if all_bands_list[0]["tdelta"] != all_bands_list[1]["tdelta"]:
-                band_list["tdelta"] = all_bands_list[1]["tdelta"]
-
         try:
             f_type = f_type_dict[band_list["tdelta"]]
             valid_time = band_list["valid_time"]

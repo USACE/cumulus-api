@@ -1,0 +1,1824 @@
+{
+	"info": {
+		"_postman_id": "ab3085d9-b538-4208-8e24-8118b2f8911d",
+		"name": "cumulus-regression-admin",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+	},
+	"item": [
+		{
+			"name": "profile",
+			"item": [
+				{
+					"name": "GetMyProfile",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"id": "1125b8fd-da78-4779-ba28-ad660d9afdf5",
+								"exec": [
+									"// validate JSON schema",
+									"var schema = {",
+									"    \"type\": \"object\",",
+									"    \"properties\": {",
+									"        \"id\": { \"type\": \"string\" },",
+									"        \"username\": { \"type\": \"string\" },",
+									"        \"email\": { \"type\": \"string\" },",
+									"        \"is_admin\": { \"type\": \"boolean\"},",
+									"        \"tokens\": {\"type\": \"array\"},",
+									"        \"roles\": {\"type\": \"array\"}",
+									"    },",
+									"    \"required\": [\"id\", \"username\", \"email\", \"is_admin\", \"tokens\", \"roles\"],",
+									"    \"additionalProperties\": false",
+									"}",
+									"",
+									"// validate schema",
+									"pm.test(\"Schema validation\", function () {",
+									"    pm.response.to.have.jsonSchema(schema)",
+									"});",
+									"",
+									"// status code is 200",
+									"pm.test(\"Status code is 200\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									""
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/my_profile",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"my_profile"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "CreateToken",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"// validate JSON schema",
+									"var schema = {",
+									"    \"type\": \"object\",",
+									"    \"properties\": {",
+									"        \"secret_token\": { \"type\": \"string\" },",
+									"        \"token_id\": { \"type\": \"string\" },",
+									"        \"profile_id\": { \"type\": \"string\" },",
+									"        \"issued\": { \"type\": \"string\"}",
+									"    },",
+									"    \"required\": [\"secret_token\", \"token_id\", \"profile_id\", \"issued\"],",
+									"    \"additionalProperties\": false",
+									"}",
+									"",
+									"pm.globals.set('TOKEN_OBJECT', JSON.stringify(schema));",
+									"",
+									"// status code is 201",
+									"pm.test(\"Status code is 201\", function () {",
+									"    pm.response.to.have.status(201);",
+									"});",
+									"",
+									"// validate schema",
+									"pm.test(\"Schema validation\", function () {",
+									"    pm.response.to.have.jsonSchema(schema)",
+									"});"
+								],
+								"type": "text/javascript",
+								"id": "758bf8ed-7e29-4f98-abdc-aefed718264f"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/my_tokens",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"my_tokens"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "DeleteToken",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"// status code is 200;",
+									"// NOTE: This test will always pass when run in automated tests because attempting to delete a token that",
+									"// does not exist will always return a RESTful 200 (i.e. 'It's gone'). This test is left in place for manual testing as needed.",
+									"// This is done using the CreateToken test, getting the token_id from the payload, manually deleting the token using this test,",
+									"// and verifying that the token has been deleted by fetching /my_profile and examining the return payload",
+									"pm.test(\"Status code is 200\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});"
+								],
+								"type": "text/javascript",
+								"id": "13e424a8-56ed-4216-a05c-18265079a213"
+							}
+						}
+					],
+					"request": {
+						"method": "DELETE",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/my_tokens/65GkUyQ4yyG9jeJVB8N3ebtcunYAnXKCJAtXB1ZtLz4FUVr7LLtKBFx",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"my_tokens",
+								"65GkUyQ4yyG9jeJVB8N3ebtcunYAnXKCJAtXB1ZtLz4FUVr7LLtKBFx"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "GrantApplicationAdmin",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/profiles/f320df83-e2ea-4fe9-969a-4e0239b8da51/admin",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"profiles",
+								"f320df83-e2ea-4fe9-969a-4e0239b8da51",
+								"admin"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "RevokeApplicationAdmin",
+					"request": {
+						"method": "DELETE",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/profiles/f320df83-e2ea-4fe9-969a-4e0239b8da51/admin",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"profiles",
+								"f320df83-e2ea-4fe9-969a-4e0239b8da51",
+								"admin"
+							]
+						}
+					},
+					"response": []
+				}
+			],
+			"protocolProfileBehavior": {}
+		},
+		{
+			"name": "tags",
+			"item": [
+				{
+					"name": "GetTag",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"id": "a38ba4e5-e4ab-48f1-8ccb-f293e466ce6a",
+								"exec": [
+									"// validate JSON schema",
+									"var schema = {",
+									"    \"type\": \"object\",",
+									"    \"properties\": {",
+									"        \"id\": { \"type\": \"string\" },",
+									"        \"name\": { \"type\": \"string\" },",
+									"        \"description\": { \"type\": \"string\" },",
+									"        \"color\": { \"type\": \"string\" }",
+									"    },",
+									"    \"required\": [\"id\", \"name\", \"description\", \"color\"],",
+									"    \"additionalProperties\": false",
+									"}",
+									"",
+									"pm.globals.set('TAG_OBJECT', JSON.stringify(schema));",
+									"",
+									"// status code is 200",
+									"pm.test(\"Status code is 200\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"// validate schema",
+									"pm.test(\"Schema validation\", function () {",
+									"    pm.response.to.have.jsonSchema(schema)",
+									"});",
+									""
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/tags/2d64c718-e7af-41c0-be53-035af341c464",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"tags",
+								"2d64c718-e7af-41c0-be53-035af341c464"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "ListTags",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"// schema validator",
+									"var schema = {",
+									"    \"type\": \"array\",",
+									"    \"items\": JSON.parse(pm.globals.get('TAG_OBJECT'))",
+									"}",
+									"",
+									"pm.globals.set('TAG_ARRAY', JSON.stringify(schema));",
+									"",
+									"// status code is 200",
+									"pm.test(\"Status code is 200\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"// schema validation",
+									"pm.test(\"Schema validation\", function () {",
+									"    pm.response.to.have.jsonSchema(schema)",
+									"});",
+									""
+								],
+								"type": "text/javascript",
+								"id": "efa3b918-7b07-455f-8f6a-13e212eb4c9c"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/tags",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"tags"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "UpdateTag",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"id": "0c626b60-5345-4799-b83e-007c647447e5",
+								"exec": [
+									"// status code is 200",
+									"pm.test(\"Status code is 200\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"",
+									"// schema validation",
+									"pm.test(\"Schema validation\", function () {",
+									"    pm.response.to.have.jsonSchema(",
+									"        JSON.parse(pm.globals.get('TAG_OBJECT'))",
+									"    )",
+									"});",
+									""
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "PUT",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"id\": \"2d64c718-e7af-41c0-be53-035af341c464\",\n    \"name\": \"New Tag Name\",\n    \"description\": \"Products represent a forecast updated description\",\n    \"color\": \"2ca25f\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{base_url}}/tags/2d64c718-e7af-41c0-be53-035af341c464",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"tags",
+								"2d64c718-e7af-41c0-be53-035af341c464"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "CreateTag",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"// status code is 201",
+									"pm.test(\"Status code is 201\", function () {",
+									"    pm.response.to.have.status(201);",
+									"});",
+									"",
+									"// schema validation",
+									"pm.test(\"Schema validation\", function () {",
+									"    pm.response.to.have.jsonSchema(",
+									"        JSON.parse(pm.globals.get('TAG_OBJECT'))",
+									"    )",
+									"});",
+									""
+								],
+								"type": "text/javascript",
+								"id": "f825bd2e-6f74-4b90-9712-32d83d48e730"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "    {\n        \"name\": \"Preferred\",\n        \"description\": \"Preferred Product for a Given Parameter\",\n        \"color\": \"A7F3D0\"\n    }",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{base_url}}/tags",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"tags"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "DeleteTag",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"id": "03e5ac51-71fc-489a-8e1b-c44f3d33dbb2",
+								"exec": [
+									"// status code is 200",
+									"pm.test(\"Status code is 200\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "DELETE",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"id\": \"757c809c-dda0-412b-9831-cb9bd0f62d1d\",\n    \"slug\": \"nohrsc-snodas-swe\",\n    \"tags\": [\n        \"57bda84f-ecec-4cd7-b3b1-c0c36f838a05\"\n    ],\n    \"name\": \"New Name for NOHRSC SNODAS SWE\",\n    \"temporal_resolution\": 86400,\n    \"temporal_duration\": 0,\n    \"dss_fpart\": \"SNODAS\",\n    \"parameter_id\": \"683a55b9-4a94-46b5-9f47-26e66f3037a8\",\n    \"parameter\": \"SWE\",\n    \"unit_id\": \"e245d39f-3209-4e58-bfb7-4eae94b3f8dd\",\n    \"unit\": \"MM\",\n    \"description\": \"New Description for NOHRSC SNODAS SWE\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{base_url}}/tags/2d64c718-e7af-41c0-be53-035af341c464",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"tags",
+								"2d64c718-e7af-41c0-be53-035af341c464"
+							]
+						}
+					},
+					"response": []
+				}
+			],
+			"protocolProfileBehavior": {}
+		},
+		{
+			"name": "acquirables",
+			"item": [
+				{
+					"name": "ListAcquirables",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"// status code is 200",
+									"pm.test(\"Status code is 200\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});"
+								],
+								"type": "text/javascript",
+								"id": "13508647-5c10-43ec-bb6d-a5c3fa0d56ba"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/acquirables",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"acquirables"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "CreateAcquirablefile",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"// status code is 201",
+									"pm.test(\"Status code is 201\", function () {",
+									"    pm.response.to.have.status(201);",
+									"});"
+								],
+								"type": "text/javascript",
+								"id": "5d80de34-5416-4ea8-ad3b-cf74a02b9fcd"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"datetime\": \"2014-01-01T00:00:00Z\",\n    \"file\": \"cumulus/nohrsc_snodas_unmasked/SNODAS_unmasked_20140101.tar\",\n    \"acquirable_id\": \"87819ceb-72ee-496d-87db-70eb302302dc\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{base_url}}/acquirablefiles",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"acquirablefiles"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "ListAcquirablefiles",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"// status code is 200",
+									"pm.test(\"Status code is 200\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});"
+								],
+								"type": "text/javascript",
+								"id": "3b6075d7-1313-4921-9623-48c7120578db"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/acquirables/87819ceb-72ee-496d-87db-70eb302302dc/files?after=2010-03-29&before=2030-01-01",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"acquirables",
+								"87819ceb-72ee-496d-87db-70eb302302dc",
+								"files"
+							],
+							"query": [
+								{
+									"key": "after",
+									"value": "2010-03-29"
+								},
+								{
+									"key": "before",
+									"value": "2030-01-01"
+								}
+							]
+						}
+					},
+					"response": []
+				}
+			],
+			"event": [
+				{
+					"listen": "prerequest",
+					"script": {
+						"type": "text/javascript",
+						"exec": [
+							""
+						],
+						"id": "4601fbbf-427b-40a9-a9f8-b125f587334f"
+					}
+				},
+				{
+					"listen": "test",
+					"script": {
+						"type": "text/javascript",
+						"exec": [
+							""
+						],
+						"id": "d0fbc512-8731-48c6-af4e-3cca9acd1485"
+					}
+				}
+			],
+			"protocolProfileBehavior": {}
+		},
+		{
+			"name": "products",
+			"item": [
+				{
+					"name": "GetProduct",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"id": "b9afd723-e96a-43c6-b0d1-51d19fe12894",
+								"exec": [
+									"// validate JSON schema",
+									"var schema = {",
+									"    \"type\": \"object\",",
+									"    \"properties\": {",
+									"        \"id\": { \"type\": \"string\" },",
+									"        \"slug\": { \"type\": \"string\" },",
+									"        \"tags\": {",
+									"            \"type\": \"array\",",
+									"            \"items\": { \"type\": \"string\" },",
+									"        },",
+									"        \"name\": { \"type\": \"string\" },",
+									"        \"temporal_resolution\": { \"type\": \"number\" },",
+									"        \"temporal_duration\": { \"type\": \"number\" },",
+									"        \"dss_fpart\": { \"type\": \"string\" },",
+									"        \"parameter_id\": { \"type\": \"string\" },",
+									"        \"parameter\": { \"type\": \"string\" },",
+									"        \"unit_id\": { \"type\": \"string\" },",
+									"        \"unit\": { \"type\": \"string\" },",
+									"        \"description\": { \"type\": \"string\" },",
+									"        \"after\": {\"type\": [\"null\", \"string\"]},",
+									"        \"before\": {\"type\": [\"null\", \"string\"]},",
+									"        \"productfile_count\": {\"type\": \"number\"}",
+									"    },",
+									"    \"required\": [\"id\", \"slug\", \"tags\", \"name\", \"temporal_resolution\", \"temporal_duration\", \"dss_fpart\",",
+									"                 \"parameter_id\", \"parameter\", \"unit_id\", \"unit\", \"description\", \"after\", \"before\", \"productfile_count\"",
+									"    ],",
+									"    \"additionalProperties\": false",
+									"}",
+									"",
+									"pm.globals.set('PRODUCT_OBJECT', JSON.stringify(schema));",
+									"",
+									"// status code is 200",
+									"pm.test(\"Status code is 200\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"// validate schema",
+									"pm.test(\"Schema validation\", function () {",
+									"    pm.response.to.have.jsonSchema(schema)",
+									"});",
+									""
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/products/757c809c-dda0-412b-9831-cb9bd0f62d1d",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"products",
+								"757c809c-dda0-412b-9831-cb9bd0f62d1d"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "ListProducts",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"// schema validator",
+									"var schema = {",
+									"    \"type\": \"array\",",
+									"    \"items\": JSON.parse(pm.globals.get('PRODUCT_OBJECT'))",
+									"}",
+									"",
+									"pm.globals.set('PRODUCT_ARRAY', JSON.stringify(schema));",
+									"",
+									"// status code is 200",
+									"pm.test(\"Status code is 200\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"// schema validation",
+									"pm.test(\"Schema validation\", function () {",
+									"    pm.response.to.have.jsonSchema(schema)",
+									"});",
+									""
+								],
+								"type": "text/javascript",
+								"id": "52d68ffd-264f-4733-b6d0-df790f0af62f"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/products",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"products"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "ListProductFiles",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"// schema validator",
+									"var schema = {",
+									"    \"type\": \"array\",",
+									"    \"items\": { ",
+									"        \"type\": \"object\",",
+									"        \"properties\": {",
+									"            \"id\": { \"type\": \"string\"},",
+									"            \"datetime\": { \"type\": \"string\"},",
+									"            \"file\": { \"type\": \"string\"}",
+									"        },",
+									"        \"required\": [\"id\", \"datetime\", \"file\"],",
+									"        \"additionalProperties\": false",
+									"    }",
+									"}",
+									"",
+									"pm.globals.set('PRODUCTFILE_ARRAY', JSON.stringify(schema));",
+									"",
+									"// status code is 200",
+									"pm.test(\"Status code is 200\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"// schema validation",
+									"pm.test(\"Schema validation\", function () {",
+									"    pm.response.to.have.jsonSchema(schema)",
+									"});",
+									""
+								],
+								"type": "text/javascript",
+								"id": "41a5053f-2e9e-4c52-be75-7bfef420fe9a"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/products/757c809c-dda0-412b-9831-cb9bd0f62d1d/files?after=2020-01-01&before=2020-02-01",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"products",
+								"757c809c-dda0-412b-9831-cb9bd0f62d1d",
+								"files"
+							],
+							"query": [
+								{
+									"key": "after",
+									"value": "2020-01-01"
+								},
+								{
+									"key": "before",
+									"value": "2020-02-01"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "ListProductAvailability",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"// schema validator",
+									"var schema = {",
+									"    \"type\": \"object\",",
+									"    \"properties\": {",
+									"        \"product_id\":  { \"type\": \"string\"},",
+									"        \"date_counts\": { ",
+									"            \"type\": \"array\",",
+									"            \"items\": {",
+									"                \"type\": \"object\",",
+									"                \"properties\": {",
+									"                    \"date\": {\"type\": \"string\" },",
+									"                    \"count\": {\"type\": \"number\"}",
+									"                },",
+									"                \"required\": [\"date\", \"count\"],",
+									"                \"additionalProperties\": false",
+									"            }",
+									"        }",
+									"    },",
+									"    \"required\": [\"product_id\", \"date_counts\"],",
+									"    \"additionalProperties\": false",
+									"}",
+									"",
+									"// status code is 200",
+									"pm.test(\"Status code is 200\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"// schema validation",
+									"pm.test(\"Schema validation\", function () {",
+									"    pm.response.to.have.jsonSchema(schema)",
+									"});",
+									""
+								],
+								"type": "text/javascript",
+								"id": "0b4faeb9-fd63-4d8c-a2ac-98589f9ef23c"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/products/757c809c-dda0-412b-9831-cb9bd0f62d1d/availability",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"products",
+								"757c809c-dda0-412b-9831-cb9bd0f62d1d",
+								"availability"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "CreateProduct",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"// status code is 201",
+									"pm.test(\"Status code is 201\", function () {",
+									"    pm.response.to.have.status(201);",
+									"});",
+									"",
+									"// schema validation",
+									"pm.test(\"Schema validation\", function () {",
+									"    pm.response.to.have.jsonSchema(",
+									"        JSON.parse(pm.globals.get('PRODUCT_OBJECT'))",
+									"    )",
+									"});",
+									""
+								],
+								"type": "text/javascript",
+								"id": "7dcf6a17-094e-496f-8a44-2b639d6a146b"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"name\": \"New Product Created by Integration Tests\",\n    \"temporal_resolution\": 200,\n    \"temporal_duration\": 0,\n    \"dss_fpart\": \"INTEGRATION TEST PRODUCT\",\n    \"parameter_id\": \"683a55b9-4a94-46b5-9f47-26e66f3037a8\",\n    \"parameter\": \"SWE\",\n    \"unit_id\": \"e245d39f-3209-4e58-bfb7-4eae94b3f8dd\",\n    \"unit\": \"MM\",\n    \"description\": \"Example Product Description\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{base_url}}/products",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"products"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "UpdateProduct",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"// status code is 200",
+									"pm.test(\"Status code is 200\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"",
+									"// schema validation",
+									"pm.test(\"Schema validation\", function () {",
+									"    pm.response.to.have.jsonSchema(",
+									"        JSON.parse(pm.globals.get('PRODUCT_OBJECT'))",
+									"    )",
+									"});",
+									""
+								],
+								"type": "text/javascript",
+								"id": "71ad0978-72f6-45cf-8422-6c7801107b89"
+							}
+						}
+					],
+					"request": {
+						"method": "PUT",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"id\": \"757c809c-dda0-412b-9831-cb9bd0f62d1d\",\n    \"slug\": \"nohrsc-snodas-swe\",\n    \"tags\": [\n        \"57bda84f-ecec-4cd7-b3b1-c0c36f838a05\"\n    ],\n    \"name\": \"New Name for NOHRSC SNODAS SWE\",\n    \"temporal_resolution\": 86400,\n    \"temporal_duration\": 0,\n    \"dss_fpart\": \"SNODAS\",\n    \"parameter_id\": \"683a55b9-4a94-46b5-9f47-26e66f3037a8\",\n    \"parameter\": \"SWE\",\n    \"unit_id\": \"e245d39f-3209-4e58-bfb7-4eae94b3f8dd\",\n    \"unit\": \"MM\",\n    \"description\": \"New Description for NOHRSC SNODAS SWE\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{base_url}}/products/757c809c-dda0-412b-9831-cb9bd0f62d1d",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"products",
+								"757c809c-dda0-412b-9831-cb9bd0f62d1d"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "TagProduct",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"id": "6a72f68e-9418-485d-affb-11628ef9bab9",
+								"exec": [
+									"// status code is 200",
+									"pm.test(\"Status code is 200\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"",
+									"// schema validation",
+									"pm.test(\"Schema validation\", function () {",
+									"    pm.response.to.have.jsonSchema(",
+									"        JSON.parse(pm.globals.get('PRODUCT_OBJECT'))",
+									"    )",
+									"});",
+									""
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"name\": \"New Product Created by Integration Tests\",\n    \"temporal_resolution\": 200,\n    \"temporal_duration\": 0,\n    \"dss_fpart\": \"INTEGRATION TEST PRODUCT\",\n    \"parameter_id\": \"683a55b9-4a94-46b5-9f47-26e66f3037a8\",\n    \"parameter\": \"SWE\",\n    \"unit_id\": \"e245d39f-3209-4e58-bfb7-4eae94b3f8dd\",\n    \"unit\": \"MM\",\n    \"description\": \"Example Product Description\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{base_url}}/products/757c809c-dda0-412b-9831-cb9bd0f62d1d/tags/cc93b3f9-fbe1-4b35-8f9c-2d1515961c6a",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"products",
+								"757c809c-dda0-412b-9831-cb9bd0f62d1d",
+								"tags",
+								"cc93b3f9-fbe1-4b35-8f9c-2d1515961c6a"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "UntagProduct",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"id": "228c43e5-8a84-43a7-a717-18ca2c6222dc",
+								"exec": [
+									"// status code is 200",
+									"pm.test(\"Status code is 200\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"",
+									"// schema validation",
+									"pm.test(\"Schema validation\", function () {",
+									"    pm.response.to.have.jsonSchema(",
+									"        JSON.parse(pm.globals.get('PRODUCT_OBJECT'))",
+									"    )",
+									"});",
+									""
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "DELETE",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"name\": \"New Product Created by Integration Tests\",\n    \"temporal_resolution\": 200,\n    \"temporal_duration\": 0,\n    \"dss_fpart\": \"INTEGRATION TEST PRODUCT\",\n    \"parameter_id\": \"683a55b9-4a94-46b5-9f47-26e66f3037a8\",\n    \"parameter\": \"SWE\",\n    \"unit_id\": \"e245d39f-3209-4e58-bfb7-4eae94b3f8dd\",\n    \"unit\": \"MM\",\n    \"description\": \"Example Product Description\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{base_url}}/products/757c809c-dda0-412b-9831-cb9bd0f62d1d/tags/cc93b3f9-fbe1-4b35-8f9c-2d1515961c6a",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"products",
+								"757c809c-dda0-412b-9831-cb9bd0f62d1d",
+								"tags",
+								"cc93b3f9-fbe1-4b35-8f9c-2d1515961c6a"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "DeleteProduct",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"// status code is 200",
+									"pm.test(\"Status code is 200\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});"
+								],
+								"type": "text/javascript",
+								"id": "51e791f3-2f20-4f20-8831-4e640510e332"
+							}
+						}
+					],
+					"request": {
+						"method": "DELETE",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"id\": \"757c809c-dda0-412b-9831-cb9bd0f62d1d\",\n    \"slug\": \"nohrsc-snodas-swe\",\n    \"tags\": [\n        \"57bda84f-ecec-4cd7-b3b1-c0c36f838a05\"\n    ],\n    \"name\": \"New Name for NOHRSC SNODAS SWE\",\n    \"temporal_resolution\": 86400,\n    \"temporal_duration\": 0,\n    \"dss_fpart\": \"SNODAS\",\n    \"parameter_id\": \"683a55b9-4a94-46b5-9f47-26e66f3037a8\",\n    \"parameter\": \"SWE\",\n    \"unit_id\": \"e245d39f-3209-4e58-bfb7-4eae94b3f8dd\",\n    \"unit\": \"MM\",\n    \"description\": \"New Description for NOHRSC SNODAS SWE\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{base_url}}/products/757c809c-dda0-412b-9831-cb9bd0f62d1d",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"products",
+								"757c809c-dda0-412b-9831-cb9bd0f62d1d"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "UndeleteProduct",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"// status code is 200",
+									"pm.test(\"Status code is 200\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"",
+									"// schema validation",
+									"pm.test(\"Schema validation\", function () {",
+									"    pm.response.to.have.jsonSchema(",
+									"        JSON.parse(pm.globals.get('PRODUCT_OBJECT'))",
+									"    )",
+									"});",
+									""
+								],
+								"type": "text/javascript",
+								"id": "5e30d92b-98fd-4d65-a8cd-2fd804288da8"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"id\": \"757c809c-dda0-412b-9831-cb9bd0f62d1d\",\n    \"slug\": \"nohrsc-snodas-swe\",\n    \"tags\": [\n        \"57bda84f-ecec-4cd7-b3b1-c0c36f838a05\"\n    ],\n    \"name\": \"New Name for NOHRSC SNODAS SWE\",\n    \"temporal_resolution\": 86400,\n    \"temporal_duration\": 0,\n    \"dss_fpart\": \"SNODAS\",\n    \"parameter_id\": \"683a55b9-4a94-46b5-9f47-26e66f3037a8\",\n    \"parameter\": \"SWE\",\n    \"unit_id\": \"e245d39f-3209-4e58-bfb7-4eae94b3f8dd\",\n    \"unit\": \"MM\",\n    \"description\": \"New Description for NOHRSC SNODAS SWE\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{base_url}}/products/757c809c-dda0-412b-9831-cb9bd0f62d1d/undelete",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"products",
+								"757c809c-dda0-412b-9831-cb9bd0f62d1d",
+								"undelete"
+							]
+						}
+					},
+					"response": []
+				}
+			],
+			"protocolProfileBehavior": {}
+		},
+		{
+			"name": "downloads",
+			"item": [
+				{
+					"name": "ListDownloads",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"id": "f0e57628-78f6-43b4-b053-4dc2e1b0d0f9",
+								"exec": [
+									"// status code is 201",
+									"pm.test(\"Status code is 200\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"protocolProfileBehavior": {
+						"disableBodyPruning": true
+					},
+					"request": {
+						"method": "GET",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n\t\"datetime_start\": \"2020-12-01T01:00:00Z\",\n\t\"datetime_end\": \"2020-12-10T01:00:00Z\",\n\t\"watershed_id\": \"3e8db268-d9ca-47ec-ae93-21a3c2bcf0a1\",\n\t\"product_id\": [\n        \"30a6d443-80a5-49cc-beb0-5d3a18a84caa\"\n\t]\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{base_url}}/downloads",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"downloads"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "CreateDownload",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"// status code is 201",
+									"pm.test(\"Status code is 201\", function () {",
+									"    pm.response.to.have.status(201);",
+									"});"
+								],
+								"type": "text/javascript",
+								"id": "412919ea-9621-4c8c-90b0-9bb020df26f9"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n\t\"datetime_start\": \"2020-12-01T01:00:00Z\",\n\t\"datetime_end\": \"2020-12-10T01:00:00Z\",\n\t\"watershed_id\": \"3e8db268-d9ca-47ec-ae93-21a3c2bcf0a1\",\n\t\"product_id\": [\n        \"30a6d443-80a5-49cc-beb0-5d3a18a84caa\"\n\t]\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{base_url}}/downloads",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"downloads"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "CreateDownloadAirtemp",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"// status code is 201",
+									"pm.test(\"Status code is 201\", function () {",
+									"    pm.response.to.have.status(201);",
+									"});"
+								],
+								"type": "text/javascript",
+								"id": "c3d89862-0a5b-46b9-aa8f-ed2b3e9c3fa5"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n\t\"datetime_start\": \"2020-11-18T06:00:00Z\",\n\t\"datetime_end\": \"2020-12-02T06:00:00Z\",\n\t\"watershed_id\": \"f019ffec-e9d3-48e6-ab74-eaa8fd8065e0\",\n\t\"product_id\": [\n\t\t\"e4fdadc7-5532-4910-9ed7-3c3690305d86\"\n\t]\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{base_url}}/downloads",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"downloads"
+							]
+						}
+					},
+					"response": []
+				}
+			],
+			"protocolProfileBehavior": {}
+		},
+		{
+			"name": "watersheds",
+			"item": [
+				{
+					"name": "ListWatersheds",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"// status code is 200",
+									"pm.test(\"Status code is 200\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});"
+								],
+								"type": "text/javascript",
+								"id": "04fa0fe1-7ab1-426b-9263-705131aa47a9"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/watersheds",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"watersheds"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "GetWatershed",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"// status code is 200",
+									"pm.test(\"Status code is 200\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});"
+								],
+								"type": "text/javascript",
+								"id": "610d8826-8c9e-4054-973d-3bc0c19ff04e"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/watersheds/c785f4de-ab17-444b-b6e6-6f1ad16676e8",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"watersheds",
+								"c785f4de-ab17-444b-b6e6-6f1ad16676e8"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "CreateWatershed",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"// status code is 201",
+									"pm.test(\"Status code is 201\", function () {",
+									"    pm.response.to.have.status(201);",
+									"});"
+								],
+								"type": "text/javascript",
+								"id": "26619deb-575d-4d24-b3de-9641a0840b93"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\"name\": \"Test Watershed\"}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{base_url}}/watersheds",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"watersheds"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "UpdateWatershed",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"// status code is 200",
+									"pm.test(\"Status code is 201\", function () {",
+									"    pm.response.to.have.status(201);",
+									"});"
+								],
+								"type": "text/javascript",
+								"id": "cbecd57e-41b8-4558-861b-b0b3db01bbb2"
+							}
+						}
+					],
+					"request": {
+						"method": "PUT",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"id\": \"c785f4de-ab17-444b-b6e6-6f1ad16676e8\",\n    \"slug\": \"cumberland-basin-river\",\n    \"name\": \"Cumberland River Basin Updated Name\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{base_url}}/watersheds/c785f4de-ab17-444b-b6e6-6f1ad16676e8",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"watersheds",
+								"c785f4de-ab17-444b-b6e6-6f1ad16676e8"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "DeleteWatershed",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"// status code is 200",
+									"pm.test(\"Status code is 200\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});"
+								],
+								"type": "text/javascript",
+								"id": "a4e4d4eb-7547-4da5-a46b-6cce7af5ac71"
+							}
+						}
+					],
+					"request": {
+						"method": "DELETE",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"id\": \"c785f4de-ab17-444b-b6e6-6f1ad16676e8\",\n    \"slug\": \"cumberland-basin-river\",\n    \"name\": \"Cumberland River Basin\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{base_url}}/watersheds/c785f4de-ab17-444b-b6e6-6f1ad16676e8",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"watersheds",
+								"c785f4de-ab17-444b-b6e6-6f1ad16676e8"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "UndeleteWatershed",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"// status code is 200",
+									"pm.test(\"Status code is 200\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});"
+								],
+								"type": "text/javascript",
+								"id": "54bde103-1fe7-4afd-a5b6-ef5f14b0e1f1"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"id\": \"c785f4de-ab17-444b-b6e6-6f1ad16676e8\",\n    \"slug\": \"cumberland-basin-river\",\n    \"name\": \"Cumberland River Basin\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{base_url}}/watersheds/c785f4de-ab17-444b-b6e6-6f1ad16676e8/undelete",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"watersheds",
+								"c785f4de-ab17-444b-b6e6-6f1ad16676e8",
+								"undelete"
+							]
+						}
+					},
+					"response": []
+				}
+			],
+			"protocolProfileBehavior": {}
+		},
+		{
+			"name": "watershed roles",
+			"item": [
+				{
+					"name": "ListWatershedRoles",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"// validate JSON schema",
+									"var obj_schema = {",
+									"    \"type\": \"object\",",
+									"    \"properties\": {",
+									"        \"id\": { \"type\": \"string\" },",
+									"        \"profile_id\": { \"type\": \"string\" },",
+									"        \"username\": { \"type\": [\"string\"] },",
+									"        \"email\": { \"type\": [\"string\"] },",
+									"        \"role_id\": { \"type\": [\"string\"] },",
+									"        \"role\": { \"type\": [\"string\"] }",
+									"    },",
+									"    \"required\": [\"id\", \"profile_id\", \"username\", \"email\", \"role_id\", \"role\"],",
+									"    \"additionalProperties\": false",
+									"}",
+									"",
+									"// schema validator",
+									"var array_schema = {",
+									"    \"type\": \"array\",",
+									"    \"items\": obj_schema",
+									"}",
+									"",
+									"pm.globals.set('PROJECT_MEMBERSHIP_OBJECT_SCHEMA', JSON.stringify(obj_schema));",
+									"pm.globals.set('PROJECT_MEMBERSHIP_ARRAY_SCHEMA', JSON.stringify(array_schema));",
+									"",
+									"// status code is 200",
+									"pm.test(\"Status code is 200\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"// validate schema",
+									"pm.test(\"Schema validation\", function () {",
+									"    pm.response.to.have.jsonSchema(array_schema)",
+									"});",
+									""
+								],
+								"type": "text/javascript",
+								"id": "bf9e99b7-d844-41ef-9ef5-de634fb29430"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/watersheds/c785f4de-ab17-444b-b6e6-6f1ad16676e8/members",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"watersheds",
+								"c785f4de-ab17-444b-b6e6-6f1ad16676e8",
+								"members"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "AddWatershedRole",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"",
+									"pm.test(\"Status code is 200\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"",
+									"// schema validation",
+									"pm.test(\"Schema validation\", function () {",
+									"    pm.response.to.have.jsonSchema(JSON.parse(pm.globals.get(\"PROJECT_MEMBERSHIP_OBJECT_SCHEMA\")))",
+									"});"
+								],
+								"type": "text/javascript",
+								"id": "26b9769e-8d50-4fdb-8b1b-2507a53e1691"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/watersheds/c785f4de-ab17-444b-b6e6-6f1ad16676e8/members/57329df6-9f7a-4dad-9383-4633b452efab/roles/37f14863-8f3b-44ca-8deb-4b74ce8a8a69",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"watersheds",
+								"c785f4de-ab17-444b-b6e6-6f1ad16676e8",
+								"members",
+								"57329df6-9f7a-4dad-9383-4633b452efab",
+								"roles",
+								"37f14863-8f3b-44ca-8deb-4b74ce8a8a69"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "RemoveWatershedRole",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 200\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});"
+								],
+								"type": "text/javascript",
+								"id": "79849626-2f04-465b-b2da-35096d37ce3b"
+							}
+						}
+					],
+					"request": {
+						"method": "DELETE",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/watersheds/c785f4de-ab17-444b-b6e6-6f1ad16676e8/members/57329df6-9f7a-4dad-9383-4633b452efab/roles/37f14863-8f3b-44ca-8deb-4b74ce8a8a69",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"watersheds",
+								"c785f4de-ab17-444b-b6e6-6f1ad16676e8",
+								"members",
+								"57329df6-9f7a-4dad-9383-4633b452efab",
+								"roles",
+								"37f14863-8f3b-44ca-8deb-4b74ce8a8a69"
+							]
+						}
+					},
+					"response": []
+				}
+			],
+			"protocolProfileBehavior": {}
+		},
+		{
+			"name": "area_group",
+			"item": [
+				{
+					"name": "EnableAreaGroupProductStatistics",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"id": "134817ce-9f51-47d0-b5ba-303d5c99e1aa",
+								"exec": [
+									""
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/watersheds/ad30f178-afc3-43b9-ba92-7bd139581217/area_groups/e3fd63a1-f19f-4bf3-b436-1c7086b7afe7/products/757c809c-dda0-412b-9831-cb9bd0f62d1d/statistics/enable",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"watersheds",
+								"ad30f178-afc3-43b9-ba92-7bd139581217",
+								"area_groups",
+								"e3fd63a1-f19f-4bf3-b436-1c7086b7afe7",
+								"products",
+								"757c809c-dda0-412b-9831-cb9bd0f62d1d",
+								"statistics",
+								"enable"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "DisableAreaGroupProductStatistics",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"id": "beea90cb-b32e-42e6-97f0-70ec20c01845",
+								"exec": [
+									""
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/watersheds/ad30f178-afc3-43b9-ba92-7bd139581217/area_groups/e3fd63a1-f19f-4bf3-b436-1c7086b7afe7/products/757c809c-dda0-412b-9831-cb9bd0f62d1d/statistics/disable",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"watersheds",
+								"ad30f178-afc3-43b9-ba92-7bd139581217",
+								"area_groups",
+								"e3fd63a1-f19f-4bf3-b436-1c7086b7afe7",
+								"products",
+								"757c809c-dda0-412b-9831-cb9bd0f62d1d",
+								"statistics",
+								"disable"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "ListWatershedAreaGroups",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"id": "9907f83a-2379-4c2e-817f-78ca41694aa9",
+								"exec": [
+									""
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/watersheds/c785f4de-ab17-444b-b6e6-6f1ad16676e8/area_groups",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"watersheds",
+								"c785f4de-ab17-444b-b6e6-6f1ad16676e8",
+								"area_groups"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "ListAreaGroupAreas",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"// status code is 200",
+									"pm.test(\"Status code is 200\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});"
+								],
+								"type": "text/javascript",
+								"id": "16e10db8-1abf-4034-82e0-e01757ace5d2"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/watersheds/c785f4de-ab17-444b-b6e6-6f1ad16676e8/area_groups/e3fd63a1-f19f-4bf3-b436-1c7086b7afe7/areas",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"watersheds",
+								"c785f4de-ab17-444b-b6e6-6f1ad16676e8",
+								"area_groups",
+								"e3fd63a1-f19f-4bf3-b436-1c7086b7afe7",
+								"areas"
+							]
+						}
+					},
+					"response": []
+				}
+			],
+			"protocolProfileBehavior": {}
+		}
+	],
+	"auth": {
+		"type": "bearer",
+		"bearer": [
+			{
+				"key": "token",
+				"value": "{{jwt_existing_admin}}",
+				"type": "string"
+			}
+		]
+	},
+	"event": [
+		{
+			"listen": "prerequest",
+			"script": {
+				"id": "65251317-0064-4df8-8571-8115094ebf40",
+				"type": "text/javascript",
+				"exec": [
+					""
+				]
+			}
+		},
+		{
+			"listen": "test",
+			"script": {
+				"id": "5f079e0f-cf13-4ec5-b1c9-20c5662bd7b7",
+				"type": "text/javascript",
+				"exec": [
+					""
+				]
+			}
+		}
+	],
+	"protocolProfileBehavior": {}
+}

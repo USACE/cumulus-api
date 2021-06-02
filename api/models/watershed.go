@@ -55,9 +55,9 @@ func GetWatershed(db *pgxpool.Pool, watershedID *uuid.UUID) (*Watershed, error) 
 func GetDownloadWatershed(db *pgxpool.Pool, downloadID *uuid.UUID) (*Watershed, error) {
 	var w Watershed
 	if err := pgxscan.Get(
-		context.Background(), db, &w, WatershedSQL+`FROM download d
-		                                            INNER JOIN v_watershed w ON w.id = d.watershed_id
-		                                            WHERE d.ID = $1`, downloadID,
+		context.Background(), db, &w, WatershedSQL+` FROM download d
+		                                             INNER JOIN v_watershed w ON w.id = d.watershed_id
+		                                             WHERE d.ID = $1`, downloadID,
 	); err != nil {
 		return nil, err
 	}

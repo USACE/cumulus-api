@@ -160,6 +160,32 @@ func main() {
 		middleware.IsApplicationAdmin,
 	)
 
+	// Units
+	public.GET("/units", handlers.ListUnits(db))
+	public.GET("/units/:unit_id", handlers.GetUnit(db))
+	private.POST("/units", handlers.CreateUnit(db),
+		middleware.IsApplicationAdmin,
+	)
+	private.PUT("/units/:unit_id", handlers.UpdateUnit(db),
+		middleware.IsApplicationAdmin,
+	)
+	private.DELETE("/units/:unit_id", handlers.DeleteUnit(db),
+		middleware.IsApplicationAdmin,
+	)
+
+	// Parameters
+	public.GET("/parameters", handlers.ListParameters(db))
+	public.GET("/parameters/:parameter_id", handlers.GetParameter(db))
+	private.POST("/parameters", handlers.CreateParameter(db),
+		middleware.IsApplicationAdmin,
+	)
+	private.PUT("/parameters/:parameter_id", handlers.UpdateParameter(db),
+		middleware.IsApplicationAdmin,
+	)
+	private.DELETE("/parameters/:parameter_id", handlers.DeleteParameter(db),
+		middleware.IsApplicationAdmin,
+	)
+
 	// Downloads
 	public.GET("/cumulus/download/dss/*", handlers.ServeMedia(&awsCfg, &cfg.AWSS3Bucket)) // Serve Downloads
 	// List Downloads

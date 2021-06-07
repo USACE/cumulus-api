@@ -1,6 +1,6 @@
 {
 	"info": {
-		"_postman_id": "ab3085d9-b538-4208-8e24-8118b2f8911d",
+		"_postman_id": "0edc625a-758f-447d-a05a-088bd21bbfa2",
 		"name": "cumulus-regression-admin",
 		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
 	},
@@ -14,7 +14,6 @@
 						{
 							"listen": "test",
 							"script": {
-								"id": "1125b8fd-da78-4779-ba28-ad660d9afdf5",
 								"exec": [
 									"// validate JSON schema",
 									"var schema = {",
@@ -93,8 +92,7 @@
 									"    pm.response.to.have.jsonSchema(schema)",
 									"});"
 								],
-								"type": "text/javascript",
-								"id": "758bf8ed-7e29-4f98-abdc-aefed718264f"
+								"type": "text/javascript"
 							}
 						}
 					],
@@ -129,8 +127,7 @@
 									"    pm.response.to.have.status(200);",
 									"});"
 								],
-								"type": "text/javascript",
-								"id": "13e424a8-56ed-4216-a05c-18265079a213"
+								"type": "text/javascript"
 							}
 						}
 					],
@@ -188,8 +185,7 @@
 					},
 					"response": []
 				}
-			],
-			"protocolProfileBehavior": {}
+			]
 		},
 		{
 			"name": "tags",
@@ -200,7 +196,6 @@
 						{
 							"listen": "test",
 							"script": {
-								"id": "a38ba4e5-e4ab-48f1-8ccb-f293e466ce6a",
 								"exec": [
 									"// validate JSON schema",
 									"var schema = {",
@@ -272,8 +267,7 @@
 									"});",
 									""
 								],
-								"type": "text/javascript",
-								"id": "efa3b918-7b07-455f-8f6a-13e212eb4c9c"
+								"type": "text/javascript"
 							}
 						}
 					],
@@ -298,7 +292,6 @@
 						{
 							"listen": "test",
 							"script": {
-								"id": "0c626b60-5345-4799-b83e-007c647447e5",
 								"exec": [
 									"// status code is 200",
 									"pm.test(\"Status code is 200\", function () {",
@@ -362,8 +355,7 @@
 									"});",
 									""
 								],
-								"type": "text/javascript",
-								"id": "f825bd2e-6f74-4b90-9712-32d83d48e730"
+								"type": "text/javascript"
 							}
 						}
 					],
@@ -397,7 +389,6 @@
 						{
 							"listen": "test",
 							"script": {
-								"id": "03e5ac51-71fc-489a-8e1b-c44f3d33dbb2",
 								"exec": [
 									"// status code is 200",
 									"pm.test(\"Status code is 200\", function () {",
@@ -433,8 +424,485 @@
 					},
 					"response": []
 				}
-			],
-			"protocolProfileBehavior": {}
+			]
+		},
+		{
+			"name": "units",
+			"item": [
+				{
+					"name": "GetUnit",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"// validate JSON schema",
+									"var schema = {",
+									"    \"type\": \"object\",",
+									"    \"properties\": {",
+									"        \"id\": { \"type\": \"string\" },",
+									"        \"name\": { \"type\": \"string\" },",
+									"        \"abbreviation\": { \"type\": \"string\" }",
+									"    },",
+									"    \"required\": [\"id\", \"name\", \"abbreviation\"],",
+									"    \"additionalProperties\": false",
+									"}",
+									"",
+									"pm.globals.set('UNIT_OBJECT', JSON.stringify(schema));",
+									"",
+									"// status code is 200",
+									"pm.test(\"Status code is 200\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"// validate schema",
+									"pm.test(\"Schema validation\", function () {",
+									"    pm.response.to.have.jsonSchema(schema)",
+									"});",
+									""
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/units/e245d39f-3209-4e58-bfb7-4eae94b3f8dd",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"units",
+								"e245d39f-3209-4e58-bfb7-4eae94b3f8dd"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "ListUnits",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"// schema validator",
+									"var schema = {",
+									"    \"type\": \"array\",",
+									"    \"items\": JSON.parse(pm.globals.get('UNIT_OBJECT'))",
+									"}",
+									"",
+									"pm.globals.set('UNIT_ARRAY', JSON.stringify(schema));",
+									"",
+									"// status code is 200",
+									"pm.test(\"Status code is 200\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"// schema validation",
+									"pm.test(\"Schema validation\", function () {",
+									"    pm.response.to.have.jsonSchema(schema)",
+									"});",
+									""
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/units",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"units"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "UpdateUnit",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"// status code is 200",
+									"pm.test(\"Status code is 200\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"",
+									"// schema validation",
+									"pm.test(\"Schema validation\", function () {",
+									"    pm.response.to.have.jsonSchema(",
+									"        JSON.parse(pm.globals.get('UNIT_OBJECT'))",
+									"    )",
+									"});",
+									""
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "PUT",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"id\": \"855ee63c-d623-40d5-a551-3655ce2d7b47\",\n    \"name\": \"Kelvin McCallister\",\n    \"abbreviation\": \"KM\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{base_url}}/units/855ee63c-d623-40d5-a551-3655ce2d7b47",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"units",
+								"855ee63c-d623-40d5-a551-3655ce2d7b47"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "CreateUnit",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"// status code is 201",
+									"pm.test(\"Status code is 201\", function () {",
+									"    pm.response.to.have.status(201);",
+									"});",
+									"",
+									"// schema validation",
+									"pm.test(\"Schema validation\", function () {",
+									"    pm.response.to.have.jsonSchema(",
+									"        JSON.parse(pm.globals.get('UNIT_OBJECT'))",
+									"    )",
+									"});",
+									""
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "    {\n        \"name\": \"Telsa\",\n        \"description\": \"Magnetic Field\",\n        \"abbreviation\": \"(T)\"\n    }",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{base_url}}/units",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"units"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "DeleteUnit",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"// status code is 200",
+									"pm.test(\"Status code is 200\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "DELETE",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"id\": {{new_create_unit_id}}\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{base_url}}/units/{{new_create_unit_id}}",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"units",
+								"{{new_create_unit_id}}"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "parameters",
+			"item": [
+				{
+					"name": "GetParameter",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"// validate JSON schema",
+									"var schema = {",
+									"    \"type\": \"object\",",
+									"    \"properties\": {",
+									"        \"id\": { \"type\": \"string\" },",
+									"        \"name\": { \"type\": \"string\" },",
+									"        \"abbreviation\": { \"type\": \"string\" }",
+									"    },",
+									"    \"required\": [\"id\", \"name\", \"abbreviation\"],",
+									"    \"additionalProperties\": false",
+									"}",
+									"",
+									"pm.globals.set('UNIT_OBJECT', JSON.stringify(schema));",
+									"",
+									"// status code is 200",
+									"pm.test(\"Status code is 200\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"// validate schema",
+									"pm.test(\"Schema validation\", function () {",
+									"    pm.response.to.have.jsonSchema(schema)",
+									"});",
+									""
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/units/e245d39f-3209-4e58-bfb7-4eae94b3f8dd",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"units",
+								"e245d39f-3209-4e58-bfb7-4eae94b3f8dd"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "ListParameters",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"// schema validator",
+									"var schema = {",
+									"    \"type\": \"array\",",
+									"    \"items\": JSON.parse(pm.globals.get('PARAMETER_OBJECT'))",
+									"}",
+									"",
+									"pm.globals.set('PARAMETER_ARRAY', JSON.stringify(schema));",
+									"",
+									"// status code is 200",
+									"pm.test(\"Status code is 200\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"// schema validation",
+									"pm.test(\"Schema validation\", function () {",
+									"    pm.response.to.have.jsonSchema(schema)",
+									"});",
+									""
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/parameters",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"parameters"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "UpdateParameter",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"// status code is 200",
+									"pm.test(\"Status code is 200\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"",
+									"// schema validation",
+									"pm.test(\"Schema validation\", function () {",
+									"    pm.response.to.have.jsonSchema(",
+									"        JSON.parse(pm.globals.get('UNIT_OBJECT'))",
+									"    )",
+									"});",
+									""
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "PUT",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"id\": \"2b3f8cf3-d3f5-440b-b7e7-0c8090eda80f\",\n    \"name\": \"COLD CONTENT CHANGED NAME\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{base_url}}/parameters/2b3f8cf3-d3f5-440b-b7e7-0c8090eda80f",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"parameters",
+								"2b3f8cf3-d3f5-440b-b7e7-0c8090eda80f"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "CreateParameter",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"// status code is 201",
+									"pm.test(\"Status code is 201\", function () {",
+									"    pm.response.to.have.status(201);",
+									"});",
+									"",
+									"// schema validation",
+									"pm.test(\"Schema validation\", function () {",
+									"    pm.response.to.have.jsonSchema(",
+									"        JSON.parse(pm.globals.get('PARAMETER_OBJECT'))",
+									"    )",
+									"});",
+									"",
+									"let jsonData = JSON.parse(responseBody);",
+									"pm.environment.set(\"new_create_parameter_id\", jsonData.id);"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "    {\n        \"name\": \"Regression Test Parameter 1\"\n    }",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{base_url}}/parameters",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"parameters"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "DeleteTag",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"// status code is 200",
+									"pm.test(\"Status code is 200\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "DELETE",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"id\": {{new_create_parameter_id}}\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{base_url}}/parameters/{{new_create_parameter_id}}",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"parameters",
+								"{{new_create_parameter_id}}"
+							]
+						}
+					},
+					"response": []
+				}
+			]
 		},
 		{
 			"name": "acquirables",
@@ -451,8 +919,7 @@
 									"    pm.response.to.have.status(200);",
 									"});"
 								],
-								"type": "text/javascript",
-								"id": "13508647-5c10-43ec-bb6d-a5c3fa0d56ba"
+								"type": "text/javascript"
 							}
 						}
 					],
@@ -483,8 +950,7 @@
 									"    pm.response.to.have.status(201);",
 									"});"
 								],
-								"type": "text/javascript",
-								"id": "5d80de34-5416-4ea8-ad3b-cf74a02b9fcd"
+								"type": "text/javascript"
 							}
 						}
 					],
@@ -524,8 +990,7 @@
 									"    pm.response.to.have.status(200);",
 									"});"
 								],
-								"type": "text/javascript",
-								"id": "3b6075d7-1313-4921-9623-48c7120578db"
+								"type": "text/javascript"
 							}
 						}
 					],
@@ -564,8 +1029,7 @@
 						"type": "text/javascript",
 						"exec": [
 							""
-						],
-						"id": "4601fbbf-427b-40a9-a9f8-b125f587334f"
+						]
 					}
 				},
 				{
@@ -574,12 +1038,10 @@
 						"type": "text/javascript",
 						"exec": [
 							""
-						],
-						"id": "d0fbc512-8731-48c6-af4e-3cca9acd1485"
+						]
 					}
 				}
-			],
-			"protocolProfileBehavior": {}
+			]
 		},
 		{
 			"name": "products",
@@ -590,7 +1052,6 @@
 						{
 							"listen": "test",
 							"script": {
-								"id": "b9afd723-e96a-43c6-b0d1-51d19fe12894",
 								"exec": [
 									"// validate JSON schema",
 									"var schema = {",
@@ -678,8 +1139,7 @@
 									"});",
 									""
 								],
-								"type": "text/javascript",
-								"id": "52d68ffd-264f-4733-b6d0-df790f0af62f"
+								"type": "text/javascript"
 							}
 						}
 					],
@@ -732,8 +1192,7 @@
 									"});",
 									""
 								],
-								"type": "text/javascript",
-								"id": "41a5053f-2e9e-4c52-be75-7bfef420fe9a"
+								"type": "text/javascript"
 							}
 						}
 					],
@@ -803,8 +1262,7 @@
 									"});",
 									""
 								],
-								"type": "text/javascript",
-								"id": "0b4faeb9-fd63-4d8c-a2ac-98589f9ef23c"
+								"type": "text/javascript"
 							}
 						}
 					],
@@ -845,8 +1303,7 @@
 									"});",
 									""
 								],
-								"type": "text/javascript",
-								"id": "7dcf6a17-094e-496f-8a44-2b639d6a146b"
+								"type": "text/javascript"
 							}
 						}
 					],
@@ -894,8 +1351,7 @@
 									"});",
 									""
 								],
-								"type": "text/javascript",
-								"id": "71ad0978-72f6-45cf-8422-6c7801107b89"
+								"type": "text/javascript"
 							}
 						}
 					],
@@ -930,7 +1386,6 @@
 						{
 							"listen": "test",
 							"script": {
-								"id": "6a72f68e-9418-485d-affb-11628ef9bab9",
 								"exec": [
 									"// status code is 200",
 									"pm.test(\"Status code is 200\", function () {",
@@ -982,7 +1437,6 @@
 						{
 							"listen": "test",
 							"script": {
-								"id": "228c43e5-8a84-43a7-a717-18ca2c6222dc",
 								"exec": [
 									"// status code is 200",
 									"pm.test(\"Status code is 200\", function () {",
@@ -1040,8 +1494,7 @@
 									"    pm.response.to.have.status(200);",
 									"});"
 								],
-								"type": "text/javascript",
-								"id": "51e791f3-2f20-4f20-8831-4e640510e332"
+								"type": "text/javascript"
 							}
 						}
 					],
@@ -1090,8 +1543,7 @@
 									"});",
 									""
 								],
-								"type": "text/javascript",
-								"id": "5e30d92b-98fd-4d65-a8cd-2fd804288da8"
+								"type": "text/javascript"
 							}
 						}
 					],
@@ -1121,8 +1573,7 @@
 					},
 					"response": []
 				}
-			],
-			"protocolProfileBehavior": {}
+			]
 		},
 		{
 			"name": "downloads",
@@ -1133,7 +1584,6 @@
 						{
 							"listen": "test",
 							"script": {
-								"id": "f0e57628-78f6-43b4-b053-4dc2e1b0d0f9",
 								"exec": [
 									"// status code is 201",
 									"pm.test(\"Status code is 200\", function () {",
@@ -1183,8 +1633,7 @@
 									"    pm.response.to.have.status(201);",
 									"});"
 								],
-								"type": "text/javascript",
-								"id": "412919ea-9621-4c8c-90b0-9bb020df26f9"
+								"type": "text/javascript"
 							}
 						}
 					],
@@ -1224,8 +1673,7 @@
 									"    pm.response.to.have.status(201);",
 									"});"
 								],
-								"type": "text/javascript",
-								"id": "c3d89862-0a5b-46b9-aa8f-ed2b3e9c3fa5"
+								"type": "text/javascript"
 							}
 						}
 					],
@@ -1253,8 +1701,7 @@
 					},
 					"response": []
 				}
-			],
-			"protocolProfileBehavior": {}
+			]
 		},
 		{
 			"name": "watersheds",
@@ -1271,8 +1718,7 @@
 									"    pm.response.to.have.status(200);",
 									"});"
 								],
-								"type": "text/javascript",
-								"id": "04fa0fe1-7ab1-426b-9263-705131aa47a9"
+								"type": "text/javascript"
 							}
 						}
 					],
@@ -1303,8 +1749,7 @@
 									"    pm.response.to.have.status(200);",
 									"});"
 								],
-								"type": "text/javascript",
-								"id": "610d8826-8c9e-4054-973d-3bc0c19ff04e"
+								"type": "text/javascript"
 							}
 						}
 					],
@@ -1336,8 +1781,7 @@
 									"    pm.response.to.have.status(201);",
 									"});"
 								],
-								"type": "text/javascript",
-								"id": "26619deb-575d-4d24-b3de-9641a0840b93"
+								"type": "text/javascript"
 							}
 						}
 					],
@@ -1377,8 +1821,7 @@
 									"    pm.response.to.have.status(201);",
 									"});"
 								],
-								"type": "text/javascript",
-								"id": "cbecd57e-41b8-4558-861b-b0b3db01bbb2"
+								"type": "text/javascript"
 							}
 						}
 					],
@@ -1419,8 +1862,7 @@
 									"    pm.response.to.have.status(200);",
 									"});"
 								],
-								"type": "text/javascript",
-								"id": "a4e4d4eb-7547-4da5-a46b-6cce7af5ac71"
+								"type": "text/javascript"
 							}
 						}
 					],
@@ -1461,8 +1903,7 @@
 									"    pm.response.to.have.status(200);",
 									"});"
 								],
-								"type": "text/javascript",
-								"id": "54bde103-1fe7-4afd-a5b6-ef5f14b0e1f1"
+								"type": "text/javascript"
 							}
 						}
 					],
@@ -1492,8 +1933,7 @@
 					},
 					"response": []
 				}
-			],
-			"protocolProfileBehavior": {}
+			]
 		},
 		{
 			"name": "watershed roles",
@@ -1539,8 +1979,7 @@
 									"});",
 									""
 								],
-								"type": "text/javascript",
-								"id": "bf9e99b7-d844-41ef-9ef5-de634fb29430"
+								"type": "text/javascript"
 							}
 						}
 					],
@@ -1578,8 +2017,7 @@
 									"    pm.response.to.have.jsonSchema(JSON.parse(pm.globals.get(\"PROJECT_MEMBERSHIP_OBJECT_SCHEMA\")))",
 									"});"
 								],
-								"type": "text/javascript",
-								"id": "26b9769e-8d50-4fdb-8b1b-2507a53e1691"
+								"type": "text/javascript"
 							}
 						}
 					],
@@ -1614,8 +2052,7 @@
 									"    pm.response.to.have.status(200);",
 									"});"
 								],
-								"type": "text/javascript",
-								"id": "79849626-2f04-465b-b2da-35096d37ce3b"
+								"type": "text/javascript"
 							}
 						}
 					],
@@ -1639,8 +2076,7 @@
 					},
 					"response": []
 				}
-			],
-			"protocolProfileBehavior": {}
+			]
 		},
 		{
 			"name": "area_group",
@@ -1651,7 +2087,6 @@
 						{
 							"listen": "test",
 							"script": {
-								"id": "134817ce-9f51-47d0-b5ba-303d5c99e1aa",
 								"exec": [
 									""
 								],
@@ -1687,7 +2122,6 @@
 						{
 							"listen": "test",
 							"script": {
-								"id": "beea90cb-b32e-42e6-97f0-70ec20c01845",
 								"exec": [
 									""
 								],
@@ -1723,7 +2157,6 @@
 						{
 							"listen": "test",
 							"script": {
-								"id": "9907f83a-2379-4c2e-817f-78ca41694aa9",
 								"exec": [
 									""
 								],
@@ -1760,8 +2193,7 @@
 									"    pm.response.to.have.status(200);",
 									"});"
 								],
-								"type": "text/javascript",
-								"id": "16e10db8-1abf-4034-82e0-e01757ace5d2"
+								"type": "text/javascript"
 							}
 						}
 					],
@@ -1784,8 +2216,7 @@
 					},
 					"response": []
 				}
-			],
-			"protocolProfileBehavior": {}
+			]
 		}
 	],
 	"auth": {
@@ -1802,7 +2233,6 @@
 		{
 			"listen": "prerequest",
 			"script": {
-				"id": "65251317-0064-4df8-8571-8115094ebf40",
 				"type": "text/javascript",
 				"exec": [
 					""
@@ -1812,13 +2242,11 @@
 		{
 			"listen": "test",
 			"script": {
-				"id": "5f079e0f-cf13-4ec5-b1c9-20c5662bd7b7",
 				"type": "text/javascript",
 				"exec": [
 					""
 				]
 			}
 		}
-	],
-	"protocolProfileBehavior": {}
+	]
 }

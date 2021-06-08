@@ -24,7 +24,7 @@ func ListTags(db *pgxpool.Pool) ([]Tag, error) {
 	tt := make([]Tag, 0)
 	if err := pgxscan.Select(
 		context.Background(), db, &tt,
-		`SELECT id, name, description, color FROM tag`,
+		`SELECT id, name, description, color FROM tag order by name`,
 	); err != nil {
 		return make([]Tag, 0), err
 	}

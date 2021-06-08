@@ -22,7 +22,7 @@ func ListParameters(db *pgxpool.Pool) ([]Parameter, error) {
 	pp := make([]Parameter, 0)
 	if err := pgxscan.Select(
 		context.Background(), db, &pp,
-		`SELECT id, name FROM parameter`,
+		`SELECT id, name FROM parameter order by name`,
 	); err != nil {
 		return make([]Parameter, 0), err
 	}
@@ -35,7 +35,7 @@ func GetParameter(db *pgxpool.Pool, parameterID *uuid.UUID) (*Parameter, error) 
 		context.Background(), db, &p,
 		`SELECT id, name
 		 FROM parameter
-		 WHERE id = $1`, &parameterID,
+		 WHERE id = $1 order by name`, &parameterID,
 	); err != nil {
 		return nil, err
 	}

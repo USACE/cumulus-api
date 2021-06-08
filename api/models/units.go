@@ -23,7 +23,7 @@ func ListUnits(db *pgxpool.Pool) ([]Unit, error) {
 	uu := make([]Unit, 0)
 	if err := pgxscan.Select(
 		context.Background(), db, &uu,
-		`SELECT id, name, abbreviation FROM unit`,
+		`SELECT id, name, abbreviation FROM unit order by name`,
 	); err != nil {
 		return make([]Unit, 0), err
 	}

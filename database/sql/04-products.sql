@@ -146,6 +146,7 @@ CREATE OR REPLACE VIEW v_productfile AS (
 
 -- acquirable
 INSERT INTO acquirable (id, name, slug) VALUES
+    ('9b10e3fe-db59-4a50-9acb-063fd0cdc435', 'naefs-mean-06h', 'naefs-mean-06h'),
     ('a6ba0a12-47d1-4062-995b-3878144fdca4', 'mbrfc-krf-qpe-01h', 'mbrfc-krf-qpe-01h'),
     ('2c423d07-d085-42ea-ac27-eb007d4d5183', 'mbrfc-krf-qpf-06h', 'mbrfc-krf-qpf-06h'),
     ('8f0aaa04-11f7-4b39-8b14-d8f0a5f99e44', 'mbrfc-krf-fct-airtemp-01h', 'mbrfc-krf-fct-airtemp-01h'),
@@ -169,6 +170,8 @@ INSERT INTO acquirable (id, name, slug) VALUES
 
 -- product
 INSERT INTO product (id, name, slug, temporal_duration, temporal_resolution, dss_fpart, parameter_id, unit_id, description) VALUES
+    ('a8e3de13-d4fb-4973-a076-c6783c93f332','naefs-mean-qpf-06h', 'naefs-mean-qpf-06h',21600,21600,'NAEFS-MEAN-QPF','eb82d661-afe6-436a-b0df-2ab0b478a1af','e245d39f-3209-4e58-bfb7-4eae94b3f8dd', 'Lorem ipsum dolor sit amet, consectetur adipiscing elit. Vivamus tincidunt nisl sit amet urna mattis, ac ornare sapien volutpat. Nullam laoreet finibus auctor. Donec nisi diam, porttitor et pharetra id, sollicitudin vestibulum dolor. Aliquam porttitor purus non massa ullamcorper, sit amet bibendum risus ornare. Sed ac metus tristique, iaculis arcu a, consequat augue. In id maximus purus. In euismod volutpat velit, a congue est tempor a.'),
+    ('60f16079-7495-47ab-aa68-36cd6a17fce0','naefs-mean-qtf-06h', 'naefs-mean-qtf-06h',21600,21600,'NAEFS-MEAN-QTF','5fab39b9-90ba-482a-8156-d863ad7c45ad','8f51e5b5-08be-4ea7-9ebc-ad44b465dbc6', 'Lorem ipsum dolor sit amet, consectetur adipiscing elit. Vivamus tincidunt nisl sit amet urna mattis, ac ornare sapien volutpat. Nullam laoreet finibus auctor. Donec nisi diam, porttitor et pharetra id, sollicitudin vestibulum dolor. Aliquam porttitor purus non massa ullamcorper, sit amet bibendum risus ornare. Sed ac metus tristique, iaculis arcu a, consequat augue. In id maximus purus. In euismod volutpat velit, a congue est tempor a.'),
     ('bbfeadbb-1b54-486c-b975-a67d107540f3','mbrfc-krf-fct-airtemp-01h','mbrfc-krf-fct-airtemp-01h',3600,3600,'MBRFC-KRF-FCT-AIRTEMP','5fab39b9-90ba-482a-8156-d863ad7c45ad','8f51e5b5-08be-4ea7-9ebc-ad44b465dbc6', 'Lorem ipsum dolor sit amet, consectetur adipiscing elit. Vivamus tincidunt nisl sit amet urna mattis, ac ornare sapien volutpat. Nullam laoreet finibus auctor. Donec nisi diam, porttitor et pharetra id, sollicitudin vestibulum dolor. Aliquam porttitor purus non massa ullamcorper, sit amet bibendum risus ornare. Sed ac metus tristique, iaculis arcu a, consequat augue. In id maximus purus. In euismod volutpat velit, a congue est tempor a.'),
     ('c96f7a1f-e57d-4694-9d09-451cfa949324','mbrfc-krf-qpe-01h','mbrfc-krf-qpf-06h',21600,21600,'MBRFC-KRF-QPF','eb82d661-afe6-436a-b0df-2ab0b478a1af','e245d39f-3209-4e58-bfb7-4eae94b3f8dd', 'Lorem ipsum dolor sit amet, consectetur adipiscing elit. Vivamus tincidunt nisl sit amet urna mattis, ac ornare sapien volutpat. Nullam laoreet finibus auctor. Donec nisi diam, porttitor et pharetra id, sollicitudin vestibulum dolor. Aliquam porttitor purus non massa ullamcorper, sit amet bibendum risus ornare. Sed ac metus tristique, iaculis arcu a, consequat augue. In id maximus purus. In euismod volutpat velit, a congue est tempor a.'),
     ('9890d81e-04c5-45cc-b544-e27fde610501','mbrfc-krf-qpe-01h','mbrfc-krf-qpe-01h',3600,3600,'MBRFC-KRF-QPE','eb82d661-afe6-436a-b0df-2ab0b478a1af','e245d39f-3209-4e58-bfb7-4eae94b3f8dd', 'Lorem ipsum dolor sit amet, consectetur adipiscing elit. Vivamus tincidunt nisl sit amet urna mattis, ac ornare sapien volutpat. Nullam laoreet finibus auctor. Donec nisi diam, porttitor et pharetra id, sollicitudin vestibulum dolor. Aliquam porttitor purus non massa ullamcorper, sit amet bibendum risus ornare. Sed ac metus tristique, iaculis arcu a, consequat augue. In id maximus purus. In euismod volutpat velit, a congue est tempor a.'),
@@ -215,6 +218,8 @@ INSERT INTO tag (id, name, description, color) VALUES
 
 -- product_tags
 INSERT INTO product_tags (tag_id, product_id) VALUES
+    ('726039da-2f21-4393-a15c-5f6e7ea41b1f','a8e3de13-d4fb-4973-a076-c6783c93f332'),
+    ('d9613031-7cf0-4722-923e-e5c3675a163b','60f16079-7495-47ab-aa68-36cd6a17fce0'),
     ('d9613031-7cf0-4722-923e-e5c3675a163b','bbfeadbb-1b54-486c-b975-a67d107540f3'),
     ('726039da-2f21-4393-a15c-5f6e7ea41b1f','c96f7a1f-e57d-4694-9d09-451cfa949324'),
     ('726039da-2f21-4393-a15c-5f6e7ea41b1f','9890d81e-04c5-45cc-b544-e27fde610501'),

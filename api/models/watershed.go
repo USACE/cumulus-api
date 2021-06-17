@@ -34,7 +34,7 @@ const WatershedSQL = `SELECT w.id,
 // ListWatersheds returns an array of watersheds
 func ListWatersheds(db *pgxpool.Pool) ([]Watershed, error) {
 	ww := make([]Watershed, 0)
-	if err := pgxscan.Select(context.Background(), db, &ww, WatershedSQL+" FROM v_watershed w"); err != nil {
+	if err := pgxscan.Select(context.Background(), db, &ww, WatershedSQL+" FROM v_watershed w order by w.office_symbol, w.name"); err != nil {
 		return make([]Watershed, 0), nil
 	}
 	return ww, nil

@@ -11,14 +11,15 @@ import (
 	"github.com/jackc/pgx/v4/pgxpool"
 )
 
-var listProductsSQL = `SELECT id, slug, name, tags, temporal_resolution, temporal_duration,
+var listProductsSQL = `SELECT id, slug, name, label, tags, temporal_resolution, temporal_duration,
                               parameter_id, parameter, unit_id, unit, dss_fpart, description,
-							  after, before, productfile_count
+							  suite_id, suite, after, before, productfile_count
 	                   FROM v_product`
 
 // ProductInfo holds information required to create a product
 type ProductInfo struct {
 	Name               string    `json:"name"`
+	Slug               string    `json:"slug"`
 	TemporalResolution int       `json:"temporal_resolution" db:"temporal_resolution"`
 	TemporalDuration   int       `json:"temporal_duration" db:"temporal_duration"`
 	DssFpart           string    `json:"dss_fpart" db:"dss_fpart"`
@@ -27,12 +28,15 @@ type ProductInfo struct {
 	UnitID             uuid.UUID `json:"unit_id" db:"unit_id"`
 	Unit               string    `json:"unit"`
 	Description        string    `json:"description"`
+	SuiteID            uuid.UUID `json:"suite_id" db:"suite_id"`
+	Suite              string    `json:"suite"`
+	Label              string    `json:"label"`
 }
 
 // Product holds all information about a product
 type Product struct {
-	ID   uuid.UUID   `json:"id"`
-	Slug string      `json:"slug" db:"slug"`
+	ID uuid.UUID `json:"id"`
+	// Slug string      `json:"slug" db:"slug"`
 	Tags []uuid.UUID `json:"tags" db:"tags"`
 	ProductInfo
 	CoverageSummary
@@ -92,16 +96,16 @@ func GetProduct(db *pgxpool.Pool, productID *uuid.UUID) (*Product, error) {
 // CreateProduct creates a single product
 func CreateProduct(db *pgxpool.Pool, p *ProductInfo) (*Product, error) {
 	// Assign Slug Based on Product Name; Slug Must Be Table Unique
-	slug, err := NextUniqueSlug(db, "product", "slug", p.Name, "", "")
+	// slug, err := NextUniqueSlug(db, "product", "slug", p.Name, "", "")
 	if err != nil {
 		return nil, err
 	}
 	var pID uuid.UUID
 	if err := pgxscan.Get(
 		context.Background(), db, &pID,
-		`INSERT INTO product (slug, name, temporal_resolution, temporal_duration, dss_fpart, parameter_id, unit_id, description) VALUES
+		`INSERT INTO product (temporal_resolution, temporal_duration, dss_fpart, parameter_id, unit_id, description, suite_id, label) VALUES
 			($1, $2, $3, $4, $5, $6, $7, $8)
-		RETURNING id`, slug, p.Name, p.TemporalResolution, p.TemporalDuration, p.DssFpart, p.ParameterID, p.UnitID, p.Description,
+		RETURNING id`, p.TemporalResolution, p.TemporalDuration, p.DssFpart, p.ParameterID, p.UnitID, p.Description, p.SuiteID, p.Label,
 	); err != nil {
 		return nil, err
 	}
@@ -113,10 +117,10 @@ func UpdateProduct(db *pgxpool.Pool, p *Product) (*Product, error) {
 	var pID uuid.UUID
 	if err := pgxscan.Get(
 		context.Background(), db, &pID,
-		`UPDATE product SET name=$2, temporal_resolution=$3, temporal_duration=$4, dss_fpart=$5,
-		                    parameter_id=$6, unit_id=$7, description=$8
+		`UPDATE product SET temporal_resolution=$2, temporal_duration=$3, dss_fpart=$4,
+		                    parameter_id=$5, unit_id=$6, description=$7, suite_id=$8, label=$9 
 		 WHERE id = $1
-		 RETURNING id`, p.ID, p.Name, p.TemporalResolution, p.TemporalDuration, p.DssFpart, p.ParameterID, p.UnitID, p.Description,
+		 RETURNING id`, p.ID, p.TemporalResolution, p.TemporalDuration, p.DssFpart, p.ParameterID, p.UnitID, p.Description, p.SuiteID, p.Label,
 	); err != nil {
 		return nil, err
 	}

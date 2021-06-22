@@ -46,8 +46,9 @@ def process(infile, outdir) -> List:
     """Takes an infile to process and path to a directory where output files should be saved
     Returns array of objects [{ "filetype": "nohrsc_snodas_swe", "file": "file.tif", ... }, {}, ]
     """
-    band_number = 84
-    
+    band_number = 83
+    outfile_list = list()
+
     # Process the gdal information
     fileinfo: dict = info(infile)
     all_bands: List = fileinfo["bands"]
@@ -71,9 +72,14 @@ def process(infile, outdir) -> List:
         )
     )
 
-    outfile_list = [
-        { "filetype": "hrrr-total-precip", "file": cog, "datetime": valid_time.isoformat(), "version": ref_time },
-    ]
+    outfile_list.append(
+        {
+            "filetype": "hrrr-total-precip",
+            "file": cog,
+            "datetime": valid_time.isoformat(), 
+            "version": ref_time
+        }
+    )
     
     return outfile_list
 

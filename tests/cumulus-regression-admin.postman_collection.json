@@ -885,7 +885,7 @@
 						"header": [],
 						"body": {
 							"mode": "raw",
-							"raw": "{\n    \"id\": {{new_create_suite_id}}\n}",
+							"raw": "{\n    \"id\": \"{{new_create_suite_id}}\"\n}",
 							"options": {
 								"raw": {
 									"language": "json"
@@ -1124,7 +1124,7 @@
 						"header": [],
 						"body": {
 							"mode": "raw",
-							"raw": "{\n    \"id\": {{new_create_parameter_id}}\n}",
+							"raw": "{\n    \"id\": \"{{new_create_parameter_id}}\"\n}",
 							"options": {
 								"raw": {
 									"language": "json"

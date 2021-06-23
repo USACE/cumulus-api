@@ -48,7 +48,7 @@ CREATE TABLE IF NOT EXISTS tag (
 -- product
 CREATE TABLE IF NOT EXISTS product (
     id UUID PRIMARY KEY NOT NULL DEFAULT uuid_generate_v4(),
-    --slug VARCHAR(120) UNIQUE NOT NULL,
+    slug VARCHAR(120) UNIQUE NOT NULL,
     --name VARCHAR(120) NOT NULL,
     label VARCHAR(40),
     temporal_duration INTEGER NOT NULL,
@@ -107,17 +107,16 @@ CREATE OR REPLACE VIEW v_product AS (
 	    GROUP BY product_id
 	)
 	SELECT a.id                              AS id,
-           --a.slug                            AS slug,
-           --a.name                            AS name,
+           a.slug                            AS slug,
            CONCAT(
-           	UPPER(s.slug), '-', 
-           	(case when LENGTH(a.label) > 1 then CONCAT(a.label, '-') else '' end), 
-           	p.name, '-', a.temporal_duration/60/60, 'hr') as name,
-           replace(LOWER(
-           	CONCAT(s.slug, '-', 
-           		(case when LENGTH(a.label) > 1 then CONCAT(a.label, '-') else '' end), 
-           		p.name, '-', a.temporal_duration/60/60, 'hr')), 
-           	' ', '-') as slug,
+               UPPER(s.slug), ' ', 
+               (CASE WHEN LENGTH(a.label) > 1
+                     THEN CONCAT(a.label, ' ')
+                     ELSE ''
+                END), 
+                p.name, ' ',
+                a.temporal_resolution/60/60, 'hr'
+           )                                 AS name,
            a.label                           AS label,
            a.temporal_resolution             AS temporal_resolution,
            a.temporal_duration               AS temporal_duration,
@@ -185,17 +184,23 @@ INSERT INTO acquirable (id, name, slug) VALUES
     ('22678c3d-8ac0-4060-b750-6d27a91d0fb3', 'ncep_rtma_ru_anl_airtemp', 'ncep-rtma-ru-anl-airtemp'),
     ('87a8efb7-af6f-4ece-a97f-53272d1a151d', 'ncep_mrms_v12_multisensor_qpe_01h_pass1', 'ncep-mrms-v12-multisensor-qpe-01h-pass1'),
     ('0c725458-deb7-45bb-84c6-e98083874c0e', 'wpc_qpf_2p5km', 'wpc-qpf-2p5km'),
-    ('ccc252f9-defc-4b25-817b-2e14c87073a0', 'ncep_mrms_v12_multisensor_qpe_01h_pass2', 'ncep-mrms-v12-multisensor-qpe-01h-pass2');
+    ('ccc252f9-defc-4b25-817b-2e14c87073a0', 'ncep_mrms_v12_multisensor_qpe_01h_pass2', 'ncep-mrms-v12-multisensor-qpe-01h-pass2'),
+    ('9b10e3fe-db59-4a50-9acb-063fd0cdc435', 'naefs-mean-06h', 'naefs-mean-06h'),
+    ('a6ba0a12-47d1-4062-995b-3878144fdca4', 'mbrfc-krf-qpe-01h', 'mbrfc-krf-qpe-01h'),
+    ('2c423d07-d085-42ea-ac27-eb007d4d5183', 'mbrfc-krf-qpf-06h', 'mbrfc-krf-qpf-06h'),
+    ('8f0aaa04-11f7-4b39-8b14-d8f0a5f99e44', 'mbrfc-krf-fct-airtemp-01h', 'mbrfc-krf-fct-airtemp-01h');
 
 -- suite
 INSERT INTO suite (id, name, slug, description) VALUES
-    ('74d7191f-7c4b-4549-bf80-5a5de4ba4880', 'Colorado Basin River Forecast Center', 'cbrfc', 'CBRFC Description'),
+    ('74d7191f-7c4b-4549-bf80-5a5de4ba4880', 'Colorado Basin River Forecast Center (CBRFC)', 'cbrfc', 'CBRFC Description'),
     ('0a4007db-ebcb-4d01-bb3e-3545255da4f0', 'High Resolution Rapid Refresh (HRRR)', 'hrrr', ''),
     ('c133e9e7-ddc8-4a98-82d7-880d5db35060', 'Snow Data Assimilation System (SNODAS)', 'snodas', ''),
     ('c4f403ce-5d02-4f56-9d65-245436831d8d', 'Snow Data Assimilation System (SNODAS) Interpolated', 'snodas-interpolated', ''),
     ('e9d3c98a-6cd7-40cc-9429-57ca7ea96ee1', 'Real-Time Mesoscale Analysis (RTMA) Rapid Update', 'rtma-ru', ''),
     ('b35d2f4c-dff2-49bf-9acc-2ed17d3c4576', 'MultiRadar/MultiSensor (MRMS)', 'mrms', ''),
     ('e9730ce6-2ff2-4dbe-ab77-47237a0fd598', 'MultiRadar/MultiSensor (MRMS) v12', 'mrms-v12', ''),
+    ('6b9ac80b-823c-4ac8-bc15-d0232d860302', 'Missouri Basin River Forecast Center', 'mbrfc', 'MBRFC Description...'),
+    ('87f21790-c192-46d3-88a1-71c4967ef9f0', 'North American Ensemble Forecast System (NAEFS)', 'naefs', 'The North America Ensemble Forecasting System (NAEFS) is a multinational effort...'),
     ('c9b39f25-51e5-49cd-9b5a-77c575bebc3b', 'National Blend of Models (NBM)', 'nbm', ''),
     ('2ba58108-1bdf-4f63-8b47-dfd3590f96ae', 'National Digital Forecast Database (NDFD)', 'ndfd', ''),
     ('3d12bbb0-3a84-409f-90bf-f68fb1ce0bca', 'National Digital Guidance Database (NDGD)', 'ndgd', ''),
@@ -204,74 +209,46 @@ INSERT INTO suite (id, name, slug, description) VALUES
     ('894205d5-cc55-4071-946b-d4027004cb40', 'Weather Research and Forecasting Model (WRF) Columbia', 'wrf-columbia', '');
 
 -- suite (description field)
-UPDATE suite set description = 'SNODAS is a modelling and data assimilation system developed by the NOHRSC to provide the best possible estimates of snow cover and associated variables to support hydrologic modelling and analysis. The aim of SNODAS is to provide a physically consistent framework to integrate snow data from satellite and airborne platforms, and ground stations with model estimates of snow cover.'
+UPDATE suite set description = 'SNODAS is a modeling and data assimilation system developed by the NOHRSC to provide the best possible estimates of snow cover and associated variables to support hydrologic modelling and analysis. The aim of SNODAS is to provide a physically consistent framework to integrate snow data from satellite and airborne platforms, and ground stations with model estimates of snow cover.'
 WHERE id = 'c133e9e7-ddc8-4a98-82d7-880d5db35060';
 
 -- product
--- INSERT INTO product (id, name, slug, temporal_duration, temporal_resolution, dss_fpart, parameter_id, unit_id, description, suite_id) VALUES
---     ('e0baa220-1310-445b-816b-6887465cc94b','nohrsc_snodas_snowdepth','nohrsc-snodas-snowdepth', 0,86400,'SNODAS','cfa90543-235c-4266-98c2-26dbc332cd87','e245d39f-3209-4e58-bfb7-4eae94b3f8dd', '', 'c133e9e7-ddc8-4a98-82d7-880d5db35060'),
---     ('757c809c-dda0-412b-9831-cb9bd0f62d1d','nohrsc_snodas_swe','nohrsc-snodas-swe',0,86400,'SNODAS','683a55b9-4a94-46b5-9f47-26e66f3037a8','e245d39f-3209-4e58-bfb7-4eae94b3f8dd', '', 'c133e9e7-ddc8-4a98-82d7-880d5db35060'),
---     ('57da96dc-fc5e-428c-9318-19f095f461eb','nohrsc_snodas_snowpack_average_temperature','nohrsc-snodas-snowpack-average-temperature',0,86400,'SNODAS','ccc8c81a-ddb0-4738-857b-f0ef69aa1dc0','855ee63c-d623-40d5-a551-3655ce2d7b47', '', 'c133e9e7-ddc8-4a98-82d7-880d5db35060'),
---     ('86526298-78fa-4307-9276-a7c0a0537d15','nohrsc_snodas_snowmelt','nohrsc-snodas-snowmelt',86400,86400,'SNODAS','d3f49557-2aef-4dc2-a2dd-01b353b301a4','e245d39f-3209-4e58-bfb7-4eae94b3f8dd', '', 'c133e9e7-ddc8-4a98-82d7-880d5db35060'),
---     ('c2f2f0ed-d120-478a-b38f-427e91ab18e2','nohrsc_snodas_coldcontent','nohrsc-snodas-coldcontent',0,86400,'SNODAS','2b3f8cf3-d3f5-440b-b7e7-0c8090eda80f','e245d39f-3209-4e58-bfb7-4eae94b3f8dd', '', 'c133e9e7-ddc8-4a98-82d7-880d5db35060'),    
---     ('517369a5-7fe3-4b0a-9ef6-10f26f327b26','nohrsc_snodas_swe_interpolated','nohrsc-snodas-swe-interpolated',0,86400,'SNODAS-INTERP','683a55b9-4a94-46b5-9f47-26e66f3037a8','e245d39f-3209-4e58-bfb7-4eae94b3f8dd', 'SNODAS Interpolated', 'c4f403ce-5d02-4f56-9d65-245436831d8d'),
---     ('2274baae-1dcf-4c4c-92bb-e8a640debee0','nohrsc_snodas_snowdepth_interpolated','nohrsc-snodas-snowdepth-interpolated',0,86400,'SNODAS-INTERP','cfa90543-235c-4266-98c2-26dbc332cd87','e245d39f-3209-4e58-bfb7-4eae94b3f8dd', 'SNODAS Interpolated', 'c4f403ce-5d02-4f56-9d65-245436831d8d'),
---     ('33407c74-cdc2-4ab2-bd9a-3dff99ea02e4','nohrsc_snodas_coldcontent_interpolated','nohrsc-snodas-coldcontent-interpolated',0,86400,'SNODAS-INTERP','2b3f8cf3-d3f5-440b-b7e7-0c8090eda80f','e245d39f-3209-4e58-bfb7-4eae94b3f8dd', 'SNODAS Interpolated', 'c4f403ce-5d02-4f56-9d65-245436831d8d'),
---     ('e97fbc56-ebe2-4d5a-bcd4-4bf3744d8a1b','nohrsc_snodas_snowpack_average_temperature_interpolated','nohrsc-snodas-snowpack-average-temperature-interpolated',0,86400,'SNODAS-INTERP','ccc8c81a-ddb0-4738-857b-f0ef69aa1dc0','855ee63c-d623-40d5-a551-3655ce2d7b47', 'SNODAS Interpolated', 'c4f403ce-5d02-4f56-9d65-245436831d8d'),
---     ('10011d9c-04a4-454d-88a0-fb7ba0d64d37','nohrsc_snodas_snowmelt_interpolated','nohrsc-snodas-snowmelt-interpolated',86400,86400,'SNODAS-INTERP','d3f49557-2aef-4dc2-a2dd-01b353b301a4','e245d39f-3209-4e58-bfb7-4eae94b3f8dd', 'SNODAS Interpolated', 'c4f403ce-5d02-4f56-9d65-245436831d8d'),    
---     ('64756f41-75e2-40ce-b91a-fda5aeb441fc','prism_ppt_early','prism-ppt-early',86400,86400,'PRISM-EARLY','eb82d661-afe6-436a-b0df-2ab0b478a1af','e245d39f-3209-4e58-bfb7-4eae94b3f8dd', 'Daily total precipitation (rain+melted snow)', '9252e4e6-18fa-4a33-a3b6-6f99b5e56f13'),
---     ('6357a677-5e77-4c37-8aeb-3300707ca885','prism_tmax_early','prism-tmax-early',86400,86400,'PRISM-EARLY','5fab39b9-90ba-482a-8156-d863ad7c45ad','8f51e5b5-08be-4ea7-9ebc-ad44b465dbc6', 'Daily maximum temperature [averaged over all days in the month]', '9252e4e6-18fa-4a33-a3b6-6f99b5e56f13'),
---     ('62e08d34-ff6b-45c9-8bb9-80df922d0779','prism_tmin_early','prism-tmin-early',86400,86400,'PRISM-EARLY','5fab39b9-90ba-482a-8156-d863ad7c45ad','8f51e5b5-08be-4ea7-9ebc-ad44b465dbc6', 'Daily minimum temperature [averaged over all days in the month]', '9252e4e6-18fa-4a33-a3b6-6f99b5e56f13'),    
---     ('e4fdadc7-5532-4910-9ed7-3c3690305d86','ncep_rtma_ru_anl_airtemp','ncep-rtma-ru-anl-airtemp',0,900,'NCEP-RTMA-RU-ANL','5fab39b9-90ba-482a-8156-d863ad7c45ad','8f51e5b5-08be-4ea7-9ebc-ad44b465dbc6', 'RTMA Description', 'e9d3c98a-6cd7-40cc-9429-57ca7ea96ee1'),    
---     ('f1b6ac38-bbc9-48c6-bf78-207005ee74fa','ncep_mrms_gaugecorr_qpe_01h','ncep-mrms-gaugecorr-qpe-01h',0,3600,'NCEP-MRMS-QPE-GAUGECORR','eb82d661-afe6-436a-b0df-2ab0b478a1af','e245d39f-3209-4e58-bfb7-4eae94b3f8dd', 'Legacy Product', 'b35d2f4c-dff2-49bf-9acc-2ed17d3c4576'),    
---     ('30a6d443-80a5-49cc-beb0-5d3a18a84caa','ncep_mrms_v12_multisensor_qpe_01h_pass1','ncep-mrms-v12-multisensor-qpe-01h-pass1',3600,3600,'NCEP-MRMSV12-QPE-01H-PASS1','eb82d661-afe6-436a-b0df-2ab0b478a1af','e245d39f-3209-4e58-bfb7-4eae94b3f8dd', 'MRMS Description', 'e9730ce6-2ff2-4dbe-ab77-47237a0fd598'),
---     ('7c7ba37a-efad-499e-9c3a-5354370b8e9e','ncep_mrms_v12_multisensor_qpe_01h_pass2','ncep-mrms-v12-multisensor-qpe-01h-pass2',3600,3600,'NCEP-MRMSV12-QPE-01H-PASS2','eb82d661-afe6-436a-b0df-2ab0b478a1af','e245d39f-3209-4e58-bfb7-4eae94b3f8dd', 'MRMS Description', 'e9730ce6-2ff2-4dbe-ab77-47237a0fd598'),    
---     ('0ac60940-35c2-4c0d-8a3b-49c20e455ff5','wpc_qpf_2p5km','wpc-qpf-2p5km',21600,21600,'WPC-QPF-2.5KM','eb82d661-afe6-436a-b0df-2ab0b478a1af','e245d39f-3209-4e58-bfb7-4eae94b3f8dd', 'WPC QPF Description', '5d5a280f-0a15-44cd-a11e-694b7cd9f5a5'),    
---     ('5e6ca7ed-007d-4944-93aa-0a7a6116bdcd','ndgd_ltia98_airtemp','ndgd-ltia98-airtemp',0,3600,'NDGD-LTIA98-AIRTEMP','5fab39b9-90ba-482a-8156-d863ad7c45ad','8f51e5b5-08be-4ea7-9ebc-ad44b465dbc6', 'Legacy Product', '3d12bbb0-3a84-409f-90bf-f68fb1ce0bca'),
---     ('1ba5498c-d507-4c82-a80b-9b0af952b02f','ndgd_leia98_precip','ndgd-leia98-precip',3600,3600,'NDGD-LEIA98-PRECIP','eb82d661-afe6-436a-b0df-2ab0b478a1af','e245d39f-3209-4e58-bfb7-4eae94b3f8dd', 'Legacy Product', '3d12bbb0-3a84-409f-90bf-f68fb1ce0bca'),    
---     ('c500f609-428f-4c38-b658-e7dde63de2ea','Colorado Basin RFC - MPE','cbrfc-mpe',3600,3600,'CBRFC-MPE','eb82d661-afe6-436a-b0df-2ab0b478a1af','e245d39f-3209-4e58-bfb7-4eae94b3f8dd', 'CBRFC Multisensor Precipitation Estimates (MPE)', '74d7191f-7c4b-4549-bf80-5a5de4ba4880'),
---     ('002125d6-2c90-4c24-9382-10a535d398bb','High Resolution Rapid Refresh (HRRR)','hrrr-total-precip',3600,3600,'HRRR','eb82d661-afe6-436a-b0df-2ab0b478a1af','e245d39f-3209-4e58-bfb7-4eae94b3f8dd', 'High Resolution Rapid Refresh (HRRR) description', '0a4007db-ebcb-4d01-bb3e-3545255da4f0'),    
---     ('84a64026-0e5d-49ac-a48a-6a83efa2b77c','ndfd_conus_qpf_06h', 'ndfd-conus-qpf-06h',21600,21600,'NDFD-CONUS-QPF','eb82d661-afe6-436a-b0df-2ab0b478a1af','e245d39f-3209-4e58-bfb7-4eae94b3f8dd', 'National Digital Forecast Database (NDFD) QPF 6hr Forecast', '2ba58108-1bdf-4f63-8b47-dfd3590f96ae'),
---     ('b206a00b-9ed6-42e1-a34d-c67d43828810','ndfd_conus_airtemp_01h', 'ndfd-conus-airtemp-01h',3600,3600,'NDFD-CONUS-TEMP','5fab39b9-90ba-482a-8156-d863ad7c45ad','8f51e5b5-08be-4ea7-9ebc-ad44b465dbc6', 'National Digital Forecast Database - Forecast 01hr Airtemp', '2ba58108-1bdf-4f63-8b47-dfd3590f96ae'),
---     ('dde59007-25ec-4bb4-b5e6-8f0f1fbab853','ndfd_conus_airtemp_03h', 'ndfd-conus-airtemp-03h',10800,10800,'NDFD-CONUS-TEMP','5fab39b9-90ba-482a-8156-d863ad7c45ad','8f51e5b5-08be-4ea7-9ebc-ad44b465dbc6', 'National Digital Forecast Database - Forecast 03hr Airtemp', '2ba58108-1bdf-4f63-8b47-dfd3590f96ae'),
---     ('f48006a5-ad25-4a9f-9b58-639d75763dd7','ndfd_conus_airtemp_06h', 'ndfd-conus-airtemp-06h',21600,21600,'NDFD-CONUS-TEMP','5fab39b9-90ba-482a-8156-d863ad7c45ad','8f51e5b5-08be-4ea7-9ebc-ad44b465dbc6', 'National Digital Forecast Database - Forecast 06hr Airtemp', '2ba58108-1bdf-4f63-8b47-dfd3590f96ae'),
---     ('b50f29f4-547b-4371-9365-60d44eef412e','wrf_columbia_precip','wrf-columbia-precip',3600,3600,'WRF-COLUMBIA','eb82d661-afe6-436a-b0df-2ab0b478a1af','e245d39f-3209-4e58-bfb7-4eae94b3f8dd', 'WRF Columbia precipitation data created for the entire Columbia River Basin', '894205d5-cc55-4071-946b-d4027004cb40'),
---     ('793e285f-333b-41a3-b4ab-223a7a764668','wrf_columbia_t2_airtemp','wrf-columbia-airtemp',3600,3600,'WRF-COLUMBIA','5fab39b9-90ba-482a-8156-d863ad7c45ad','0c8dcd1f-93db-4e64-be1d-47b3462deb2a', 'WRF Columbia T2 (temperature at 2 m) data created for the entire Columbia River Basin', '894205d5-cc55-4071-946b-d4027004cb40'),
---     ('5317d1c4-c6db-40c2-b527-72f7603be8a0','National Blend of Models (NBM) CONUS QPF','nbm-co-qpf',3600,3600,'NBM-CO-QPF','eb82d661-afe6-436a-b0df-2ab0b478a1af','e245d39f-3209-4e58-bfb7-4eae94b3f8dd', 'CONUS Forecast Precip', 'c9b39f25-51e5-49cd-9b5a-77c575bebc3b'),
---     ('d0c1d6f4-cf5d-4332-a17e-dd1757c99c94','National Blend of Models (NBM) CONUS Airtemp','nbm-co-airtemp',3600,3600,'NBM-CO-AIRTEMP','5fab39b9-90ba-482a-8156-d863ad7c45ad','8f51e5b5-08be-4ea7-9ebc-ad44b465dbc6', 'CONUS Forecast Precip', 'c9b39f25-51e5-49cd-9b5a-77c575bebc3b');
-
-INSERT INTO product (id, label, temporal_duration, temporal_resolution, dss_fpart, parameter_id, unit_id, description, suite_id) VALUES
-    ('e0baa220-1310-445b-816b-6887465cc94b','',0,86400,'SNODAS','cfa90543-235c-4266-98c2-26dbc332cd87','e245d39f-3209-4e58-bfb7-4eae94b3f8dd', '', 'c133e9e7-ddc8-4a98-82d7-880d5db35060'),
-    ('757c809c-dda0-412b-9831-cb9bd0f62d1d','',0,86400,'SNODAS','683a55b9-4a94-46b5-9f47-26e66f3037a8','e245d39f-3209-4e58-bfb7-4eae94b3f8dd', '', 'c133e9e7-ddc8-4a98-82d7-880d5db35060'),
-    ('57da96dc-fc5e-428c-9318-19f095f461eb','',0,86400,'SNODAS','ccc8c81a-ddb0-4738-857b-f0ef69aa1dc0','855ee63c-d623-40d5-a551-3655ce2d7b47', '', 'c133e9e7-ddc8-4a98-82d7-880d5db35060'),
-    ('86526298-78fa-4307-9276-a7c0a0537d15','',86400,86400,'SNODAS','d3f49557-2aef-4dc2-a2dd-01b353b301a4','e245d39f-3209-4e58-bfb7-4eae94b3f8dd', '', 'c133e9e7-ddc8-4a98-82d7-880d5db35060'),
-    ('c2f2f0ed-d120-478a-b38f-427e91ab18e2','',0,86400,'SNODAS','2b3f8cf3-d3f5-440b-b7e7-0c8090eda80f','e245d39f-3209-4e58-bfb7-4eae94b3f8dd', '', 'c133e9e7-ddc8-4a98-82d7-880d5db35060'),    
-    ('517369a5-7fe3-4b0a-9ef6-10f26f327b26','',0,86400,'SNODAS-INTERP','683a55b9-4a94-46b5-9f47-26e66f3037a8','e245d39f-3209-4e58-bfb7-4eae94b3f8dd', 'SNODAS Interpolated', 'c4f403ce-5d02-4f56-9d65-245436831d8d'),
-    ('2274baae-1dcf-4c4c-92bb-e8a640debee0','',0,86400,'SNODAS-INTERP','cfa90543-235c-4266-98c2-26dbc332cd87','e245d39f-3209-4e58-bfb7-4eae94b3f8dd', 'SNODAS Interpolated', 'c4f403ce-5d02-4f56-9d65-245436831d8d'),
-    ('33407c74-cdc2-4ab2-bd9a-3dff99ea02e4','',0,86400,'SNODAS-INTERP','2b3f8cf3-d3f5-440b-b7e7-0c8090eda80f','e245d39f-3209-4e58-bfb7-4eae94b3f8dd', 'SNODAS Interpolated', 'c4f403ce-5d02-4f56-9d65-245436831d8d'),
-    ('e97fbc56-ebe2-4d5a-bcd4-4bf3744d8a1b','',0,86400,'SNODAS-INTERP','ccc8c81a-ddb0-4738-857b-f0ef69aa1dc0','855ee63c-d623-40d5-a551-3655ce2d7b47', 'SNODAS Interpolated', 'c4f403ce-5d02-4f56-9d65-245436831d8d'),
-    ('10011d9c-04a4-454d-88a0-fb7ba0d64d37','',86400,86400,'SNODAS-INTERP','d3f49557-2aef-4dc2-a2dd-01b353b301a4','e245d39f-3209-4e58-bfb7-4eae94b3f8dd', 'SNODAS Interpolated', 'c4f403ce-5d02-4f56-9d65-245436831d8d'),    
-    ('64756f41-75e2-40ce-b91a-fda5aeb441fc','PPT',86400,86400,'PRISM-EARLY','eb82d661-afe6-436a-b0df-2ab0b478a1af','e245d39f-3209-4e58-bfb7-4eae94b3f8dd', 'Daily total precipitation (rain+melted snow)', '9252e4e6-18fa-4a33-a3b6-6f99b5e56f13'),
-    ('6357a677-5e77-4c37-8aeb-3300707ca885','TMAX',86400,86400,'PRISM-EARLY','5fab39b9-90ba-482a-8156-d863ad7c45ad','8f51e5b5-08be-4ea7-9ebc-ad44b465dbc6', 'Daily maximum temperature [averaged over all days in the month]', '9252e4e6-18fa-4a33-a3b6-6f99b5e56f13'),
-    ('62e08d34-ff6b-45c9-8bb9-80df922d0779','TMIN',86400,86400,'PRISM-EARLY','5fab39b9-90ba-482a-8156-d863ad7c45ad','8f51e5b5-08be-4ea7-9ebc-ad44b465dbc6', 'Daily minimum temperature [averaged over all days in the month]', '9252e4e6-18fa-4a33-a3b6-6f99b5e56f13'),    
-    ('e4fdadc7-5532-4910-9ed7-3c3690305d86','',0,900,'NCEP-RTMA-RU-ANL','5fab39b9-90ba-482a-8156-d863ad7c45ad','8f51e5b5-08be-4ea7-9ebc-ad44b465dbc6', 'RTMA Description', 'e9d3c98a-6cd7-40cc-9429-57ca7ea96ee1'),    
-    ('f1b6ac38-bbc9-48c6-bf78-207005ee74fa','QPE',0,3600,'NCEP-MRMS-QPE-GAUGECORR','eb82d661-afe6-436a-b0df-2ab0b478a1af','e245d39f-3209-4e58-bfb7-4eae94b3f8dd', 'Legacy Product', 'b35d2f4c-dff2-49bf-9acc-2ed17d3c4576'),    
-    ('30a6d443-80a5-49cc-beb0-5d3a18a84caa','QPE Pass 1',3600,3600,'NCEP-MRMSV12-QPE-01H-PASS1','eb82d661-afe6-436a-b0df-2ab0b478a1af','e245d39f-3209-4e58-bfb7-4eae94b3f8dd', 'MRMS Description', 'e9730ce6-2ff2-4dbe-ab77-47237a0fd598'),
-    ('7c7ba37a-efad-499e-9c3a-5354370b8e9e','QPE Pass 2',3600,3600,'NCEP-MRMSV12-QPE-01H-PASS2','eb82d661-afe6-436a-b0df-2ab0b478a1af','e245d39f-3209-4e58-bfb7-4eae94b3f8dd', 'MRMS Description', 'e9730ce6-2ff2-4dbe-ab77-47237a0fd598'),    
-    ('0ac60940-35c2-4c0d-8a3b-49c20e455ff5','QPF',21600,21600,'WPC-QPF-2.5KM','eb82d661-afe6-436a-b0df-2ab0b478a1af','e245d39f-3209-4e58-bfb7-4eae94b3f8dd', 'WPC QPF Description', '5d5a280f-0a15-44cd-a11e-694b7cd9f5a5'),    
-    ('5e6ca7ed-007d-4944-93aa-0a7a6116bdcd','',0,3600,'NDGD-LTIA98-AIRTEMP','5fab39b9-90ba-482a-8156-d863ad7c45ad','8f51e5b5-08be-4ea7-9ebc-ad44b465dbc6', 'Legacy Product', '3d12bbb0-3a84-409f-90bf-f68fb1ce0bca'),
-    ('1ba5498c-d507-4c82-a80b-9b0af952b02f','',3600,3600,'NDGD-LEIA98-PRECIP','eb82d661-afe6-436a-b0df-2ab0b478a1af','e245d39f-3209-4e58-bfb7-4eae94b3f8dd', 'Legacy Product', '3d12bbb0-3a84-409f-90bf-f68fb1ce0bca'),    
-    ('c500f609-428f-4c38-b658-e7dde63de2ea','MPE',3600,3600,'CBRFC-MPE','eb82d661-afe6-436a-b0df-2ab0b478a1af','e245d39f-3209-4e58-bfb7-4eae94b3f8dd', 'CBRFC Multisensor Precipitation Estimates (MPE)', '74d7191f-7c4b-4549-bf80-5a5de4ba4880'),
-    ('002125d6-2c90-4c24-9382-10a535d398bb','',3600,3600,'HRRR','eb82d661-afe6-436a-b0df-2ab0b478a1af','e245d39f-3209-4e58-bfb7-4eae94b3f8dd', 'High Resolution Rapid Refresh (HRRR) description', '0a4007db-ebcb-4d01-bb3e-3545255da4f0'),    
-    ('84a64026-0e5d-49ac-a48a-6a83efa2b77c','QPF',21600,21600,'NDFD-CONUS-QPF','eb82d661-afe6-436a-b0df-2ab0b478a1af','e245d39f-3209-4e58-bfb7-4eae94b3f8dd', 'National Digital Forecast Database (NDFD) QPF 6hr Forecast', '2ba58108-1bdf-4f63-8b47-dfd3590f96ae'),
-    ('b206a00b-9ed6-42e1-a34d-c67d43828810','',3600,3600,'NDFD-CONUS-TEMP','5fab39b9-90ba-482a-8156-d863ad7c45ad','8f51e5b5-08be-4ea7-9ebc-ad44b465dbc6', 'National Digital Forecast Database - Forecast 01hr Airtemp', '2ba58108-1bdf-4f63-8b47-dfd3590f96ae'),
-    ('dde59007-25ec-4bb4-b5e6-8f0f1fbab853','',10800,10800,'NDFD-CONUS-TEMP','5fab39b9-90ba-482a-8156-d863ad7c45ad','8f51e5b5-08be-4ea7-9ebc-ad44b465dbc6', 'National Digital Forecast Database - Forecast 03hr Airtemp', '2ba58108-1bdf-4f63-8b47-dfd3590f96ae'),
-    ('f48006a5-ad25-4a9f-9b58-639d75763dd7','',21600,21600,'NDFD-CONUS-TEMP','5fab39b9-90ba-482a-8156-d863ad7c45ad','8f51e5b5-08be-4ea7-9ebc-ad44b465dbc6', 'National Digital Forecast Database - Forecast 06hr Airtemp', '2ba58108-1bdf-4f63-8b47-dfd3590f96ae'),
-    ('b50f29f4-547b-4371-9365-60d44eef412e','',3600,3600,'WRF-COLUMBIA','eb82d661-afe6-436a-b0df-2ab0b478a1af','e245d39f-3209-4e58-bfb7-4eae94b3f8dd', 'WRF Columbia precipitation data created for the entire Columbia River Basin', '894205d5-cc55-4071-946b-d4027004cb40'),
-    ('793e285f-333b-41a3-b4ab-223a7a764668','',3600,3600,'WRF-COLUMBIA','5fab39b9-90ba-482a-8156-d863ad7c45ad','0c8dcd1f-93db-4e64-be1d-47b3462deb2a', 'WRF Columbia T2 (temperature at 2 m) data created for the entire Columbia River Basin', '894205d5-cc55-4071-946b-d4027004cb40'),
-    ('5317d1c4-c6db-40c2-b527-72f7603be8a0','QPF',3600,3600,'NBM-CO-QPF','eb82d661-afe6-436a-b0df-2ab0b478a1af','e245d39f-3209-4e58-bfb7-4eae94b3f8dd', 'CONUS Forecast Precip', 'c9b39f25-51e5-49cd-9b5a-77c575bebc3b'),
-    ('d0c1d6f4-cf5d-4332-a17e-dd1757c99c94','',3600,3600,'NBM-CO-AIRTEMP','5fab39b9-90ba-482a-8156-d863ad7c45ad','8f51e5b5-08be-4ea7-9ebc-ad44b465dbc6', 'CONUS Forecast Precip', 'c9b39f25-51e5-49cd-9b5a-77c575bebc3b');
-
+INSERT INTO product (id, slug, label, temporal_duration, temporal_resolution, dss_fpart, parameter_id, unit_id, description, suite_id) VALUES
+    ('e0baa220-1310-445b-816b-6887465cc94b','nohrsc-snodas-snowdepth','',0,86400,'SNODAS','cfa90543-235c-4266-98c2-26dbc332cd87','e245d39f-3209-4e58-bfb7-4eae94b3f8dd', '', 'c133e9e7-ddc8-4a98-82d7-880d5db35060'),
+    ('757c809c-dda0-412b-9831-cb9bd0f62d1d','nohrsc-snodas-swe','',0,86400,'SNODAS','683a55b9-4a94-46b5-9f47-26e66f3037a8','e245d39f-3209-4e58-bfb7-4eae94b3f8dd', '', 'c133e9e7-ddc8-4a98-82d7-880d5db35060'),
+    ('57da96dc-fc5e-428c-9318-19f095f461eb','nohrsc-snodas-snowpack-average-temperature','',0,86400,'SNODAS','ccc8c81a-ddb0-4738-857b-f0ef69aa1dc0','855ee63c-d623-40d5-a551-3655ce2d7b47', '', 'c133e9e7-ddc8-4a98-82d7-880d5db35060'),
+    ('86526298-78fa-4307-9276-a7c0a0537d15','nohrsc-snodas-snowmelt','',86400,86400,'SNODAS','d3f49557-2aef-4dc2-a2dd-01b353b301a4','e245d39f-3209-4e58-bfb7-4eae94b3f8dd', '', 'c133e9e7-ddc8-4a98-82d7-880d5db35060'),
+    ('c2f2f0ed-d120-478a-b38f-427e91ab18e2','nohrsc-snodas-coldcontent','',0,86400,'SNODAS','2b3f8cf3-d3f5-440b-b7e7-0c8090eda80f','e245d39f-3209-4e58-bfb7-4eae94b3f8dd', '', 'c133e9e7-ddc8-4a98-82d7-880d5db35060'),    
+    ('517369a5-7fe3-4b0a-9ef6-10f26f327b26','nohrsc-snodas-swe-interpolated','',0,86400,'SNODAS-INTERP','683a55b9-4a94-46b5-9f47-26e66f3037a8','e245d39f-3209-4e58-bfb7-4eae94b3f8dd', 'SNODAS Interpolated', 'c4f403ce-5d02-4f56-9d65-245436831d8d'),
+    ('2274baae-1dcf-4c4c-92bb-e8a640debee0','nohrsc-snodas-snowdepth-interpolated','',0,86400,'SNODAS-INTERP','cfa90543-235c-4266-98c2-26dbc332cd87','e245d39f-3209-4e58-bfb7-4eae94b3f8dd', 'SNODAS Interpolated', 'c4f403ce-5d02-4f56-9d65-245436831d8d'),
+    ('33407c74-cdc2-4ab2-bd9a-3dff99ea02e4','nohrsc-snodas-coldcontent-interpolated','',0,86400,'SNODAS-INTERP','2b3f8cf3-d3f5-440b-b7e7-0c8090eda80f','e245d39f-3209-4e58-bfb7-4eae94b3f8dd', 'SNODAS Interpolated', 'c4f403ce-5d02-4f56-9d65-245436831d8d'),
+    ('e97fbc56-ebe2-4d5a-bcd4-4bf3744d8a1b','nohrsc-snodas-snowpack-average-temperature-interpolated','',0,86400,'SNODAS-INTERP','ccc8c81a-ddb0-4738-857b-f0ef69aa1dc0','855ee63c-d623-40d5-a551-3655ce2d7b47', 'SNODAS Interpolated', 'c4f403ce-5d02-4f56-9d65-245436831d8d'),
+    ('10011d9c-04a4-454d-88a0-fb7ba0d64d37','nohrsc-snodas-snowmelt-interpolated','',86400,86400,'SNODAS-INTERP','d3f49557-2aef-4dc2-a2dd-01b353b301a4','e245d39f-3209-4e58-bfb7-4eae94b3f8dd', 'SNODAS Interpolated', 'c4f403ce-5d02-4f56-9d65-245436831d8d'),    
+    ('64756f41-75e2-40ce-b91a-fda5aeb441fc','prism-ppt-early','PPT',86400,86400,'PRISM-EARLY','eb82d661-afe6-436a-b0df-2ab0b478a1af','e245d39f-3209-4e58-bfb7-4eae94b3f8dd', 'Daily total precipitation (rain+melted snow)', '9252e4e6-18fa-4a33-a3b6-6f99b5e56f13'),
+    ('6357a677-5e77-4c37-8aeb-3300707ca885','prism-tmax-early','TMAX',86400,86400,'PRISM-EARLY','5fab39b9-90ba-482a-8156-d863ad7c45ad','8f51e5b5-08be-4ea7-9ebc-ad44b465dbc6', 'Daily maximum temperature [averaged over all days in the month]', '9252e4e6-18fa-4a33-a3b6-6f99b5e56f13'),
+    ('62e08d34-ff6b-45c9-8bb9-80df922d0779','prism-tmin-early','TMIN',86400,86400,'PRISM-EARLY','5fab39b9-90ba-482a-8156-d863ad7c45ad','8f51e5b5-08be-4ea7-9ebc-ad44b465dbc6', 'Daily minimum temperature [averaged over all days in the month]', '9252e4e6-18fa-4a33-a3b6-6f99b5e56f13'),    
+    ('e4fdadc7-5532-4910-9ed7-3c3690305d86','ncep-rtma-ru-anl-airtemp','',0,900,'NCEP-RTMA-RU-ANL','5fab39b9-90ba-482a-8156-d863ad7c45ad','8f51e5b5-08be-4ea7-9ebc-ad44b465dbc6', 'RTMA Description', 'e9d3c98a-6cd7-40cc-9429-57ca7ea96ee1'),    
+    ('f1b6ac38-bbc9-48c6-bf78-207005ee74fa','ncep-mrms-gaugecorr-qpe-01h','GAUGECORR QPE',0,3600,'NCEP-MRMS-QPE-GAUGECORR','eb82d661-afe6-436a-b0df-2ab0b478a1af','e245d39f-3209-4e58-bfb7-4eae94b3f8dd', 'Legacy Product', 'b35d2f4c-dff2-49bf-9acc-2ed17d3c4576'),    
+    ('30a6d443-80a5-49cc-beb0-5d3a18a84caa','ncep-mrms-v12-multisensor-qpe-01h-pass1','QPE Pass 1',3600,3600,'NCEP-MRMSV12-QPE-01H-PASS1','eb82d661-afe6-436a-b0df-2ab0b478a1af','e245d39f-3209-4e58-bfb7-4eae94b3f8dd', 'MRMS Description', 'e9730ce6-2ff2-4dbe-ab77-47237a0fd598'),
+    ('7c7ba37a-efad-499e-9c3a-5354370b8e9e','ncep-mrms-v12-multisensor-qpe-01h-pass2','QPE Pass 2',3600,3600,'NCEP-MRMSV12-QPE-01H-PASS2','eb82d661-afe6-436a-b0df-2ab0b478a1af','e245d39f-3209-4e58-bfb7-4eae94b3f8dd', 'MRMS Description', 'e9730ce6-2ff2-4dbe-ab77-47237a0fd598'),    
+    ('0ac60940-35c2-4c0d-8a3b-49c20e455ff5','wpc-qpf-2p5km','QPF',21600,21600,'WPC-QPF-2.5KM','eb82d661-afe6-436a-b0df-2ab0b478a1af','e245d39f-3209-4e58-bfb7-4eae94b3f8dd', 'WPC QPF Description', '5d5a280f-0a15-44cd-a11e-694b7cd9f5a5'),    
+    ('5e6ca7ed-007d-4944-93aa-0a7a6116bdcd','ndgd-ltia98-airtemp','',0,3600,'NDGD-LTIA98-AIRTEMP','5fab39b9-90ba-482a-8156-d863ad7c45ad','8f51e5b5-08be-4ea7-9ebc-ad44b465dbc6', 'Legacy Product', '3d12bbb0-3a84-409f-90bf-f68fb1ce0bca'),
+    ('1ba5498c-d507-4c82-a80b-9b0af952b02f','ndgd-leia98-precip','',3600,3600,'NDGD-LEIA98-PRECIP','eb82d661-afe6-436a-b0df-2ab0b478a1af','e245d39f-3209-4e58-bfb7-4eae94b3f8dd', 'Legacy Product', '3d12bbb0-3a84-409f-90bf-f68fb1ce0bca'),    
+    ('c500f609-428f-4c38-b658-e7dde63de2ea','cbrfc-mpe','MPE',3600,3600,'CBRFC-MPE','eb82d661-afe6-436a-b0df-2ab0b478a1af','e245d39f-3209-4e58-bfb7-4eae94b3f8dd', 'CBRFC Multisensor Precipitation Estimates (MPE)', '74d7191f-7c4b-4549-bf80-5a5de4ba4880'),
+    ('002125d6-2c90-4c24-9382-10a535d398bb','hrrr-total-precip','',3600,3600,'HRRR','eb82d661-afe6-436a-b0df-2ab0b478a1af','e245d39f-3209-4e58-bfb7-4eae94b3f8dd', 'High Resolution Rapid Refresh (HRRR) description', '0a4007db-ebcb-4d01-bb3e-3545255da4f0'),    
+    ('84a64026-0e5d-49ac-a48a-6a83efa2b77c','ndfd-conus-qpf-06h','QPF',21600,21600,'NDFD-CONUS-QPF','eb82d661-afe6-436a-b0df-2ab0b478a1af','e245d39f-3209-4e58-bfb7-4eae94b3f8dd', 'National Digital Forecast Database (NDFD) QPF 6hr Forecast', '2ba58108-1bdf-4f63-8b47-dfd3590f96ae'),
+    ('b206a00b-9ed6-42e1-a34d-c67d43828810','ndfd-conus-airtemp-01h','',3600,3600,'NDFD-CONUS-TEMP','5fab39b9-90ba-482a-8156-d863ad7c45ad','8f51e5b5-08be-4ea7-9ebc-ad44b465dbc6', 'National Digital Forecast Database - Forecast 01hr Airtemp', '2ba58108-1bdf-4f63-8b47-dfd3590f96ae'),
+    ('dde59007-25ec-4bb4-b5e6-8f0f1fbab853','ndfd-conus-airtemp-03h','',10800,10800,'NDFD-CONUS-TEMP','5fab39b9-90ba-482a-8156-d863ad7c45ad','8f51e5b5-08be-4ea7-9ebc-ad44b465dbc6', 'National Digital Forecast Database - Forecast 03hr Airtemp', '2ba58108-1bdf-4f63-8b47-dfd3590f96ae'),
+    ('f48006a5-ad25-4a9f-9b58-639d75763dd7','ndfd-conus-airtemp-06h','',21600,21600,'NDFD-CONUS-TEMP','5fab39b9-90ba-482a-8156-d863ad7c45ad','8f51e5b5-08be-4ea7-9ebc-ad44b465dbc6', 'National Digital Forecast Database - Forecast 06hr Airtemp', '2ba58108-1bdf-4f63-8b47-dfd3590f96ae'),
+    ('b50f29f4-547b-4371-9365-60d44eef412e','wrf-columbia-precip','',3600,3600,'WRF-COLUMBIA','eb82d661-afe6-436a-b0df-2ab0b478a1af','e245d39f-3209-4e58-bfb7-4eae94b3f8dd', 'WRF Columbia precipitation data created for the entire Columbia River Basin', '894205d5-cc55-4071-946b-d4027004cb40'),
+    ('793e285f-333b-41a3-b4ab-223a7a764668','wrf-columbia-airtemp','',3600,3600,'WRF-COLUMBIA','5fab39b9-90ba-482a-8156-d863ad7c45ad','0c8dcd1f-93db-4e64-be1d-47b3462deb2a', 'WRF Columbia T2 (temperature at 2 m) data created for the entire Columbia River Basin', '894205d5-cc55-4071-946b-d4027004cb40'),
+    ('5317d1c4-c6db-40c2-b527-72f7603be8a0','nbm-co-qpf','QPF',3600,3600,'NBM-CO-QPF','eb82d661-afe6-436a-b0df-2ab0b478a1af','e245d39f-3209-4e58-bfb7-4eae94b3f8dd', 'CONUS Forecast Precip', 'c9b39f25-51e5-49cd-9b5a-77c575bebc3b'),
+    ('d0c1d6f4-cf5d-4332-a17e-dd1757c99c94','nbm-co-airtemp','',3600,3600,'NBM-CO-AIRTEMP','5fab39b9-90ba-482a-8156-d863ad7c45ad','8f51e5b5-08be-4ea7-9ebc-ad44b465dbc6', 'CONUS Forecast Airtemp', 'c9b39f25-51e5-49cd-9b5a-77c575bebc3b'),    
+    ('a8e3de13-d4fb-4973-a076-c6783c93f332','naefs-mean-qpf-06h','MEAN QPF',21600,21600,'NAEFS-MEAN-QPF','eb82d661-afe6-436a-b0df-2ab0b478a1af','e245d39f-3209-4e58-bfb7-4eae94b3f8dd', 'Mean QPF 6hr', '87f21790-c192-46d3-88a1-71c4967ef9f0'),
+    ('60f16079-7495-47ab-aa68-36cd6a17fce0','naefs-mean-qtf-06h','MEAN QTF',21600,21600,'NAEFS-MEAN-QTF','5fab39b9-90ba-482a-8156-d863ad7c45ad','8f51e5b5-08be-4ea7-9ebc-ad44b465dbc6', 'Mean QTF 6hr', '87f21790-c192-46d3-88a1-71c4967ef9f0'),
+    ('bbfeadbb-1b54-486c-b975-a67d107540f3','mbrfc-krf-fct-airtemp-01h','KRF FCT',3600,3600,'MBRFC-KRF-FCT-AIRTEMP','5fab39b9-90ba-482a-8156-d863ad7c45ad','8f51e5b5-08be-4ea7-9ebc-ad44b465dbc6', 'KRF Forecast AirTemp 1hr', '6b9ac80b-823c-4ac8-bc15-d0232d860302'),
+    ('c96f7a1f-e57d-4694-9d09-451cfa949324','mbrfc-krf-qpf-06h','KRF QPF',21600,21600,'MBRFC-KRF-QPF','eb82d661-afe6-436a-b0df-2ab0b478a1af','e245d39f-3209-4e58-bfb7-4eae94b3f8dd', 'KRF QPF 6hr', '6b9ac80b-823c-4ac8-bc15-d0232d860302'),
+    ('9890d81e-04c5-45cc-b544-e27fde610501','mbrfc-krf-qpe-01h','KRF QPE',3600,3600,'MBRFC-KRF-QPE','eb82d661-afe6-436a-b0df-2ab0b478a1af','e245d39f-3209-4e58-bfb7-4eae94b3f8dd', 'KRF QPE 1hr', '6b9ac80b-823c-4ac8-bc15-d0232d860302');
 
 
 -- tag
@@ -280,7 +257,8 @@ INSERT INTO tag (id, name, description, color) VALUES
     ('d9613031-7cf0-4722-923e-e5c3675a163b', 'Temperature', 'Products Related to Temperature', 'fa7878'),
     ('57bda84f-ecec-4cd7-b3b1-c0c36f838a05', 'Snow', 'Products Related to Snow', 'd5e7ff'),
     ('cc93b3f9-fbe1-4b35-8f9c-2d1515961c6a', 'Forecast', 'Products represent a forecast', '8ffffc'),
-    ('2d64c718-e7af-41c0-be53-035af341c464', 'Realtime', 'Products constantly updated to support realtime modeling', '8ffffc');
+    ('2d64c718-e7af-41c0-be53-035af341c464', 'Realtime', 'Products constantly updated to support realtime modeling', '8ffffc'),
+    ('17308048-d207-43dd-b346-c9836073e911', 'Archive', 'Products not currently updating.', 'dddddd');
 
 
 -- product_tags
@@ -306,4 +284,13 @@ INSERT INTO product_tags (tag_id, product_id) VALUES
     ('cc93b3f9-fbe1-4b35-8f9c-2d1515961c6a','5317d1c4-c6db-40c2-b527-72f7603be8a0'),
     ('cc93b3f9-fbe1-4b35-8f9c-2d1515961c6a','b206a00b-9ed6-42e1-a34d-c67d43828810'),
     ('cc93b3f9-fbe1-4b35-8f9c-2d1515961c6a','dde59007-25ec-4bb4-b5e6-8f0f1fbab853'),
-    ('cc93b3f9-fbe1-4b35-8f9c-2d1515961c6a','f48006a5-ad25-4a9f-9b58-639d75763dd7');
+    ('cc93b3f9-fbe1-4b35-8f9c-2d1515961c6a','f48006a5-ad25-4a9f-9b58-639d75763dd7'),
+    ('cc93b3f9-fbe1-4b35-8f9c-2d1515961c6a','bbfeadbb-1b54-486c-b975-a67d107540f3'),
+    ('cc93b3f9-fbe1-4b35-8f9c-2d1515961c6a','c96f7a1f-e57d-4694-9d09-451cfa949324'),
+    ('cc93b3f9-fbe1-4b35-8f9c-2d1515961c6a','a8e3de13-d4fb-4973-a076-c6783c93f332'),
+    ('cc93b3f9-fbe1-4b35-8f9c-2d1515961c6a','60f16079-7495-47ab-aa68-36cd6a17fce0'),
+    ('cc93b3f9-fbe1-4b35-8f9c-2d1515961c6a','84a64026-0e5d-49ac-a48a-6a83efa2b77c'),
+    ('cc93b3f9-fbe1-4b35-8f9c-2d1515961c6a','0ac60940-35c2-4c0d-8a3b-49c20e455ff5'),
+    ('17308048-d207-43dd-b346-c9836073e911','f1b6ac38-bbc9-48c6-bf78-207005ee74fa'),
+    ('17308048-d207-43dd-b346-c9836073e911','793e285f-333b-41a3-b4ab-223a7a764668'),
+    ('17308048-d207-43dd-b346-c9836073e911','b50f29f4-547b-4371-9365-60d44eef412e');

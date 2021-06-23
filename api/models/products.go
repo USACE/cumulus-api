@@ -2,6 +2,7 @@ package models
 
 import (
 	"context"
+	"fmt"
 	"time"
 
 	// Postgres Database Driver
@@ -19,7 +20,6 @@ var listProductsSQL = `SELECT id, slug, name, label, tags, temporal_resolution, 
 // ProductInfo holds information required to create a product
 type ProductInfo struct {
 	Name               string    `json:"name"`
-	Slug               string    `json:"slug"`
 	TemporalResolution int       `json:"temporal_resolution" db:"temporal_resolution"`
 	TemporalDuration   int       `json:"temporal_duration" db:"temporal_duration"`
 	DssFpart           string    `json:"dss_fpart" db:"dss_fpart"`
@@ -35,8 +35,8 @@ type ProductInfo struct {
 
 // Product holds all information about a product
 type Product struct {
-	ID uuid.UUID `json:"id"`
-	// Slug string      `json:"slug" db:"slug"`
+	ID   uuid.UUID   `json:"id"`
+	Slug string      `json:"slug" db:"slug"`
 	Tags []uuid.UUID `json:"tags" db:"tags"`
 	ProductInfo
 	CoverageSummary
@@ -95,17 +95,46 @@ func GetProduct(db *pgxpool.Pool, productID *uuid.UUID) (*Product, error) {
 
 // CreateProduct creates a single product
 func CreateProduct(db *pgxpool.Pool, p *ProductInfo) (*Product, error) {
-	// Assign Slug Based on Product Name; Slug Must Be Table Unique
-	// slug, err := NextUniqueSlug(db, "product", "slug", p.Name, "", "")
+
+	// Helper Function to Build Slug
+	// Slug First Pass is: <Suite Name> <Label || ""> <ParameterName> <TemporalResolution>
+	nameFirstPass := func() (string, error) {
+
+		sql := fmt.Sprintf(
+			`SELECT s.name || ' ' || '%s' || p.name || ' ' || '%d' AS str 
+			 FROM parameter p
+			 CROSS JOIN (SELECT name FROM suite where id = $2) s
+			 WHERE p.id = $1`, p.Label, p.TemporalResolution,
+		)
+
+		var s struct {
+			Str string
+		}
+		if err := pgxscan.Get(context.Background(), db, &s, sql, p.ParameterID, p.SuiteID); err != nil {
+			return "", err
+		}
+		return s.Str, nil
+	}
+
+	// Get Concatenated Name to Use As Input for Slug (First Pass)
+	s, err := nameFirstPass()
 	if err != nil {
 		return nil, err
 	}
+
+	// Assign Slug Based on Product Name; Slug Must Be Table Unique
+	slug, err := NextUniqueSlug(db, "product", "slug", s, "", "")
+	if err != nil {
+		return nil, err
+	}
+
+	// Insert Into Database Using New Slug
 	var pID uuid.UUID
 	if err := pgxscan.Get(
 		context.Background(), db, &pID,
-		`INSERT INTO product (temporal_resolution, temporal_duration, dss_fpart, parameter_id, unit_id, description, suite_id, label) VALUES
-			($1, $2, $3, $4, $5, $6, $7, $8)
-		RETURNING id`, p.TemporalResolution, p.TemporalDuration, p.DssFpart, p.ParameterID, p.UnitID, p.Description, p.SuiteID, p.Label,
+		`INSERT INTO product (temporal_resolution, temporal_duration, dss_fpart, parameter_id, unit_id, description, suite_id, label, slug) VALUES
+			($1, $2, $3, $4, $5, $6, $7, $8, $9)
+		RETURNING id`, p.TemporalResolution, p.TemporalDuration, p.DssFpart, p.ParameterID, p.UnitID, p.Description, p.SuiteID, p.Label, slug,
 	); err != nil {
 		return nil, err
 	}

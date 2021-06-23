@@ -525,55 +525,6 @@
 					"response": []
 				},
 				{
-					"name": "UpdateUnit",
-					"event": [
-						{
-							"listen": "test",
-							"script": {
-								"exec": [
-									"// status code is 200",
-									"pm.test(\"Status code is 200\", function () {",
-									"    pm.response.to.have.status(200);",
-									"});",
-									"",
-									"// schema validation",
-									"pm.test(\"Schema validation\", function () {",
-									"    pm.response.to.have.jsonSchema(",
-									"        JSON.parse(pm.globals.get('UNIT_OBJECT'))",
-									"    )",
-									"});",
-									""
-								],
-								"type": "text/javascript"
-							}
-						}
-					],
-					"request": {
-						"method": "PUT",
-						"header": [],
-						"body": {
-							"mode": "raw",
-							"raw": "{\n    \"id\": \"855ee63c-d623-40d5-a551-3655ce2d7b47\",\n    \"name\": \"Kelvin McCallister\",\n    \"abbreviation\": \"KM\"\n}",
-							"options": {
-								"raw": {
-									"language": "json"
-								}
-							}
-						},
-						"url": {
-							"raw": "{{base_url}}/units/855ee63c-d623-40d5-a551-3655ce2d7b47",
-							"host": [
-								"{{base_url}}"
-							],
-							"path": [
-								"units",
-								"855ee63c-d623-40d5-a551-3655ce2d7b47"
-							]
-						}
-					},
-					"response": []
-				},
-				{
 					"name": "CreateUnit",
 					"event": [
 						{
@@ -591,7 +542,9 @@
 									"        JSON.parse(pm.globals.get('UNIT_OBJECT'))",
 									"    )",
 									"});",
-									""
+									"",
+									"let jsonData = JSON.parse(responseBody);",
+									"pm.environment.set(\"new_create_unit_id\", jsonData.id);"
 								],
 								"type": "text/javascript"
 							}
@@ -622,6 +575,55 @@
 					"response": []
 				},
 				{
+					"name": "UpdateUnit",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"// status code is 200",
+									"pm.test(\"Status code is 200\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"",
+									"// schema validation",
+									"pm.test(\"Schema validation\", function () {",
+									"    pm.response.to.have.jsonSchema(",
+									"        JSON.parse(pm.globals.get('UNIT_OBJECT'))",
+									"    )",
+									"});",
+									""
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "PUT",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"id\": \"{{new_create_unit_id}}\",\n    \"name\": \"Tesla - UPDATED\",\n    \"abbreviation\": \"(T) - UPDATED\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{base_url}}/units/{{new_create_unit_id}}",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"units",
+								"{{new_create_unit_id}}"
+							]
+						}
+					},
+					"response": []
+				},
+				{
 					"name": "DeleteUnit",
 					"event": [
 						{
@@ -642,7 +644,7 @@
 						"header": [],
 						"body": {
 							"mode": "raw",
-							"raw": "{\n    \"id\": {{new_create_unit_id}}\n}",
+							"raw": "{\n    \"id\": \"{{new_create_unit_id}}\"\n}",
 							"options": {
 								"raw": {
 									"language": "json"
@@ -665,10 +667,10 @@
 			]
 		},
 		{
-			"name": "parameters",
+			"name": "suites",
 			"item": [
 				{
-					"name": "GetParameter",
+					"name": "GetSuite",
 					"event": [
 						{
 							"listen": "test",
@@ -680,13 +682,14 @@
 									"    \"properties\": {",
 									"        \"id\": { \"type\": \"string\" },",
 									"        \"name\": { \"type\": \"string\" },",
-									"        \"abbreviation\": { \"type\": \"string\" }",
+									"        \"slug\": { \"type\": \"string\" },",
+									"        \"description\": { \"type\": \"string\" }",
 									"    },",
-									"    \"required\": [\"id\", \"name\", \"abbreviation\"],",
+									"    \"required\": [\"id\", \"name\", \"slug\", \"description\"],",
 									"    \"additionalProperties\": false",
 									"}",
 									"",
-									"pm.globals.set('UNIT_OBJECT', JSON.stringify(schema));",
+									"pm.globals.set('SUITE_OBJECT', JSON.stringify(schema));",
 									"",
 									"// status code is 200",
 									"pm.test(\"Status code is 200\", function () {",
@@ -706,13 +709,252 @@
 						"method": "GET",
 						"header": [],
 						"url": {
-							"raw": "{{base_url}}/units/e245d39f-3209-4e58-bfb7-4eae94b3f8dd",
+							"raw": "{{base_url}}/suites/c133e9e7-ddc8-4a98-82d7-880d5db35060",
 							"host": [
 								"{{base_url}}"
 							],
 							"path": [
-								"units",
-								"e245d39f-3209-4e58-bfb7-4eae94b3f8dd"
+								"suites",
+								"c133e9e7-ddc8-4a98-82d7-880d5db35060"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "ListSuites",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"// schema validator",
+									"var schema = {",
+									"    \"type\": \"array\",",
+									"    \"items\": JSON.parse(pm.globals.get('SUITE_OBJECT'))",
+									"}",
+									"",
+									"pm.globals.set('SUITE_ARRAY', JSON.stringify(schema));",
+									"",
+									"// status code is 200",
+									"pm.test(\"Status code is 200\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"// schema validation",
+									"pm.test(\"Schema validation\", function () {",
+									"    pm.response.to.have.jsonSchema(schema)",
+									"});",
+									""
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/suites",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"suites"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "CreateSuite",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"// status code is 201",
+									"pm.test(\"Status code is 201\", function () {",
+									"    pm.response.to.have.status(201);",
+									"});",
+									"",
+									"// schema validation",
+									"pm.test(\"Schema validation\", function () {",
+									"    pm.response.to.have.jsonSchema(",
+									"        JSON.parse(pm.globals.get('SUITE_OBJECT'))",
+									"    )",
+									"});",
+									"",
+									"let jsonData = JSON.parse(responseBody);",
+									"pm.environment.set(\"new_create_suite_id\", jsonData.id);"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "    {\n        \"name\": \"Regression Test Suite\",\n        \"slug\": \"rts\",\n        \"description\": \"New Test Suite\"\n    }",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{base_url}}/suites",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"suites"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "UpdateSuite",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"// status code is 200",
+									"pm.test(\"Status code is 200\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"",
+									"// schema validation",
+									"pm.test(\"Schema validation\", function () {",
+									"    pm.response.to.have.jsonSchema(",
+									"        JSON.parse(pm.globals.get('SUITE_OBJECT'))",
+									"    )",
+									"});",
+									""
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "PUT",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"id\": \"{{new_create_suite_id}}\",\n    \"name\": \"Regression Test Suite - UPDATED\",\n    \"slug\": \"rts-updated\",\n    \"description\": \"New Test Suite - Updated\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{base_url}}/suites/{{new_create_suite_id}}",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"suites",
+								"{{new_create_suite_id}}"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "DeleteSuite",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"// status code is 200",
+									"pm.test(\"Status code is 200\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "DELETE",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"id\": {{new_create_suite_id}}\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{base_url}}/suites/{{new_create_suite_id}}",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"suites",
+								"{{new_create_suite_id}}"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "parameters",
+			"item": [
+				{
+					"name": "GetParameter",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"// validate JSON schema",
+									"var schema = {",
+									"    \"type\": \"object\",",
+									"    \"properties\": {",
+									"        \"id\": { \"type\": \"string\" },",
+									"        \"name\": { \"type\": \"string\" }",
+									"    },",
+									"    \"required\": [\"id\", \"name\"],",
+									"    \"additionalProperties\": false",
+									"}",
+									"",
+									"pm.globals.set('PARAMETER_OBJECT', JSON.stringify(schema));",
+									"",
+									"// status code is 200",
+									"pm.test(\"Status code is 200\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"// validate schema",
+									"pm.test(\"Schema validation\", function () {",
+									"    pm.response.to.have.jsonSchema(schema)",
+									"});",
+									""
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/parameters/5fab39b9-90ba-482a-8156-d863ad7c45ad",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"parameters",
+								"5fab39b9-90ba-482a-8156-d863ad7c45ad"
 							]
 						}
 					},
@@ -757,55 +999,6 @@
 							],
 							"path": [
 								"parameters"
-							]
-						}
-					},
-					"response": []
-				},
-				{
-					"name": "UpdateParameter",
-					"event": [
-						{
-							"listen": "test",
-							"script": {
-								"exec": [
-									"// status code is 200",
-									"pm.test(\"Status code is 200\", function () {",
-									"    pm.response.to.have.status(200);",
-									"});",
-									"",
-									"// schema validation",
-									"pm.test(\"Schema validation\", function () {",
-									"    pm.response.to.have.jsonSchema(",
-									"        JSON.parse(pm.globals.get('UNIT_OBJECT'))",
-									"    )",
-									"});",
-									""
-								],
-								"type": "text/javascript"
-							}
-						}
-					],
-					"request": {
-						"method": "PUT",
-						"header": [],
-						"body": {
-							"mode": "raw",
-							"raw": "{\n    \"id\": \"2b3f8cf3-d3f5-440b-b7e7-0c8090eda80f\",\n    \"name\": \"COLD CONTENT CHANGED NAME\"\n}",
-							"options": {
-								"raw": {
-									"language": "json"
-								}
-							}
-						},
-						"url": {
-							"raw": "{{base_url}}/parameters/2b3f8cf3-d3f5-440b-b7e7-0c8090eda80f",
-							"host": [
-								"{{base_url}}"
-							],
-							"path": [
-								"parameters",
-								"2b3f8cf3-d3f5-440b-b7e7-0c8090eda80f"
 							]
 						}
 					},
@@ -862,7 +1055,56 @@
 					"response": []
 				},
 				{
-					"name": "DeleteTag",
+					"name": "UpdateParameter",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"// status code is 200",
+									"pm.test(\"Status code is 200\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"",
+									"// schema validation",
+									"pm.test(\"Schema validation\", function () {",
+									"    pm.response.to.have.jsonSchema(",
+									"        JSON.parse(pm.globals.get('PARAMETER_OBJECT'))",
+									"    )",
+									"});",
+									""
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "PUT",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"id\": \"{{new_create_parameter_id}}\",\n    \"name\": \"Regression Test Parameter 1 - UPDATED\" \n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{base_url}}/parameters/{{new_create_parameter_id}}",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"parameters",
+								"{{new_create_parameter_id}}"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "DeleteParameter",
 					"event": [
 						{
 							"listen": "test",
@@ -1074,10 +1316,13 @@
 									"        \"description\": { \"type\": \"string\" },",
 									"        \"after\": {\"type\": [\"null\", \"string\"]},",
 									"        \"before\": {\"type\": [\"null\", \"string\"]},",
-									"        \"productfile_count\": {\"type\": \"number\"}",
+									"        \"productfile_count\": {\"type\": \"number\"},",
+									"        \"suite_id\" : { \"type\": \"string\"},",
+									"        \"suite\" : { \"type\": \"string\"},",
+									"        \"label\" : { \"type\": [\"null\", \"string\"]}",
 									"    },",
 									"    \"required\": [\"id\", \"slug\", \"tags\", \"name\", \"temporal_resolution\", \"temporal_duration\", \"dss_fpart\",",
-									"                 \"parameter_id\", \"parameter\", \"unit_id\", \"unit\", \"description\", \"after\", \"before\", \"productfile_count\"",
+									"                 \"parameter_id\", \"parameter\", \"unit_id\", \"unit\", \"suite_id\", \"suite\", \"description\", \"after\", \"before\", \"productfile_count\"",
 									"    ],",
 									"    \"additionalProperties\": false",
 									"}",
@@ -1312,7 +1557,7 @@
 						"header": [],
 						"body": {
 							"mode": "raw",
-							"raw": "{\n    \"name\": \"New Product Created by Integration Tests\",\n    \"temporal_resolution\": 200,\n    \"temporal_duration\": 0,\n    \"dss_fpart\": \"INTEGRATION TEST PRODUCT\",\n    \"parameter_id\": \"683a55b9-4a94-46b5-9f47-26e66f3037a8\",\n    \"parameter\": \"SWE\",\n    \"unit_id\": \"e245d39f-3209-4e58-bfb7-4eae94b3f8dd\",\n    \"unit\": \"MM\",\n    \"description\": \"Example Product Description\"\n}",
+							"raw": "{\n    \"label\": \"TEST-LABEL\",\n    \"temporal_resolution\": 200,\n    \"temporal_duration\": 0,\n    \"dss_fpart\": \"INTEGRATION TEST PRODUCT\",\n    \"parameter_id\": \"683a55b9-4a94-46b5-9f47-26e66f3037a8\",\n    \"unit_id\": \"e245d39f-3209-4e58-bfb7-4eae94b3f8dd\",\n    \"description\": \"Example Product Description\",\n    \"suite_id\": \"c133e9e7-ddc8-4a98-82d7-880d5db35060\"\n}",
 							"options": {
 								"raw": {
 									"language": "json"
@@ -1360,7 +1605,7 @@
 						"header": [],
 						"body": {
 							"mode": "raw",
-							"raw": "{\n    \"id\": \"757c809c-dda0-412b-9831-cb9bd0f62d1d\",\n    \"slug\": \"nohrsc-snodas-swe\",\n    \"tags\": [\n        \"57bda84f-ecec-4cd7-b3b1-c0c36f838a05\"\n    ],\n    \"name\": \"New Name for NOHRSC SNODAS SWE\",\n    \"temporal_resolution\": 86400,\n    \"temporal_duration\": 0,\n    \"dss_fpart\": \"SNODAS\",\n    \"parameter_id\": \"683a55b9-4a94-46b5-9f47-26e66f3037a8\",\n    \"parameter\": \"SWE\",\n    \"unit_id\": \"e245d39f-3209-4e58-bfb7-4eae94b3f8dd\",\n    \"unit\": \"MM\",\n    \"description\": \"New Description for NOHRSC SNODAS SWE\"\n}",
+							"raw": "{\n    \"id\": \"757c809c-dda0-412b-9831-cb9bd0f62d1d\",\n    \"label\": \"UPDATED LABEL\",\n    \"slug\": \"nohrsc-snodas-swe\",\n    \"tags\": [\n        \"57bda84f-ecec-4cd7-b3b1-c0c36f838a05\"\n    ],\n    \"name\": \"New Name for NOHRSC SNODAS SWE\",\n    \"temporal_resolution\": 86400,\n    \"temporal_duration\": 0,\n    \"dss_fpart\": \"SNODAS\",\n    \"parameter_id\": \"683a55b9-4a94-46b5-9f47-26e66f3037a8\",\n    \"parameter\": \"SWE\",\n    \"unit_id\": \"e245d39f-3209-4e58-bfb7-4eae94b3f8dd\",\n    \"unit\": \"MM\",\n    \"description\": \"New Description for NOHRSC SNODAS SWE\",\n    \"suite_id\": \"c133e9e7-ddc8-4a98-82d7-880d5db35060\"\n}",
 							"options": {
 								"raw": {
 									"language": "json"

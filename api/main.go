@@ -140,6 +140,19 @@ func main() {
 	public.GET("/products/:product_id/availability", handlers.GetProductAvailability(db))
 	public.GET("/products/:product_id/files", handlers.ListProductfiles(db))
 
+	// Suites
+	public.GET("/suites", handlers.ListSuites(db))
+	public.GET("/suites/:suite_id", handlers.GetSuite(db))
+	private.POST("/suites", handlers.CreateSuite(db),
+		middleware.IsApplicationAdmin,
+	)
+	private.PUT("/suites/:suite_id", handlers.UpdateSuite(db),
+		middleware.IsApplicationAdmin,
+	)
+	private.DELETE("/suites/:suite_id", handlers.DeleteSuite(db),
+		middleware.IsApplicationAdmin,
+	)
+
 	// Tags
 	public.GET("/tags", handlers.ListTags(db))
 	public.GET("/tags/:tag_id", handlers.GetTag(db))
@@ -190,6 +203,8 @@ func main() {
 	public.GET("/cumulus/download/dss/*", handlers.ServeMedia(&awsCfg, &cfg.AWSS3Bucket)) // Serve Downloads
 	// List Downloads
 	private.GET("/downloads", handlers.ListDownloads(db), middleware.IsApplicationAdmin)
+	// @TODO
+	// public.GET("/downloads/stats", handlers.GetDownloadStats(db))
 	// Create Download (Anonymous)
 	public.POST("/downloads", handlers.CreateDownload(db))
 	public.GET("/downloads/:download_id", handlers.GetDownload(db))

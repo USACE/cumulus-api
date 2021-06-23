@@ -75,6 +75,8 @@ UPDATE product set suite_id='c9b39f25-51e5-49cd-9b5a-77c575bebc3b', label='', de
 -- #########################################
 -- Update v_products view
 -- #########################################
+DROP VIEW v_product;
+
 CREATE OR REPLACE VIEW v_product AS (
     WITH tags_by_product AS (
 		SELECT product_id         AS product_id,

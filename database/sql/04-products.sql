@@ -50,7 +50,7 @@ CREATE TABLE IF NOT EXISTS product (
     id UUID PRIMARY KEY NOT NULL DEFAULT uuid_generate_v4(),
     slug VARCHAR(120) UNIQUE NOT NULL,
     --name VARCHAR(120) NOT NULL,
-    label VARCHAR(40),
+    label VARCHAR(40) NOT NULL DEFAULT '',
     temporal_duration INTEGER NOT NULL,
     temporal_resolution INTEGER NOT NULL,
     dss_fpart VARCHAR(40),

@@ -32,15 +32,19 @@ INSERT INTO suite (id, name, slug, description) VALUES
 UPDATE suite set description = 'SNODAS is a modeling and data assimilation system developed by the NOHRSC to provide the best possible estimates of snow cover and associated variables to support hydrologic modelling and analysis. The aim of SNODAS is to provide a physically consistent framework to integrate snow data from satellite and airborne platforms, and ground stations with model estimates of snow cover.'
 WHERE id = 'c133e9e7-ddc8-4a98-82d7-880d5db35060';
 
+-- Drop Views that use product table before altering product table
+DROP VIEW v_product;
+DROP VIEW v_productfile;
+
 -- #########################################
 -- Alter Products Table 
 -- #########################################
 -- Remove "name" field
 ALTER TABLE product DROP COLUMN name;
 -- Add "label" field 
-ALTER TABLE product ADD COLUMN label VARCHAR(40);
+ALTER TABLE product ADD COLUMN label VARCHAR(40) NOT NULL DEFAULT '';
 -- Add "suite_id" field
-ALTER TABLE product ADD COLUMN suite_id UUID NOT NULL REFERENCES suite (id);
+ALTER TABLE product ADD COLUMN suite_id UUID REFERENCES suite (id);
 
 -- New Products
 INSERT INTO product (id, slug, label, temporal_duration, temporal_resolution, dss_fpart, parameter_id, unit_id, description, suite_id) VALUES
@@ -84,10 +88,12 @@ UPDATE product set suite_id='894205d5-cc55-4071-946b-d4027004cb40' where slug li
 UPDATE product set suite_id='c9b39f25-51e5-49cd-9b5a-77c575bebc3b', label='QPF', description='CONUS Forecast Precip' where slug='nbm-co-qpf';
 UPDATE product set suite_id='c9b39f25-51e5-49cd-9b5a-77c575bebc3b', label='', description='CONUS Forecast Airtemp' where slug='nbm-co-airtemp';
 
+-- Set product.suite_id column to NOT NULL now that all products have a suite_id set
+ALTER TABLE product ALTER COLUMN suite_id SET NOT NULL;
+
 -- #########################################
 -- Update v_products view
 -- #########################################
-DROP VIEW v_product;
 
 CREATE OR REPLACE VIEW v_product AS (
     WITH tags_by_product AS (
@@ -140,17 +146,32 @@ CREATE OR REPLACE VIEW v_product AS (
 );
 
 -- #########################################
+-- Update v_productfile view
+-- #########################################
+CREATE OR REPLACE VIEW v_productfile AS (
+    SELECT p.id           AS product_id,
+           p.name         AS product_name,
+           p.slug         AS product_slug,
+           f.id           AS id,
+           f.datetime     AS datetime,
+           f.file         AS file,
+           f.version      AS version
+    FROM productfile f
+    LEFT JOIN v_product p ON p.id = f.product_id
+);
+
+-- #########################################
 -- Add suite table to roles
 -- Re-apply v_product roles
 -- #########################################
 GRANT SELECT ON
     suite,    
-    v_product
+    v_product,
+    v_productfile
 TO cumulus_reader;
 
 GRANT INSERT,UPDATE,DELETE ON
-    suite,    
-    v_product
+    suite
 TO cumulus_writer;
 
 -- #########################################

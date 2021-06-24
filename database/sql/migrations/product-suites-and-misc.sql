@@ -68,7 +68,8 @@ INSERT INTO product (id, slug, label, temporal_duration, temporal_resolution, ds
     ON CONFLICT DO NOTHING;
 
 -- Update Products, SET "label" and "suite_id" and update "description"
-UPDATE product set suite_id='c133e9e7-ddc8-4a98-82d7-880d5db35060' where slug like 'nohrsc-snodas-%';
+UPDATE product set suite_id='c133e9e7-ddc8-4a98-82d7-880d5db35060' where slug like 'nohrsc-snodas-%' and slug not like '%-interpolated';
+UPDATE product set suite_id='c4f403ce-5d02-4f56-9d65-245436831d8d' where slug like 'nohrsc-snodas-%-interpolated';
 UPDATE product set suite_id='9252e4e6-18fa-4a33-a3b6-6f99b5e56f13', label='PPT', description='Daily total precipitation (rain+melted snow)' where slug='prism-ppt-early';
 UPDATE product set suite_id='9252e4e6-18fa-4a33-a3b6-6f99b5e56f13', label='TMAX', description='Daily maximum temperature [averaged over all days in the month]' where slug='prism-tmax-early';
 UPDATE product set suite_id='9252e4e6-18fa-4a33-a3b6-6f99b5e56f13', label='TMIN', description='Daily minimum temperature [averaged over all days in the month]' where slug='prism-tmin-early';

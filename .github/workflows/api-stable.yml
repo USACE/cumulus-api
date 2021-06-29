@@ -30,13 +30,13 @@ jobs:
           aws-secret-access-key: ${{ secrets.CWBICI_DEVELOP_AWS_SECRET_ACCESS_KEY }}
           aws-region: ${{ secrets.CWBICI_DEVELOP_AWS_REGION }}
       
-      - name: Upload Test Results
-        if: ${{ always() }}
-        run: |
-          aws s3 rm s3://corpsmap-appz/api_test_results/cumulus-admin.html
-          aws s3 cp ./tests/cumulus-admin.html s3://corpsmap-appz/api_test_results/cumulus-admin.html
-          aws s3 rm s3://corpsmap-appz/api_test_results/cumulus-user.html
-          aws s3 cp ./tests/cumulus-user.html s3://corpsmap-appz/api_test_results/cumulus-user.html
+      # - name: Upload Test Results
+      #   if: ${{ always() }}
+      #   run: |
+      #     aws s3 rm s3://corpsmap-appz/api_test_results/cumulus-admin.html
+      #     aws s3 cp ./tests/cumulus-admin.html s3://corpsmap-appz/api_test_results/cumulus-admin.html
+      #     aws s3 rm s3://corpsmap-appz/api_test_results/cumulus-user.html
+      #     aws s3 cp ./tests/cumulus-user.html s3://corpsmap-appz/api_test_results/cumulus-user.html
 
       - name: Login to Amazon ECR
         if: ${{ success() }}

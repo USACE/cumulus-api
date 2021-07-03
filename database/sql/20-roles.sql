@@ -44,6 +44,7 @@ GRANT SELECT ON
     watershed_roles,
     v_acquirablefile,
     v_download,
+    v_download_request,
     v_area_5070,
     v_product,
     v_productfile,

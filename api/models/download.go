@@ -118,38 +118,55 @@ func GetDownloadPackagerRequest(db *pgxpool.Pool, downloadID *uuid.UUID) (*Packa
 
 	if err = pgxscan.Select(
 		context.Background(), db, &pr.Contents,
-		`select 
-		key,
-		bucket,
-		dss_datatype,
-		dss_cpart,
-		dss_dpart,
-		dss_epart,
-		dss_fpart,
-		dss_unit
-		from v_download_request vdr 
-		where download_id = $1
-		and date_part('year', forecast_version) != '1111'
-		and forecast_version in (
-			select distinct forecast_version 
-			from v_download_request d
-			where d.download_id = vdr.download_id 
-			and d.product_id = vdr.product_id 
-			and d.forecast_version between vdr.datetime_start and vdr.datetime_end 
-			order by d.forecast_version desc limit 2)
-		UNION
+		`WITH download_products AS (
+			SELECT 
+			key,
+			bucket,
+			dss_datatype,
+			dss_cpart,
+			dss_dpart,
+			dss_epart,
+			dss_fpart,
+			dss_unit,
+			forecast_version,
+			download_id,
+			product_id,
+			datetime_start,
+			datetime_end
+			FROM v_download_request
+			WHERE download_id = $1
+		)		
 		select 
-		key,
-		bucket,
-		dss_datatype,
-		dss_cpart,
-		dss_dpart,
-		dss_epart,
-		dss_fpart,
-		dss_unit
-		from v_download_request vdr where vdr.download_id = $1
-		and date_part('year', forecast_version) = '1111'
-		order by dss_fpart, key`,
+				key,
+				bucket,
+				dss_datatype,
+				dss_cpart,
+				dss_dpart,
+				dss_epart,
+				dss_fpart,
+				dss_unit
+				from download_products dp
+				where date_part('year', dp.forecast_version) != '1111'
+				and dp.forecast_version in (
+					select distinct forecast_version 
+					from download_products d
+					where d.download_id = dp.download_id 
+					and d.product_id = dp.product_id 
+					and d.forecast_version between dp.datetime_start and dp.datetime_end 
+					order by d.forecast_version desc limit 2)
+				UNION
+				select 
+				key,
+				bucket,
+				dss_datatype,
+				dss_cpart,
+				dss_dpart,
+				dss_epart,
+				dss_fpart,
+				dss_unit
+				from download_products dp 
+				where date_part('year', forecast_version) = '1111'
+				order by dss_fpart, key`,
 		downloadID,
 	); err != nil {
 		return nil, err

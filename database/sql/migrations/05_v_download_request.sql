@@ -72,6 +72,6 @@ TO cumulus_reader;
 
 -- Fix WRF forecast_version to '1111-11-11'
 -- WRF Precip
-UPDATE product set forecast_version = '1111-11-11' where id = 'b50f29f4-547b-4371-9365-60d44eef412e'
+UPDATE productfile set version = '1111-11-11' where id = 'b50f29f4-547b-4371-9365-60d44eef412e'
 -- WRF AirTemp
-UPDATE product set forecast_version = '1111-11-11' where id = '793e285f-333b-41a3-b4ab-223a7a764668'
+UPDATE productfile set version = '1111-11-11' where id = '793e285f-333b-41a3-b4ab-223a7a764668'

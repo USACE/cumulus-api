@@ -118,47 +118,38 @@ func GetDownloadPackagerRequest(db *pgxpool.Pool, downloadID *uuid.UUID) (*Packa
 
 	if err = pgxscan.Select(
 		context.Background(), db, &pr.Contents,
-		`WITH download_products AS (
-			SELECT dp.product_id, d.datetime_start, d.datetime_end
-			FROM   download d
-			JOIN   download_product dp ON dp.download_id = d.id
-			WHERE d.id = $1
-		)
-		SELECT key,
-			   bucket,
-			   dss_datatype,
-			   dss_cpart,
-			   CASE WHEN dss_datatype = 'INST-VAL' AND date_part('hour', datetime_dss_dpart) = 0 AND date_part('minute', datetime_dss_dpart) = 0
-	               	THEN to_char(datetime_dss_dpart - interval '1 Day', 'DDMONYYYY:24MI')
-	               	ELSE COALESCE(to_char(datetime_dss_dpart, 'DDMONYYYY:HH24MI'), '') END as dss_dpart,
-			   CASE WHEN date_part('hour', datetime_dss_epart) = 0 AND date_part('minute', datetime_dss_dpart) = 0
-	               	THEN to_char(datetime_dss_epart - interval '1 Day', 'DDMONYYYY:24MI')
-	               	ELSE COALESCE(to_char(datetime_dss_epart, 'DDMONYYYY:HH24MI'), '') END as dss_epart,
-			   dss_fpart,
-			   dss_unit
-		FROM (
-			SELECT f.file as key,
-			(SELECT config_value from config where config_name = 'write_to_bucket') AS bucket,
-			 CASE WHEN p.temporal_duration = 0 THEN 'INST-VAL'
-				  ELSE 'PER-CUM'
-				  END as dss_datatype,
-			 CASE WHEN p.temporal_duration = 0 THEN f.datetime
-				  ELSE f.datetime - p.temporal_duration * interval '1 Second'
-				  END as datetime_dss_dpart,
-			 CASE WHEN p.temporal_duration = 0 THEN null
-				  ELSE f.datetime
-				  END as datetime_dss_epart,
-			 p.dss_fpart as dss_fpart,
-			 u.name      as dss_unit,
-			 a.name      as dss_cpart
-			FROM productfile f
-			INNER JOIN download_products dp ON dp.product_id = f.product_id
-			INNER JOIN product p on f.product_id = p.id
-			INNER JOIN unit u on p.unit_id = u.id
-			INNER JOIN parameter a on a.id = p.parameter_id
-			WHERE f.datetime >= dp.datetime_start AND f.datetime <= dp.datetime_end
-			ORDER BY f.product_id, f.version, f.datetime
-		) as dss`,
+		`select 
+		key,
+		bucket,
+		dss_datatype,
+		dss_cpart,
+		dss_dpart,
+		dss_epart,
+		dss_fpart,
+		dss_unit
+		from v_download_request vdr 
+		where download_id = $1
+		and date_part('year', forecast_version) != '1111'
+		and forecast_version in (
+			select distinct forecast_version 
+			from v_download_request d
+			where d.download_id = vdr.download_id 
+			and d.product_id = vdr.product_id 
+			and d.forecast_version between vdr.datetime_start and vdr.datetime_end 
+			order by d.forecast_version desc limit 2)
+		UNION
+		select 
+		key,
+		bucket,
+		dss_datatype,
+		dss_cpart,
+		dss_dpart,
+		dss_epart,
+		dss_fpart,
+		dss_unit
+		from v_download_request vdr where vdr.download_id = $1
+		and date_part('year', forecast_version) = '1111'
+		order by dss_fpart, key`,
 		downloadID,
 	); err != nil {
 		return nil, err

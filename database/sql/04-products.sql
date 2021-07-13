@@ -168,6 +168,7 @@ CREATE OR REPLACE VIEW v_productfile AS (
 
 -- acquirable
 INSERT INTO acquirable (id, name, slug) VALUES
+    ('4b0f8d9c-1be4-4605-8265-a076aa6aa555', 'nsidc-swe-depth', 'nsidc-swe-depth'),
     ('9b10e3fe-db59-4a50-9acb-063fd0cdc435', 'naefs-mean-06h', 'naefs-mean-06h'),
     ('a6ba0a12-47d1-4062-995b-3878144fdca4', 'mbrfc-krf-qpe-01h', 'mbrfc-krf-qpe-01h'),
     ('2c423d07-d085-42ea-ac27-eb007d4d5183', 'mbrfc-krf-qpf-06h', 'mbrfc-krf-qpf-06h'),
@@ -192,6 +193,7 @@ INSERT INTO acquirable (id, name, slug) VALUES
 
 -- suite
 INSERT INTO suite (id, name, slug, description) VALUES
+    ('c5b8cab4-c49a-4b25-82f0-378b84b4eeac', 'National Snow & Ice Data Center', 'nsidc', 'NSIDC Description'),
     ('74d7191f-7c4b-4549-bf80-5a5de4ba4880', 'Colorado Basin River Forecast Center (CBRFC)', 'cbrfc', 'CBRFC Description'),
     ('0a4007db-ebcb-4d01-bb3e-3545255da4f0', 'High Resolution Rapid Refresh (HRRR)', 'hrrr', ''),
     ('c133e9e7-ddc8-4a98-82d7-880d5db35060', 'Snow Data Assimilation System (SNODAS)', 'snodas', ''),
@@ -214,6 +216,8 @@ WHERE id = 'c133e9e7-ddc8-4a98-82d7-880d5db35060';
 
 -- product
 INSERT INTO product (id, slug, label, temporal_duration, temporal_resolution, dss_fpart, parameter_id, unit_id, description, suite_id) VALUES
+    ('bf73ae80-22fc-43a2-930a-599531470dc6','nsidc-snowdepth-01d','',0,86400,'NSIDC-SNOWDEPTH','cfa90543-235c-4266-98c2-26dbc332cd87','e245d39f-3209-4e58-bfb7-4eae94b3f8dd', 'National Snow and Ice Data Center - Snow Depth', 'c5b8cab4-c49a-4b25-82f0-378b84b4eeac'),
+    ('87d79a53-5e66-4d31-973c-2adbbe733de2','nsidc-swe-01d','',0,86400,'NSIDC-SWE','683a55b9-4a94-46b5-9f47-26e66f3037a8','e245d39f-3209-4e58-bfb7-4eae94b3f8dd', 'National Snow and Ice Data Center - SWE', 'c5b8cab4-c49a-4b25-82f0-378b84b4eeac'),
     ('e0baa220-1310-445b-816b-6887465cc94b','nohrsc-snodas-snowdepth','',0,86400,'SNODAS','cfa90543-235c-4266-98c2-26dbc332cd87','e245d39f-3209-4e58-bfb7-4eae94b3f8dd', '', 'c133e9e7-ddc8-4a98-82d7-880d5db35060'),
     ('757c809c-dda0-412b-9831-cb9bd0f62d1d','nohrsc-snodas-swe','',0,86400,'SNODAS','683a55b9-4a94-46b5-9f47-26e66f3037a8','e245d39f-3209-4e58-bfb7-4eae94b3f8dd', '', 'c133e9e7-ddc8-4a98-82d7-880d5db35060'),
     ('57da96dc-fc5e-428c-9318-19f095f461eb','nohrsc-snodas-snowpack-average-temperature','',0,86400,'SNODAS','ccc8c81a-ddb0-4738-857b-f0ef69aa1dc0','855ee63c-d623-40d5-a551-3655ce2d7b47', '', 'c133e9e7-ddc8-4a98-82d7-880d5db35060'),
@@ -268,6 +272,8 @@ INSERT INTO product_tags (tag_id, product_id) VALUES
     ('d9613031-7cf0-4722-923e-e5c3675a163b','bbfeadbb-1b54-486c-b975-a67d107540f3'),
     ('726039da-2f21-4393-a15c-5f6e7ea41b1f','c96f7a1f-e57d-4694-9d09-451cfa949324'),
     ('726039da-2f21-4393-a15c-5f6e7ea41b1f','9890d81e-04c5-45cc-b544-e27fde610501'),
+    ('57bda84f-ecec-4cd7-b3b1-c0c36f838a05','bf73ae80-22fc-43a2-930a-599531470dc6'),
+    ('57bda84f-ecec-4cd7-b3b1-c0c36f838a05','87d79a53-5e66-4d31-973c-2adbbe733de2'),
     ('57bda84f-ecec-4cd7-b3b1-c0c36f838a05','e0baa220-1310-445b-816b-6887465cc94b'),
     ('57bda84f-ecec-4cd7-b3b1-c0c36f838a05','757c809c-dda0-412b-9831-cb9bd0f62d1d'),
     ('57bda84f-ecec-4cd7-b3b1-c0c36f838a05','57da96dc-fc5e-428c-9318-19f095f461eb'),

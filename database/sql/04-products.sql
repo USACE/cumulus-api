@@ -193,7 +193,7 @@ INSERT INTO acquirable (id, name, slug) VALUES
 
 -- suite
 INSERT INTO suite (id, name, slug, description) VALUES
-    ('c5b8cab4-c49a-4b25-82f0-378b84b4eeac', 'National Snow & Ice Data Center', 'nsidc', 'NSIDC Description'),
+    ('c5b8cab4-c49a-4b25-82f0-378b84b4eeac', 'National Snow & Ice Data Center', 'nsidc', "This data set provides daily 4 km snow water equivalent (SWE) and snow depth over the conterminous United States from 1981 to 2020, developed at the University of Arizona (UA) under the support of the NASA MAP and SMAP Programs. The data were created by assimilating in-situ snow measurements from the National Resources Conservation Service's SNOTEL network and the National Weather Service's COOP network with modeled, gridded temperature and precipitation data from PRISM."),
     ('74d7191f-7c4b-4549-bf80-5a5de4ba4880', 'Colorado Basin River Forecast Center (CBRFC)', 'cbrfc', 'CBRFC Description'),
     ('0a4007db-ebcb-4d01-bb3e-3545255da4f0', 'High Resolution Rapid Refresh (HRRR)', 'hrrr', ''),
     ('c133e9e7-ddc8-4a98-82d7-880d5db35060', 'Snow Data Assimilation System (SNODAS)', 'snodas', ''),
@@ -216,8 +216,8 @@ WHERE id = 'c133e9e7-ddc8-4a98-82d7-880d5db35060';
 
 -- product
 INSERT INTO product (id, slug, label, temporal_duration, temporal_resolution, dss_fpart, parameter_id, unit_id, description, suite_id) VALUES
-    ('bf73ae80-22fc-43a2-930a-599531470dc6','nsidc-snowdepth-01d','',0,86400,'NSIDC-SNOWDEPTH','cfa90543-235c-4266-98c2-26dbc332cd87','e245d39f-3209-4e58-bfb7-4eae94b3f8dd', 'National Snow and Ice Data Center - Snow Depth', 'c5b8cab4-c49a-4b25-82f0-378b84b4eeac'),
-    ('87d79a53-5e66-4d31-973c-2adbbe733de2','nsidc-swe-01d','',0,86400,'NSIDC-SWE','683a55b9-4a94-46b5-9f47-26e66f3037a8','e245d39f-3209-4e58-bfb7-4eae94b3f8dd', 'National Snow and Ice Data Center - SWE', 'c5b8cab4-c49a-4b25-82f0-378b84b4eeac'),
+    ('bf73ae80-22fc-43a2-930a-599531470dc6','nsidc-snowdepth','',0,86400,'NSIDC-SNOWDEPTH','cfa90543-235c-4266-98c2-26dbc332cd87','e245d39f-3209-4e58-bfb7-4eae94b3f8dd', 'National Snow and Ice Data Center - Snow Depth', 'c5b8cab4-c49a-4b25-82f0-378b84b4eeac'),
+    ('87d79a53-5e66-4d31-973c-2adbbe733de2','nsidc-swe','',0,86400,'NSIDC-SWE','683a55b9-4a94-46b5-9f47-26e66f3037a8','e245d39f-3209-4e58-bfb7-4eae94b3f8dd', 'National Snow and Ice Data Center - SWE', 'c5b8cab4-c49a-4b25-82f0-378b84b4eeac'),
     ('e0baa220-1310-445b-816b-6887465cc94b','nohrsc-snodas-snowdepth','',0,86400,'SNODAS','cfa90543-235c-4266-98c2-26dbc332cd87','e245d39f-3209-4e58-bfb7-4eae94b3f8dd', '', 'c133e9e7-ddc8-4a98-82d7-880d5db35060'),
     ('757c809c-dda0-412b-9831-cb9bd0f62d1d','nohrsc-snodas-swe','',0,86400,'SNODAS','683a55b9-4a94-46b5-9f47-26e66f3037a8','e245d39f-3209-4e58-bfb7-4eae94b3f8dd', '', 'c133e9e7-ddc8-4a98-82d7-880d5db35060'),
     ('57da96dc-fc5e-428c-9318-19f095f461eb','nohrsc-snodas-snowpack-average-temperature','',0,86400,'SNODAS','ccc8c81a-ddb0-4738-857b-f0ef69aa1dc0','855ee63c-d623-40d5-a551-3655ce2d7b47', '', 'c133e9e7-ddc8-4a98-82d7-880d5db35060'),

@@ -14,14 +14,14 @@ def process(infile, outdir):
 
     # Variables and their product slug
     nc_variables = {
-        "SWE": "nsidc-swe-01d",
-        # "DEPTH": "nsidc-snowdepth-01d"
+        "SWE": "nsidc-swe",
+        "DEPTH": "nsidc-snowdepth"
     }
     
     file_preffix = "nsidc"
 
     day_since_pattern = re.compile(r"\d+-\d+-\d+")
-    min2date = lambda m, t: timedelta(days=int(m)) + t
+    day2date = lambda m, t: timedelta(days=int(m)) + t
     for nc_variable, nc_slug in nc_variables.items():
         subdataset = gdal.Open(f"NETCDF:{infile}:{nc_variable}")
         subset_meta_dict = subdataset.GetMetadata_Dict()
@@ -31,7 +31,7 @@ def process(infile, outdir):
         subset_time_unit = subset_meta_dict["time#units"]
         subset_since_str = re.search(day_since_pattern, subset_time_unit).group(0)
         subset_since_time = datetime.fromisoformat(subset_since_str)
-        date_created = min2date(subset_last_time, subset_since_time)
+        date_created =day2date(subset_last_time, subset_since_time)
         # Define some geo
         geo_transform = subdataset.GetGeoTransform()
         src_projection = subdataset.GetProjection()
@@ -41,8 +41,8 @@ def process(infile, outdir):
             # Band metadata
             band_meta_dict = band.GetMetadata_Dict()
             # Band time in minutes and compute the date for the band's filename
-            band_time_min = band_meta_dict["NETCDF_DIM_time"]
-            band_date = min2date(band_time_min, subset_since_time)
+            band_time_day = band_meta_dict["NETCDF_DIM_time"]
+            band_date =day2date(band_time_day, subset_since_time)
             band_filename = file_preffix + nc_variable + band_date.strftime("%Y%m%d") + ".tif"
 
             # Get the band and process to raster

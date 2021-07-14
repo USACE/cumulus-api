@@ -14,11 +14,9 @@ def process(infile, outdir):
 
     # Variables and their product slug
     nc_variables = {
-        "SWE": "nsidc-swe",
-        "DEPTH": "nsidc-snowdepth"
+        "SWE": "nsidc-ua-swe-v1",
+        "DEPTH": "nsidc-ua-snowdepth-v1"
     }
-    
-    file_preffix = "nsidc"
 
     day_since_pattern = re.compile(r"\d+-\d+-\d+")
     day2date = lambda m, t: timedelta(days=int(m)) + t
@@ -43,7 +41,7 @@ def process(infile, outdir):
             # Band time in minutes and compute the date for the band's filename
             band_time_day = band_meta_dict["NETCDF_DIM_time"]
             band_date =day2date(band_time_day, subset_since_time)
-            band_filename = file_preffix + nc_variable + band_date.strftime("%Y%m%d") + ".tif"
+            band_filename = nc_slug + "_" + band_date.strftime("%Y%m%d") + ".tif"
 
             # Get the band and process to raster
             xsize = band.XSize

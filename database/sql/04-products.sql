@@ -168,7 +168,7 @@ CREATE OR REPLACE VIEW v_productfile AS (
 
 -- acquirable
 INSERT INTO acquirable (id, name, slug) VALUES
-    ('4b0f8d9c-1be4-4605-8265-a076aa6aa555', 'nsidc-swe-depth', 'nsidc-swe-depth'),
+    ('4b0f8d9c-1be4-4605-8265-a076aa6aa555', 'nsidc_ua_swe_sd_v1', 'nsidc_ua_swe_sd_v1'),
     ('9b10e3fe-db59-4a50-9acb-063fd0cdc435', 'naefs-mean-06h', 'naefs-mean-06h'),
     ('a6ba0a12-47d1-4062-995b-3878144fdca4', 'mbrfc-krf-qpe-01h', 'mbrfc-krf-qpe-01h'),
     ('2c423d07-d085-42ea-ac27-eb007d4d5183', 'mbrfc-krf-qpf-06h', 'mbrfc-krf-qpf-06h'),
@@ -216,8 +216,8 @@ WHERE id = 'c133e9e7-ddc8-4a98-82d7-880d5db35060';
 
 -- product
 INSERT INTO product (id, slug, label, temporal_duration, temporal_resolution, dss_fpart, parameter_id, unit_id, description, suite_id) VALUES
-    ('bf73ae80-22fc-43a2-930a-599531470dc6','nsidc-snowdepth','',0,86400,'NSIDC-SNOWDEPTH','cfa90543-235c-4266-98c2-26dbc332cd87','e245d39f-3209-4e58-bfb7-4eae94b3f8dd', 'National Snow and Ice Data Center - Snow Depth', 'c5b8cab4-c49a-4b25-82f0-378b84b4eeac'),
-    ('87d79a53-5e66-4d31-973c-2adbbe733de2','nsidc-swe','',0,86400,'NSIDC-SWE','683a55b9-4a94-46b5-9f47-26e66f3037a8','e245d39f-3209-4e58-bfb7-4eae94b3f8dd', 'National Snow and Ice Data Center - SWE', 'c5b8cab4-c49a-4b25-82f0-378b84b4eeac'),
+    ('bf73ae80-22fc-43a2-930a-599531470dc6','nsidc-ua-snowdepth-v1','',0,86400,'NSIDC-UA-SNOWDEPTH-V1','cfa90543-235c-4266-98c2-26dbc332cd87','e245d39f-3209-4e58-bfb7-4eae94b3f8dd', 'National Snow and Ice Data Center - Snow Depth', 'c5b8cab4-c49a-4b25-82f0-378b84b4eeac'),
+    ('87d79a53-5e66-4d31-973c-2adbbe733de2','nsidc-ua-swe-v1','',0,86400,'NSIDC-UA-SWE-V1','683a55b9-4a94-46b5-9f47-26e66f3037a8','e245d39f-3209-4e58-bfb7-4eae94b3f8dd', 'National Snow and Ice Data Center - SWE', 'c5b8cab4-c49a-4b25-82f0-378b84b4eeac'),
     ('e0baa220-1310-445b-816b-6887465cc94b','nohrsc-snodas-snowdepth','',0,86400,'SNODAS','cfa90543-235c-4266-98c2-26dbc332cd87','e245d39f-3209-4e58-bfb7-4eae94b3f8dd', '', 'c133e9e7-ddc8-4a98-82d7-880d5db35060'),
     ('757c809c-dda0-412b-9831-cb9bd0f62d1d','nohrsc-snodas-swe','',0,86400,'SNODAS','683a55b9-4a94-46b5-9f47-26e66f3037a8','e245d39f-3209-4e58-bfb7-4eae94b3f8dd', '', 'c133e9e7-ddc8-4a98-82d7-880d5db35060'),
     ('57da96dc-fc5e-428c-9318-19f095f461eb','nohrsc-snodas-snowpack-average-temperature','',0,86400,'SNODAS','ccc8c81a-ddb0-4738-857b-f0ef69aa1dc0','855ee63c-d623-40d5-a551-3655ce2d7b47', '', 'c133e9e7-ddc8-4a98-82d7-880d5db35060'),

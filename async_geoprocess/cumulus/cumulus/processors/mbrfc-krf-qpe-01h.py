@@ -82,7 +82,7 @@ def process(infile, outdir) -> List:
             "filetype": ftype,
             "file": cog,
             "datetime": valid_time.isoformat(), 
-            "version": ref_time
+            "version": None
         }
     )
 

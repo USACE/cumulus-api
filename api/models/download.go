@@ -152,7 +152,7 @@ func GetDownloadPackagerRequest(db *pgxpool.Pool, downloadID *uuid.UUID) (*Packa
 					from download_products d
 					where d.download_id = dp.download_id 
 					and d.product_id = dp.product_id 
-					and d.forecast_version between dp.datetime_start and dp.datetime_end 
+					and d.forecast_version between dp.datetime_start - interval '24 hours' and dp.datetime_end 
 					order by d.forecast_version desc limit 2)
 				UNION
 				select 

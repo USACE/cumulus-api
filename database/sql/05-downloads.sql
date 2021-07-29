@@ -131,7 +131,12 @@ CREATE OR REPLACE VIEW v_download AS (
                     JOIN product p ON f.product_id = p.id
                     JOIN unit u ON p.unit_id = u.id
                     JOIN parameter a ON a.id = p.parameter_id
-                WHERE f.datetime >= dp.datetime_start AND f.datetime <= dp.datetime_end
+                -- observed data will use the file datetime  
+			  WHERE (date_part('year', f.version) = '1111' AND f.datetime >= dp.datetime_start AND f.datetime <= dp.datetime_end)
+                -- forecast data with an end date < now (looking at forecasts in the past)
+			    OR (dp.datetime_end < now() AND date_part('year', f.version) != '1111' AND f.version between dp.datetime_end - interval '24 hours' and dp.datetime_end)
+			    -- forecast data with an end date >= now (looking at current latest forecasts)
+			    OR (dp.datetime_end >= now() AND date_part('year', f.version) != '1111' AND f.version between now() - interval '12 hours' and now())
                 ORDER BY f.product_id, f.version, f.datetime) dss;
 
 

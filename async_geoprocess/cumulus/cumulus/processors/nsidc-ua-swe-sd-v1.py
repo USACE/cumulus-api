@@ -76,7 +76,7 @@ def process(infile, outdir):
                     "filetype": nc_slug,
                     "file": cog,
                     "datetime": band_date.isoformat(),
-                    "version": date_created.isoformat()
+                    "version": None
                 }
             )
 

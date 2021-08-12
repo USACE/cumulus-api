@@ -168,6 +168,8 @@ CREATE OR REPLACE VIEW v_productfile AS (
 
 -- acquirable
 INSERT INTO acquirable (id, name, slug) VALUES
+    ('355d8d9b-1eb4-4f1d-93b7-d77054c5c267', 'serfc-qpf-06h', 'serfc-qpf-06h'),
+    ('5365399a-7aa6-4df8-a91a-369ca87c8bd9', 'serfc-qpe-01h', 'serfc-qpe-01h'),
     ('4b0f8d9c-1be4-4605-8265-a076aa6aa555', 'nsidc_ua_swe_sd_v1', 'nsidc-ua-swe-sd-v1'),
     ('9b10e3fe-db59-4a50-9acb-063fd0cdc435', 'naefs-mean-06h', 'naefs-mean-06h'),
     ('a6ba0a12-47d1-4062-995b-3878144fdca4', 'mbrfc-krf-qpe-01h', 'mbrfc-krf-qpe-01h'),
@@ -193,6 +195,7 @@ INSERT INTO acquirable (id, name, slug) VALUES
 
 -- suite
 INSERT INTO suite (id, name, slug, description) VALUES
+    ('077600e5-955c-4f0a-8533-7f129366c602', 'Southeast River Forecast Center (SERFC)', 'serfc', 'SERFC Description'),
     ('c5b8cab4-c49a-4b25-82f0-378b84b4eeac', 'National Snow & Ice Data Center (NSIDC)', 'nsidc', E'This data set provides daily 4 km snow water equivalent (SWE) and snow depth over the conterminous United States from 1981 to 2020, developed at the University of Arizona (UA) under the support of the NASA MAP and SMAP Programs. The data were created by assimilating in-situ snow measurements from the National Resources Conservation Service\'s SNOTEL network and the National Weather Service\'s COOP network with modeled, gridded temperature and precipitation data from PRISM.'),
     ('74d7191f-7c4b-4549-bf80-5a5de4ba4880', 'Colorado Basin River Forecast Center (CBRFC)', 'cbrfc', 'CBRFC Description'),
     ('0a4007db-ebcb-4d01-bb3e-3545255da4f0', 'High Resolution Rapid Refresh (HRRR)', 'hrrr', ''),
@@ -216,6 +219,8 @@ WHERE id = 'c133e9e7-ddc8-4a98-82d7-880d5db35060';
 
 -- product
 INSERT INTO product (id, slug, label, temporal_duration, temporal_resolution, dss_fpart, parameter_id, unit_id, description, suite_id) VALUES
+    ('a9a74d32-acdb-4fd2-8478-14d7098c50a7','serfc-qpf-06h','SERFC',21600,21600,'SERFC QPF 06 HR','eb82d661-afe6-436a-b0df-2ab0b478a1af','e245d39f-3209-4e58-bfb7-4eae94b3f8dd','Southeast River Forecast Center 06 hour QPF','077600e5-955c-4f0a-8533-7f129366c602'),
+    ('ae11dad4-7065-4963-8771-7f5aa1e94b5d','serfc-qpe-01h','SERFC',0,3600,'SERFC QPE 01 HR','eb82d661-afe6-436a-b0df-2ab0b478a1af','e245d39f-3209-4e58-bfb7-4eae94b3f8dd','Southeast River Forecast Center 01 hour QPE','077600e5-955c-4f0a-8533-7f129366c602'),
     ('bf73ae80-22fc-43a2-930a-599531470dc6','nsidc-ua-snowdepth-v1','',0,86400,'NSIDC-UA-SNOWDEPTH-V1','cfa90543-235c-4266-98c2-26dbc332cd87','e245d39f-3209-4e58-bfb7-4eae94b3f8dd', 'National Snow and Ice Data Center - Snow Depth', 'c5b8cab4-c49a-4b25-82f0-378b84b4eeac'),
     ('87d79a53-5e66-4d31-973c-2adbbe733de2','nsidc-ua-swe-v1','',0,86400,'NSIDC-UA-SWE-V1','683a55b9-4a94-46b5-9f47-26e66f3037a8','e245d39f-3209-4e58-bfb7-4eae94b3f8dd', 'National Snow and Ice Data Center - SWE', 'c5b8cab4-c49a-4b25-82f0-378b84b4eeac'),
     ('e0baa220-1310-445b-816b-6887465cc94b','nohrsc-snodas-snowdepth','',0,86400,'SNODAS','cfa90543-235c-4266-98c2-26dbc332cd87','e245d39f-3209-4e58-bfb7-4eae94b3f8dd', '', 'c133e9e7-ddc8-4a98-82d7-880d5db35060'),
@@ -267,6 +272,8 @@ INSERT INTO tag (id, name, description, color) VALUES
 
 -- product_tags
 INSERT INTO product_tags (tag_id, product_id) VALUES
+    ('726039da-2f21-4393-a15c-5f6e7ea41b1f','a9a74d32-acdb-4fd2-8478-14d7098c50a7'),
+    ('726039da-2f21-4393-a15c-5f6e7ea41b1f','ae11dad4-7065-4963-8771-7f5aa1e94b5d'),
     ('726039da-2f21-4393-a15c-5f6e7ea41b1f','a8e3de13-d4fb-4973-a076-c6783c93f332'),
     ('d9613031-7cf0-4722-923e-e5c3675a163b','60f16079-7495-47ab-aa68-36cd6a17fce0'),
     ('d9613031-7cf0-4722-923e-e5c3675a163b','bbfeadbb-1b54-486c-b975-a67d107540f3'),

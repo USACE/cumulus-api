@@ -168,6 +168,8 @@ CREATE OR REPLACE VIEW v_productfile AS (
 
 -- acquirable
 INSERT INTO acquirable (id, name, slug) VALUES
+    ('fca9e8a4-23e3-471f-a56b-39956055a442', 'lmrfc-qpf-06h', 'lmrfc-qpf-06h'),
+    ('660ce26c-9b70-464b-8a17-5c923752545d', 'lmrfc-qpe-01h', 'lmrfc-qpe-01h'),
     ('355d8d9b-1eb4-4f1d-93b7-d77054c5c267', 'serfc-qpf-06h', 'serfc-qpf-06h'),
     ('5365399a-7aa6-4df8-a91a-369ca87c8bd9', 'serfc-qpe-01h', 'serfc-qpe-01h'),
     ('4b0f8d9c-1be4-4605-8265-a076aa6aa555', 'nsidc_ua_swe_sd_v1', 'nsidc-ua-swe-sd-v1'),
@@ -195,6 +197,7 @@ INSERT INTO acquirable (id, name, slug) VALUES
 
 -- suite
 INSERT INTO suite (id, name, slug, description) VALUES
+    ('91d87306-8eed-45ac-a41e-16d9429ca14c', 'Lower Mississippi River Forecast Center (LMRFC)', 'lmrfc', 'LMRFC Description'),
     ('077600e5-955c-4f0a-8533-7f129366c602', 'Southeast River Forecast Center (SERFC)', 'serfc', 'SERFC Description'),
     ('c5b8cab4-c49a-4b25-82f0-378b84b4eeac', 'National Snow & Ice Data Center (NSIDC)', 'nsidc', E'This data set provides daily 4 km snow water equivalent (SWE) and snow depth over the conterminous United States from 1981 to 2020, developed at the University of Arizona (UA) under the support of the NASA MAP and SMAP Programs. The data were created by assimilating in-situ snow measurements from the National Resources Conservation Service\'s SNOTEL network and the National Weather Service\'s COOP network with modeled, gridded temperature and precipitation data from PRISM.'),
     ('74d7191f-7c4b-4549-bf80-5a5de4ba4880', 'Colorado Basin River Forecast Center (CBRFC)', 'cbrfc', 'CBRFC Description'),
@@ -219,6 +222,8 @@ WHERE id = 'c133e9e7-ddc8-4a98-82d7-880d5db35060';
 
 -- product
 INSERT INTO product (id, slug, label, temporal_duration, temporal_resolution, dss_fpart, parameter_id, unit_id, description, suite_id) VALUES
+    ('1c8c130e-0d3c-4ccc-af5b-d2f95379429c','lmrfc-qpf-06h','LMRFC',21600,21600,'LMRFC QPF 06 HR','eb82d661-afe6-436a-b0df-2ab0b478a1af','e245d39f-3209-4e58-bfb7-4eae94b3f8dd','Lower Mississippi River Forecast Center 06 hour QPF','91d87306-8eed-45ac-a41e-16d9429ca14c'),
+    ('5e13560b-7589-474f-9fd5-bc1cf4163fe4','lmrfc-qpe-01h','LMRFC',0,3600,'LMRFC QPE 01 HR','eb82d661-afe6-436a-b0df-2ab0b478a1af','e245d39f-3209-4e58-bfb7-4eae94b3f8dd','Lower Mississippi River Forecast Center 01 hour QPE','91d87306-8eed-45ac-a41e-16d9429ca14c'),
     ('a9a74d32-acdb-4fd2-8478-14d7098c50a7','serfc-qpf-06h','SERFC',21600,21600,'SERFC QPF 06 HR','eb82d661-afe6-436a-b0df-2ab0b478a1af','e245d39f-3209-4e58-bfb7-4eae94b3f8dd','Southeast River Forecast Center 06 hour QPF','077600e5-955c-4f0a-8533-7f129366c602'),
     ('ae11dad4-7065-4963-8771-7f5aa1e94b5d','serfc-qpe-01h','SERFC',0,3600,'SERFC QPE 01 HR','eb82d661-afe6-436a-b0df-2ab0b478a1af','e245d39f-3209-4e58-bfb7-4eae94b3f8dd','Southeast River Forecast Center 01 hour QPE','077600e5-955c-4f0a-8533-7f129366c602'),
     ('bf73ae80-22fc-43a2-930a-599531470dc6','nsidc-ua-snowdepth-v1','',0,86400,'NSIDC-UA-SNOWDEPTH-V1','cfa90543-235c-4266-98c2-26dbc332cd87','e245d39f-3209-4e58-bfb7-4eae94b3f8dd', 'National Snow and Ice Data Center - Snow Depth', 'c5b8cab4-c49a-4b25-82f0-378b84b4eeac'),
@@ -272,6 +277,8 @@ INSERT INTO tag (id, name, description, color) VALUES
 
 -- product_tags
 INSERT INTO product_tags (tag_id, product_id) VALUES
+    ('726039da-2f21-4393-a15c-5f6e7ea41b1f','1c8c130e-0d3c-4ccc-af5b-d2f95379429c'),
+    ('726039da-2f21-4393-a15c-5f6e7ea41b1f','5e13560b-7589-474f-9fd5-bc1cf4163fe4'),
     ('726039da-2f21-4393-a15c-5f6e7ea41b1f','a9a74d32-acdb-4fd2-8478-14d7098c50a7'),
     ('726039da-2f21-4393-a15c-5f6e7ea41b1f','ae11dad4-7065-4963-8771-7f5aa1e94b5d'),
     ('726039da-2f21-4393-a15c-5f6e7ea41b1f','a8e3de13-d4fb-4973-a076-c6783c93f332'),

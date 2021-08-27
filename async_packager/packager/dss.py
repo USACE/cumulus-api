@@ -75,4 +75,7 @@ def write_contents_to_dssfile(outfile, watershed, items, callback, cellsize=2000
                 grid_info
             )
 
+            ds = None
+            data = None
+
     return os.path.abspath(outfile)

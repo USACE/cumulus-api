@@ -136,7 +136,7 @@ CREATE OR REPLACE VIEW v_download AS (
                 -- forecast data with an end date < now (looking at forecasts in the past)
 			    OR (dp.datetime_end < now() AND date_part('year', f.version) != '1111' AND f.version between dp.datetime_end - interval '24 hours' and dp.datetime_end)
 			    -- forecast data with an end date >= now (looking at current latest forecasts)
-			    OR (dp.datetime_end >= now() AND date_part('year', f.version) != '1111' AND f.version between now() - interval '12 hours' and now())
+			    OR (dp.datetime_end >= now() AND date_part('year', f.version) != '1111' AND f.version between now() - interval '18 hours' and now())
                 ORDER BY f.product_id, f.version, f.datetime) dss;
 
 

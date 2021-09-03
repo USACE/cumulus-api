@@ -31,51 +31,56 @@ def write_contents_to_dssfile(outfile, watershed, items, callback, cellsize=2000
             WatershedContent = namedtuple("WatershedContent", item)
             content = WatershedContent(**item)
 
-            ds = gdal.Warp(
-                '/vsimem/projected.tif',
-                f'/vsis3_streaming/{content.bucket}/{content.key}',
-                dstSRS=dst_srs,
-                outputType=gdal.GDT_Float64,
-                outputBounds=_watershed.bbox,
-                resampleAlg="bilinear",
-                targetAlignedPixels=True,
-                xRes=cellsize,
-                yRes=cellsize
-            )
+            try:
+                ds = gdal.Warp(
+                    '/vsimem/projected.tif',
+                    f'/vsis3_streaming/{content.bucket}/{content.key}',
+                    dstSRS=dst_srs,
+                    outputType=gdal.GDT_Float64,
+                    outputBounds=_watershed.bbox,
+                    resampleAlg="bilinear",
+                    targetAlignedPixels=True,
+                    xRes=cellsize,
+                    yRes=cellsize
+                )
 
-            # Raw Cell Values as Array
-            data = ds.GetRasterBand(1).ReadAsArray().astype(np.dtype('float32'))
+                # Raw Cell Values as Array
+                data = ds.GetRasterBand(1).ReadAsArray().astype(np.dtype('float32'))
 
-            # Projection
-            proj = HEC_WKT if ("5070" in dst_srs) else ds.GetProjection()
+                # Projection
+                proj = HEC_WKT if ("5070" in dst_srs) else ds.GetProjection()
 
-            # Affine Transform
-            geo_transform = ds.GetGeoTransform()
-            affine_transform = Affine(cellsize,0,0,0,0,0) if ("5070" in dst_srs) \
-                else Affine.from_gdal(*geo_transform)
+                # Affine Transform
+                geo_transform = ds.GetGeoTransform()
+                affine_transform = Affine(cellsize,0,0,0,0,0) if ("5070" in dst_srs) \
+                    else Affine.from_gdal(*geo_transform)
 
-            # Create HEC GridInfo Object
-            grid_info = gridInfo()
-            grid_info.update([
-                ('grid_type','shg-time'),
-                ('grid_crs', proj),
-                ('grid_transform', affine_transform),
-                ('data_type', content.dss_datatype.lower()),
-                ('data_units', content.dss_unit.lower()),
-                ('opt_crs_name', 'AlbersInfo'),
-                ('opt_is_interval', True),
-                ('opt_time_stamped', True),
-                ('opt_lower_left_x', _watershed.bbox[0] / cellsize),
-                ('opt_lower_left_y', _watershed.bbox[1] / cellsize),
-            ])
+                # Create HEC GridInfo Object
+                grid_info = gridInfo()
+                grid_info.update([
+                    ('grid_type','shg-time'),
+                    ('grid_crs', proj),
+                    ('grid_transform', affine_transform),
+                    ('data_type', content.dss_datatype.lower()),
+                    ('data_units', content.dss_unit.lower()),
+                    ('opt_crs_name', 'AlbersInfo'),
+                    ('opt_is_interval', True),
+                    ('opt_time_stamped', True),
+                    ('opt_lower_left_x', _watershed.bbox[0] / cellsize),
+                    ('opt_lower_left_y', _watershed.bbox[1] / cellsize),
+                ])
 
-            fid.put_grid(
-                f'/SHG/{_watershed.name}/{content.dss_cpart}/{content.dss_dpart}/{content.dss_epart}/{content.dss_fpart}/',
-                data,
-                grid_info
-            )
+                fid.put_grid(
+                    f'/SHG/{_watershed.name}/{content.dss_cpart}/{content.dss_dpart}/{content.dss_epart}/{content.dss_fpart}/',
+                    data,
+                    grid_info
+                )
+            
+            except:
+                print(f'Unable to process: {content.bucket}/{content.key}')
 
-            ds = None
-            data = None
+            finally:
+                ds = None
+                data = None
 
     return os.path.abspath(outfile)

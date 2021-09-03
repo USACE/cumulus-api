@@ -1,8 +1,6 @@
 package handlers
 
 import (
-	"bytes"
-	"io/ioutil"
 	"net/http"
 	"net/url"
 	"path/filepath"
@@ -34,14 +32,7 @@ func ServeMedia(awsCfg *aws.Config, bucket *string) echo.HandlerFunc {
 			return c.String(500, err.Error())
 		}
 
-		buff, buffErr := ioutil.ReadAll(output.Body)
-		if buffErr != nil {
-			return c.String(500, err.Error())
-		}
-
-		reader := bytes.NewReader(buff)
-
 		c.Response().Header().Set(echo.HeaderContentDisposition, "attachment")
-		return c.Stream(http.StatusOK, "application/octet-stream", reader)
+		return c.Stream(http.StatusOK, "application/octet-stream", output.Body)
 	}
 }

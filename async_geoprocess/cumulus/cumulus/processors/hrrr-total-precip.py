@@ -46,7 +46,7 @@ def process(infile, outdir) -> List:
     """Takes an infile to process and path to a directory where output files should be saved
     Returns array of objects [{ "filetype": "nohrsc_snodas_swe", "file": "file.tif", ... }, {}, ]
     """
-    band_number = 83
+    band_number = 84
     outfile_list = list()
 
     # Process the gdal information

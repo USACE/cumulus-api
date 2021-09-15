@@ -32,7 +32,6 @@ def write_contents_to_dssfile(outfile, watershed, items, callback, cellsize=2000
             content = WatershedContent(**item)
 
             try:
-                
                 ds = gdal.Warp(
                     '/vsimem/projected.tif',
                     f'/vsis3_streaming/{content.bucket}/{content.key}',
@@ -43,7 +42,6 @@ def write_contents_to_dssfile(outfile, watershed, items, callback, cellsize=2000
                     targetAlignedPixels=True,
                     xRes=cellsize,
                     yRes=cellsize,
-                    dstNodata=0,
                 )
 
                 # Raw Cell Values as Array

@@ -31,22 +31,19 @@ def write_contents_to_dssfile(outfile, watershed, items, callback, cellsize=2000
             WatershedContent = namedtuple("WatershedContent", item)
             content = WatershedContent(**item)
 
-            kwargs = {
-                'dstSRS': dst_srs,
-                'outputType': gdal.GDT_Float64,
-                'outputBounds': _watershed.bbox,
-                'resampleAlg': 'bilinear',
-                'targetAlignedPixels': True,
-                'xRes': cellsize,
-                'yRes': cellsize,
-                'dstNodata': 0,
-            }
             try:
                 
                 ds = gdal.Warp(
                     '/vsimem/projected.tif',
                     f'/vsis3_streaming/{content.bucket}/{content.key}',
-                    **kwargs
+                    dstSRS=dst_srs,
+                    outputType=gdal.GDT_Float64,
+                    outputBounds=_watershed.bbox,
+                    resampleAlg="bilinear",
+                    targetAlignedPixels=True,
+                    xRes=cellsize,
+                    yRes=cellsize,
+                    dstNodata=0,
                 )
 
                 # Raw Cell Values as Array

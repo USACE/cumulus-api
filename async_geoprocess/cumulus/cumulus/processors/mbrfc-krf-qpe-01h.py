@@ -64,8 +64,8 @@ def process(infile, outdir) -> List:
     dst_nodata = "-3.402823466e+38"
     meta_dict = band.metadata[""]
     meta = Metadata(**meta_dict)
-    
-    ref_time = datetime.fromtimestamp(int(meta.GRIB_REF_TIME.split(" ")[0]))
+
+    # ref_time = datetime.fromtimestamp(int(meta.GRIB_REF_TIME.split(" ")[0]))
     valid_time = datetime.fromtimestamp(int(meta.GRIB_VALID_TIME.split(" ")[0]))
 
     # Extract Band; Convert to COG

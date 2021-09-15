@@ -1,7 +1,6 @@
 from datetime import datetime
 from logging import log
 import os
-from osgeo import gdal
 from uuid import uuid4
 from ..geoprocess.core.base import info, translate, create_overviews, warp
 from ..handyutils.core import change_final_file_extension, gunzip_file

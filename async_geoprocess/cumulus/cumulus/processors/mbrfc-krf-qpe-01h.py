@@ -1,8 +1,9 @@
 from datetime import datetime
 from logging import log
 import os
+from osgeo import gdal
 from uuid import uuid4
-from ..geoprocess.core.base import info, translate, create_overviews
+from ..geoprocess.core.base import info, translate, create_overviews, warp
 from ..handyutils.core import change_final_file_extension, gunzip_file
 from dataclasses import dataclass
 from typing import List, OrderedDict
@@ -68,8 +69,9 @@ def process(infile, outdir) -> List:
 
     # Extract Band; Convert to COG
 
-    tif = translate(new_infile, os.path.join(outdir, f"temp-tif-{uuid4()}"), extra_args=["-b", str(band_number)])
-    tif_with_overviews = create_overviews(tif)
+    tif_trans = translate(new_infile, os.path.join(outdir, f"temp-tif-{uuid4()}"), extra_args=["-b", str(band_number)])
+    tif_warp = warp(tif_trans, os.path.join(outdir, f"temp-tif-{uuid4()}"), extra_args=['-dstnodata', '0'])
+    tif_with_overviews = create_overviews(tif_warp)
     cog = translate(
         tif_with_overviews,
         os.path.join(

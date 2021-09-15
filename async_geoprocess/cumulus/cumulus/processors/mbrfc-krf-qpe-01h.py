@@ -2,7 +2,7 @@ from datetime import datetime
 from logging import log
 import os
 from uuid import uuid4
-from ..geoprocess.core.base import info, translate, create_overviews
+from ..geoprocess.core.base import info, translate, create_overviews, warp
 from ..handyutils.core import change_final_file_extension, gunzip_file
 from dataclasses import dataclass
 from typing import List, OrderedDict
@@ -60,6 +60,8 @@ def process(infile, outdir) -> List:
 
     all_bands: List = fileinfo["bands"]
     band = Band(**all_bands[band_number - 1])
+    src_nodata = band.noDataValue
+    dst_nodata = "-3.402823466e+38"
     meta_dict = band.metadata[""]
     meta = Metadata(**meta_dict)
 
@@ -69,7 +71,8 @@ def process(infile, outdir) -> List:
     # Extract Band; Convert to COG
 
     tif = translate(new_infile, os.path.join(outdir, f"temp-tif-{uuid4()}"), extra_args=["-b", str(band_number)])
-    tif_with_overviews = create_overviews(tif)
+    tif_nodata = warp(tif, os.path.join(outdir, f"temp-tif-{uuid4()}"), extra_args=["-srcnodata", str(src_nodata), "-dstnodata", dst_nodata])
+    tif_with_overviews = create_overviews(tif_nodata)
     cog = translate(
         tif_with_overviews,
         os.path.join(

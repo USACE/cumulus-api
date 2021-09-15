@@ -41,7 +41,8 @@ def write_contents_to_dssfile(outfile, watershed, items, callback, cellsize=2000
                     resampleAlg="bilinear",
                     targetAlignedPixels=True,
                     xRes=cellsize,
-                    yRes=cellsize
+                    yRes=cellsize,
+                    dstNodata=0,
                 )
 
                 # Raw Cell Values as Array

@@ -98,6 +98,11 @@ func main() {
 	private.Use(middleware.EDIPIMiddleware, middleware.AttachProfileMiddleware(db))
 	cacOnly.Use(middleware.EDIPIMiddleware, middleware.CACOnlyMiddleware)
 
+	// Health Check
+	public.GET("/health", func(c echo.Context) error {
+		return c.JSON(http.StatusOK, map[string]interface{}{"status": "healthy"})
+	})
+
 	// Profile
 	cacOnly.GET("/my_profile", handlers.GetMyProfile(db))
 	cacOnly.POST("/my_profile", handlers.CreateProfile(db))

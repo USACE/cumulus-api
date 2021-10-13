@@ -7,10 +7,10 @@ import (
 	"github.com/jackc/pgx/v4/pgxpool"
 	"github.com/labstack/echo/v4"
 
-	"api/models"
-
 	// SQL Interface
 	_ "github.com/jackc/pgx/v4"
+
+	"github.com/USACE/cumulus-api/api/models"
 )
 
 // ListAcquirable lists all acquirables

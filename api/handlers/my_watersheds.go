@@ -7,7 +7,7 @@ import (
 	"github.com/jackc/pgx/v4/pgxpool"
 	"github.com/labstack/echo/v4"
 
-	"api/models"
+	"github.com/USACE/cumulus-api/api/models"
 )
 
 // ListMyWatersheds returns a list of watersheds linked to the logged-in profile

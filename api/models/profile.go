@@ -1,9 +1,10 @@
 package models
 
 import (
-	"api/passwords"
 	"context"
 	"time"
+
+	"github.com/USACE/cumulus-api/api/passwords"
 
 	"github.com/georgysavva/scany/pgxscan"
 	"github.com/google/uuid"

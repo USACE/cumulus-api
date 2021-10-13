@@ -7,16 +7,16 @@ import (
 	"net/http"
 	"time"
 
-	"api/config"
-	"api/handlers"
-	"api/middleware"
-	"api/models"
-
 	"github.com/labstack/echo/v4"
 	"golang.org/x/net/http2"
 
 	_ "github.com/jackc/pgx/v4"
 	"github.com/jackc/pgx/v4/pgxpool"
+
+	"github.com/USACE/cumulus-api/api/config"
+	"github.com/USACE/cumulus-api/api/handlers"
+	"github.com/USACE/cumulus-api/api/middleware"
+	"github.com/USACE/cumulus-api/api/models"
 )
 
 // Connection returns a database connection from configuration parameters

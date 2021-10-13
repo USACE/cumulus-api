@@ -13,6 +13,7 @@ import (
 	"api/models"
 
 	"github.com/labstack/echo/v4"
+	"golang.org/x/net/http2"
 
 	_ "github.com/jackc/pgx/v4"
 	"github.com/jackc/pgx/v4/pgxpool"
@@ -267,5 +268,12 @@ func main() {
 	// private.POST("/watersheds/:watershed_id/area_groups/:area_group_id/products/:product_id/statistics/disable", handlers.DisableAreaGroupProductStatistics(db))
 
 	// Start server
-	log.Fatal(http.ListenAndServe(":80", e))
+	s := &http2.Server{
+		MaxConcurrentStreams: 250,     // http2 default 250
+		MaxReadFrameSize:     1048576, // http2 default 1048576
+		IdleTimeout:          10 * time.Second,
+	}
+	if err := e.StartH2CServer(":80", s); err != http.ErrServerClosed {
+		log.Fatal(err)
+	}
 }

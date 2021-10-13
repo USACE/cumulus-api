@@ -23,8 +23,6 @@ vendor
 
 **.DS_Store
 
-database/packager_files/**
-
 **.pyc
 
 **/__debug*

@@ -1,173 +1,89 @@
--- extensions
 CREATE extension IF NOT EXISTS "uuid-ossp";
 
+----------
+-- DOMAINS
+----------
 
--- drop tables if they already exist
-drop table if exists
-    office,
-    watershed,
-    watershed_roles,
-    my_watersheds,
-    area,
-    area_group,
-	role
-	CASCADE;
+-- config (application config variables)
+CREATE TABLE IF NOT EXISTS config (
+    config_name VARCHAR UNIQUE NOT NULL,
+    config_value VARCHAR NOT NULL
+);
+INSERT INTO config (config_name, config_value) VALUES
+('write_to_bucket', 'cwbi-data-develop');
+
+-- unit
+CREATE TABLE IF NOT EXISTS unit (
+    id UUID PRIMARY KEY NOT NULL DEFAULT uuid_generate_v4(),
+    name VARCHAR(120) UNIQUE NOT NULL,
+    abbreviation VARCHAR(120) UNIQUE NOT NULL
+);
+INSERT INTO unit (id, name, abbreviation) VALUES
+    ('4bcfac2e-1a08-4484-bf7d-3cb937dc950b','DEGC-D','DEGC-D'),
+    ('8f51e5b5-08be-4ea7-9ebc-ad44b465dbc6','DEG C','DEG-C'),
+    ('0c8dcd1f-93db-4e64-be1d-47b3462deb2a','DEG F','DEG-F'),
+    ('e245d39f-3209-4e58-bfb7-4eae94b3f8dd','MM','MM'),
+    ('855ee63c-d623-40d5-a551-3655ce2d7b47','K','K');
+
+-- parameter
+CREATE TABLE IF NOT EXISTS parameter (
+    id UUID PRIMARY KEY NOT NULL DEFAULT uuid_generate_v4(),
+    name VARCHAR(120) UNIQUE NOT NULL
+);
+INSERT INTO parameter (id, name) VALUES
+    ('2b3f8cf3-d3f5-440b-b7e7-0c8090eda80f','COLD CONTENT'),
+    ('5fab39b9-90ba-482a-8156-d863ad7c45ad','AIRTEMP'),
+    ('683a55b9-4a94-46b5-9f47-26e66f3037a8','SWE'),
+    ('b93b92c7-8b0b-48c3-a0cf-7124f15197dd','LIQUID WATER'),
+    ('ca7b6a70-b662-4f5c-86c7-5588d1cd6cc1','COLD CONTENT ATI'),
+    ('cfa90543-235c-4266-98c2-26dbc332cd87','SNOW DEPTH'),
+    ('d0517a82-21dd-46a2-bd6d-393ebd504480','MELTRATE ATI'),
+    ('eb82d661-afe6-436a-b0df-2ab0b478a1af','PRECIP'),
+    ('d3f49557-2aef-4dc2-a2dd-01b353b301a4','SNOW MELT'),
+    ('ccc8c81a-ddb0-4738-857b-f0ef69aa1dc0','SNOWTEMP');
 
 
--- office
+-----------
+-- PROFILES
+-----------
+
+-- profile
+CREATE TABLE IF NOT EXISTS profile (
+    id UUID PRIMARY KEY NOT NULL DEFAULT uuid_generate_v4(),
+    edipi BIGINT UNIQUE NOT NULL,
+    username VARCHAR(240) UNIQUE NOT NULL,
+    email VARCHAR(240) UNIQUE NOT NULL,
+    is_admin boolean NOT NULL DEFAULT false
+);
+-- Profile (Faked with: https://homepage.net/name_generator/)
+-- NOTE: EDIPI 1 should not be used; test user with EDIPI = 1 created by integration tests
+INSERT INTO profile (id, edipi, is_admin, username, email) VALUES
+    ('57329df6-9f7a-4dad-9383-4633b452efab',2,true,'AnthonyLambert','anthony.lambert@fake.usace.army.mil'),
+    ('f320df83-e2ea-4fe9-969a-4e0239b8da51',3,false,'MollyRutherford','molly.rutherford@fake.usace.army.mil'),
+    ('89aa1e13-041a-4d15-9e45-f76eba3b0551',4,false,'DominicGlover','dominic.glover@fake.usace.army.mil'),
+    ('405ab7e1-20fc-4d26-a074-eccad88bf0a9',5,false,'JoeQuinn','joe.quinn@fake.usace.army.mil'),
+    ('81c77210-6244-46fe-bdf6-35da4f00934b',6,false,'TrevorDavidson','trevor.davidson@fake.usace.army.mil'),
+    ('f056201a-ffec-4f5b-aec5-14b34bb5e3d8',7,false,'ClaireButler','claire.butler@fake.usace.army.mil'),
+    ('9effda27-49f7-4745-8e55-fa819f550b09',8,false,'SophieBower','sophie.bower@fake.usace.army.mil'),
+    ('37407aba-904a-42fa-af73-6ab748ee1f98',9,false,'NeilMcLean','neil.mclean@fake.usace.army.mil'),
+    ('c0fd72ae-cccc-45c9-ba1d-4353170c352d',10,false,'JakeBurgess','jake.burgess@fake.usace.army.mil'),
+    ('be549c16-3f65-4af4-afb6-e18c814c44dc',11,false,'DanQuinn','dan.quinn@fake.usace.army.mil'),
+    ('8dde311e-1761-4d3f-ac13-a458d17fe432',29, true, 'Cumulus Automation','cumulus@usace.army.mil');
+
+-- profile_token
+CREATE TABLE IF NOT EXISTS profile_token (
+    id UUID PRIMARY KEY NOT NULL DEFAULT uuid_generate_v4(),
+    token_id VARCHAR NOT NULL,
+    profile_id UUID NOT NULL REFERENCES profile(id),
+    issued TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    hash VARCHAR(240) NOT NULL
+);
+
 CREATE TABLE IF NOT EXISTS office (
     id UUID PRIMARY KEY NOT NULL DEFAULT uuid_generate_v4(),
     symbol VARCHAR(120) UNIQUE NOT NULL,
     name VARCHAR(120) UNIQUE NOT NULL
 );
-
--- watershed
-CREATE TABLE IF NOT EXISTS watershed (
-    id UUID PRIMARY KEY NOT NULL DEFAULT uuid_generate_v4(),
-    slug VARCHAR UNIQUE NOT NULL,
-    name VARCHAR,
-    geometry geometry,
-    office_id UUID REFERENCES office(id),
-	deleted boolean NOT NULL DEFAULT false
-);
-
--- my_watersheds
-CREATE TABLE IF NOT EXISTS my_watersheds (
-    id UUID PRIMARY KEY NOT NULL DEFAULT uuid_generate_v4(),
-    watershed_id UUID NOT NULL REFERENCES watershed(id) ON DELETE CASCADE,
-    profile_id UUID NOT NULL REFERENCES profile(id) ON DELETE CASCADE,
-    CONSTRAINT profile_unique_watershed UNIQUE(watershed_id, profile_id)
-);
-
--- area_group
-CREATE TABLE IF NOT EXISTS area_group (
-    id UUID PRIMARY KEY NOT NULL DEFAULT uuid_generate_v4(),
-    watershed_id UUID NOT NULL REFERENCES watershed(id) ON DELETE CASCADE,
-    slug VARCHAR NOT NULL,
-    name VARCHAR NOT NULL,
-    CONSTRAINT watershed_unique_slug UNIQUE(watershed_id, slug),
-    CONSTRAINT watershed_unique_name UNIQUE(watershed_id, name)
-);
-
--- area
-CREATE TABLE IF NOT EXISTS area (
-    id UUID PRIMARY KEY NOT NULL DEFAULT uuid_generate_v4(),
-    slug VARCHAR UNIQUE NOT NULL,
-    name VARCHAR UNIQUE NOT NULL,
-    geometry geometry NOT NULL,
-    area_group_id UUID NOT NULL REFERENCES area_group(id) ON DELETE CASCADE,
-    CONSTRAINT area_group_unique_slug UNIQUE(area_group_id, slug),
-    CONSTRAINT area_group_unique_name UNIQUE(area_group_id, name)
-);
-
-
-------------------------
--- Watershed Permissions
-------------------------
--- role
-CREATE TABLE IF NOT EXISTS role (
-    id UUID PRIMARY KEY NOT NULL DEFAULT uuid_generate_v4(),
-    name VARCHAR NOT NULL
-);
-INSERT INTO role (id, name) VALUES
-    ('37f14863-8f3b-44ca-8deb-4b74ce8a8a69', 'ADMIN'),
-    ('2962bdde-7007-4ba0-943f-cb8e72e90704', 'MEMBER');
-
--- watershed_roles
-CREATE TABLE IF NOT EXISTS watershed_roles (
-    id UUID PRIMARY KEY NOT NULL DEFAULT uuid_generate_v4(),
-    profile_id UUID NOT NULL REFERENCES profile(id) ON DELETE CASCADE,
-    role_id UUID NOT NULL REFERENCES role(id) ON DELETE CASCADE,
-    watershed_id UUID NOT NULL REFERENCES watershed(id) ON DELETE CASCADE,
-    granted_by UUID REFERENCES profile(id),
-    granted_date TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    CONSTRAINT unique_watershed_role UNIQUE(profile_id,watershed_id,role_id)
-);
-
--- -----
--- VIEWS
--- -----
-
-CREATE OR REPLACE VIEW v_watershed AS (
-    SELECT w.id,
-           w.slug,
-           w.name,
-           w.geometry AS geometry,
-           COALESCE(ag.area_groups, '{}') AS area_groups,
-           f.symbol AS office_symbol
-	FROM   watershed w
-	LEFT JOIN (
-		SELECT array_agg(id) as area_groups, watershed_id
-		FROM area_group
-		GROUP BY watershed_id
-	) ag ON ag.watershed_id = w.id
-    LEFT JOIN office f ON w.office_id = f.id
-	WHERE NOT w.deleted
-);
-
-
--- Basins; Projected to EPSG 5070
-CREATE OR REPLACE VIEW v_area_5070 AS (
-	SELECT id,
-		slug,
-		name,
-			ST_SnapToGrid(
-				ST_Transform(
-					geometry,
-					'+proj=aea +lat_0=23 +lon_0=-96 +lat_1=29.5 +lat_2=45.5 +x_0=0 +y_0=0 +datum=NAD83 +units=us-ft +no_defs',
-					5070
-				),
-				1
-			) AS geometry
-	FROM area
-);
-
--- v_watershed_roles
-CREATE OR REPLACE VIEW v_watershed_roles AS (
-    SELECT a.id,
-           a.profile_id,
-           b.edipi,
-           b.username,
-           b.email,
-           b.is_admin,
-           c.id AS watershed_id,
-           r.id   AS role_id,
-           r.name AS role,
-           UPPER(c.slug || '.' || r.name) AS rolename
-    FROM watershed_roles a
-    INNER JOIN profile b ON b.id = a.profile_id
-    INNER JOIN watershed c ON c.id = a.watershed_id AND NOT c.deleted
-    INNER JOIN role    r ON r.id = a.role_id
-    ORDER BY username, role
-);
-
--- v_profile
--- create statement here because watershed and watershed_roles
--- tables must exist before creating this view
-CREATE OR REPLACE VIEW v_profile AS (
-    WITH roles_by_profile AS (
-        SELECT profile_id,
-               array_agg(UPPER(b.slug || '.' || c.name)) AS roles
-        FROM watershed_roles a
-        INNER JOIN watershed b ON a.watershed_id = b.id AND NOT b.deleted
-        INNER JOIN role      c ON a.role_id    = c.id
-        GROUP BY profile_id
-    )
-    SELECT p.id,
-           p.edipi,
-           p.username,
-           p.email,
-           p.is_admin,
-           COALESCE(r.roles,'{}') AS roles
-    FROM profile p
-    LEFT JOIN roles_by_profile r ON r.profile_id = p.id
-);
-
--- ---------
--- Seed Data
-------------
-
--- office
 INSERT INTO office (id, symbol, name) VALUES
     ('0088df5f-ec58-4654-9b71-3590266b475c','MVS','St. Louis District'),
     ('0360bb56-92f8-4c1e-9b08-8396b216f2d3','LRDO','Ohio River Region'),
@@ -225,7 +141,6 @@ INSERT INTO office (id, symbol, name) VALUES
 -- ('9efd790c-ad0f-4ff3-943d-c66e5dd631b8','HEC','Hydrologic Engineering Cennter'),
 -- ('b220e75d-29ad-45cf-8e34-b23648735654','CERL','Construction Engineering Research Laboratory'),
 -- ('ca6aa6f6-48ce-4532-b514-12a4464bdbe9','WCSC','Waterborne Commerce Statistics Center'),
-
 -- ('e03caac3-9e58-4cab-83bc-e2b6ad746124','IWR','Institute for Water Resources'),
 ('e303450f-af6a-4272-a262-fdb94f8e3e86','SERFC','Southeast River Forecast Center');
 -- ('e8932733-872b-471d-9b81-6212b574da6d','LCRA','Lower Colorado River Authority'),
@@ -242,7 +157,19 @@ INSERT INTO office (id, symbol, name) VALUES
 -- ('7c18d4e5-a999-4c9e-a36a-9c89f2278891','ERD','Engineer Research and Development Center'),
 
 
+-------------
+-- WATERSHEDS
+-------------
 
+-- watershed
+CREATE TABLE IF NOT EXISTS watershed (
+    id UUID PRIMARY KEY NOT NULL DEFAULT uuid_generate_v4(),
+    slug VARCHAR UNIQUE NOT NULL,
+    name VARCHAR,
+    geometry geometry,
+    office_id UUID REFERENCES office(id),
+	deleted boolean NOT NULL DEFAULT false
+);
 -- extent to polygon reference order - simple 4 point extents
 -- xmin,ymax (top left), xmax ymax (top right), xmax ymin (bottom right), xmin ymin (bottom left), xmin ymax (top left again)
 INSERT INTO watershed (id,slug,"name",geometry,office_id) VALUES
@@ -465,3 +392,806 @@ INSERT INTO watershed (id,slug,"name",geometry,office_id) VALUES
 	 ('7ad70d11-ad82-46f8-abbf-c3d78eaa8d04','rulo-to-st-charles','Rulo to St Charles',ST_GeomFromText('POLYGON ((-106000 2110000, 507000 2110000, 507000 1550000, -106000 1550000, -106000 2110000))',5070),'90173658-2de9-4329-926d-176c1b29089a'),
 	 ('4a952583-09cd-4f1a-8887-87b32f19932c','sioux-city-to-rulo','Sioux City to Rulo',ST_GeomFromText('POLYGON ((-540000 2320000, 180000 2320000, 180000 1850000, -540000 1850000, -540000 2320000))',5070),'90173658-2de9-4329-926d-176c1b29089a'),
 	 ('3fa38973-66fc-400c-aa2a-f3159a50f79d','lake-okeechobee','Lake Okeechobee',ST_GeomFromText('POLYGON ((1392000 724000, 1578000 724000, 1578000 486000, 1392000 486000, 1392000 724000))',5070),'4142c26c-0407-41ad-b660-8657ddb2be69');
+
+
+-- my_watersheds
+CREATE TABLE IF NOT EXISTS my_watersheds (
+    id UUID PRIMARY KEY NOT NULL DEFAULT uuid_generate_v4(),
+    watershed_id UUID NOT NULL REFERENCES watershed(id) ON DELETE CASCADE,
+    profile_id UUID NOT NULL REFERENCES profile(id) ON DELETE CASCADE,
+    CONSTRAINT profile_unique_watershed UNIQUE(watershed_id, profile_id)
+);
+
+-- area_group
+CREATE TABLE IF NOT EXISTS area_group (
+    id UUID PRIMARY KEY NOT NULL DEFAULT uuid_generate_v4(),
+    watershed_id UUID NOT NULL REFERENCES watershed(id) ON DELETE CASCADE,
+    slug VARCHAR NOT NULL,
+    name VARCHAR NOT NULL,
+    CONSTRAINT watershed_unique_slug UNIQUE(watershed_id, slug),
+    CONSTRAINT watershed_unique_name UNIQUE(watershed_id, name)
+);
+
+-- area
+CREATE TABLE IF NOT EXISTS area (
+    id UUID PRIMARY KEY NOT NULL DEFAULT uuid_generate_v4(),
+    slug VARCHAR UNIQUE NOT NULL,
+    name VARCHAR UNIQUE NOT NULL,
+    geometry geometry NOT NULL,
+    area_group_id UUID NOT NULL REFERENCES area_group(id) ON DELETE CASCADE,
+    CONSTRAINT area_group_unique_slug UNIQUE(area_group_id, slug),
+    CONSTRAINT area_group_unique_name UNIQUE(area_group_id, name)
+);
+
+-- role
+CREATE TABLE IF NOT EXISTS role (
+    id UUID PRIMARY KEY NOT NULL DEFAULT uuid_generate_v4(),
+    name VARCHAR NOT NULL
+);
+INSERT INTO role (id, name) VALUES
+    ('37f14863-8f3b-44ca-8deb-4b74ce8a8a69', 'ADMIN'),
+    ('2962bdde-7007-4ba0-943f-cb8e72e90704', 'MEMBER');
+
+-- watershed_roles
+CREATE TABLE IF NOT EXISTS watershed_roles (
+    id UUID PRIMARY KEY NOT NULL DEFAULT uuid_generate_v4(),
+    profile_id UUID NOT NULL REFERENCES profile(id) ON DELETE CASCADE,
+    role_id UUID NOT NULL REFERENCES role(id) ON DELETE CASCADE,
+    watershed_id UUID NOT NULL REFERENCES watershed(id) ON DELETE CASCADE,
+    granted_by UUID REFERENCES profile(id),
+    granted_date TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    CONSTRAINT unique_watershed_role UNIQUE(profile_id,watershed_id,role_id)
+);
+
+CREATE OR REPLACE VIEW v_watershed AS (
+    SELECT w.id,
+           w.slug,
+           w.name,
+           w.geometry AS geometry,
+           COALESCE(ag.area_groups, '{}') AS area_groups,
+           f.symbol AS office_symbol
+	FROM   watershed w
+	LEFT JOIN (
+		SELECT array_agg(id) as area_groups, watershed_id
+		FROM area_group
+		GROUP BY watershed_id
+	) ag ON ag.watershed_id = w.id
+    LEFT JOIN office f ON w.office_id = f.id
+	WHERE NOT w.deleted
+);
+
+
+-- Basins; Projected to EPSG 5070
+CREATE OR REPLACE VIEW v_area_5070 AS (
+	SELECT id,
+		slug,
+		name,
+			ST_SnapToGrid(
+				ST_Transform(
+					geometry,
+					'+proj=aea +lat_0=23 +lon_0=-96 +lat_1=29.5 +lat_2=45.5 +x_0=0 +y_0=0 +datum=NAD83 +units=us-ft +no_defs',
+					5070
+				),
+				1
+			) AS geometry
+	FROM area
+);
+
+-- v_watershed_roles
+CREATE OR REPLACE VIEW v_watershed_roles AS (
+    SELECT a.id,
+           a.profile_id,
+           b.edipi,
+           b.username,
+           b.email,
+           b.is_admin,
+           c.id AS watershed_id,
+           r.id   AS role_id,
+           r.name AS role,
+           UPPER(c.slug || '.' || r.name) AS rolename
+    FROM watershed_roles a
+    INNER JOIN profile b ON b.id = a.profile_id
+    INNER JOIN watershed c ON c.id = a.watershed_id AND NOT c.deleted
+    INNER JOIN role    r ON r.id = a.role_id
+    ORDER BY username, role
+);
+
+-- v_profile
+-- create statement here because watershed and watershed_roles
+-- tables must exist before creating this view
+CREATE OR REPLACE VIEW v_profile AS (
+    WITH roles_by_profile AS (
+        SELECT profile_id,
+               array_agg(UPPER(b.slug || '.' || c.name)) AS roles
+        FROM watershed_roles a
+        INNER JOIN watershed b ON a.watershed_id = b.id AND NOT b.deleted
+        INNER JOIN role      c ON a.role_id    = c.id
+        GROUP BY profile_id
+    )
+    SELECT p.id,
+           p.edipi,
+           p.username,
+           p.email,
+           p.is_admin,
+           COALESCE(r.roles,'{}') AS roles
+    FROM profile p
+    LEFT JOIN roles_by_profile r ON r.profile_id = p.id
+);
+
+
+-----------
+-- PRODUCTS
+-----------
+
+-- acquirable
+CREATE TABLE IF NOT EXISTS acquirable (
+    id UUID PRIMARY KEY NOT NULL DEFAULT uuid_generate_v4(),
+    name VARCHAR(120) NOT NULL,
+    slug VARCHAR(120) UNIQUE NOT NULL
+);
+INSERT INTO acquirable (id, name, slug) VALUES
+    ('fca9e8a4-23e3-471f-a56b-39956055a442', 'lmrfc-qpf-06h', 'lmrfc-qpf-06h'),
+    ('660ce26c-9b70-464b-8a17-5c923752545d', 'lmrfc-qpe-01h', 'lmrfc-qpe-01h'),
+    ('355d8d9b-1eb4-4f1d-93b7-d77054c5c267', 'serfc-qpf-06h', 'serfc-qpf-06h'),
+    ('5365399a-7aa6-4df8-a91a-369ca87c8bd9', 'serfc-qpe-01h', 'serfc-qpe-01h'),
+    ('4b0f8d9c-1be4-4605-8265-a076aa6aa555', 'nsidc_ua_swe_sd_v1', 'nsidc-ua-swe-sd-v1'),
+    ('9b10e3fe-db59-4a50-9acb-063fd0cdc435', 'naefs-mean-06h', 'naefs-mean-06h'),
+    ('a6ba0a12-47d1-4062-995b-3878144fdca4', 'mbrfc-krf-qpe-01h', 'mbrfc-krf-qpe-01h'),
+    ('2c423d07-d085-42ea-ac27-eb007d4d5183', 'mbrfc-krf-qpf-06h', 'mbrfc-krf-qpf-06h'),
+    ('8f0aaa04-11f7-4b39-8b14-d8f0a5f99e44', 'mbrfc-krf-fct-airtemp-01h', 'mbrfc-krf-fct-airtemp-01h'),
+    ('f2fee5df-c51f-4774-bd41-8ded1eed6a64', 'ndfd_conus_qpf_06h', 'ndfd-conus-qpf-06h'),
+    ('5c0f1cfa-bcf8-4587-9513-88cb197ec863', 'ndfd_conus_airtemp', 'ndfd-conus-airtemp'),
+    ('d4e67bee-2320-4281-b6ef-a040cdeafeb8', 'hrrr_total_precip','hrrr-total-precip'),
+    ('ec926de8-6872-4d2b-b7ce-6002221babcd', 'wrf_columbia_precip','wrf-columbia-precip'),
+    ('552bf762-449f-4983-bbdc-9d89daada260', 'wrf_columbia_t2_airtemp','wrf-columbia-airtemp'),
+    ('d4aa1d8d-ce06-47a0-9768-e817b43a20dd', 'nbm-co-01h', 'nbm-co-01h'),
+    ('2429db9a-9872-488a-b7e3-de37afc52ca4', 'cbrfc_mpe', 'cbrfc-mpe'),
+    ('b27a8724-d34d-4045-aa87-c6d88f9858d0', 'ndgd_ltia98_airtemp', 'ndgd-ltia98-airtemp'),
+    ('4d5eb062-5726-4822-9962-f531d9c6caef', 'ndgd_leia98_precip', 'ndgd-leia98-precip'),
+    ('87819ceb-72ee-496d-87db-70eb302302dc', 'nohrsc_snodas_unmasked', 'nohrsc-snodas-unmasked'),
+    ('099916d1-83af-48ed-85d7-6688ae96023d', 'prism_ppt_early', 'prism-ppt-early'),
+    ('97064e4d-453b-4761-8c9a-4a1b979d359e', 'prism_tmax_early', 'prism-tmax-early'),
+    ('11e87d14-ec54-4550-bd95-bc6eba0eba08', 'prism_tmin_early', 'prism-tmin-early'),
+    ('22678c3d-8ac0-4060-b750-6d27a91d0fb3', 'ncep_rtma_ru_anl_airtemp', 'ncep-rtma-ru-anl-airtemp'),
+    ('87a8efb7-af6f-4ece-a97f-53272d1a151d', 'ncep_mrms_v12_multisensor_qpe_01h_pass1', 'ncep-mrms-v12-multisensor-qpe-01h-pass1'),
+    ('0c725458-deb7-45bb-84c6-e98083874c0e', 'wpc_qpf_2p5km', 'wpc-qpf-2p5km'),
+    ('ccc252f9-defc-4b25-817b-2e14c87073a0', 'ncep_mrms_v12_multisensor_qpe_01h_pass2', 'ncep-mrms-v12-multisensor-qpe-01h-pass2');
+
+-- acquirablefile
+CREATE TABLE IF NOT EXISTS acquirablefile (
+    id UUID PRIMARY KEY NOT NULL DEFAULT uuid_generate_v4(),
+    datetime TIMESTAMPTZ NOT NULL,
+    file VARCHAR(1200) NOT NULL,
+    create_date TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    process_date TIMESTAMPTZ,
+    acquirable_id UUID not null REFERENCES acquirable(id)
+);
+
+-- suite
+CREATE TABLE IF NOT EXISTS suite (
+    id UUID PRIMARY KEY NOT NULL DEFAULT uuid_generate_v4(),
+    slug VARCHAR(120) UNIQUE NOT NULL,
+    name VARCHAR(120) UNIQUE NOT NULL,
+    description TEXT NOT NULL DEFAULT ''
+);
+INSERT INTO suite (id, name, slug, description) VALUES
+    ('91d87306-8eed-45ac-a41e-16d9429ca14c', 'Lower Mississippi River Forecast Center (LMRFC)', 'lmrfc', 'LMRFC Description'),
+    ('077600e5-955c-4f0a-8533-7f129366c602', 'Southeast River Forecast Center (SERFC)', 'serfc', 'SERFC Description'),
+    ('c5b8cab4-c49a-4b25-82f0-378b84b4eeac', 'National Snow & Ice Data Center (NSIDC)', 'nsidc', E'This data set provides daily 4 km snow water equivalent (SWE) and snow depth over the conterminous United States from 1981 to 2020, developed at the University of Arizona (UA) under the support of the NASA MAP and SMAP Programs. The data were created by assimilating in-situ snow measurements from the National Resources Conservation Service\'s SNOTEL network and the National Weather Service\'s COOP network with modeled, gridded temperature and precipitation data from PRISM.'),
+    ('74d7191f-7c4b-4549-bf80-5a5de4ba4880', 'Colorado Basin River Forecast Center (CBRFC)', 'cbrfc', 'CBRFC Description'),
+    ('0a4007db-ebcb-4d01-bb3e-3545255da4f0', 'High Resolution Rapid Refresh (HRRR)', 'hrrr', ''),
+    ('c133e9e7-ddc8-4a98-82d7-880d5db35060', 'Snow Data Assimilation System (SNODAS)', 'snodas', ''),
+    ('c4f403ce-5d02-4f56-9d65-245436831d8d', 'Snow Data Assimilation System (SNODAS) Interpolated', 'snodas-interpolated', ''),
+    ('e9d3c98a-6cd7-40cc-9429-57ca7ea96ee1', 'Real-Time Mesoscale Analysis (RTMA) Rapid Update', 'rtma-ru', ''),
+    ('b35d2f4c-dff2-49bf-9acc-2ed17d3c4576', 'MultiRadar/MultiSensor (MRMS)', 'mrms', ''),
+    ('e9730ce6-2ff2-4dbe-ab77-47237a0fd598', 'MultiRadar/MultiSensor (MRMS) v12', 'mrms-v12', ''),
+    ('6b9ac80b-823c-4ac8-bc15-d0232d860302', 'Missouri Basin River Forecast Center', 'mbrfc', 'MBRFC Description...'),
+    ('87f21790-c192-46d3-88a1-71c4967ef9f0', 'North American Ensemble Forecast System (NAEFS)', 'naefs', 'The North America Ensemble Forecasting System (NAEFS) is a multinational effort...'),
+    ('c9b39f25-51e5-49cd-9b5a-77c575bebc3b', 'National Blend of Models (NBM)', 'nbm', ''),
+    ('2ba58108-1bdf-4f63-8b47-dfd3590f96ae', 'National Digital Forecast Database (NDFD)', 'ndfd', ''),
+    ('3d12bbb0-3a84-409f-90bf-f68fb1ce0bca', 'National Digital Guidance Database (NDGD)', 'ndgd', ''),
+    ('9252e4e6-18fa-4a33-a3b6-6f99b5e56f13', 'PRISM Early', 'prism-early', ''),
+    ('5d5a280f-0a15-44cd-a11e-694b7cd9f5a5', 'Weather Prediction Center (WPC)', 'wpc', ''),
+    ('894205d5-cc55-4071-946b-d4027004cb40', 'Weather Research and Forecasting Model (WRF) Columbia', 'wrf-columbia', '');
+-- Suite Description Example
+UPDATE suite set description = 'SNODAS is a modeling and data assimilation system developed by the NOHRSC to provide the best possible estimates of snow cover and associated variables to support hydrologic modelling and analysis. The aim of SNODAS is to provide a physically consistent framework to integrate snow data from satellite and airborne platforms, and ground stations with model estimates of snow cover.'
+WHERE id = 'c133e9e7-ddc8-4a98-82d7-880d5db35060';
+
+-- tag
+CREATE TABLE IF NOT EXISTS tag (
+    id UUID PRIMARY KEY NOT NULL DEFAULT uuid_generate_v4(),
+    name VARCHAR UNIQUE NOT NULL,
+    description VARCHAR,
+    color VARCHAR(6) NOT NULL DEFAULT 'A7F3D0'
+);
+INSERT INTO tag (id, name, description, color) VALUES
+    ('726039da-2f21-4393-a15c-5f6e7ea41b1f', 'Precipitation', 'Products Related to Precipitation', '79b5ff'),
+    ('d9613031-7cf0-4722-923e-e5c3675a163b', 'Temperature', 'Products Related to Temperature', 'fa7878'),
+    ('57bda84f-ecec-4cd7-b3b1-c0c36f838a05', 'Snow', 'Products Related to Snow', 'd5e7ff'),
+    ('cc93b3f9-fbe1-4b35-8f9c-2d1515961c6a', 'Forecast', 'Products represent a forecast', '8ffffc'),
+    ('2d64c718-e7af-41c0-be53-035af341c464', 'Realtime', 'Products constantly updated to support realtime modeling', '8ffffc'),
+    ('17308048-d207-43dd-b346-c9836073e911', 'Archive', 'Products not currently updating.', 'dddddd');
+
+-- product
+CREATE TABLE IF NOT EXISTS product (
+    id UUID PRIMARY KEY NOT NULL DEFAULT uuid_generate_v4(),
+    slug VARCHAR(120) UNIQUE NOT NULL,
+    --name VARCHAR(120) NOT NULL,
+    label VARCHAR(40) NOT NULL DEFAULT '',
+    temporal_duration INTEGER NOT NULL,
+    temporal_resolution INTEGER NOT NULL,
+    dss_fpart VARCHAR(40),
+    parameter_id UUID NOT NULL REFERENCES parameter (id),
+    description TEXT NOT NULL DEFAULT '',
+    unit_id UUID NOT NULL REFERENCES unit (id),
+    deleted boolean NOT NULL DEFAULT false,
+    suite_id UUID NOT NULL REFERENCES suite (id)
+);
+INSERT INTO product (id, slug, label, temporal_duration, temporal_resolution, dss_fpart, parameter_id, unit_id, description, suite_id) VALUES
+    ('1c8c130e-0d3c-4ccc-af5b-d2f95379429c','lmrfc-qpf-06h','LMRFC',21600,21600,'LMRFC QPF 06 HR','eb82d661-afe6-436a-b0df-2ab0b478a1af','e245d39f-3209-4e58-bfb7-4eae94b3f8dd','Lower Mississippi River Forecast Center 06 hour QPF','91d87306-8eed-45ac-a41e-16d9429ca14c'),
+    ('5e13560b-7589-474f-9fd5-bc1cf4163fe4','lmrfc-qpe-01h','LMRFC',3600,3600,'LMRFC QPE 01 HR','eb82d661-afe6-436a-b0df-2ab0b478a1af','e245d39f-3209-4e58-bfb7-4eae94b3f8dd','Lower Mississippi River Forecast Center 01 hour QPE','91d87306-8eed-45ac-a41e-16d9429ca14c'),
+    ('a9a74d32-acdb-4fd2-8478-14d7098c50a7','serfc-qpf-06h','SERFC',21600,21600,'SERFC QPF 06 HR','eb82d661-afe6-436a-b0df-2ab0b478a1af','e245d39f-3209-4e58-bfb7-4eae94b3f8dd','Southeast River Forecast Center 06 hour QPF','077600e5-955c-4f0a-8533-7f129366c602'),
+    ('ae11dad4-7065-4963-8771-7f5aa1e94b5d','serfc-qpe-01h','SERFC',3600,3600,'SERFC QPE 01 HR','eb82d661-afe6-436a-b0df-2ab0b478a1af','e245d39f-3209-4e58-bfb7-4eae94b3f8dd','Southeast River Forecast Center 01 hour QPE','077600e5-955c-4f0a-8533-7f129366c602'),
+    ('bf73ae80-22fc-43a2-930a-599531470dc6','nsidc-ua-snowdepth-v1','',0,86400,'NSIDC-UA-SNOWDEPTH-V1','cfa90543-235c-4266-98c2-26dbc332cd87','e245d39f-3209-4e58-bfb7-4eae94b3f8dd', 'National Snow and Ice Data Center - Snow Depth', 'c5b8cab4-c49a-4b25-82f0-378b84b4eeac'),
+    ('87d79a53-5e66-4d31-973c-2adbbe733de2','nsidc-ua-swe-v1','',0,86400,'NSIDC-UA-SWE-V1','683a55b9-4a94-46b5-9f47-26e66f3037a8','e245d39f-3209-4e58-bfb7-4eae94b3f8dd', 'National Snow and Ice Data Center - SWE', 'c5b8cab4-c49a-4b25-82f0-378b84b4eeac'),
+    ('e0baa220-1310-445b-816b-6887465cc94b','nohrsc-snodas-snowdepth','',0,86400,'SNODAS','cfa90543-235c-4266-98c2-26dbc332cd87','e245d39f-3209-4e58-bfb7-4eae94b3f8dd', '', 'c133e9e7-ddc8-4a98-82d7-880d5db35060'),
+    ('757c809c-dda0-412b-9831-cb9bd0f62d1d','nohrsc-snodas-swe','',0,86400,'SNODAS','683a55b9-4a94-46b5-9f47-26e66f3037a8','e245d39f-3209-4e58-bfb7-4eae94b3f8dd', '', 'c133e9e7-ddc8-4a98-82d7-880d5db35060'),
+    ('57da96dc-fc5e-428c-9318-19f095f461eb','nohrsc-snodas-snowpack-average-temperature','',0,86400,'SNODAS','ccc8c81a-ddb0-4738-857b-f0ef69aa1dc0','855ee63c-d623-40d5-a551-3655ce2d7b47', '', 'c133e9e7-ddc8-4a98-82d7-880d5db35060'),
+    ('86526298-78fa-4307-9276-a7c0a0537d15','nohrsc-snodas-snowmelt','',86400,86400,'SNODAS','d3f49557-2aef-4dc2-a2dd-01b353b301a4','e245d39f-3209-4e58-bfb7-4eae94b3f8dd', '', 'c133e9e7-ddc8-4a98-82d7-880d5db35060'),
+    ('c2f2f0ed-d120-478a-b38f-427e91ab18e2','nohrsc-snodas-coldcontent','',0,86400,'SNODAS','2b3f8cf3-d3f5-440b-b7e7-0c8090eda80f','e245d39f-3209-4e58-bfb7-4eae94b3f8dd', '', 'c133e9e7-ddc8-4a98-82d7-880d5db35060'),    
+    ('517369a5-7fe3-4b0a-9ef6-10f26f327b26','nohrsc-snodas-swe-interpolated','',0,86400,'SNODAS-INTERP','683a55b9-4a94-46b5-9f47-26e66f3037a8','e245d39f-3209-4e58-bfb7-4eae94b3f8dd', 'SNODAS Interpolated', 'c4f403ce-5d02-4f56-9d65-245436831d8d'),
+    ('2274baae-1dcf-4c4c-92bb-e8a640debee0','nohrsc-snodas-snowdepth-interpolated','',0,86400,'SNODAS-INTERP','cfa90543-235c-4266-98c2-26dbc332cd87','e245d39f-3209-4e58-bfb7-4eae94b3f8dd', 'SNODAS Interpolated', 'c4f403ce-5d02-4f56-9d65-245436831d8d'),
+    ('33407c74-cdc2-4ab2-bd9a-3dff99ea02e4','nohrsc-snodas-coldcontent-interpolated','',0,86400,'SNODAS-INTERP','2b3f8cf3-d3f5-440b-b7e7-0c8090eda80f','e245d39f-3209-4e58-bfb7-4eae94b3f8dd', 'SNODAS Interpolated', 'c4f403ce-5d02-4f56-9d65-245436831d8d'),
+    ('e97fbc56-ebe2-4d5a-bcd4-4bf3744d8a1b','nohrsc-snodas-snowpack-average-temperature-interpolated','',0,86400,'SNODAS-INTERP','ccc8c81a-ddb0-4738-857b-f0ef69aa1dc0','855ee63c-d623-40d5-a551-3655ce2d7b47', 'SNODAS Interpolated', 'c4f403ce-5d02-4f56-9d65-245436831d8d'),
+    ('10011d9c-04a4-454d-88a0-fb7ba0d64d37','nohrsc-snodas-snowmelt-interpolated','',86400,86400,'SNODAS-INTERP','d3f49557-2aef-4dc2-a2dd-01b353b301a4','e245d39f-3209-4e58-bfb7-4eae94b3f8dd', 'SNODAS Interpolated', 'c4f403ce-5d02-4f56-9d65-245436831d8d'),    
+    ('64756f41-75e2-40ce-b91a-fda5aeb441fc','prism-ppt-early','PPT',86400,86400,'PRISM-EARLY','eb82d661-afe6-436a-b0df-2ab0b478a1af','e245d39f-3209-4e58-bfb7-4eae94b3f8dd', 'Daily total precipitation (rain+melted snow)', '9252e4e6-18fa-4a33-a3b6-6f99b5e56f13'),
+    ('6357a677-5e77-4c37-8aeb-3300707ca885','prism-tmax-early','TMAX',86400,86400,'PRISM-EARLY','5fab39b9-90ba-482a-8156-d863ad7c45ad','8f51e5b5-08be-4ea7-9ebc-ad44b465dbc6', 'Daily maximum temperature [averaged over all days in the month]', '9252e4e6-18fa-4a33-a3b6-6f99b5e56f13'),
+    ('62e08d34-ff6b-45c9-8bb9-80df922d0779','prism-tmin-early','TMIN',86400,86400,'PRISM-EARLY','5fab39b9-90ba-482a-8156-d863ad7c45ad','8f51e5b5-08be-4ea7-9ebc-ad44b465dbc6', 'Daily minimum temperature [averaged over all days in the month]', '9252e4e6-18fa-4a33-a3b6-6f99b5e56f13'),    
+    ('e4fdadc7-5532-4910-9ed7-3c3690305d86','ncep-rtma-ru-anl-airtemp','',0,900,'NCEP-RTMA-RU-ANL','5fab39b9-90ba-482a-8156-d863ad7c45ad','8f51e5b5-08be-4ea7-9ebc-ad44b465dbc6', 'RTMA Description', 'e9d3c98a-6cd7-40cc-9429-57ca7ea96ee1'),    
+    ('f1b6ac38-bbc9-48c6-bf78-207005ee74fa','ncep-mrms-gaugecorr-qpe-01h','GAUGECORR QPE',3600,3600,'NCEP-MRMS-QPE-GAUGECORR','eb82d661-afe6-436a-b0df-2ab0b478a1af','e245d39f-3209-4e58-bfb7-4eae94b3f8dd', 'Legacy Product', 'b35d2f4c-dff2-49bf-9acc-2ed17d3c4576'),    
+    ('30a6d443-80a5-49cc-beb0-5d3a18a84caa','ncep-mrms-v12-multisensor-qpe-01h-pass1','QPE Pass 1',3600,3600,'NCEP-MRMSV12-QPE-01H-PASS1','eb82d661-afe6-436a-b0df-2ab0b478a1af','e245d39f-3209-4e58-bfb7-4eae94b3f8dd', 'MRMS Description', 'e9730ce6-2ff2-4dbe-ab77-47237a0fd598'),
+    ('7c7ba37a-efad-499e-9c3a-5354370b8e9e','ncep-mrms-v12-multisensor-qpe-01h-pass2','QPE Pass 2',3600,3600,'NCEP-MRMSV12-QPE-01H-PASS2','eb82d661-afe6-436a-b0df-2ab0b478a1af','e245d39f-3209-4e58-bfb7-4eae94b3f8dd', 'MRMS Description', 'e9730ce6-2ff2-4dbe-ab77-47237a0fd598'),    
+    ('0ac60940-35c2-4c0d-8a3b-49c20e455ff5','wpc-qpf-2p5km','QPF',21600,21600,'WPC-QPF-2.5KM','eb82d661-afe6-436a-b0df-2ab0b478a1af','e245d39f-3209-4e58-bfb7-4eae94b3f8dd', 'WPC QPF Description', '5d5a280f-0a15-44cd-a11e-694b7cd9f5a5'),    
+    ('5e6ca7ed-007d-4944-93aa-0a7a6116bdcd','ndgd-ltia98-airtemp','',0,3600,'NDGD-LTIA98-AIRTEMP','5fab39b9-90ba-482a-8156-d863ad7c45ad','8f51e5b5-08be-4ea7-9ebc-ad44b465dbc6', 'Legacy Product', '3d12bbb0-3a84-409f-90bf-f68fb1ce0bca'),
+    ('1ba5498c-d507-4c82-a80b-9b0af952b02f','ndgd-leia98-precip','',3600,3600,'NDGD-LEIA98-PRECIP','eb82d661-afe6-436a-b0df-2ab0b478a1af','e245d39f-3209-4e58-bfb7-4eae94b3f8dd', 'Legacy Product', '3d12bbb0-3a84-409f-90bf-f68fb1ce0bca'),    
+    ('c500f609-428f-4c38-b658-e7dde63de2ea','cbrfc-mpe','MPE',3600,3600,'CBRFC-MPE','eb82d661-afe6-436a-b0df-2ab0b478a1af','e245d39f-3209-4e58-bfb7-4eae94b3f8dd', 'CBRFC Multisensor Precipitation Estimates (MPE)', '74d7191f-7c4b-4549-bf80-5a5de4ba4880'),
+    ('002125d6-2c90-4c24-9382-10a535d398bb','hrrr-total-precip','',3600,3600,'HRRR','eb82d661-afe6-436a-b0df-2ab0b478a1af','e245d39f-3209-4e58-bfb7-4eae94b3f8dd', 'High Resolution Rapid Refresh (HRRR) description', '0a4007db-ebcb-4d01-bb3e-3545255da4f0'),    
+    ('84a64026-0e5d-49ac-a48a-6a83efa2b77c','ndfd-conus-qpf-06h','QPF',21600,21600,'NDFD-CONUS-QPF','eb82d661-afe6-436a-b0df-2ab0b478a1af','e245d39f-3209-4e58-bfb7-4eae94b3f8dd', 'National Digital Forecast Database (NDFD) QPF 6hr Forecast', '2ba58108-1bdf-4f63-8b47-dfd3590f96ae'),
+    ('b206a00b-9ed6-42e1-a34d-c67d43828810','ndfd-conus-airtemp-01h','',3600,3600,'NDFD-CONUS-TEMP','5fab39b9-90ba-482a-8156-d863ad7c45ad','8f51e5b5-08be-4ea7-9ebc-ad44b465dbc6', 'National Digital Forecast Database - Forecast 01hr Airtemp', '2ba58108-1bdf-4f63-8b47-dfd3590f96ae'),
+    ('dde59007-25ec-4bb4-b5e6-8f0f1fbab853','ndfd-conus-airtemp-03h','',10800,10800,'NDFD-CONUS-TEMP','5fab39b9-90ba-482a-8156-d863ad7c45ad','8f51e5b5-08be-4ea7-9ebc-ad44b465dbc6', 'National Digital Forecast Database - Forecast 03hr Airtemp', '2ba58108-1bdf-4f63-8b47-dfd3590f96ae'),
+    ('f48006a5-ad25-4a9f-9b58-639d75763dd7','ndfd-conus-airtemp-06h','',21600,21600,'NDFD-CONUS-TEMP','5fab39b9-90ba-482a-8156-d863ad7c45ad','8f51e5b5-08be-4ea7-9ebc-ad44b465dbc6', 'National Digital Forecast Database - Forecast 06hr Airtemp', '2ba58108-1bdf-4f63-8b47-dfd3590f96ae'),
+    ('b50f29f4-547b-4371-9365-60d44eef412e','wrf-columbia-precip','',3600,3600,'WRF-COLUMBIA','eb82d661-afe6-436a-b0df-2ab0b478a1af','e245d39f-3209-4e58-bfb7-4eae94b3f8dd', 'WRF Columbia precipitation data created for the entire Columbia River Basin', '894205d5-cc55-4071-946b-d4027004cb40'),
+    ('793e285f-333b-41a3-b4ab-223a7a764668','wrf-columbia-airtemp','',3600,3600,'WRF-COLUMBIA','5fab39b9-90ba-482a-8156-d863ad7c45ad','0c8dcd1f-93db-4e64-be1d-47b3462deb2a', 'WRF Columbia T2 (temperature at 2 m) data created for the entire Columbia River Basin', '894205d5-cc55-4071-946b-d4027004cb40'),
+    ('5317d1c4-c6db-40c2-b527-72f7603be8a0','nbm-co-qpf','QPF',3600,3600,'NBM-CO-QPF','eb82d661-afe6-436a-b0df-2ab0b478a1af','e245d39f-3209-4e58-bfb7-4eae94b3f8dd', 'CONUS Forecast Precip', 'c9b39f25-51e5-49cd-9b5a-77c575bebc3b'),
+    ('d0c1d6f4-cf5d-4332-a17e-dd1757c99c94','nbm-co-airtemp','',3600,3600,'NBM-CO-AIRTEMP','5fab39b9-90ba-482a-8156-d863ad7c45ad','8f51e5b5-08be-4ea7-9ebc-ad44b465dbc6', 'CONUS Forecast Airtemp', 'c9b39f25-51e5-49cd-9b5a-77c575bebc3b'),    
+    ('a8e3de13-d4fb-4973-a076-c6783c93f332','naefs-mean-qpf-06h','MEAN QPF',21600,21600,'NAEFS-MEAN-QPF','eb82d661-afe6-436a-b0df-2ab0b478a1af','e245d39f-3209-4e58-bfb7-4eae94b3f8dd', 'Mean QPF 6hr', '87f21790-c192-46d3-88a1-71c4967ef9f0'),
+    ('60f16079-7495-47ab-aa68-36cd6a17fce0','naefs-mean-qtf-06h','MEAN QTF',21600,21600,'NAEFS-MEAN-QTF','5fab39b9-90ba-482a-8156-d863ad7c45ad','8f51e5b5-08be-4ea7-9ebc-ad44b465dbc6', 'Mean QTF 6hr', '87f21790-c192-46d3-88a1-71c4967ef9f0'),
+    ('bbfeadbb-1b54-486c-b975-a67d107540f3','mbrfc-krf-fct-airtemp-01h','KRF FCT',3600,3600,'MBRFC-KRF-FCT-AIRTEMP','5fab39b9-90ba-482a-8156-d863ad7c45ad','8f51e5b5-08be-4ea7-9ebc-ad44b465dbc6', 'KRF Forecast AirTemp 1hr', '6b9ac80b-823c-4ac8-bc15-d0232d860302'),
+    ('c96f7a1f-e57d-4694-9d09-451cfa949324','mbrfc-krf-qpf-06h','KRF QPF',21600,21600,'MBRFC-KRF-QPF','eb82d661-afe6-436a-b0df-2ab0b478a1af','e245d39f-3209-4e58-bfb7-4eae94b3f8dd', 'KRF QPF 6hr', '6b9ac80b-823c-4ac8-bc15-d0232d860302'),
+    ('9890d81e-04c5-45cc-b544-e27fde610501','mbrfc-krf-qpe-01h','KRF QPE',3600,3600,'MBRFC-KRF-QPE','eb82d661-afe6-436a-b0df-2ab0b478a1af','e245d39f-3209-4e58-bfb7-4eae94b3f8dd', 'KRF QPE 1hr', '6b9ac80b-823c-4ac8-bc15-d0232d860302');
+
+
+-- product_tags
+CREATE TABLE IF NOT EXISTS product_tags (
+    product_id UUID NOT NULL REFERENCES product(id) ON DELETE CASCADE,
+    tag_id UUID NOT NULL REFERENCES tag(id) ON DELETE CASCADE,
+    CONSTRAINT unique_tag_product UNIQUE(tag_id,product_id)
+);
+INSERT INTO product_tags (tag_id, product_id) VALUES
+    ('726039da-2f21-4393-a15c-5f6e7ea41b1f','1c8c130e-0d3c-4ccc-af5b-d2f95379429c'),
+    ('726039da-2f21-4393-a15c-5f6e7ea41b1f','5e13560b-7589-474f-9fd5-bc1cf4163fe4'),
+    ('726039da-2f21-4393-a15c-5f6e7ea41b1f','a9a74d32-acdb-4fd2-8478-14d7098c50a7'),
+    ('726039da-2f21-4393-a15c-5f6e7ea41b1f','ae11dad4-7065-4963-8771-7f5aa1e94b5d'),
+    ('726039da-2f21-4393-a15c-5f6e7ea41b1f','a8e3de13-d4fb-4973-a076-c6783c93f332'),
+    ('d9613031-7cf0-4722-923e-e5c3675a163b','60f16079-7495-47ab-aa68-36cd6a17fce0'),
+    ('d9613031-7cf0-4722-923e-e5c3675a163b','bbfeadbb-1b54-486c-b975-a67d107540f3'),
+    ('726039da-2f21-4393-a15c-5f6e7ea41b1f','c96f7a1f-e57d-4694-9d09-451cfa949324'),
+    ('726039da-2f21-4393-a15c-5f6e7ea41b1f','9890d81e-04c5-45cc-b544-e27fde610501'),
+    ('57bda84f-ecec-4cd7-b3b1-c0c36f838a05','bf73ae80-22fc-43a2-930a-599531470dc6'),
+    ('57bda84f-ecec-4cd7-b3b1-c0c36f838a05','87d79a53-5e66-4d31-973c-2adbbe733de2'),
+    ('57bda84f-ecec-4cd7-b3b1-c0c36f838a05','e0baa220-1310-445b-816b-6887465cc94b'),
+    ('57bda84f-ecec-4cd7-b3b1-c0c36f838a05','757c809c-dda0-412b-9831-cb9bd0f62d1d'),
+    ('57bda84f-ecec-4cd7-b3b1-c0c36f838a05','57da96dc-fc5e-428c-9318-19f095f461eb'),
+    ('57bda84f-ecec-4cd7-b3b1-c0c36f838a05','86526298-78fa-4307-9276-a7c0a0537d15'),
+    ('57bda84f-ecec-4cd7-b3b1-c0c36f838a05','c2f2f0ed-d120-478a-b38f-427e91ab18e2'),
+    ('57bda84f-ecec-4cd7-b3b1-c0c36f838a05','517369a5-7fe3-4b0a-9ef6-10f26f327b26'),
+    ('57bda84f-ecec-4cd7-b3b1-c0c36f838a05','2274baae-1dcf-4c4c-92bb-e8a640debee0'),
+    ('57bda84f-ecec-4cd7-b3b1-c0c36f838a05','33407c74-cdc2-4ab2-bd9a-3dff99ea02e4'),
+    ('57bda84f-ecec-4cd7-b3b1-c0c36f838a05','e97fbc56-ebe2-4d5a-bcd4-4bf3744d8a1b'),
+    ('57bda84f-ecec-4cd7-b3b1-c0c36f838a05','10011d9c-04a4-454d-88a0-fb7ba0d64d37'), 
+    ('d9613031-7cf0-4722-923e-e5c3675a163b','6357a677-5e77-4c37-8aeb-3300707ca885'),
+    ('d9613031-7cf0-4722-923e-e5c3675a163b','62e08d34-ff6b-45c9-8bb9-80df922d0779'),
+    ('d9613031-7cf0-4722-923e-e5c3675a163b','e4fdadc7-5532-4910-9ed7-3c3690305d86'),
+    ('d9613031-7cf0-4722-923e-e5c3675a163b','5e6ca7ed-007d-4944-93aa-0a7a6116bdcd'),
+    ('2d64c718-e7af-41c0-be53-035af341c464','c500f609-428f-4c38-b658-e7dde63de2ea'),
+    ('cc93b3f9-fbe1-4b35-8f9c-2d1515961c6a','002125d6-2c90-4c24-9382-10a535d398bb'),
+    ('2d64c718-e7af-41c0-be53-035af341c464','002125d6-2c90-4c24-9382-10a535d398bb'),
+    ('cc93b3f9-fbe1-4b35-8f9c-2d1515961c6a','d0c1d6f4-cf5d-4332-a17e-dd1757c99c94'),
+    ('cc93b3f9-fbe1-4b35-8f9c-2d1515961c6a','5317d1c4-c6db-40c2-b527-72f7603be8a0'),
+    ('cc93b3f9-fbe1-4b35-8f9c-2d1515961c6a','b206a00b-9ed6-42e1-a34d-c67d43828810'),
+    ('cc93b3f9-fbe1-4b35-8f9c-2d1515961c6a','dde59007-25ec-4bb4-b5e6-8f0f1fbab853'),
+    ('cc93b3f9-fbe1-4b35-8f9c-2d1515961c6a','f48006a5-ad25-4a9f-9b58-639d75763dd7'),
+    ('cc93b3f9-fbe1-4b35-8f9c-2d1515961c6a','bbfeadbb-1b54-486c-b975-a67d107540f3'),
+    ('cc93b3f9-fbe1-4b35-8f9c-2d1515961c6a','c96f7a1f-e57d-4694-9d09-451cfa949324'),
+    ('cc93b3f9-fbe1-4b35-8f9c-2d1515961c6a','a8e3de13-d4fb-4973-a076-c6783c93f332'),
+    ('cc93b3f9-fbe1-4b35-8f9c-2d1515961c6a','60f16079-7495-47ab-aa68-36cd6a17fce0'),
+    ('cc93b3f9-fbe1-4b35-8f9c-2d1515961c6a','84a64026-0e5d-49ac-a48a-6a83efa2b77c'),
+    ('cc93b3f9-fbe1-4b35-8f9c-2d1515961c6a','0ac60940-35c2-4c0d-8a3b-49c20e455ff5'),
+    ('17308048-d207-43dd-b346-c9836073e911','f1b6ac38-bbc9-48c6-bf78-207005ee74fa'),
+    ('17308048-d207-43dd-b346-c9836073e911','793e285f-333b-41a3-b4ab-223a7a764668'),
+    ('17308048-d207-43dd-b346-c9836073e911','b50f29f4-547b-4371-9365-60d44eef412e');
+
+
+-- productfile
+CREATE TABLE IF NOT EXISTS productfile (
+    id UUID PRIMARY KEY NOT NULL DEFAULT uuid_generate_v4(),
+    datetime TIMESTAMPTZ NOT NULL,
+    file VARCHAR(1200) NOT NULL,
+    product_id UUID REFERENCES product(id),
+    version TIMESTAMPTZ NOT NULL DEFAULT '1111-11-11T11:11:11.11Z',
+    acquirablefile_id UUID REFERENCES acquirablefile (id),
+    update_date TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    CONSTRAINT unique_product_version_datetime UNIQUE(product_id, version, datetime)
+);
+
+-- v_acquirablefile
+CREATE OR REPLACE VIEW v_acquirablefile AS (
+    SELECT a.id           AS acquirable_id,
+           a.name         AS acquirable_name,
+           a.slug         AS acquirable_slug,
+           f.id           AS id,
+           f.datetime     AS datetime,
+           f.file         AS file,
+           f.create_date  AS create_date,
+           f.process_date AS process_date
+    FROM acquirablefile f
+    LEFT JOIN acquirable a ON a.id = f.acquirable_id
+);
+
+-- v_product
+CREATE OR REPLACE VIEW v_product AS (
+    WITH tags_by_product AS (
+		SELECT product_id         AS product_id,
+               array_agg(tag_id)  AS tags
+	    FROM product_tags
+	    GROUP BY product_id
+	)
+	SELECT a.id                              AS id,
+           a.slug                            AS slug,
+           CONCAT(
+               UPPER(s.slug), ' ', 
+               (CASE WHEN LENGTH(a.label) > 1
+                     THEN CONCAT(a.label, ' ')
+                     ELSE ''
+                END), 
+                p.name, ' ',
+                a.temporal_resolution/60/60, 'hr'
+           )                                 AS name,
+           a.label                           AS label,
+           a.temporal_resolution             AS temporal_resolution,
+           a.temporal_duration               AS temporal_duration,
+           a.dss_fpart                       AS dss_fpart,
+           a.description                     AS description,
+           a.suite_id                        AS suite_id,
+           s.name                            AS suite,
+           COALESCE(t.tags, '{}')            AS tags,
+           p.id                              AS parameter_id,
+           p.name                            AS parameter,
+           u.id                              AS unit_id,
+           u.name                            AS unit,
+           pf.after                          AS after,
+           pf.before                         AS before,
+           COALESCE(pf.productfile_count, 0) AS productfile_count
+	FROM product a
+	JOIN unit u ON u.id = a.unit_id
+	JOIN parameter p ON p.id = a.parameter_id
+    JOIN suite s ON s.id = a.suite_id
+	LEFT JOIN tags_by_product t ON t.product_id = a.id
+    LEFT JOIN (
+        SELECT product_id    AS product_id,
+                COUNT(id)     AS productfile_count,
+                MIN(datetime) AS after,
+                MAX(datetime) AS before
+        FROM productfile
+        GROUP BY product_id
+    ) AS pf ON pf.product_id = a.id
+    WHERE NOT a.deleted
+    order by name
+);
+
+-- v_productfile
+CREATE OR REPLACE VIEW v_productfile AS (
+    SELECT p.id           AS product_id,
+           p.name         AS product_name,
+           p.slug         AS product_slug,
+           f.id           AS id,
+           f.datetime     AS datetime,
+           f.file         AS file,
+           f.version      AS version
+    FROM productfile f
+    LEFT JOIN v_product p ON p.id = f.product_id
+);
+
+-- tag
+
+-- download_status_id
+CREATE TABLE IF NOT EXISTS download_status (
+    id UUID PRIMARY KEY NOT NULL DEFAULT uuid_generate_v4(),
+    name VARCHAR(120) NOT NULL
+);
+INSERT INTO download_status (id, name) VALUES
+    ('94727878-7a50-41f8-99eb-a80eb82f737a', 'INITIATED'),
+    ('3914f0bd-2290-42b1-bc24-41479b3a846f', 'SUCCESS'),
+    ('a553101e-8c51-4ddd-ac2e-b011ed54389b', 'FAILED');
+
+-- download
+CREATE TABLE IF NOT EXISTS download (
+    id UUID PRIMARY KEY NOT NULL DEFAULT uuid_generate_v4(),
+    datetime_start TIMESTAMPTZ NOT NULL,
+    datetime_end TIMESTAMPTZ NOT NULL,
+    progress INTEGER NOT NULL DEFAULT 0,
+    status_id UUID REFERENCES download_status(id),
+    watershed_id UUID REFERENCES watershed(id),
+    file VARCHAR(240),
+    processing_start TIMESTAMPTZ NOT NULL DEFAULT now(),
+    processing_end TIMESTAMPTZ,
+    profile_id UUID REFERENCES profile(id)
+);
+
+-- download_product
+CREATE TABLE IF NOT EXISTS download_product (
+    download_id UUID REFERENCES download(id),
+    product_id UUID REFERENCES product(id),
+    PRIMARY KEY (download_id, product_id)
+);
+
+CREATE OR REPLACE VIEW v_download AS (
+        SELECT d.id AS id,
+            d.datetime_start AS datetime_start,
+            d.datetime_end AS datetime_end,
+            d.progress AS progress,
+            d.file AS file,
+            d.processing_start AS processing_start,
+            d.processing_end AS processing_end,
+            d.status_id AS status_id,
+            d.watershed_id AS watershed_id,
+            d.profile_id AS profile_id,
+            w.slug         AS watershed_slug,
+            w.name         AS watershed_name,
+            s.name AS status,
+            dp.product_id AS product_id
+        FROM download d
+            INNER JOIN download_status s ON d.status_id = s.id
+            INNER JOIN watershed w on w.id = d.watershed_id
+            INNER JOIN (
+                SELECT array_agg(product_id) as product_id,
+                       download_id
+                FROM download_product
+                GROUP BY download_id
+            ) dp ON d.id = dp.download_id
+            ORDER BY d.processing_start DESC
+    );
+
+    -- v_download_request VIEW
+    CREATE OR REPLACE VIEW v_download_request AS 
+        WITH download_products AS (
+                SELECT dp.download_id,
+                    dp.product_id,
+                    d.datetime_start,
+                    d.datetime_end
+                FROM download d
+                    JOIN download_product dp ON dp.download_id = d.id
+                )
+        SELECT dss.download_id,
+            dss.product_id,
+            dss.datetime_start,
+            dss.datetime_end,
+            dss.key,
+            dss.bucket,
+            dss.dss_datatype,
+            dss.dss_cpart,
+                CASE
+                    WHEN dss.dss_datatype = 'INST-VAL'::text AND date_part('hour'::text, dss.datetime_dss_dpart) = 0::double precision 
+                        AND date_part('minute'::text, dss.datetime_dss_dpart) = 0::double precision 
+                    THEN to_char(dss.datetime_dss_dpart - '1 day'::interval, 'DDMONYYYY:24MI'::text)
+                    ELSE COALESCE(to_char(dss.datetime_dss_dpart, 'DDMONYYYY:HH24MI'::text), ''::text)
+                END AS dss_dpart,
+                CASE
+                    WHEN date_part('hour'::text, dss.datetime_dss_epart) = 0::double precision 
+                        AND date_part('minute'::text, dss.datetime_dss_dpart) = 0::double precision 
+                    THEN to_char(dss.datetime_dss_epart - '1 day'::interval, 'DDMONYYYY:24MI'::text)
+                    ELSE COALESCE(to_char(dss.datetime_dss_epart, 'DDMONYYYY:HH24MI'::text), ''::text)
+                END AS dss_epart,
+            dss.dss_fpart,
+            dss.dss_unit,
+            dss.forecast_version
+        FROM ( SELECT dp.download_id,
+                    dp.product_id,
+                    dp.datetime_start,
+                    dp.datetime_end,
+                    f.file AS key,
+                    ( SELECT config.config_value
+                        FROM config
+                        WHERE config.config_name::text = 'write_to_bucket'::text) AS bucket,
+                        CASE
+                            WHEN p.temporal_duration = 0 THEN 'INST-VAL'::text
+                            ELSE 'PER-CUM'::text
+                        END AS dss_datatype,
+                        CASE
+                            WHEN p.temporal_duration = 0 THEN f.datetime
+                            ELSE f.datetime - p.temporal_duration::double precision * '00:00:01'::interval
+                        END AS datetime_dss_dpart,
+                        CASE
+                            WHEN p.temporal_duration = 0 THEN NULL::timestamp with time zone
+                            ELSE f.datetime
+                        END AS datetime_dss_epart,
+                    p.dss_fpart,
+                    u.name AS dss_unit,
+                    a.name AS dss_cpart,
+                    f.version AS forecast_version
+                FROM productfile f
+                    JOIN download_products dp ON dp.product_id = f.product_id
+                    JOIN product p ON f.product_id = p.id
+                    JOIN unit u ON p.unit_id = u.id
+                    JOIN parameter a ON a.id = p.parameter_id
+                -- observed data will use the file datetime  
+			  WHERE (date_part('year', f.version) = '1111' AND f.datetime >= dp.datetime_start AND f.datetime <= dp.datetime_end)
+                -- forecast data with an end date < now (looking at forecasts in the past)
+			    OR (dp.datetime_end < now() AND date_part('year', f.version) != '1111' AND f.version between dp.datetime_end - interval '24 hours' and dp.datetime_end)
+			    -- forecast data with an end date >= now (looking at current latest forecasts)
+			    OR (dp.datetime_end >= now() AND date_part('year', f.version) != '1111' AND f.version between now() - interval '18 hours' and now())
+                ORDER BY f.product_id, f.version, f.datetime) dss;
+
+
+CREATE TABLE IF NOT EXISTS area_group_product_statistics_enabled (
+    id UUID PRIMARY KEY NOT NULL DEFAULT uuid_generate_v4(),
+    area_group_id UUID NOT NULL REFERENCES area_group(id) ON DELETE CASCADE,
+    product_id UUID NOT NULL REFERENCES product(id) ON DELETE CASCADE,
+    CONSTRAINT unique_area_group_product UNIQUE(area_group_id, product_id)
+);
+
+
+-------------------------
+-- FUNCTIONS AND TRIGGERS
+-------------------------
+
+-- Async Listener Function JSON Format
+-- {
+--   "fn": "new-download",
+--   "details": "{\"geoprocess\" : \"inco...}"
+-- }
+-- Note: ^^^ value of "details": must be a string. A native JSON object for "details" can be converted
+-- to a string using Postgres type casting, for example: json_build_object('id', NEW.id)::text
+-- will produce string like "{\"id\" : \"f1105618-047e-40bc-bd2e-961ad0e05084\"}"
+-- where required JSON special characters are escaped.
+
+
+-- Shared Function to Notify Cumulus Async Listener Functions (ALF) Listener
+CREATE OR REPLACE FUNCTION notify_async_listener(t text) RETURNS void AS $$
+    BEGIN
+        PERFORM (SELECT pg_notify('cumulus_new', t));
+    END;
+$$ LANGUAGE plpgsql;
+
+
+------------------------------------------------------------
+-- ASYNC LISTENER FUNCTION (ALF) FOR packager (dss download)
+------------------------------------------------------------
+
+-- Trigger Function; Inserts Into Download Table (New File Needed from Packager)
+CREATE OR REPLACE FUNCTION notify_new_download() RETURNS trigger AS $$
+    BEGIN
+        PERFORM (
+            SELECT notify_async_listener(
+                json_build_object(
+                    'fn',     'new-download',
+                    'details', json_build_object('id', NEW.id)::text
+                )::text
+			)
+		);
+        RETURN NULL;
+    END;
+$$ LANGUAGE plpgsql;
+
+-- Trigger; NOTIFY NEW DOWNLOAD ON INSERT
+CREATE TRIGGER notify_new_download
+AFTER INSERT ON download
+FOR EACH ROW
+EXECUTE PROCEDURE notify_new_download();
+
+
+--------------------------------------------------------------
+-- ASYNC LISTENER FUNCTION (ALF) FOR acquirablefile_geoprocess
+--------------------------------------------------------------
+
+-- Trigger Function; Inserts Into acquirablefile Table
+CREATE OR REPLACE FUNCTION notify_acquirablefile_geoprocess() RETURNS trigger AS $$
+    BEGIN
+        PERFORM (
+            WITH geoprocess_config as (
+                SELECT id                        AS acquirablefile_id,
+                       acquirable_id             AS acquirable_id,
+                       acquirable_slug           AS acquirable_slug,
+                       (SELECT config_value from config where config_name = 'write_to_bucket') AS bucket,
+                       file                      AS key
+                FROM v_acquirablefile
+                WHERE id = NEW.id
+            )
+            SELECT notify_async_listener(
+                json_build_object(
+                    'fn', 'geoprocess-acquirablefile',
+                    'details', json_build_object(
+                        'geoprocess', 'incoming-file-to-cogs',
+                        'geoprocess_config', row_to_json(geoprocess_config)
+                    )::text
+                )::text
+            ) FROM geoprocess_config
+        );
+        RETURN NULL;
+    END;
+$$ LANGUAGE plpgsql;
+
+-- Trigger; NOTIFY NEW ACQUIRABLEFILE ON INSERT
+CREATE TRIGGER notify_acquirablefile_geoprocess
+AFTER INSERT ON acquirablefile
+FOR EACH ROW
+EXECUTE PROCEDURE notify_acquirablefile_geoprocess();
+
+
+--------------------------------------------------------------
+-- ASYNC LISTENER FUNCTION (ALF) FOR snodas_interpolate_geoprocess
+--------------------------------------------------------------
+
+-- Trigger Function; Inserts Into acquirablefile Table
+CREATE OR REPLACE FUNCTION notify_snodas_interpolate_geoprocess() RETURNS trigger AS $$
+    BEGIN
+        PERFORM (
+            WITH geoprocess_config as (
+                SELECT 
+                       (SELECT config_value from config where config_name = 'write_to_bucket') AS bucket,
+                       to_char(datetime, 'YYYYMMDD')  AS datetime,
+                       CAST(16 as real)               AS max_distance
+                FROM v_productfile
+                WHERE id = NEW.id
+                AND product_slug = 'nohrsc-snodas-swe'
+            )
+            SELECT notify_async_listener(
+                json_build_object(
+                    'fn', 'geoprocess-snodas-interpolate',
+                    'details', json_build_object(
+                        'geoprocess', 'snodas-interpolate',
+                        'geoprocess_config', row_to_json(geoprocess_config)
+                    )::text
+                )::text
+            ) FROM geoprocess_config
+        );
+        RETURN NULL;
+    END;
+$$ LANGUAGE plpgsql;
+
+-- Trigger; NOTIFY NEW ACQUIRABLEFILE ON INSERT
+CREATE TRIGGER notify_snodas_interpolate_geoprocess
+AFTER INSERT or UPDATE ON productfile
+FOR EACH ROW
+EXECUTE PROCEDURE notify_snodas_interpolate_geoprocess();
+
+
+--------
+-- ROLES
+--------
+-- For a production-ready deployment scenario, the role 'cumulus_user' with a complicated selected password
+-- should already exist, having been created when the database was stood-up.
+-- The statement below is used to create database user for developing locally with Docker Compose with a
+-- simple password ('cumulus_pass'). https://stackoverflow.com/questions/8092086/create-postgresql-role-user-if-it-doesnt-exist
+DO $$
+BEGIN
+  CREATE USER cumulus_user WITH ENCRYPTED PASSWORD 'cumulus_pass';
+  EXCEPTION WHEN DUPLICATE_OBJECT THEN
+  RAISE NOTICE 'not creating role cumulus_user -- it already exists';
+END
+$$;
+
+-- Role cumulus_reader;
+DO $$
+BEGIN
+  CREATE ROLE cumulus_reader;
+  EXCEPTION WHEN DUPLICATE_OBJECT THEN
+  RAISE NOTICE 'not creating role cumulus_reader -- it already exists';
+END
+$$;
+
+-- Role cumulus_writer
+DO $$
+BEGIN
+  CREATE ROLE cumulus_writer;
+  EXCEPTION WHEN DUPLICATE_OBJECT THEN
+  RAISE NOTICE 'not creating role cumulus_writer -- it already exists';
+END
+$$;
+
+-- Role postgis_reader
+DO $$
+BEGIN
+  CREATE ROLE postgis_reader;
+  EXCEPTION WHEN DUPLICATE_OBJECT THEN
+  RAISE NOTICE 'not creating role postgis_reader -- it already exists';
+END
+$$;
+
+-- Role postgis_reader
+GRANT SELECT ON geometry_columns TO postgis_reader;
+GRANT SELECT ON geography_columns TO postgis_reader;
+GRANT SELECT ON spatial_ref_sys TO postgis_reader;
+
+-- Grant Permissions to cumulus_user
+GRANT postgis_reader TO cumulus_user;
+GRANT cumulus_reader TO cumulus_user;
+GRANT cumulus_writer TO cumulus_user;
+
+-- Set Search Path
+ALTER ROLE cumulus_user SET search_path TO cumulus,topology,public;
+
+-- Grant Schema Usage to cumulus_user
+GRANT USAGE ON SCHEMA cumulus TO cumulus_user;
+
+-- Role cumulus_reader
+GRANT SELECT ON
+    area,
+    area_group,
+    area_group_product_statistics_enabled,
+    config,
+    profile,
+    profile_token,
+    office,
+    parameter,
+    unit,
+    product,
+    productfile,
+    product_tags,
+    suite,
+    tag,
+    acquirable,
+    acquirablefile,
+    download_status,
+    download,
+    download_product,
+    watershed,
+    my_watersheds,
+    watershed_roles,
+    v_acquirablefile,
+    v_download,
+    v_download_request,
+    v_area_5070,
+    v_product,
+    v_productfile,
+    v_watershed,
+    v_watershed_roles,
+    v_profile
+TO cumulus_reader;
+
+-- Role cumulus_writer
+GRANT INSERT,UPDATE,DELETE ON
+    area,
+    area_group,
+    area_group_product_statistics_enabled,
+    config,
+    profile,
+    profile_token,
+    office,
+    parameter,
+    unit,
+    product,
+    productfile,
+    suite,
+    tag,
+    product_tags,
+    acquirable,
+    acquirablefile,
+    download_status,
+    download,
+    download_product,
+    watershed,
+    watershed_roles,
+    my_watersheds
+TO cumulus_writer;
+

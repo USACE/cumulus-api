@@ -15,4 +15,6 @@ RUN go get -d -v \
 # # SCRATCH IMAGE
 FROM scratch
 COPY --from=builder /go/bin/cumulus-api /go/bin/cumulus-api
+COPY --from=builder /go/src/app/_sql /sql/
+VOLUME [ "/sql" ]
 ENTRYPOINT ["/go/bin/cumulus-api"]

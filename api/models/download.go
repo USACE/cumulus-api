@@ -260,3 +260,43 @@ func UpdateDownload(db *pgxpool.Pool, downloadID *uuid.UUID, info *PackagerInfo)
 
 	return GetDownload(db, downloadID)
 }
+
+// GetDownloadMetrics returns a various metrics
+func GetDownloadMetrics(db *pgxpool.Pool) ([]byte, error) {
+
+	var j []byte
+	if err := pgxscan.Get(
+		context.Background(), db, &j, ` 
+			select json_build_object(
+				'count', (select json_build_object(
+					'total', (SELECT count(id) from download),
+					'1day', (SELECT count(id) FROM download WHERE processing_start >= NOW() - INTERVAL '24 HOURS'),
+					'7day', (SELECT count(id) FROM download WHERE processing_start >= NOW() - INTERVAL '7 DAYS'),
+					'30day', (SELECT count(id) FROM download WHERE processing_start >= NOW() - INTERVAL '30 DAYS')
+				)),
+				'top_watersheds', (
+						WITH top_watersheds AS (
+						SELECT t.cnt as count, t.watershed_name, t.name FROM
+						(
+							SELECT count(vd.id) AS cnt, watershed_name, o.name FROM cumulus.v_download vd
+							JOIN cumulus.watershed w ON w.id = vd.watershed_id 
+							JOIN cumulus.office o ON o.id = w.office_id 
+							GROUP BY watershed_name,o.name LIMIT 10
+						) AS t
+						ORDER BY t.cnt DESC
+						)
+						SELECT json_agg(top_watersheds)
+							FROM top_watersheds)
+			)			
+			`,
+	); err != nil {
+		return nil, err
+	}
+	return j, nil
+
+	// var d Download
+	// if err := pgxscan.Get(context.Background(), db, &d, listDownloadsSQL+" WHERE id = $1", downloadID); err != nil {
+	// 	return nil, err
+	// }
+	// return &d, nil
+}

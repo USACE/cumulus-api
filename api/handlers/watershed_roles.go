@@ -3,7 +3,7 @@ package handlers
 import (
 	"net/http"
 
-	"api/models"
+	"github.com/USACE/cumulus-api/api/models"
 
 	"github.com/google/uuid"
 	"github.com/jackc/pgx/v4/pgxpool"

@@ -1,10 +1,11 @@
 package models
 
 import (
-	"api/config"
 	"context"
 	"fmt"
 	"time"
+
+	"github.com/USACE/cumulus-api/api/config"
 
 	"github.com/georgysavva/scany/pgxscan"
 	"github.com/google/uuid"

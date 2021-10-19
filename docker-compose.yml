@@ -2,10 +2,8 @@ version: "3"
 
 services:
   cumulusdb:
-    image: postgis/postgis
-    volumes:
-        - ./database/sql:/sql
-        - ./database/sql/init.sql:/docker-entrypoint-initdb.d/z_init.sql
+    image: postgis/postgis:13-3.1
+    restart: always
     environment:
         - POSTGRES_PASSWORD=postgres
     ports:
@@ -26,7 +24,7 @@ services:
       - AWS_SECRET_ACCESS_KEY=x
       - AWS_REGION=us-east-1
       - CUMULUS_DBUSER=cumulus_user
-      - CUMULUS_DBPASS=password
+      - CUMULUS_DBPASS=cumulus_pass
       - CUMULUS_DBNAME=postgres
       - CUMULUS_DBHOST=cumulusdb
       - CUMULUS_DBSSLMODE=disable
@@ -51,7 +49,7 @@ services:
       - AWS_REGION_SQS=elasticmq
       - CUMULUS_MOCK_S3_UPLOAD=FALSE
       - CUMULUS_DBUSER=cumulus_user
-      - CUMULUS_DBPASS=password
+      - CUMULUS_DBPASS=cumulus_pass
       - CUMULUS_DBNAME=postgres
       - CUMULUS_DBHOST=cumulusdb
       - QUEUE_NAME=cumulus-geoprocess
@@ -79,7 +77,7 @@ services:
       - QUEUE_NAME_PACKAGER_UPDATE=cumulus-packager-update
       - CUMULUS_API_URL=http://api:80
       - CUMULUS_DBUSER=cumulus_user
-      - CUMULUS_DBPASS=password
+      - CUMULUS_DBPASS=cumulus_pass
       - CUMULUS_DBNAME=postgres
       - CUMULUS_DBHOST=cumulusdb
       - CUMULUS_DBSSLMODE=disable
@@ -102,7 +100,7 @@ services:
       - QUEUE_NAME_STATISTICS=cumulus-statistics
       - CUMULUS_API_URL=http://api:80
       - CUMULUS_DBUSER=cumulus_user
-      - CUMULUS_DBPASS=password
+      - CUMULUS_DBPASS=cumulus_pass
       - CUMULUS_DBNAME=postgres
       - CUMULUS_DBHOST=cumulusdb
       - CUMULUS_DBSSLMODE=disable
@@ -120,7 +118,7 @@ services:
       - CUMULUS_AUTH_DISABLED=FALSE
       - CUMULUS_AUTH_JWT_MOCKED=TRUE
       - CUMULUS_DBUSER=cumulus_user
-      - CUMULUS_DBPASS=password
+      - CUMULUS_DBPASS=cumulus_pass
       - CUMULUS_DBNAME=postgres
       - CUMULUS_DBHOST=cumulusdb
       - CUMULUS_DBSSLMODE=disable
@@ -140,6 +138,16 @@ services:
     ports:
       - "80:80"
     restart: always
+  flyway:
+    image: flyway/flyway
+    restart: on-failure
+    command: -url=jdbc:postgresql://cumulusdb:5432/postgres -schemas=cumulus -user=postgres -password=postgres -connectRetries=60 migrate
+    environment:
+      - FLYWAY_EDITION=community
+    volumes:
+      - ./api/_sql:/flyway/sql
+    depends_on:
+      - cumulusdb
   pgadmin:
     image: dpage/pgadmin4
     environment:

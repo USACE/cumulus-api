@@ -7,7 +7,7 @@ import (
 	"github.com/google/uuid"
 	"github.com/labstack/echo/v4"
 
-	"api/models"
+	"github.com/USACE/cumulus-api/api/models"
 
 	"github.com/jackc/pgx/v4/pgxpool"
 )

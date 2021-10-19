@@ -1,4 +1,4 @@
-module api
+module github.com/USACE/cumulus-api/api
 
 go 1.15
 
@@ -17,6 +17,7 @@ require (
 	github.com/lib/pq v1.9.0 // indirect
 	github.com/stretchr/testify v1.6.1 // indirect
 	golang.org/x/crypto v0.0.0-20210322153248-0c34fe9e7dc2
+	golang.org/x/net v0.0.0-20210226172049-e18ecbb05110
 	google.golang.org/appengine v1.6.7 // indirect
 	gopkg.in/yaml.v3 v3.0.0-20200605160147-a5ece683394c // indirect
 )

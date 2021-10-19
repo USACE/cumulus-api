@@ -8,7 +8,7 @@ FROM osgeo/gdal
 ENV PYTHONUNBUFFERED=1 GDAL_DISABLE_READDIR_ON_OPEN=EMPTY_DIR
 
 RUN apt-get update \
-  && apt-get install -y gfortran python3-pip
+  && apt-get install -y gfortran python3-pip git
 
 RUN mkdir /app /output
 

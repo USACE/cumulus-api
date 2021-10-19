@@ -7,15 +7,16 @@ import (
 	"net/http"
 	"time"
 
-	"api/config"
-	"api/handlers"
-	"api/middleware"
-	"api/models"
-
 	"github.com/labstack/echo/v4"
+	"golang.org/x/net/http2"
 
 	_ "github.com/jackc/pgx/v4"
 	"github.com/jackc/pgx/v4/pgxpool"
+
+	"github.com/USACE/cumulus-api/api/config"
+	"github.com/USACE/cumulus-api/api/handlers"
+	"github.com/USACE/cumulus-api/api/middleware"
+	"github.com/USACE/cumulus-api/api/models"
 )
 
 // Connection returns a database connection from configuration parameters
@@ -97,6 +98,11 @@ func main() {
 	// authenticated by token or api key
 	private.Use(middleware.EDIPIMiddleware, middleware.AttachProfileMiddleware(db))
 	cacOnly.Use(middleware.EDIPIMiddleware, middleware.CACOnlyMiddleware)
+
+	// Health Check
+	public.GET("/health", func(c echo.Context) error {
+		return c.JSON(http.StatusOK, map[string]interface{}{"status": "healthy"})
+	})
 
 	// Profile
 	cacOnly.GET("/my_profile", handlers.GetMyProfile(db))
@@ -262,5 +268,12 @@ func main() {
 	// private.POST("/watersheds/:watershed_id/area_groups/:area_group_id/products/:product_id/statistics/disable", handlers.DisableAreaGroupProductStatistics(db))
 
 	// Start server
-	log.Fatal(http.ListenAndServe(":80", e))
+	s := &http2.Server{
+		MaxConcurrentStreams: 250,     // http2 default 250
+		MaxReadFrameSize:     1048576, // http2 default 1048576
+		IdleTimeout:          10 * time.Second,
+	}
+	if err := e.StartH2CServer(":80", s); err != http.ErrServerClosed {
+		log.Fatal(err)
+	}
 }

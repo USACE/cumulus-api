@@ -1,11 +1,12 @@
 package middleware
 
 import (
-	"api/models"
 	"fmt"
 	"net/http"
 	"strconv"
 	"strings"
+
+	"github.com/USACE/cumulus-api/api/models"
 
 	jwt "github.com/dgrijalva/jwt-go"
 	"github.com/google/uuid"

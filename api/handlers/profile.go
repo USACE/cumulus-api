@@ -1,8 +1,9 @@
 package handlers
 
 import (
-	"api/models"
 	"net/http"
+
+	"github.com/USACE/cumulus-api/api/models"
 
 	"github.com/georgysavva/scany/pgxscan"
 	"github.com/google/uuid"

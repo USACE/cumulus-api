@@ -1,7 +1,7 @@
 package middleware
 
 import (
-	"api/passwords"
+	"github.com/USACE/cumulus-api/api/passwords"
 
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/echo/v4/middleware"

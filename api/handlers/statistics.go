@@ -6,7 +6,7 @@ import (
 	"github.com/jmoiron/sqlx"
 	"github.com/labstack/echo/v4"
 
-	"api/models"
+	"github.com/USACE/cumulus-api/api/models"
 
 	"github.com/USACE/go-simple-asyncer/asyncer"
 

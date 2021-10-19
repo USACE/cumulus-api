@@ -1,3 +1,4 @@
+import json
 import os
 import numpy as np
 import numpy.ma as ma
@@ -32,6 +33,10 @@ def write_contents_to_dssfile(outfile, watershed, items, callback, cellsize=2000
             content = WatershedContent(**item)
 
             try:
+                # Get the grid info and its noDataValue
+                fileinfo = gdal.Info(f'/vsis3_streaming/{content.bucket}/{content.key}', format='json')
+                if not isinstance(nodatavalue := fileinfo['bands'][0]['noDataValue'], (int, float)): nodatavalue = 9999
+
                 ds = gdal.Warp(
                     '/vsimem/projected.tif',
                     f'/vsis3_streaming/{content.bucket}/{content.key}',
@@ -47,11 +52,15 @@ def write_contents_to_dssfile(outfile, watershed, items, callback, cellsize=2000
                 # Raw Cell Values as Array
                 data = ds.GetRasterBand(1).ReadAsArray().astype(np.dtype('float32'))
 
+                # Set nodata (default: 9999) to np.nan
+                data = np.where((data == nodatavalue), np.nan, data)
+
                 # Projection
                 proj = HEC_WKT if ("5070" in dst_srs) else ds.GetProjection()
 
                 # Affine Transform
                 geo_transform = ds.GetGeoTransform()
+
                 affine_transform = Affine(cellsize,0,0,0,0,0) if ("5070" in dst_srs) \
                     else Affine.from_gdal(*geo_transform)
 
@@ -64,18 +73,17 @@ def write_contents_to_dssfile(outfile, watershed, items, callback, cellsize=2000
                     ('data_type', content.dss_datatype.lower()),
                     ('data_units', content.dss_unit.lower()),
                     ('opt_crs_name', 'AlbersInfo'),
-                    ('opt_is_interval', True),
-                    ('opt_time_stamped', True),
                     ('opt_lower_left_x', _watershed.bbox[0] / cellsize),
                     ('opt_lower_left_y', _watershed.bbox[1] / cellsize),
                 ])
-
+                    # ('opt_is_interval', True),
+                    # ('opt_time_stamped', True),
                 fid.put_grid(
                     f'/SHG/{_watershed.name}/{content.dss_cpart}/{content.dss_dpart}/{content.dss_epart}/{content.dss_fpart}/',
                     data,
                     grid_info
                 )
-            
+        
             except:
                 print(f'Unable to process: {content.bucket}/{content.key}')
 

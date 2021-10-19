@@ -6,7 +6,6 @@ import boto3
 import botocore
 import botocore.exceptions
 
-
 SNODAS_INCOMING_FILE_TO_COGS = {
     "geoprocess": "incoming-file-to-cogs",
     "geoprocess_config": {
@@ -29,7 +28,7 @@ INCOMING_FILE_TO_COGS_MESSAGE = {
     "geoprocess": "incoming-file-to-cogs",
     "geoprocess_config": {
         "bucket": "cwbi-data-develop",
-        "key": "cumulus/acquirables/serfc-qpe-01h/xmrg0804202110z.grb.gz"
+        "key": f"cumulus/acquirables/lmrfc-qpe-01h/2021101301z.grib.gz"
     }
 }
 

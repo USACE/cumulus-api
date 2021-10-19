@@ -17,12 +17,6 @@ COPY packager/requirements.txt ./
 RUN pip3 install --no-cache-dir -r requirements.txt 
 RUN rm requirements.txt
 
-# Clone USACE forked repo for pydsstools, branch specific, and install pydsstools from a wheel file
-# RUN git clone -b 2.1 --single-branch https://github.com/USACE/pydsstools.git \
-#   && pip install /pydsstools/dist/pydsstools-2.1-cp38-cp38-linux_x86_64.whl \
-#   && rm -fR /pydsstools
-# RUN git clone https://github.com/gyanz/pydsstools.git && pip install /pydsstools/dist/pydsstools-2.1-cp38-cp38-linux_x86_64.whl
-
 COPY packager/* /app/
 WORKDIR /app
 

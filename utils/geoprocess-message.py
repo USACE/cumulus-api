@@ -6,50 +6,49 @@ import boto3
 import botocore
 import botocore.exceptions
 
-for i in range(9, 24):
-    SNODAS_INCOMING_FILE_TO_COGS = {
-        "geoprocess": "incoming-file-to-cogs",
-        "geoprocess_config": {
-            "bucket": "cwbi-data-develop",
-            "key": "cumulus/nohrsc-snodas-unmasked/SNODAS_unmasked_20140101.tar"
-        }
+SNODAS_INCOMING_FILE_TO_COGS = {
+    "geoprocess": "incoming-file-to-cogs",
+    "geoprocess_config": {
+        "bucket": "cwbi-data-develop",
+        "key": "cumulus/nohrsc-snodas-unmasked/SNODAS_unmasked_20140101.tar"
     }
+}
 
-    # https://stackoverflow.com/questions/28498163/how-do-i-construct-a-utc-datetime-object-in-python
-    # SAMPLE MESSAGE FOR SNODAS INTERPOLATE; DATE ONLY NEEDS TO BE ACCURATE TO THE DAY
-    SNODAS_INTERPOLATE_MESSAGE = {
-        "geoprocess": "snodas-interpolate",
-        "geoprocess_config": {
-            "datetime": datetime(2014, 1, 1, tzinfo=timezone.utc).strftime("%Y%m%d"),
-            "max_distance": 16,
-        }
+# https://stackoverflow.com/questions/28498163/how-do-i-construct-a-utc-datetime-object-in-python
+# SAMPLE MESSAGE FOR SNODAS INTERPOLATE; DATE ONLY NEEDS TO BE ACCURATE TO THE DAY
+SNODAS_INTERPOLATE_MESSAGE = {
+    "geoprocess": "snodas-interpolate",
+    "geoprocess_config": {
+        "datetime": datetime(2014, 1, 1, tzinfo=timezone.utc).strftime("%Y%m%d"),
+        "max_distance": 16,
     }
+}
 
-    INCOMING_FILE_TO_COGS_MESSAGE = {
-        "geoprocess": "incoming-file-to-cogs",
-        "geoprocess_config": {
-            "bucket": "cwbi-data-develop",
-            "key": f"cumulus/acquirables/lmrfc-qpe-01h/20211013{i:02d}z.grib.gz"
-        }
+INCOMING_FILE_TO_COGS_MESSAGE = {
+    "geoprocess": "incoming-file-to-cogs",
+    "geoprocess_config": {
+        "bucket": "cwbi-data-develop",
+        "key": f"cumulus/acquirables/lmrfc-qpe-01h/2021101301z.grib.gz"
     }
+}
 
-    CLIENT = boto3.resource(
-        'sqs',
-        endpoint_url="http://localhost:9324",
-        region_name="elasticmq",
-        aws_secret_access_key="x",
-        aws_access_key_id="x",
-        use_ssl=False
-    )
+CLIENT = boto3.resource(
+    'sqs',
+    endpoint_url="http://localhost:9324",
+    region_name="elasticmq",
+    aws_secret_access_key="x",
+    aws_access_key_id="x",
+    use_ssl=False
+)
 
-    # Incoming Requests
-    queue = CLIENT.get_queue_by_name(QueueName="cumulus-geoprocess")
+# Incoming Requests
+queue = CLIENT.get_queue_by_name(QueueName="cumulus-geoprocess")
 
-    print(f'queue;       : {queue}')
+print(f'queue;       : {queue}')
 
-    msg = INCOMING_FILE_TO_COGS_MESSAGE
-    # msg = SNODAS_INCOMING_FILE_TO_COGS
-    # msg = SNODAS_INTERPOLATE_MESSAGE
+msg = INCOMING_FILE_TO_COGS_MESSAGE
+# msg = SNODAS_INCOMING_FILE_TO_COGS
+# msg = SNODAS_INTERPOLATE_MESSAGE
 
-    response = queue.send_message(MessageBody=json.dumps(msg, separators=(',', ':')))
+response = queue.send_message(MessageBody=json.dumps(msg, separators=(',', ':')))
 

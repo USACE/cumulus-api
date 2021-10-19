@@ -1,3 +1,4 @@
+import json
 import os
 import numpy as np
 import numpy.ma as ma
@@ -11,7 +12,7 @@ from pydsstools.heclib.dss.HecDss import Open
 from pydsstools.heclib.utils import gridInfo
 
 
-def write_contents_to_dssfile(outfile, watershed, items, callback, cellsize=2000, dst_srs="EPSG:5070", nodata=9999):
+def write_contents_to_dssfile(outfile, watershed, items, callback, cellsize=2000, dst_srs="EPSG:5070"):
 
     HEC_WKT = '"PROJCS[\"USA_Contiguous_Albers_Equal_Area_Conic_USGS_version\",GEOGCS[\"GCS_North_American_1983\",DATUM[\"D_North_American_1983\",SPHEROID[\"GRS_1980\",6378137.0,298.257222101]],PRIMEM[\"Greenwich\",0.0],UNIT[\"Degree\",0.0174532925199433]],PROJECTION[\"Albers\"],PARAMETER[\"False_Easting\",0.0],PARAMETER[\"False_Northing\",0.0],PARAMETER[\"Central_Meridian\",-96.0],PARAMETER[\"Standard_Parallel_1\",29.5],PARAMETER[\"Standard_Parallel_2\",45.5],PARAMETER[\"Latitude_Of_Origin\",23.0],UNIT[\"Meter\",1.0]]"'
 
@@ -32,6 +33,10 @@ def write_contents_to_dssfile(outfile, watershed, items, callback, cellsize=2000
             content = WatershedContent(**item)
 
             try:
+                # Get the grid info and its noDataValue
+                fileinfo = gdal.Info(f'/vsis3_streaming/{content.bucket}/{content.key}', format='json')
+                if not isinstance(nodatavalue := fileinfo['bands'][0]['noDataValue'], (int, float)): nodatavalue = 9999
+
                 ds = gdal.Warp(
                     '/vsimem/projected.tif',
                     f'/vsis3_streaming/{content.bucket}/{content.key}',
@@ -46,9 +51,9 @@ def write_contents_to_dssfile(outfile, watershed, items, callback, cellsize=2000
 
                 # Raw Cell Values as Array
                 data = ds.GetRasterBand(1).ReadAsArray().astype(np.dtype('float32'))
-                
+
                 # Set nodata (default: 9999) to np.nan
-                data = np.where((data == nodata), np.nan, data)
+                data = np.where((data == nodatavalue), np.nan, data)
 
                 # Projection
                 proj = HEC_WKT if ("5070" in dst_srs) else ds.GetProjection()

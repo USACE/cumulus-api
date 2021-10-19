@@ -276,9 +276,9 @@ func GetDownloadMetrics(db *pgxpool.Pool) ([]byte, error) {
 				)),
 				'top_watersheds', (
 						WITH top_watersheds AS (
-						SELECT t.cnt as count, t.watershed_name, t.name FROM
+						SELECT t.cnt as count, t.watershed_name, t.office FROM
 						(
-							SELECT count(vd.id) AS cnt, watershed_name, o.name FROM cumulus.v_download vd
+							SELECT count(vd.id) AS cnt, watershed_name, o.name as office FROM cumulus.v_download vd
 							JOIN cumulus.watershed w ON w.id = vd.watershed_id 
 							JOIN cumulus.office o ON o.id = w.office_id 
 							GROUP BY watershed_name,o.name LIMIT 10
@@ -286,7 +286,22 @@ func GetDownloadMetrics(db *pgxpool.Pool) ([]byte, error) {
 						ORDER BY t.cnt DESC
 						)
 						SELECT json_agg(top_watersheds)
-							FROM top_watersheds)
+							FROM top_watersheds
+				),
+				'top_products', (
+					WITH top_products AS (
+						SELECT t.cnt as count, t.name FROM
+						(
+							SELECT count(d.id) AS cnt, p.name FROM download d 
+							JOIN download_product dp ON dp.download_id = d.id
+							JOIN v_product p ON p.id = dp.product_id 
+							GROUP BY p.name LIMIT 10
+						) AS t
+						ORDER BY t.cnt DESC
+					)
+					SELECT json_agg(top_products)
+						FROM top_products
+				)
 			)			
 			`,
 	); err != nil {

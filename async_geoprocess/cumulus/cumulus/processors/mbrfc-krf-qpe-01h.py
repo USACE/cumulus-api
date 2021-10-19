@@ -69,8 +69,7 @@ def process(infile, outdir) -> List:
     # Extract Band; Convert to COG
 
     tif_trans = translate(new_infile, os.path.join(outdir, f"temp-tif-{uuid4()}"), extra_args=["-b", str(band_number)])
-    tif_warp = warp(tif_trans, os.path.join(outdir, f"temp-tif-{uuid4()}"), extra_args=['-dstnodata', '0'])
-    tif_with_overviews = create_overviews(tif_warp)
+    tif_with_overviews = create_overviews(tif_trans)
     cog = translate(
         tif_with_overviews,
         os.path.join(

@@ -46,7 +46,11 @@ CUMULUS_DBPASS = os.getenv('CUMULUS_DBPASS', default='postgres')
 # 
 # Configuration Parameters
 # 
-USE_SSL = os.getenv('USE_SSL', default=False)
+if os.getenv('USE_SSL', default="True").upper() == "FALSE":
+    USE_SSL = False
+else:
+    USE_SSL = True
+
 
 WAIT_TIME_SECONDS = os.getenv('WAIT_TIME_SECONDS', default=20)
 

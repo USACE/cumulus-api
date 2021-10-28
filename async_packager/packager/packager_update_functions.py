@@ -46,14 +46,20 @@ def updateStatus_db(id, status_id, progress, file=None):
 # i.e. update progress percent only, or update progress percent and add file URL
 def updateStatus_api(id, status_id, progress, file=None):
     try:
-        requests.put(
-            CONFIG.CUMULUS_API_URL+'/development/cumulus/downloads/{id}',
+        r = requests.put(
+            CONFIG.CUMULUS_API_URL+'/downloads/{id}?key={CONFIG.APPLICATION_KEY}',
             json = {
-                "id"
+                "id":id,
                 "status_id": status_id,
-                "progress": int(progress)
+                "progress": int(progress),
+                "file": file
             }
         )
+        # Debugging junk
+        print(f'Trying to PUT: {CONFIG.CUMULUS_API_URL}/downloads/{id}?key={CONFIG.APPLICATION_KEY}')
+        print(r.status_code)
+        print(r.text)
+
     except Exception as e:
         print(e)
 

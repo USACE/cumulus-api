@@ -1,5 +1,7 @@
 import os
 
+APPLICATION_KEY = os.getenv("APPLICATION_KEY", default="appkey")
+
 ENDPOINT_URL_SQS = os.getenv('ENDPOINT_URL_SQS', default='http://elasticmq:9324')
 QUEUE_NAME_PACKAGER=os.getenv('QUEUE_NAME_PACKAGER', 'packager')
 QUEUE_NAME_PACKAGER_UPDATE=os.getenv('QUEUE_NAME_PACKAGER_UPDATE', 'packager_update')
@@ -48,7 +50,7 @@ else:
     # If CUMULUS_MOCK_S3_UPLOAD environment variable is unset then CUMULUS_MOCK_S3_UPLOAD will equal False
     CUMULUS_MOCK_S3_UPLOAD = False
 
-CUMULUS_API_URL = os.getenv('CUMULUS_API_URL', default='http://api:80')
+CUMULUS_API_URL = os.getenv('CUMULUS_API_URL', default='http://api')
 CUMULUS_API_HOST_HEADER = os.getenv('CUMULUS_API_HOST_HEADER', default=None)
 
-UPDATE_DOWNLOAD_METHOD = os.getenv('UPDATE_DOWNLOAD_METHOD', default='DB')
+UPDATE_DOWNLOAD_METHOD = os.getenv('UPDATE_DOWNLOAD_METHOD', default='API')

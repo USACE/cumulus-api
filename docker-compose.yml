@@ -56,6 +56,7 @@ services:
       - CUMULUS_API_URL=http://api:80
       - ENDPOINT_URL_SQS=http://elasticmq:9324
       - ENDPOINT_URL_S3=http://minio:9000
+      - USE_SSL=False
     volumes:
       - ./tmp:/tmp
     restart: always
@@ -85,6 +86,7 @@ services:
       - PACKAGER_UPDATE_INTERVAL=5
       - CPL_DEBUG=YES
       - CPL_CURL_VERBOSE=YES
+      - USE_SSL=False
     # Volume to persist packager created file
     volumes:
       - ./data:/output

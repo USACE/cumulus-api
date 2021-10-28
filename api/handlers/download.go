@@ -151,3 +151,15 @@ func UpdateDownload(db *pgxpool.Pool) echo.HandlerFunc {
 
 	}
 }
+
+// // GetDownloadMetrics returns metrics
+func GetDownloadMetrics(db *pgxpool.Pool) echo.HandlerFunc {
+	return func(c echo.Context) error {
+
+		dm, err := models.GetDownloadMetrics(db)
+		if err != nil {
+			return c.String(http.StatusInternalServerError, err.Error())
+		}
+		return c.JSONBlob(http.StatusOK, dm)
+	}
+}

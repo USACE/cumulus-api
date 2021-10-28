@@ -31,6 +31,7 @@ services:
       /usr/bin/mc policy set public minio/cwbi-data-stable;
       /usr/bin/mc policy set public minio/columbia-river;
       /usr/bin/mc cp --recursive /media/cumulus/ minio/cwbi-data-develop/cumulus/;
+      /usr/bin/mc cp --recursive /media/columbia-river minio/;
       exit 0;
       "
     volumes:

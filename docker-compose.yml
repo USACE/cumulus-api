@@ -64,6 +64,7 @@ services:
     build:
       context: async_packager
     environment:
+      - APPLICATION_KEY=appkey
       - AWS_REGION=us-east-1
       - AWS_S3_ENDPOINT=minio:9000
       - AWS_VIRTUAL_HOSTING=FALSE
@@ -76,7 +77,7 @@ services:
       - CUMULUS_MOCK_S3_UPLOAD=TRUE
       - QUEUE_NAME_PACKAGER=cumulus-packager
       - QUEUE_NAME_PACKAGER_UPDATE=cumulus-packager-update
-      - CUMULUS_API_URL=http://api:80
+      - CUMULUS_API_URL=http://api
       - CUMULUS_DBUSER=cumulus_user
       - CUMULUS_DBPASS=cumulus_pass
       - CUMULUS_DBNAME=postgres

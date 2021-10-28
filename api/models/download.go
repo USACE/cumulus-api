@@ -49,6 +49,7 @@ type Download struct {
 type PackagerInfo struct {
 	Progress        int16      `json:"progress"`
 	File            *string    `json:"file"`
+	StatusID        uuid.UUID  `json:"status_id"`
 	ProcessingStart time.Time  `json:"processing_start" db:"processing_start"`
 	ProcessingEnd   *time.Time `json:"processing_end" db:"processing_end"`
 }
@@ -232,24 +233,23 @@ func CreateDownload(db *pgxpool.Pool, dr *DownloadRequest) (*Download, error) {
 func UpdateDownload(db *pgxpool.Pool, downloadID *uuid.UUID, info *PackagerInfo) (*Download, error) {
 
 	UpdateProgress := func() error {
-		sql := `UPDATE download SET progress = $2 WHERE id = $1`
-		if _, err := db.Exec(context.Background(), sql, downloadID, info.Progress); err != nil {
+		sql := `UPDATE download SET progress = $2, status_id = $3 WHERE id = $1`
+		if _, err := db.Exec(context.Background(), sql, downloadID, info.Progress, info.StatusID); err != nil {
 			return err
 		}
 		return nil
 	}
 
 	UpdateProgressSetComplete := func() error {
-		sql := `UPDATE download set progress = $2, processing_end = $3 WHERE id = $1`
-		if _, err := db.Exec(context.Background(), sql, downloadID, info.Progress); err != nil {
+		sql := `UPDATE download set progress = $2, file = $3, processing_end = CURRENT_TIMESTAMP WHERE id = $1`
+		if _, err := db.Exec(context.Background(), sql, downloadID, info.Progress, info.File); err != nil {
 			return err
 		}
 		return nil
 	}
 
 	if info.Progress == 100 {
-		t := time.Now()
-		info.ProcessingEnd = &t
+
 		if err := UpdateProgressSetComplete(); err != nil {
 			return nil, err
 		}

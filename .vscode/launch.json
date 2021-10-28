@@ -18,7 +18,7 @@
         "CUMULUS_AUTH_DISABLED": "FALSE",
         "CUMULUS_AUTH_JWT_MOCKED": "TRUE",
         "CUMULUS_DBUSER": "cumulus_user",
-        "CUMULUS_DBPASS": "password",
+        "CUMULUS_DBPASS": "cumulus_pass",
         "CUMULUS_DBNAME": "postgres",
         "CUMULUS_DBHOST": "localhost",
         "CUMULUS_DBSSLMODE": "disable",

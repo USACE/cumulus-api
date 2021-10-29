@@ -1,42 +1,70 @@
 import logging
 import os
 import json
-from time import sleep
 import tempfile
 import shutil
 
 import boto3
 import botocore
+from botocore.client import Config as BotoConfig
 import botocore.exceptions
 import requests
 
 import config as CONFIG
-from packager_update_functions import updateStatus_api, updateStatus_db
+from packager_update_functions import update_status_api
 
 from dss import write_contents_to_dssfile
 
 if CONFIG.AWS_ACCESS_KEY_ID == 'x':
     # Running in AWS
     # Using IAM Role for Credentials
-    CLIENT = boto3.resource('sqs')
+    if CONFIG.ENDPOINT_URL_SQS:
+        CLIENT = boto3.resource(
+            'sqs',
+            endpoint_url=CONFIG.ENDPOINT_URL_SQS
+        )
+    else:
+        CLIENT = boto3.resource('sqs')
 else:
     # Local Testing
     # ElasticMQ with Credentials via AWS_ environment variables
-    CLIENT = boto3.resource(
+    SQS_CLIENT = boto3.resource(
         'sqs',
         endpoint_url=CONFIG.ENDPOINT_URL_SQS,
         region_name=CONFIG.AWS_REGION_SQS,
-        aws_secret_access_key=CONFIG.AWS_SECRET_ACCESS_KEY_SQS,
-        aws_access_key_id=CONFIG.AWS_ACCESS_KEY_ID_SQS,
+        aws_secret_access_key=CONFIG.AWS_SECRET_ACCESS_KEY,
+        aws_access_key_id=CONFIG.AWS_ACCESS_KEY_ID,
         use_ssl=CONFIG.USE_SSL
     )
 
-# Incoming Requests for Packager
-queue_packager = CLIENT.get_queue_by_name(QueueName=CONFIG.QUEUE_NAME_PACKAGER)
+if CONFIG.AWS_ACCESS_KEY_ID == 'x':
+    # Running in AWS
+    # Using IAM Role for Credentials
+    if CONFIG.ENDPOINT_URL_S3:
+        CLIENT = boto3.resource(
+            's3',
+            endpoint_url=CONFIG.ENDPOINT_URL_S3
+        )
+    else:
+        CLIENT = boto3.resource('s3')
+else:
+    # Local Testing
+    # MINIO with Credentials via AWS_ environment variables
+    S3_CLIENT = boto3.resource(
+        's3',
+        endpoint_url=CONFIG.ENDPOINT_URL_S3,
+        aws_access_key_id=CONFIG.AWS_ACCESS_KEY_ID,
+        aws_secret_access_key=CONFIG.AWS_SECRET_ACCESS_KEY,
+        config=BotoConfig(signature_version='s3v4'),
+        region_name=CONFIG.AWS_REGION_S3
+    )
+
+# Incoming requests for Packager
+queue_packager = SQS_CLIENT.get_queue_by_name(QueueName=CONFIG.QUEUE_NAME_PACKAGER)
 print(f'queue; packager       : {queue_packager}')
 
 # Where to send Packager updates
-queue_packager_update = CLIENT.get_queue_by_name(QueueName=CONFIG.QUEUE_NAME_PACKAGER_UPDATE)
+queue_packager_update = SQS_CLIENT.get_queue_by_name(QueueName=CONFIG.QUEUE_NAME_PACKAGER_UPDATE)
 print(f'queue; packager_update: {queue_packager_update}')
 
 # Logger
@@ -45,28 +73,9 @@ logger.setLevel(logging.INFO)
 logger.addHandler(logging.StreamHandler())
 
 # Packager Update Function
-if CONFIG.UPDATE_DOWNLOAD_METHOD.upper() == 'DB':
-    packager_update_fn = updateStatus_db
-else:
-    packager_update_fn = updateStatus_api
+packager_update_fn = update_status_api
 
-
-def get_infile(bucket, key, filepath):
-    
-    s3 = boto3.client('s3')
-    try:
-        s3.Bucket(bucket).download_file(key, filepath)
-        return os.path.abspath(filepath)
-
-    except botocore.exceptions.ClientError as e:
-        if e.response['Error']['Code'] == "404":
-            logger.fatal(f'OBJECT DOES NOT EXIST: {key}')
-            return None
-        else:
-            raise
-
-
-def upload_file(file_name, bucket, object_name=None):
+def upload_file(file_name, object_name=None):
     """Upload a file to an S3 bucket
 
     :param file_name: File to upload
@@ -80,11 +89,8 @@ def upload_file(file_name, bucket, object_name=None):
     if object_name is None:
         object_name = file_name
 
-    # Upload the file    
-    s3_client = boto3.client('s3')
-
     try:
-        response = s3_client.upload_file(file_name, bucket, object_name)
+        response = S3_CLIENT.Bucket(CONFIG.WRITE_TO_BUCKET).upload_file(file_name, object_name)
     except botocore.exceptions.ClientError as e:
         logger.error('Unable to upload file to S3.')
         logger.error(e)
@@ -164,7 +170,7 @@ def package(msg, packager_update_fn):
             # shutil.copy2 will overwrite a file if it already exists.
             shutil.copy2(outfile, "/output/"+os.path.basename(outfile))
         else:
-            upload_success = upload_file(outfile, CONFIG.WRITE_TO_BUCKET, output_key)
+            upload_success = upload_file(outfile, output_key)
         
         # Call Packager Update Function one last time to add file key to database
         if upload_success:

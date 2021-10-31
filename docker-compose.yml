@@ -79,7 +79,7 @@ services:
       - QUEUE_NAME_PACKAGER_UPDATE=cumulus-packager-update
       - CUMULUS_API_URL=http://api
       - ENDPOINT_URL_SQS=http://elasticmq:9324
-      - PACKAGER_UPDATE_INTERVAL=24
+      - PACKAGER_UPDATE_INTERVAL=5
       - CPL_DEBUG=YES
       - CPL_CURL_VERBOSE=YES
       - USE_SSL=False

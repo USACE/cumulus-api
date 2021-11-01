@@ -219,8 +219,7 @@ func main() {
 	private.GET("/my_downloads", handlers.ListMyDownloads(db))
 	// Routes used by packager to prepare download
 	public.GET("/downloads/:download_id/packager_request", handlers.GetDownloadPackagerRequest(db))
-	public.PUT("/downloads/:download_id", handlers.UpdateDownload(db))
-	// TODO: Authenticate PUT route for UpdateDownload ^^^
+	private.PUT("/downloads/:download_id", handlers.UpdateDownload(db))
 
 	// // Watersheds
 	public.GET("/watersheds", handlers.ListWatersheds(db))

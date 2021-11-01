@@ -1,15 +1,26 @@
-import json
 import os
 import numpy as np
 import numpy.ma as ma
 from osgeo import gdal
 from affine import Affine
-from collections import namedtuple
-
 import config as CONFIG
 
 from pydsstools.heclib.dss.HecDss import Open
 from pydsstools.heclib.utils import gridInfo
+
+def get_nodata_value(infile, band=1):
+    """Get nodata value from input file. Default band=1"""
+
+    ds = gdal.Open(infile)
+    band = ds.GetRasterBand(band)
+    nodatavalue = band.GetNoDataValue()
+    ds = None
+    band = None
+    
+    if nodatavalue is None:
+        return 9999
+
+    return nodatavalue
 
 
 def write_contents_to_dssfile(outfile, watershed, items, callback, cellsize=2000, dst_srs="EPSG:5070"):
@@ -19,40 +30,31 @@ def write_contents_to_dssfile(outfile, watershed, items, callback, cellsize=2000
     with Open(outfile) as fid:
 
         item_length = len(items)
-
-        Watershed = namedtuple("Watershed", watershed)
-        _watershed = Watershed(**watershed)
-
         for idx, item in enumerate(items):
-            # Update progress at predefined interval
-            if idx % CONFIG.PACKAGER_UPDATE_INTERVAL == 0 or idx == item_length-1:
-                callback(idx)
-
-            # Named tuple for the watershed's contents
-            WatershedContent = namedtuple("WatershedContent", item)
-            content = WatershedContent(**item)
-
             try:
-                # Get the grid info and its noDataValue
-                fileinfo = gdal.Info(f'/vsis3_streaming/{content.bucket}/{content.key}', format='json')
-                if not isinstance(nodatavalue := fileinfo['bands'][0]['noDataValue'], (int, float)): nodatavalue = 9999
-
+                # Update progress at predefined interval
+                if idx % CONFIG.PACKAGER_UPDATE_INTERVAL == 0 or idx == item_length-1:
+                    callback(idx)
+                
+                infile = f'/vsis3_streaming/{item["bucket"]}/{item["key"]}'
+                
                 ds = gdal.Warp(
                     '/vsimem/projected.tif',
-                    f'/vsis3_streaming/{content.bucket}/{content.key}',
+                    infile,
                     dstSRS=dst_srs,
                     outputType=gdal.GDT_Float64,
-                    outputBounds=_watershed.bbox,
+                    outputBounds=watershed['bbox'],
                     resampleAlg="bilinear",
                     targetAlignedPixels=True,
                     xRes=cellsize,
                     yRes=cellsize,
                 )
 
-                # Raw Cell Values as Array
+                # Get the grid nodata
+                nodatavalue = get_nodata_value(infile)
+                # Get grid array
                 data = ds.GetRasterBand(1).ReadAsArray().astype(np.dtype('float32'))
-
-                # Set nodata (default: 9999) to np.nan
+                # replace gridarray nodata values with dss accepted nodata value
                 data = np.where((data == nodatavalue), np.nan, data)
 
                 # Projection
@@ -70,23 +72,21 @@ def write_contents_to_dssfile(outfile, watershed, items, callback, cellsize=2000
                     ('grid_type','shg-time'),
                     ('grid_crs', proj),
                     ('grid_transform', affine_transform),
-                    ('data_type', content.dss_datatype.lower()),
-                    ('data_units', content.dss_unit.lower()),
+                    ('data_type', item['dss_datatype'].lower()),
+                    ('data_units', item['dss_unit'].lower()),
                     ('opt_crs_name', 'AlbersInfo'),
-                    ('opt_lower_left_x', _watershed.bbox[0] / cellsize),
-                    ('opt_lower_left_y', _watershed.bbox[1] / cellsize),
+                    ('opt_lower_left_x', watershed['bbox'][0] / cellsize),
+                    ('opt_lower_left_y', watershed['bbox'][1] / cellsize),
                 ])
                     # ('opt_is_interval', True),
                     # ('opt_time_stamped', True),
                 fid.put_grid(
-                    f'/SHG/{_watershed.name}/{content.dss_cpart}/{content.dss_dpart}/{content.dss_epart}/{content.dss_fpart}/',
+                    f'/SHG/{watershed["name"]}/{item["dss_cpart"]}/{item["dss_dpart"]}/{item["dss_epart"]}/{item["dss_fpart"]}/',
                     data,
                     grid_info
                 )
-        
             except:
-                print(f'Unable to process: {content.bucket}/{content.key}')
-
+                print(f'Unable to process: {item["bucket"]}/{item["key"]}')
             finally:
                 ds = None
                 data = None

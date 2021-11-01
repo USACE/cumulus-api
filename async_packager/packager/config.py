@@ -16,7 +16,6 @@ AWS_REGION = os.getenv('AWS_REGION', default='us-east-1')
 AWS_REGION_SQS = os.getenv('AWS_REGION_SQS', default=AWS_REGION)
 ENDPOINT_URL_SQS = os.getenv('ENDPOINT_URL_SQS', default='http://elasticmq:9324')
 QUEUE_NAME_PACKAGER=os.getenv('QUEUE_NAME_PACKAGER', 'packager')
-QUEUE_NAME_PACKAGER_UPDATE=os.getenv('QUEUE_NAME_PACKAGER_UPDATE', 'packager_update')
 
 ##################
 # S3 CONFIGURATION

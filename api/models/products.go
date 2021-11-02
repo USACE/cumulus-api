@@ -33,20 +33,17 @@ type ProductInfo struct {
 	Label              string    `json:"label"`
 }
 
+type ProductIdentifiers struct {
+	ID   uuid.UUID `json:"id"`
+	Slug string    `json:"slug" db:"slug"`
+}
+
 // Product holds all information about a product
 type Product struct {
-	ID   uuid.UUID   `json:"id"`
-	Slug string      `json:"slug" db:"slug"`
+	ProductIdentifiers
 	Tags []uuid.UUID `json:"tags" db:"tags"`
 	ProductInfo
 	CoverageSummary
-}
-
-// Productfile is a file associated with a product
-type Productfile struct {
-	ID       uuid.UUID `json:"id"`
-	Datetime time.Time `json:"datetime"`
-	File     string    `json:"file"`
 }
 
 // CoverageSummary describes date ranges spanned by a product
@@ -73,6 +70,22 @@ type Availability struct {
 type DateCount struct {
 	Date  time.Time `json:"date" db:"date"`
 	Count int       `json:"count" db:"count"`
+}
+
+// GetProductSlugs
+func GetProductSlugs(db *pgxpool.Pool) (map[string]uuid.UUID, error) {
+	pp := make([]ProductIdentifiers, 0)
+	if err := pgxscan.Select(
+		context.Background(), db, &pp, `SELECT id, slug FROM v_product`,
+	); err != nil {
+		return make(map[string]uuid.UUID), err
+	}
+	// convert array to map
+	m := make(map[string]uuid.UUID)
+	for _, p := range pp {
+		m[p.Slug] = p.ID
+	}
+	return m, nil
 }
 
 // ListProducts returns a list of products
@@ -196,21 +209,6 @@ func GetProductAvailability(db *pgxpool.Pool, ID *uuid.UUID) (*Availability, err
 		return nil, err
 	}
 	return &a, nil
-}
-
-// ListProductfiles returns array of productfiles
-func ListProductfiles(db *pgxpool.Pool, ID uuid.UUID, after string, before string) ([]Productfile, error) {
-	ff := make([]Productfile, 0)
-	if err := pgxscan.Select(
-		context.Background(), db, &ff,
-		`SELECT id, datetime, file
-	     FROM productfile
-		 WHERE product_id = $1 AND datetime >= $2 AND datetime <= $3`,
-		ID, after, before,
-	); err != nil {
-		return make([]Productfile, 0), err
-	}
-	return ff, nil
 }
 
 func TagProduct(db *pgxpool.Pool, productID *uuid.UUID, tagID *uuid.UUID) (*Product, error) {

@@ -1,4 +1,4 @@
-from datetime import datetime
+from datetime import datetime, timezone
 import os
 from uuid import uuid4
 from ..geoprocess.core.base import info, translate, create_overviews
@@ -97,7 +97,14 @@ def process(infile, outdir):
             )
         )
 
-        outfile_list.append({ "filetype": f_type, "file": cog, "datetime": v_time.isoformat(), "version": r_time })
+        outfile_list.append(
+            {
+                "filetype": f_type,
+                "file": cog,
+                "datetime": v_time.replace(tzinfo=timezone.utc).isoformat(),
+                "version": r_time.replace(tzinfo=timezone.utc).isoformat()
+            }
+        )
 
     return outfile_list
 

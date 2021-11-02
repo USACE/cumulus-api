@@ -3,10 +3,11 @@ import botocore
 import botocore.exceptions
 from botocore.client import Config
 
-import psycopg2
-import psycopg2.extras
+from datetime import timezone
 
 import os
+import requests
+import json
 
 import config as CONFIG
 
@@ -34,54 +35,28 @@ def s3_client():
     kwargs = s3_kwargs()
     return boto3.client('s3', **kwargs)
 
-def db_connection():
-    
-    return psycopg2.connect(
-        user=CONFIG.CUMULUS_DBUSER,
-        host=CONFIG.CUMULUS_DBHOST,
-        dbname=CONFIG.CUMULUS_DBNAME,
-        password=CONFIG.CUMULUS_DBPASS
-    )
-
-
-# TODO make all data access through RESTful API; Do not allow direct database connection
 def write_database(entries):
-    
-    def dict_to_tuple(d):
-        return tuple([d['datetime'], d['file'], d['product_id'], d['version']])
-    
-    values = [dict_to_tuple(e) for e in entries]
-
+    payload = [{'datetime': e['datetime'], 'file': e['file'], 'product_id': e['product_id'], 'version': e['version']} for e in entries]
     try:
-        conn = db_connection()
-        c = conn.cursor()
-        psycopg2.extras.execute_values(
-            c, "INSERT INTO productfile (datetime, file, product_id, version) VALUES %s ON CONFLICT ON CONSTRAINT unique_product_version_datetime DO UPDATE SET update_date = CURRENT_TIMESTAMP", values,
+        r = requests.post(
+            f'{CONFIG.CUMULUS_API_URL}/productfiles?key={CONFIG.APPLICATION_KEY}',
+            json=payload
         )
-        conn.commit()
     except Exception as e:
         print(e)
-    finally:
-        c.close()
-        conn.close()
     
     return len(entries)
 
 
-# TODO make all data access through RESTful API; Do not allow direct database connection
-def get_products():
+def get_product_slugs():
     '''Map of <slug>:<product_id> for all products in the database'''
     
     try:
-        conn = db_connection()
-        c = conn.cursor()
-        c.execute("SELECT slug, id from product")
-        rows = c.fetchall()
-    finally:
-        c.close()
-        conn.close()
+        r = requests.get(f'{CONFIG.CUMULUS_API_URL}/product_slugs')
+    except Exception as e:
+        print(e)
     
-    return { r[0]: r[1] for r in rows}
+    return r.json()
 
 
 def get_infile(bucket, key, filepath):

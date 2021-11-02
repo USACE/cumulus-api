@@ -1,4 +1,4 @@
-from datetime import datetime
+from datetime import datetime, timezone
 import os
 from uuid import uuid4
 from ..geoprocess.core.base import info, translate, create_overviews
@@ -76,8 +76,8 @@ def process(infile, outdir) -> List:
         {
             "filetype": "hrrr-total-precip",
             "file": cog,
-            "datetime": valid_time.isoformat(), 
-            "version": ref_time
+            "datetime": valid_time.replace(tzinfo=timezone.utc).isoformat(), 
+            "version": ref_time.replace(tzinfo=timezone.utc).isoformat()
         }
     )
     

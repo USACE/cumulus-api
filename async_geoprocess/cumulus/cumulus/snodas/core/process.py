@@ -2,18 +2,12 @@
 import logging
 logging.basicConfig()
 
-import argparse
 import datetime
 import numpy as np
 from osgeo import gdal
-import gzip
 import os
-import re
 import shutil
-import subprocess
-import sys
 import tarfile
-import tempfile
 
 
 from ...geoprocess.core.base import (
@@ -313,7 +307,7 @@ def process_snodas_for_date(dt, infile, infile_type, outdir):
     outfile_list = []
     for k, v in processed_files.items():
         outfile_list.append(
-            {"file": v, "filetype": k, "datetime": dt.isoformat(), "version": None }
+            {"file": v, "filetype": k, "datetime": dt.replace(tzinfo=datetime.timezone.utc).isoformat(), "version": None }
         )
 
     return outfile_list

@@ -64,7 +64,7 @@ def wrf2cog(infile, outdir, varName):
         subprocess.check_call(strCommand, shell=True)
         
                 
-        outfile_list.append({ "filetype": varName, "file": finalFile, "datetime": currentPDate.isoformat(), "version": dtVersion })
+        outfile_list.append({ "filetype": varName, "file": finalFile, "datetime": currentPDate.replace(tzinfo=datetime.timezone.utc).isoformat(), "version": dtVersion.replace(tzinfo=datetime.timezone.utc).isoformat() })
         
     # fileinfo = info(infile)
     # print(fileinfo)

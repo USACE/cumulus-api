@@ -5,7 +5,7 @@ from uuid import uuid4
 import numpy as np
 from osgeo import gdal
 from ..geoprocess.core.base import info, translate, create_overviews, write_array_to_raster
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 
 def process(infile, outdir):
     """Takes an infile to process and path to a directory where output files should be saved
@@ -84,8 +84,8 @@ def process(infile, outdir):
                 { 
                     "filetype": nc_slug,
                     "file": cog,
-                    "datetime": band_date.isoformat(),
-                    "version": date_created.isoformat()
+                    "datetime": band_date.replace(tzinfo=timezone.utc).isoformat(),
+                    "version": date_created.replace(tzinfo=timezone.utc).isoformat()
                 }
             )
 

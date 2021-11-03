@@ -1,4 +1,4 @@
-from datetime import datetime
+from datetime import datetime, timezone
 import os
 from uuid import uuid4
 from ..geoprocess.core.base import info, translate, create_overviews
@@ -28,7 +28,7 @@ def process(infile, outdir):
     )
 
     outfile_list = [
-        { "filetype": "ncep-mrms-v12-multisensor-qpe-01h-pass2", "file": cog, "datetime": dt.isoformat(), "version": None },
+        { "filetype": "ncep-mrms-v12-multisensor-qpe-01h-pass2", "file": cog, "datetime": dt.replace(tzinfo=timezone.utc).isoformat(), "version": None },
     ]
 
     return outfile_list

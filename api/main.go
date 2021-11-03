@@ -128,6 +128,7 @@ func main() {
 	)
 
 	// Products
+	public.GET("/product_slugs", handlers.GetProductSlugs(db))
 	public.GET("/products", handlers.ListProducts(db))
 	public.GET("/products/:product_id", handlers.GetProduct(db))
 	private.POST("/products", handlers.CreateProduct(db),
@@ -145,6 +146,11 @@ func main() {
 	// Additional Information About Products
 	public.GET("/products/:product_id/availability", handlers.GetProductAvailability(db))
 	public.GET("/products/:product_id/files", handlers.ListProductfiles(db))
+
+	// Productfiles
+	private.POST("/productfiles", handlers.CreateProductfiles(db),
+		middleware.IsApplicationAdmin,
+	)
 
 	// Suites
 	public.GET("/suites", handlers.ListSuites(db))

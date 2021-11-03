@@ -1,4 +1,4 @@
-from datetime import datetime
+from datetime import timezone
 from ..prism.core import prism_datetime_from_filename
 from ..prism.core import prism_convert_to_cog
 
@@ -13,7 +13,7 @@ def process(infile, outdir):
     outfile_cog = prism_convert_to_cog(infile, outdir)
 
     outfile_list = [
-        { "filetype": "prism-tmin-early", "file": outfile_cog, "datetime": dt.isoformat(), "version": None },
+        { "filetype": "prism-tmin-early", "file": outfile_cog, "datetime": dt.replace(tzinfo=timezone.utc).isoformat(), "version": None },
     ]
 
     return outfile_list

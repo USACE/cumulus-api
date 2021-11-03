@@ -18,7 +18,7 @@ logger = logging.getLogger(__name__)
 logger.setLevel(CONFIG.LOGLEVEL)
 logger.addHandler(logging.StreamHandler(sys.stdout))
 
-if CONFIG.AWS_ACCESS_KEY_ID is None:
+if CONFIG.AWS_ACCESS_KEY_ID == 'x':
     # Running in AWS
     # Using IAM Role for Credentials
     if CONFIG.ENDPOINT_URL_SQS:
@@ -35,8 +35,8 @@ else:
         'sqs',
         endpoint_url=CONFIG.ENDPOINT_URL_SQS,
         region_name=CONFIG.AWS_REGION_SQS,
-        aws_secret_access_key=CONFIG.AWS_SECRET_ACCESS_KEY_SQS,
-        aws_access_key_id=CONFIG.AWS_ACCESS_KEY_ID_SQS,
+        aws_secret_access_key=CONFIG.AWS_SECRET_ACCESS_KEY,
+        aws_access_key_id=CONFIG.AWS_ACCESS_KEY_ID,
         use_ssl=CONFIG.USE_SSL
     )
 
@@ -66,13 +66,12 @@ def handle_message(msg):
         # Keep track of successes to send as single database query at the end
         successes = []
         # Valid products in the database
-        product_map = helpers.get_products()
+        product_map = helpers.get_product_slugs()
         for _f in outfiles:
             # See that we have a valid 
             if _f["filetype"] in product_map.keys():
                 # Write output files to different bucket
                 write_key = 'cumulus/products/{}/{}'.format(_f["filetype"], _f["file"].split("/")[-1])
-                print(f'write_key is: {write_key}')               
                 if CONFIG.CUMULUS_MOCK_S3_UPLOAD:
                     # Mock good upload to S3
                     upload_success = True
@@ -103,5 +102,5 @@ while 1:
     logger.info(f'message count: {len(messages)}')
     
     for message in messages:
-        handle_message(message)
+        logger.debug(handle_message(message))
         message.delete()

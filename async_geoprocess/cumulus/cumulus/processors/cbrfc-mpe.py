@@ -1,4 +1,4 @@
-from datetime import datetime
+from datetime import datetime, timezone
 import os
 from uuid import uuid4
 from ..geoprocess.core.base import info, translate, create_overviews
@@ -20,7 +20,7 @@ def process(infile, outdir):
     # Get Datetime from String Like "1599008400 sec UTC"
     dt = datetime.fromtimestamp(int(dtStr.split(" ")[0]))
 
-    print(f"Band number is {band_number}, date string is {dtStr}, and date is {dt}")
+    # print(f"Band number is {band_number}, date string is {dtStr}, and date is {dt}")
 
     # # Extract Band 0 (QPE); Convert to COG
     tif = translate(infile, os.path.join(outdir, f"temp-tif-{uuid4()}"), extra_args=["-b", band_number])
@@ -34,7 +34,7 @@ def process(infile, outdir):
     )
 
     outfile_list = [
-        { "filetype": "cbrfc-mpe", "file": cog, "datetime": dt.isoformat(), "version": None },
+        { "filetype": "cbrfc-mpe", "file": cog, "datetime": dt.replace(tzinfo=timezone.utc).isoformat(), "version": None },
     ]
 
     return outfile_list

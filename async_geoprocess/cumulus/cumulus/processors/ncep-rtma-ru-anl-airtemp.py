@@ -1,4 +1,4 @@
-from datetime import datetime
+from datetime import datetime, timezone
 import os
 from uuid import uuid4
 from ..geoprocess.core.base import info, translate, create_overviews
@@ -12,7 +12,7 @@ def process(infile, outdir):
 
     # Only Get Air Temperature to Start; Band 3 (i.e. array position 2 because zero-based indexing)
     dtStr = info(infile)['bands'][2]["metadata"][""]['GRIB_VALID_TIME']
-    print(dtStr)
+
     # Get Datetime from String Like "1599008400 sec UTC"
     dt = datetime.fromtimestamp(int(dtStr.split(" ")[0]))
 
@@ -35,7 +35,7 @@ def process(infile, outdir):
     )
 
     outfile_list = [
-        { "filetype": "ncep-rtma-ru-anl-airtemp", "file": cog, "datetime": dt.isoformat(), "version": None },
+        { "filetype": "ncep-rtma-ru-anl-airtemp", "file": cog, "datetime": dt.replace(tzinfo=timezone.utc).isoformat(), "version": None },
     ]
 
     return outfile_list

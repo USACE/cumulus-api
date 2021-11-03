@@ -1,4 +1,4 @@
-from datetime import datetime
+from datetime import datetime, timezone
 from logging import log
 import os
 from uuid import uuid4
@@ -82,7 +82,7 @@ def process(infile, outdir) -> List:
         {
             "filetype": ftype,
             "file": cog,
-            "datetime": valid_time.isoformat(), 
+            "datetime": valid_time.replace(tzinfo=timezone.utc).isoformat(), 
             "version": None
         }
     )

@@ -25,7 +25,7 @@ QUEUE_NAME=os.getenv('QUEUE_NAME', 'cumulus-geoprocess')
 ##################
 AWS_REGION_S3 = os.getenv('AWS_REGION_S3', default=AWS_REGION)
 ENDPOINT_URL_S3 = os.getenv('ENDPOINT_URL_S3', default=None)
-WRITE_TO_BUCKET = os.getenv('WRITE_TO_BUCKET', default='cwbi-data-develop')
+WRITE_TO_BUCKET = os.getenv('WRITE_TO_BUCKET', default='castle-data-develop')
 
 ##########################
 # Configuration Parameters

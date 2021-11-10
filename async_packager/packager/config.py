@@ -22,7 +22,7 @@ QUEUE_NAME_PACKAGER=os.getenv('QUEUE_NAME_PACKAGER', 'packager')
 ##################
 AWS_REGION_S3 = os.getenv('AWS_REGION_S3', default=AWS_REGION)
 ENDPOINT_URL_S3 = os.getenv('ENDPOINT_URL_S3', default='http://minio:9000')
-WRITE_TO_BUCKET = os.getenv('WRITE_TO_BUCKET', default='cwbi-data-develop')
+WRITE_TO_BUCKET = os.getenv('WRITE_TO_BUCKET', default='castle-data-develop')
 
 ##########################
 # Configuration Parameters

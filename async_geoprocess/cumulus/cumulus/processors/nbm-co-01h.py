@@ -22,8 +22,8 @@ def process(infile, outdir):
     
     """
     bands = {
-        46: "nbm-co-airtemp",
-        54: "nbm-co-qpf"
+        46: "nbm-co-qpf",
+        54: "nbm-co-airtemp"
     }
 
     outfile_list = list()

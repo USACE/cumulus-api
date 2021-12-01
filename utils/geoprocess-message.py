@@ -28,7 +28,7 @@ INCOMING_FILE_TO_COGS_MESSAGE = {
     "geoprocess": "incoming-file-to-cogs",
     "geoprocess_config": {
         "bucket": "cwbi-data-develop",
-        "key": f"cumulus/acquirables/lmrfc-qpe-01h/2021101301z.grib.gz"
+        "key": f"cumulus/acquirables/nbm-co-01h/blend.20211109.t20z.core.f030.co.grib2"
     }
 }
 

@@ -19,12 +19,12 @@ if CONFIG.AWS_ACCESS_KEY_ID == 'x':
     # Running in AWS
     # Using IAM Role for Credentials
     if CONFIG.ENDPOINT_URL_SQS:
-        CLIENT = boto3.resource(
+        SQS_CLIENT = boto3.resource(
             'sqs',
             endpoint_url=CONFIG.ENDPOINT_URL_SQS
         )
     else:
-        CLIENT = boto3.resource('sqs')
+        SQS_CLIENT = boto3.resource('sqs')
 else:
     # Local Testing
     # ElasticMQ with Credentials via AWS_ environment variables
@@ -41,12 +41,12 @@ if CONFIG.AWS_ACCESS_KEY_ID == 'x':
     # Running in AWS
     # Using IAM Role for Credentials
     if CONFIG.ENDPOINT_URL_S3:
-        CLIENT = boto3.resource(
+        S3_CLIENT = boto3.resource(
             's3',
             endpoint_url=CONFIG.ENDPOINT_URL_S3
         )
     else:
-        CLIENT = boto3.resource('s3')
+        S3_CLIENT = boto3.resource('s3')
 else:
     # Local Testing
     # MINIO with Credentials via AWS_ environment variables

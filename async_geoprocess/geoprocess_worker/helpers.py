@@ -7,7 +7,6 @@ from datetime import timezone
 
 import os
 import requests
-import json
 
 import config as CONFIG
 
@@ -62,6 +61,7 @@ def get_product_slugs():
 def get_infile(bucket, key, filepath):
     
     resource = s3_resource()
+    logger.debug(f'GetInfile; bucket: {bucket}; key: {key}; output: {filepath}')
     try:
         resource.Bucket(bucket).download_file(key, filepath)
         return os.path.abspath(filepath)

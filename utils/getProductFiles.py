@@ -16,7 +16,7 @@ sql = ''
 
 for product in products:
 
-    if product['name'] not in ['wpc_qpf_2p5km', 'hrrr_total_precip']:         
+    if product['slug'] not in ['wpc-qpf-2p5km', 'hrrr-total-precip']:         
 
         print(f"\n##### {product['name']} ##### ID: {product['id']}")
 
@@ -49,7 +49,7 @@ for product in products:
 
 sql += '\n'
 
-with open(f'{os.path.dirname(os.path.realpath(__file__))}/sql/31-seed_prodfiles.sql', 'w+') as outfile:
+with open(f'{os.path.dirname(os.path.realpath(__file__))}/31-seed_prodfiles.sql', 'w+') as outfile:
     print(f'\nWriting output to {outfile.name}')
     outfile.write(sql)
 

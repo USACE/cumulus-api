@@ -1,6 +1,6 @@
 ALTER TABLE cumulus.download DISABLE TRIGGER notify_new_download;
 
-INSERT into cumulus.download (id, datetime_start, datetime_end, progress, status_id, watershed_id, file, processing_start, processing_end, profile_id) VALUES
+INSERT into cumulus.download (id, datetime_start, datetime_end, progress, status_id, watershed_id, file, processing_start, processing_end, sub) VALUES
 ('c30eaff5-9d2e-4ac2-aaee-f8272f16ca3f', '2021-03-19 07:07:00', '2021-03-28 12:12:00', 100, '94727878-7a50-41f8-99eb-a80eb82f737a', '1572c0a6-e9b9-420a-85dc-ae9d9ac8f958', 'cumulus/test-watershed/download.dss', '2021-03-25 12:12:00', '2021-03-25 12:12:03', 'be549c16-3f65-4af4-afb6-e18c814c44dc'),
 ('a0665728-02b2-4e75-87a0-6ac55f76ce51', '2021-03-24 00:12:00', '2021-03-28 12:12:00', 100, '94727878-7a50-41f8-99eb-a80eb82f737a', '08ee0918-b869-46c5-b9fd-e02f88ceff64', 'cumulus/test-watershed/download.dss', '2021-03-25 12:12:00', '2021-03-25 12:12:01', '9effda27-49f7-4745-8e55-fa819f550b09'),
 ('2f2219ef-4089-468e-9686-cec2918c6c27', '2021-03-22 03:03:00', '2021-03-28 12:12:00', 100, '94727878-7a50-41f8-99eb-a80eb82f737a', '1a629fac-82c9-4b3e-b7fc-6a891d944140', 'cumulus/test-watershed/download.dss', '2021-03-25 12:12:00', '2021-03-25 12:12:02', 'f056201a-ffec-4f5b-aec5-14b34bb5e3d8'),

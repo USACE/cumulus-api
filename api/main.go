@@ -16,7 +16,6 @@ import (
 	"github.com/USACE/cumulus-api/api/config"
 	"github.com/USACE/cumulus-api/api/handlers"
 	"github.com/USACE/cumulus-api/api/middleware"
-	"github.com/USACE/cumulus-api/api/models"
 )
 
 // Connection returns a database connection from configuration parameters
@@ -73,58 +72,21 @@ func main() {
 		private.Use(middleware.JWT(cfg.AuthDisabled, true))
 	}
 	// Key Auth Middleware
-	private.Use(middleware.KeyAuth(
-		cfg.AuthDisabled,
-		cfg.ApplicationKey,
-		func(keyID string) (string, error) {
-			k, err := models.GetTokenInfoByTokenID(db, &keyID)
-			if err != nil {
-				return "", err
-			}
-			return k.Hash, nil
-		},
-	))
-
-	/////////////////////////////////////////
-	// CAC Only Routes (API Keys Not Allowed)
-	/////////////////////////////////////////
-	cacOnly := e.Group("")
-	if cfg.AuthJWTMocked {
-		cacOnly.Use(middleware.JWTMock(cfg.AuthDisabled, false))
-	} else {
-		cacOnly.Use(middleware.JWT(cfg.AuthDisabled, false))
-	}
-	// AttachProfileMiddleware attaches ProfileID to context, whether
-	// authenticated by token or api key
-	private.Use(middleware.EDIPIMiddleware, middleware.AttachProfileMiddleware(db))
-	cacOnly.Use(middleware.EDIPIMiddleware, middleware.CACOnlyMiddleware)
+	private.Use(
+		middleware.KeyAuth(cfg.AuthDisabled, cfg.ApplicationKey),
+		middleware.AttachUserInfo,
+	)
 
 	// Health Check
 	public.GET("/health", func(c echo.Context) error {
 		return c.JSON(http.StatusOK, map[string]interface{}{"status": "healthy"})
 	})
 
-	// Profile
-	cacOnly.GET("/my_profile", handlers.GetMyProfile(db))
-	cacOnly.POST("/my_profile", handlers.CreateProfile(db))
-
-	// Grant/Remove Application Admin to a Profile
-	private.POST("/profiles/:profile_id/admin", handlers.GrantApplicationAdmin(db),
-		middleware.IsApplicationAdmin,
-	)
-	private.DELETE("/profiles/:profile_id/admin", handlers.RevokeApplicationAdmin(db),
-		middleware.IsApplicationAdmin,
-	)
-
-	// API Tokens
-	private.POST("/my_tokens", handlers.CreateToken(db))
-	private.DELETE("/my_tokens/:token_id", handlers.DeleteToken(db))
-
 	// Acquirables
 	public.GET("/acquirables", handlers.ListAcquirables(db))
 	public.GET("/acquirables/:acquirable_id/files", handlers.ListAcquirablefiles(db))
 	private.POST("/acquirablefiles", handlers.CreateAcquirablefiles(db),
-		middleware.IsApplicationAdmin,
+		middleware.IsAdmin,
 	)
 
 	// Products
@@ -132,16 +94,16 @@ func main() {
 	public.GET("/products", handlers.ListProducts(db))
 	public.GET("/products/:product_id", handlers.GetProduct(db))
 	private.POST("/products", handlers.CreateProduct(db),
-		middleware.IsApplicationAdmin,
+		middleware.IsAdmin,
 	)
 	private.PUT("/products/:product_id", handlers.UpdateProduct(db),
-		middleware.IsApplicationAdmin,
+		middleware.IsAdmin,
 	)
 	private.DELETE("/products/:product_id", handlers.DeleteProduct(db),
-		middleware.IsApplicationAdmin,
+		middleware.IsAdmin,
 	)
 	private.POST("/products/:product_id/undelete", handlers.UndeleteProduct(db),
-		middleware.IsApplicationAdmin,
+		middleware.IsAdmin,
 	)
 	// Additional Information About Products
 	public.GET("/products/:product_id/availability", handlers.GetProductAvailability(db))
@@ -149,76 +111,76 @@ func main() {
 
 	// Productfiles
 	private.POST("/productfiles", handlers.CreateProductfiles(db),
-		middleware.IsApplicationAdmin,
+		middleware.IsAdmin,
 	)
 
 	// Suites
 	public.GET("/suites", handlers.ListSuites(db))
 	public.GET("/suites/:suite_id", handlers.GetSuite(db))
 	private.POST("/suites", handlers.CreateSuite(db),
-		middleware.IsApplicationAdmin,
+		middleware.IsAdmin,
 	)
 	private.PUT("/suites/:suite_id", handlers.UpdateSuite(db),
-		middleware.IsApplicationAdmin,
+		middleware.IsAdmin,
 	)
 	private.DELETE("/suites/:suite_id", handlers.DeleteSuite(db),
-		middleware.IsApplicationAdmin,
+		middleware.IsAdmin,
 	)
 
 	// Tags
 	public.GET("/tags", handlers.ListTags(db))
 	public.GET("/tags/:tag_id", handlers.GetTag(db))
 	private.POST("/tags", handlers.CreateTag(db),
-		middleware.IsApplicationAdmin,
+		middleware.IsAdmin,
 	)
 	private.PUT("/tags/:tag_id", handlers.UpdateTag(db),
-		middleware.IsApplicationAdmin,
+		middleware.IsAdmin,
 	)
 	private.DELETE("/tags/:tag_id", handlers.DeleteTag(db),
-		middleware.IsApplicationAdmin,
+		middleware.IsAdmin,
 	)
 	// Tag or Untag Product
 	private.POST("/products/:product_id/tags/:tag_id", handlers.TagProduct(db),
-		middleware.IsApplicationAdmin,
+		middleware.IsAdmin,
 	)
 	private.DELETE("/products/:product_id/tags/:tag_id", handlers.UntagProduct(db),
-		middleware.IsApplicationAdmin,
+		middleware.IsAdmin,
 	)
 
 	// Units
 	public.GET("/units", handlers.ListUnits(db))
 	public.GET("/units/:unit_id", handlers.GetUnit(db))
 	private.POST("/units", handlers.CreateUnit(db),
-		middleware.IsApplicationAdmin,
+		middleware.IsAdmin,
 	)
 	private.PUT("/units/:unit_id", handlers.UpdateUnit(db),
-		middleware.IsApplicationAdmin,
+		middleware.IsAdmin,
 	)
 	private.DELETE("/units/:unit_id", handlers.DeleteUnit(db),
-		middleware.IsApplicationAdmin,
+		middleware.IsAdmin,
 	)
 
 	// Parameters
 	public.GET("/parameters", handlers.ListParameters(db))
 	public.GET("/parameters/:parameter_id", handlers.GetParameter(db))
 	private.POST("/parameters", handlers.CreateParameter(db),
-		middleware.IsApplicationAdmin,
+		middleware.IsAdmin,
 	)
 	private.PUT("/parameters/:parameter_id", handlers.UpdateParameter(db),
-		middleware.IsApplicationAdmin,
+		middleware.IsAdmin,
 	)
 	private.DELETE("/parameters/:parameter_id", handlers.DeleteParameter(db),
-		middleware.IsApplicationAdmin,
+		middleware.IsAdmin,
 	)
 
 	// Downloads
 	public.GET("/cumulus/download/dss/*", handlers.ServeMedia(&awsCfg, &cfg.AWSS3Bucket)) // Serve Downloads
 	// List Downloads
-	private.GET("/downloads", handlers.ListDownloads(db), middleware.IsApplicationAdmin)
+	private.GET("/downloads", handlers.ListDownloads(db), middleware.IsAdmin)
 	// Download Metrics
 	public.GET("/downloads/metrics", handlers.GetDownloadMetrics(db))
 	// Create Download (Anonymous)
-	public.POST("/downloads", handlers.CreateDownload(db))
+	private.POST("/downloads", handlers.CreateDownload(db))
 	public.GET("/downloads/:download_id", handlers.GetDownload(db))
 	// Create Download (Authenticated)
 	private.POST("/my_downloads", handlers.CreateDownload(db))
@@ -231,30 +193,16 @@ func main() {
 	public.GET("/watersheds", handlers.ListWatersheds(db))
 	public.GET("/watersheds/:watershed_id", handlers.GetWatershed(db))
 	private.POST("/watersheds", handlers.CreateWatershed(db),
-		middleware.IsApplicationAdmin,
+		middleware.IsAdmin,
 	)
 	private.PUT("/watersheds/:watershed_id", handlers.UpdateWatershed(db),
-		middleware.IsWatershedAdminMiddleware(db),
+		middleware.IsAdmin,
 	)
 	private.DELETE("/watersheds/:watershed_id", handlers.DeleteWatershed(db),
-		middleware.IsWatershedAdminMiddleware(db),
+		middleware.IsAdmin,
 	)
 	private.POST("/watersheds/:watershed_id/undelete", handlers.UndeleteWatershed(db),
-		middleware.IsApplicationAdmin,
-	)
-
-	// Watershed Role Management
-	// List Watershed Member Roles
-	private.GET("/watersheds/:watershed_id/members", handlers.ListWatershedRoles(db),
-		middleware.IsWatershedAdminMiddleware(db),
-	)
-	// Add Role to a User
-	private.POST("/watersheds/:watershed_id/members/:profile_id/roles/:role_id", handlers.AddWatershedRole(db),
-		middleware.IsWatershedAdminMiddleware(db),
-	)
-	// Remove Role from a User
-	private.DELETE("/watersheds/:watershed_id/members/:profile_id/roles/:role_id", handlers.RemoveWatershedRole(db),
-		middleware.IsWatershedAdminMiddleware(db),
+		middleware.IsAdmin,
 	)
 
 	// My Watersheds

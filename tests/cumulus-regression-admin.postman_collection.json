@@ -1,192 +1,10 @@
 {
 	"info": {
-		"_postman_id": "0edc625a-758f-447d-a05a-088bd21bbfa2",
+		"_postman_id": "6d301dc7-7fe5-4237-80d7-1ea1caf7d1d3",
 		"name": "cumulus-regression-admin",
 		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
 	},
 	"item": [
-		{
-			"name": "profile",
-			"item": [
-				{
-					"name": "GetMyProfile",
-					"event": [
-						{
-							"listen": "test",
-							"script": {
-								"exec": [
-									"// validate JSON schema",
-									"var schema = {",
-									"    \"type\": \"object\",",
-									"    \"properties\": {",
-									"        \"id\": { \"type\": \"string\" },",
-									"        \"username\": { \"type\": \"string\" },",
-									"        \"email\": { \"type\": \"string\" },",
-									"        \"is_admin\": { \"type\": \"boolean\"},",
-									"        \"tokens\": {\"type\": \"array\"},",
-									"        \"roles\": {\"type\": \"array\"}",
-									"    },",
-									"    \"required\": [\"id\", \"username\", \"email\", \"is_admin\", \"tokens\", \"roles\"],",
-									"    \"additionalProperties\": false",
-									"}",
-									"",
-									"// validate schema",
-									"pm.test(\"Schema validation\", function () {",
-									"    pm.response.to.have.jsonSchema(schema)",
-									"});",
-									"",
-									"// status code is 200",
-									"pm.test(\"Status code is 200\", function () {",
-									"    pm.response.to.have.status(200);",
-									"});",
-									""
-								],
-								"type": "text/javascript"
-							}
-						}
-					],
-					"request": {
-						"method": "GET",
-						"header": [],
-						"url": {
-							"raw": "{{base_url}}/my_profile",
-							"host": [
-								"{{base_url}}"
-							],
-							"path": [
-								"my_profile"
-							]
-						}
-					},
-					"response": []
-				},
-				{
-					"name": "CreateToken",
-					"event": [
-						{
-							"listen": "test",
-							"script": {
-								"exec": [
-									"// validate JSON schema",
-									"var schema = {",
-									"    \"type\": \"object\",",
-									"    \"properties\": {",
-									"        \"secret_token\": { \"type\": \"string\" },",
-									"        \"token_id\": { \"type\": \"string\" },",
-									"        \"profile_id\": { \"type\": \"string\" },",
-									"        \"issued\": { \"type\": \"string\"}",
-									"    },",
-									"    \"required\": [\"secret_token\", \"token_id\", \"profile_id\", \"issued\"],",
-									"    \"additionalProperties\": false",
-									"}",
-									"",
-									"pm.globals.set('TOKEN_OBJECT', JSON.stringify(schema));",
-									"",
-									"// status code is 201",
-									"pm.test(\"Status code is 201\", function () {",
-									"    pm.response.to.have.status(201);",
-									"});",
-									"",
-									"// validate schema",
-									"pm.test(\"Schema validation\", function () {",
-									"    pm.response.to.have.jsonSchema(schema)",
-									"});"
-								],
-								"type": "text/javascript"
-							}
-						}
-					],
-					"request": {
-						"method": "POST",
-						"header": [],
-						"url": {
-							"raw": "{{base_url}}/my_tokens",
-							"host": [
-								"{{base_url}}"
-							],
-							"path": [
-								"my_tokens"
-							]
-						}
-					},
-					"response": []
-				},
-				{
-					"name": "DeleteToken",
-					"event": [
-						{
-							"listen": "test",
-							"script": {
-								"exec": [
-									"// status code is 200;",
-									"// NOTE: This test will always pass when run in automated tests because attempting to delete a token that",
-									"// does not exist will always return a RESTful 200 (i.e. 'It's gone'). This test is left in place for manual testing as needed.",
-									"// This is done using the CreateToken test, getting the token_id from the payload, manually deleting the token using this test,",
-									"// and verifying that the token has been deleted by fetching /my_profile and examining the return payload",
-									"pm.test(\"Status code is 200\", function () {",
-									"    pm.response.to.have.status(200);",
-									"});"
-								],
-								"type": "text/javascript"
-							}
-						}
-					],
-					"request": {
-						"method": "DELETE",
-						"header": [],
-						"url": {
-							"raw": "{{base_url}}/my_tokens/65GkUyQ4yyG9jeJVB8N3ebtcunYAnXKCJAtXB1ZtLz4FUVr7LLtKBFx",
-							"host": [
-								"{{base_url}}"
-							],
-							"path": [
-								"my_tokens",
-								"65GkUyQ4yyG9jeJVB8N3ebtcunYAnXKCJAtXB1ZtLz4FUVr7LLtKBFx"
-							]
-						}
-					},
-					"response": []
-				},
-				{
-					"name": "GrantApplicationAdmin",
-					"request": {
-						"method": "POST",
-						"header": [],
-						"url": {
-							"raw": "{{base_url}}/profiles/f320df83-e2ea-4fe9-969a-4e0239b8da51/admin",
-							"host": [
-								"{{base_url}}"
-							],
-							"path": [
-								"profiles",
-								"f320df83-e2ea-4fe9-969a-4e0239b8da51",
-								"admin"
-							]
-						}
-					},
-					"response": []
-				},
-				{
-					"name": "RevokeApplicationAdmin",
-					"request": {
-						"method": "DELETE",
-						"header": [],
-						"url": {
-							"raw": "{{base_url}}/profiles/f320df83-e2ea-4fe9-969a-4e0239b8da51/admin",
-							"host": [
-								"{{base_url}}"
-							],
-							"path": [
-								"profiles",
-								"f320df83-e2ea-4fe9-969a-4e0239b8da51",
-								"admin"
-							]
-						}
-					},
-					"response": []
-				}
-			]
-		},
 		{
 			"name": "tags",
 			"item": [
@@ -222,7 +40,8 @@
 									"});",
 									""
 								],
-								"type": "text/javascript"
+								"type": "text/javascript",
+								"id": "705aa05e-0f4a-4647-9824-3b6cbd4db183"
 							}
 						}
 					],
@@ -267,7 +86,8 @@
 									"});",
 									""
 								],
-								"type": "text/javascript"
+								"type": "text/javascript",
+								"id": "f34e7745-cbd3-4fc3-8b1c-458c41a47d5f"
 							}
 						}
 					],
@@ -306,7 +126,8 @@
 									"});",
 									""
 								],
-								"type": "text/javascript"
+								"type": "text/javascript",
+								"id": "b9c9c0f4-14d5-4ef0-81e7-dcc2cf61b678"
 							}
 						}
 					],
@@ -355,7 +176,8 @@
 									"});",
 									""
 								],
-								"type": "text/javascript"
+								"type": "text/javascript",
+								"id": "ba325764-0a29-421a-8a1b-2828da5d4670"
 							}
 						}
 					],
@@ -395,7 +217,8 @@
 									"    pm.response.to.have.status(200);",
 									"});"
 								],
-								"type": "text/javascript"
+								"type": "text/javascript",
+								"id": "5ee5630e-ee51-4653-9b34-46095346ae88"
 							}
 						}
 					],
@@ -424,7 +247,8 @@
 					},
 					"response": []
 				}
-			]
+			],
+			"protocolProfileBehavior": {}
 		},
 		{
 			"name": "units",
@@ -460,7 +284,8 @@
 									"});",
 									""
 								],
-								"type": "text/javascript"
+								"type": "text/javascript",
+								"id": "3d64e93d-8301-4350-874d-87fe8c62a0db"
 							}
 						}
 					],
@@ -505,7 +330,8 @@
 									"});",
 									""
 								],
-								"type": "text/javascript"
+								"type": "text/javascript",
+								"id": "ad409b3d-3b47-4cbc-8988-1ca415c56962"
 							}
 						}
 					],
@@ -546,7 +372,8 @@
 									"let jsonData = JSON.parse(responseBody);",
 									"pm.environment.set(\"new_create_unit_id\", jsonData.id);"
 								],
-								"type": "text/javascript"
+								"type": "text/javascript",
+								"id": "bd17b350-542c-4be5-8975-4a7029382cd9"
 							}
 						}
 					],
@@ -594,7 +421,8 @@
 									"});",
 									""
 								],
-								"type": "text/javascript"
+								"type": "text/javascript",
+								"id": "d0f1c6ee-78b1-43a4-abe0-d93f54156da8"
 							}
 						}
 					],
@@ -635,7 +463,8 @@
 									"    pm.response.to.have.status(200);",
 									"});"
 								],
-								"type": "text/javascript"
+								"type": "text/javascript",
+								"id": "59d04eb3-35b9-40ca-b4ce-0a6c0f10b297"
 							}
 						}
 					],
@@ -664,7 +493,8 @@
 					},
 					"response": []
 				}
-			]
+			],
+			"protocolProfileBehavior": {}
 		},
 		{
 			"name": "suites",
@@ -701,7 +531,8 @@
 									"});",
 									""
 								],
-								"type": "text/javascript"
+								"type": "text/javascript",
+								"id": "b90b6f64-1855-4333-a27f-f7116c056c20"
 							}
 						}
 					],
@@ -746,7 +577,8 @@
 									"});",
 									""
 								],
-								"type": "text/javascript"
+								"type": "text/javascript",
+								"id": "e313c4cc-ffba-45d0-9bb9-04e48b3eff1e"
 							}
 						}
 					],
@@ -787,7 +619,8 @@
 									"let jsonData = JSON.parse(responseBody);",
 									"pm.environment.set(\"new_create_suite_id\", jsonData.id);"
 								],
-								"type": "text/javascript"
+								"type": "text/javascript",
+								"id": "51c2edd1-a123-4be2-85f2-11bb2e4086bd"
 							}
 						}
 					],
@@ -835,7 +668,8 @@
 									"});",
 									""
 								],
-								"type": "text/javascript"
+								"type": "text/javascript",
+								"id": "c03f82dd-ffcd-4d0b-a2f7-0279580f7ffd"
 							}
 						}
 					],
@@ -876,7 +710,8 @@
 									"    pm.response.to.have.status(200);",
 									"});"
 								],
-								"type": "text/javascript"
+								"type": "text/javascript",
+								"id": "04888cab-fe9f-40ad-85bf-9450f910df37"
 							}
 						}
 					],
@@ -905,7 +740,8 @@
 					},
 					"response": []
 				}
-			]
+			],
+			"protocolProfileBehavior": {}
 		},
 		{
 			"name": "parameters",
@@ -940,7 +776,8 @@
 									"});",
 									""
 								],
-								"type": "text/javascript"
+								"type": "text/javascript",
+								"id": "7f486b76-f378-4b6b-b957-8fb30bd78053"
 							}
 						}
 					],
@@ -985,7 +822,8 @@
 									"});",
 									""
 								],
-								"type": "text/javascript"
+								"type": "text/javascript",
+								"id": "b1d4e8db-7d6d-4f51-bfd6-d09669ea890e"
 							}
 						}
 					],
@@ -1026,7 +864,8 @@
 									"let jsonData = JSON.parse(responseBody);",
 									"pm.environment.set(\"new_create_parameter_id\", jsonData.id);"
 								],
-								"type": "text/javascript"
+								"type": "text/javascript",
+								"id": "f53624d9-e2f2-4cc3-8963-dce9aef27aa1"
 							}
 						}
 					],
@@ -1074,7 +913,8 @@
 									"});",
 									""
 								],
-								"type": "text/javascript"
+								"type": "text/javascript",
+								"id": "1fa43059-2f5e-4bdb-86dc-9105eb7fc776"
 							}
 						}
 					],
@@ -1115,7 +955,8 @@
 									"    pm.response.to.have.status(200);",
 									"});"
 								],
-								"type": "text/javascript"
+								"type": "text/javascript",
+								"id": "116ad208-ce77-488b-ace9-6c116787ed99"
 							}
 						}
 					],
@@ -1144,7 +985,8 @@
 					},
 					"response": []
 				}
-			]
+			],
+			"protocolProfileBehavior": {}
 		},
 		{
 			"name": "acquirables",
@@ -1161,7 +1003,8 @@
 									"    pm.response.to.have.status(200);",
 									"});"
 								],
-								"type": "text/javascript"
+								"type": "text/javascript",
+								"id": "30f6863c-1cab-4f67-8098-3d01dd6ed544"
 							}
 						}
 					],
@@ -1192,7 +1035,8 @@
 									"    pm.response.to.have.status(201);",
 									"});"
 								],
-								"type": "text/javascript"
+								"type": "text/javascript",
+								"id": "aba811f4-928c-4a8f-b7f3-f6888980dffc"
 							}
 						}
 					],
@@ -1232,7 +1076,8 @@
 									"    pm.response.to.have.status(200);",
 									"});"
 								],
-								"type": "text/javascript"
+								"type": "text/javascript",
+								"id": "754f6174-79d5-4305-bb76-8621057b9c66"
 							}
 						}
 					],
@@ -1271,7 +1116,8 @@
 						"type": "text/javascript",
 						"exec": [
 							""
-						]
+						],
+						"id": "4a7d6abb-9bb2-4269-9469-54aa3abb764c"
 					}
 				},
 				{
@@ -1280,10 +1126,12 @@
 						"type": "text/javascript",
 						"exec": [
 							""
-						]
+						],
+						"id": "4815fc8f-6e36-4f83-aa2d-7497f2fa14b2"
 					}
 				}
-			]
+			],
+			"protocolProfileBehavior": {}
 		},
 		{
 			"name": "products",
@@ -1339,7 +1187,8 @@
 									"});",
 									""
 								],
-								"type": "text/javascript"
+								"type": "text/javascript",
+								"id": "fbfaf51e-a491-4d52-aa91-8318540181ea"
 							}
 						}
 					],
@@ -1384,7 +1233,8 @@
 									"});",
 									""
 								],
-								"type": "text/javascript"
+								"type": "text/javascript",
+								"id": "64a8aa16-7576-45ec-a6df-fc4f9cd1a101"
 							}
 						}
 					],
@@ -1437,7 +1287,8 @@
 									"});",
 									""
 								],
-								"type": "text/javascript"
+								"type": "text/javascript",
+								"id": "3ec7cada-d820-4fa3-b7c1-8f92b4fe9a45"
 							}
 						}
 					],
@@ -1507,7 +1358,8 @@
 									"});",
 									""
 								],
-								"type": "text/javascript"
+								"type": "text/javascript",
+								"id": "192ef4cf-068a-4aa7-990f-27a118944a62"
 							}
 						}
 					],
@@ -1548,7 +1400,8 @@
 									"});",
 									""
 								],
-								"type": "text/javascript"
+								"type": "text/javascript",
+								"id": "a3191fe1-fec5-4508-815a-28c97d19ba2c"
 							}
 						}
 					],
@@ -1596,7 +1449,8 @@
 									"});",
 									""
 								],
-								"type": "text/javascript"
+								"type": "text/javascript",
+								"id": "2c10518e-52f8-4970-8039-b80bd602b625"
 							}
 						}
 					],
@@ -1645,7 +1499,8 @@
 									"});",
 									""
 								],
-								"type": "text/javascript"
+								"type": "text/javascript",
+								"id": "5d629d2d-a709-484a-acc5-b0893199c450"
 							}
 						}
 					],
@@ -1696,7 +1551,8 @@
 									"});",
 									""
 								],
-								"type": "text/javascript"
+								"type": "text/javascript",
+								"id": "0e98db76-5a70-4e10-9239-3afb9b6b9292"
 							}
 						}
 					],
@@ -1739,7 +1595,8 @@
 									"    pm.response.to.have.status(200);",
 									"});"
 								],
-								"type": "text/javascript"
+								"type": "text/javascript",
+								"id": "996a1e87-dcac-427f-8fcb-73829fdaac86"
 							}
 						}
 					],
@@ -1788,7 +1645,8 @@
 									"});",
 									""
 								],
-								"type": "text/javascript"
+								"type": "text/javascript",
+								"id": "3ee24d4f-e3b6-4595-8ef5-ad1c7db45668"
 							}
 						}
 					],
@@ -1818,7 +1676,8 @@
 					},
 					"response": []
 				}
-			]
+			],
+			"protocolProfileBehavior": {}
 		},
 		{
 			"name": "downloads",
@@ -1835,7 +1694,8 @@
 									"    pm.response.to.have.status(200);",
 									"});"
 								],
-								"type": "text/javascript"
+								"type": "text/javascript",
+								"id": "2e3aaefe-3bea-40ad-9007-e59f640ad379"
 							}
 						}
 					],
@@ -1878,7 +1738,8 @@
 									"    pm.response.to.have.status(201);",
 									"});"
 								],
-								"type": "text/javascript"
+								"type": "text/javascript",
+								"id": "18a27c4a-01ac-428e-8ca9-278076e73db2"
 							}
 						}
 					],
@@ -1918,7 +1779,8 @@
 									"    pm.response.to.have.status(201);",
 									"});"
 								],
-								"type": "text/javascript"
+								"type": "text/javascript",
+								"id": "1f1be68b-e75d-4b29-ba27-979571b2bf08"
 							}
 						}
 					],
@@ -1946,7 +1808,8 @@
 					},
 					"response": []
 				}
-			]
+			],
+			"protocolProfileBehavior": {}
 		},
 		{
 			"name": "watersheds",
@@ -1963,7 +1826,8 @@
 									"    pm.response.to.have.status(200);",
 									"});"
 								],
-								"type": "text/javascript"
+								"type": "text/javascript",
+								"id": "dd2524e6-ebe5-4523-a428-5610c21f9107"
 							}
 						}
 					],
@@ -1994,7 +1858,8 @@
 									"    pm.response.to.have.status(200);",
 									"});"
 								],
-								"type": "text/javascript"
+								"type": "text/javascript",
+								"id": "1da88c91-1160-410a-8f94-11856941ce76"
 							}
 						}
 					],
@@ -2026,7 +1891,8 @@
 									"    pm.response.to.have.status(201);",
 									"});"
 								],
-								"type": "text/javascript"
+								"type": "text/javascript",
+								"id": "cd935230-de7f-4528-b839-a01c8271df37"
 							}
 						}
 					],
@@ -2066,7 +1932,8 @@
 									"    pm.response.to.have.status(201);",
 									"});"
 								],
-								"type": "text/javascript"
+								"type": "text/javascript",
+								"id": "30cfbfbd-d6ab-4e47-acca-2b681a146678"
 							}
 						}
 					],
@@ -2107,7 +1974,8 @@
 									"    pm.response.to.have.status(200);",
 									"});"
 								],
-								"type": "text/javascript"
+								"type": "text/javascript",
+								"id": "c1953f05-a424-4153-9e06-33067e6df734"
 							}
 						}
 					],
@@ -2148,7 +2016,8 @@
 									"    pm.response.to.have.status(200);",
 									"});"
 								],
-								"type": "text/javascript"
+								"type": "text/javascript",
+								"id": "b22921b9-0de1-418c-bab8-1ef037775922"
 							}
 						}
 					],
@@ -2178,150 +2047,8 @@
 					},
 					"response": []
 				}
-			]
-		},
-		{
-			"name": "watershed roles",
-			"item": [
-				{
-					"name": "ListWatershedRoles",
-					"event": [
-						{
-							"listen": "test",
-							"script": {
-								"exec": [
-									"// validate JSON schema",
-									"var obj_schema = {",
-									"    \"type\": \"object\",",
-									"    \"properties\": {",
-									"        \"id\": { \"type\": \"string\" },",
-									"        \"profile_id\": { \"type\": \"string\" },",
-									"        \"username\": { \"type\": [\"string\"] },",
-									"        \"email\": { \"type\": [\"string\"] },",
-									"        \"role_id\": { \"type\": [\"string\"] },",
-									"        \"role\": { \"type\": [\"string\"] }",
-									"    },",
-									"    \"required\": [\"id\", \"profile_id\", \"username\", \"email\", \"role_id\", \"role\"],",
-									"    \"additionalProperties\": false",
-									"}",
-									"",
-									"// schema validator",
-									"var array_schema = {",
-									"    \"type\": \"array\",",
-									"    \"items\": obj_schema",
-									"}",
-									"",
-									"pm.globals.set('PROJECT_MEMBERSHIP_OBJECT_SCHEMA', JSON.stringify(obj_schema));",
-									"pm.globals.set('PROJECT_MEMBERSHIP_ARRAY_SCHEMA', JSON.stringify(array_schema));",
-									"",
-									"// status code is 200",
-									"pm.test(\"Status code is 200\", function () {",
-									"    pm.response.to.have.status(200);",
-									"});",
-									"// validate schema",
-									"pm.test(\"Schema validation\", function () {",
-									"    pm.response.to.have.jsonSchema(array_schema)",
-									"});",
-									""
-								],
-								"type": "text/javascript"
-							}
-						}
-					],
-					"request": {
-						"method": "GET",
-						"header": [],
-						"url": {
-							"raw": "{{base_url}}/watersheds/c785f4de-ab17-444b-b6e6-6f1ad16676e8/members",
-							"host": [
-								"{{base_url}}"
-							],
-							"path": [
-								"watersheds",
-								"c785f4de-ab17-444b-b6e6-6f1ad16676e8",
-								"members"
-							]
-						}
-					},
-					"response": []
-				},
-				{
-					"name": "AddWatershedRole",
-					"event": [
-						{
-							"listen": "test",
-							"script": {
-								"exec": [
-									"",
-									"pm.test(\"Status code is 200\", function () {",
-									"    pm.response.to.have.status(200);",
-									"});",
-									"",
-									"// schema validation",
-									"pm.test(\"Schema validation\", function () {",
-									"    pm.response.to.have.jsonSchema(JSON.parse(pm.globals.get(\"PROJECT_MEMBERSHIP_OBJECT_SCHEMA\")))",
-									"});"
-								],
-								"type": "text/javascript"
-							}
-						}
-					],
-					"request": {
-						"method": "POST",
-						"header": [],
-						"url": {
-							"raw": "{{base_url}}/watersheds/c785f4de-ab17-444b-b6e6-6f1ad16676e8/members/57329df6-9f7a-4dad-9383-4633b452efab/roles/37f14863-8f3b-44ca-8deb-4b74ce8a8a69",
-							"host": [
-								"{{base_url}}"
-							],
-							"path": [
-								"watersheds",
-								"c785f4de-ab17-444b-b6e6-6f1ad16676e8",
-								"members",
-								"57329df6-9f7a-4dad-9383-4633b452efab",
-								"roles",
-								"37f14863-8f3b-44ca-8deb-4b74ce8a8a69"
-							]
-						}
-					},
-					"response": []
-				},
-				{
-					"name": "RemoveWatershedRole",
-					"event": [
-						{
-							"listen": "test",
-							"script": {
-								"exec": [
-									"pm.test(\"Status code is 200\", function () {",
-									"    pm.response.to.have.status(200);",
-									"});"
-								],
-								"type": "text/javascript"
-							}
-						}
-					],
-					"request": {
-						"method": "DELETE",
-						"header": [],
-						"url": {
-							"raw": "{{base_url}}/watersheds/c785f4de-ab17-444b-b6e6-6f1ad16676e8/members/57329df6-9f7a-4dad-9383-4633b452efab/roles/37f14863-8f3b-44ca-8deb-4b74ce8a8a69",
-							"host": [
-								"{{base_url}}"
-							],
-							"path": [
-								"watersheds",
-								"c785f4de-ab17-444b-b6e6-6f1ad16676e8",
-								"members",
-								"57329df6-9f7a-4dad-9383-4633b452efab",
-								"roles",
-								"37f14863-8f3b-44ca-8deb-4b74ce8a8a69"
-							]
-						}
-					},
-					"response": []
-				}
-			]
+			],
+			"protocolProfileBehavior": {}
 		},
 		{
 			"name": "area_group",
@@ -2335,7 +2062,8 @@
 								"exec": [
 									""
 								],
-								"type": "text/javascript"
+								"type": "text/javascript",
+								"id": "cb865bb9-f49d-44dc-866d-7da274f1b8a1"
 							}
 						}
 					],
@@ -2370,7 +2098,8 @@
 								"exec": [
 									""
 								],
-								"type": "text/javascript"
+								"type": "text/javascript",
+								"id": "d02eb91b-7aa4-46f7-81e6-0ac2ce79aefc"
 							}
 						}
 					],
@@ -2405,7 +2134,8 @@
 								"exec": [
 									""
 								],
-								"type": "text/javascript"
+								"type": "text/javascript",
+								"id": "d7960428-75ad-4d14-aa65-be676cc9c2cd"
 							}
 						}
 					],
@@ -2438,7 +2168,8 @@
 									"    pm.response.to.have.status(200);",
 									"});"
 								],
-								"type": "text/javascript"
+								"type": "text/javascript",
+								"id": "dfe3ea5f-e921-4a17-ab3a-616b65d562c7"
 							}
 						}
 					],
@@ -2461,7 +2192,8 @@
 					},
 					"response": []
 				}
-			]
+			],
+			"protocolProfileBehavior": {}
 		}
 	],
 	"auth": {
@@ -2481,7 +2213,8 @@
 				"type": "text/javascript",
 				"exec": [
 					""
-				]
+				],
+				"id": "c0dc303c-dbe3-4ca6-abc1-22d01f3e637a"
 			}
 		},
 		{
@@ -2490,8 +2223,10 @@
 				"type": "text/javascript",
 				"exec": [
 					""
-				]
+				],
+				"id": "5328cc48-600f-4648-aeb4-b4686487d558"
 			}
 		}
-	]
+	],
+	"protocolProfileBehavior": {}
 }

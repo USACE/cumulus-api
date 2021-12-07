@@ -50,39 +50,13 @@ components:
         $ref: "#/components/schemas/acquirablefile"
     empty_object:
       type: object
-    profile:
-      type: object
-      properties:
-        id:
-          type: string
-          format: uuid
-        username:
-          type: string
-        email:
-          type: string
-        tokens:
-          type: array
-          items:
-            type: object
-            properties:
-              token_id:
-                type: string
-              issued:
-                type: string
-                format: date-time
-        is_admin:
-          type: boolean
-        roles:
-          type: array
-          items:
-            type: string
     download:
       type: object
       properties:
         id:
           type: string
           format: uuid
-        profile_id:
+        sub:
           type: string
           format: uuid
         datetime_start:
@@ -134,20 +108,6 @@ components:
           items:
             type: string
             format: uuid
-    token:
-      type: object
-      properties:
-        secret_token:
-          type: string
-          format: password
-        token_id:
-          type: string
-        profile_id:
-          type: string
-          format: uuid
-        issued:
-          type: string
-          format: date-time
     product:
       type: object
       properties:
@@ -259,20 +219,6 @@ components:
         id: "951d8838-75ac-4250-ad48-4cdb249484b2"
         datetime: "2021-03-21T01:00:00-05:00"
         file: "cumulus/nohrsc_snodas_swe/zz_ssmv11034tS__T0001TTNATS2021032105HP001_cloud_optimized.tif"
-    profile:
-      value:
-        id: "098fd0e1-76e1-4abe-8dce-d8cf52e94431"
-        username: "testuser"
-        email: "test.user@gmail.com"
-        tokens: []
-        is_admin: false
-        roles: []
-    token:
-      value:
-        secret_token: "DDy7AjiQ3ufiyiy3bmFvoPGAuoB4mhJoorHJUNojgG4ErGCkidwUvDp"
-        token_id: "AsQBxgeEpH9vZpsgW2ox4KCFSV6oKeX22AFni1GC884T9khAfjWCgXX"
-        profile_id: "098fd0e1-76e1-4abe-8dce-d8cf52e94431"
-        issued: "2021-05-20T13:03:49.865788-05:00"
 
 x-tagGroups:
   - name: Products
@@ -294,80 +240,6 @@ x-tagGroups:
       - Accounts
 
 paths:
-  /my_profile:
-    post:
-      tags:
-        - Accounts
-      description: Create My Profile
-      responses:
-        "201":
-          description: Profile of Logged-In User
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/profile"
-              example:
-                $ref: "#/components/examples/profile"
-    get:
-      tags:
-        - Accounts
-      description: Get My Profile
-      responses:
-        "200":
-          description: Profile of Logged-In User
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/profile"
-              example:
-                $ref: "#/components/examples/profile"
-  /my_tokens:
-    post:
-      tags:
-        - Accounts
-      description: Create API Token
-      responses:
-        "201":
-          description: API Token
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/token"
-              example:
-                $ref: "#/components/examples/token"
-
-  /profiles/{profile_id}/admin:
-    parameters:
-      - name: profile_id
-        in: path
-        required: true
-        description: Profile ID to Modify
-        schema:
-          type: string
-          format: uuid
-    post:
-      tags:
-        - Accounts
-      description: Grant Application Admin
-      responses:
-        "200":
-          description: Empty Object
-          content:
-            application/json:
-              schema:
-                $ref:  "#/components/schemas/empty_object"
-    delete:
-      tags:
-        - Accounts
-      description: Revoke Application Admin
-      responses:
-        "200":
-          description: Empty Object
-          content:
-            application/json:
-              schema:
-                $ref:  "#/components/schemas/empty_object"
-
   /acquirables:
     get:
       tags:
@@ -956,7 +828,7 @@ paths:
       tags:
         - My Watersheds
       summary: List My Watersheds
-      description: List all watersheds logged-in user has added to their profile
+      description: List all watersheds logged-in user has "favorited"
       responses:
         "200":
           description: Watershed List
@@ -1000,71 +872,3 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/empty_object"
-  
-  /watersheds/{watershed_id}/members:
-    parameters:
-      - name: watershed_id
-        in: path
-        required: true
-        description: Watershed ID
-        schema:
-          type: string
-          format: uuid
-    get:
-      tags:
-        - Role Management
-      summary: List Watershed Roles
-      responses:
-        "200":
-          description: Watershed Role List
-          content:
-            application/json:
-              schema:
-                type: array
-  
-  /watersheds/{watershed_id}/members/{profile_id}/roles/{role_id}:
-    parameters:
-      - name: watershed_id
-        in: path
-        required: true
-        description: Watershed ID
-        schema:
-          type: string
-          format: uuid
-      - name: profile_id
-        in: path
-        required: true
-        description: Profile ID
-        schema:
-          type: string
-          format: uuid
-      - name: role_id
-        in: path
-        required: true
-        description: Role ID
-        schema:
-          type: string
-          format: uuid
-    post:
-      tags:
-        - Role Management
-      summary: Grant Watershed Role
-      responses:
-        "200":
-          description: Empty Object
-          content:
-            application/json:
-              schema:
-                type: object
-    delete:
-      tags:
-        - Role Management
-      summary: Remove Watershed Role
-      responses:
-        "200":
-          description: Empty Object
-          content:
-            application/json:
-              schema:
-                type: object
-  

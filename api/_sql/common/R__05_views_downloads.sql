@@ -1,18 +1,18 @@
 CREATE OR REPLACE VIEW v_download AS (
-    SELECT d.id AS id,
-        d.datetime_start AS datetime_start,
-        d.datetime_end AS datetime_end,
-        d.progress AS progress,
-        d.file AS file,
+    SELECT d.id            AS id,
+        d.datetime_start   AS datetime_start,
+        d.datetime_end     AS datetime_end,
+        d.progress         AS progress,
+        d.file             AS file,
         d.processing_start AS processing_start,
-        d.processing_end AS processing_end,
-        d.status_id AS status_id,
-        d.watershed_id AS watershed_id,
-        d.profile_id AS profile_id,
-        w.slug         AS watershed_slug,
-        w.name         AS watershed_name,
-        s.name AS status,
-        dp.product_id AS product_id
+        d.processing_end   AS processing_end,
+        d.status_id        AS status_id,
+        d.watershed_id     AS watershed_id,
+        d.sub              AS sub,
+        w.slug             AS watershed_slug,
+        w.name             AS watershed_name,
+        s.name             AS status,
+        dp.product_id      AS product_id
     FROM download d
         INNER JOIN download_status s ON d.status_id = s.id
         INNER JOIN watershed w on w.id = d.watershed_id
@@ -25,7 +25,7 @@ CREATE OR REPLACE VIEW v_download AS (
         ORDER BY d.processing_start DESC
 );
 
--- v_download_request VIEW
+-- v_download_request
 CREATE OR REPLACE VIEW v_download_request AS (
     WITH download_products AS (
         SELECT dp.download_id,

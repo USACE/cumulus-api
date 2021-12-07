@@ -27,7 +27,7 @@ type DownloadStatus struct {
 
 // DownloadRequest holds all information from a download request coming from a user
 type DownloadRequest struct {
-	ProfileID     *uuid.UUID  `json:"profile_id" db:"profile_id"`
+	Sub           *uuid.UUID  `json:"sub" db:"sub"`
 	DatetimeStart time.Time   `json:"datetime_start" db:"datetime_start"`
 	DatetimeEnd   time.Time   `json:"datetime_end" db:"datetime_end"`
 	WatershedID   uuid.UUID   `json:"watershed_id" db:"watershed_id"`
@@ -91,10 +91,10 @@ func ListDownloads(db *pgxpool.Pool) ([]Download, error) {
 	return dd, nil
 }
 
-// ListMyDownloads returns all downloads for a given ProfileID
-func ListMyDownloads(db *pgxpool.Pool, profileID *uuid.UUID) ([]Download, error) {
+// ListMyDownloads returns all downloads for a given Sub
+func ListMyDownloads(db *pgxpool.Pool, sub *uuid.UUID) ([]Download, error) {
 	dd := make([]Download, 0)
-	if err := pgxscan.Select(context.Background(), db, &dd, listDownloadsSQL+" WHERE profile_id = $1", profileID); err != nil {
+	if err := pgxscan.Select(context.Background(), db, &dd, listDownloadsSQL+" WHERE sub = $1", sub); err != nil {
 		return make([]Download, 0), err
 	}
 	return dd, nil
@@ -198,9 +198,9 @@ func CreateDownload(db *pgxpool.Pool, dr *DownloadRequest) (*Download, error) {
 	// Insert Record of Download
 	rows, err := tx.Query(
 		context.Background(),
-		`INSERT INTO download (datetime_start, datetime_end, status_id, watershed_id, profile_id)
+		`INSERT INTO download (datetime_start, datetime_end, status_id, watershed_id, sub)
 		 VALUES ($1, $2, '94727878-7a50-41f8-99eb-a80eb82f737a', $3, $4)
-		 RETURNING id`, dr.DatetimeStart, dr.DatetimeEnd, dr.WatershedID, dr.ProfileID,
+		 RETURNING id`, dr.DatetimeStart, dr.DatetimeEnd, dr.WatershedID, dr.Sub,
 	)
 	if err != nil {
 		tx.Rollback(context.Background())

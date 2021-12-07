@@ -3,7 +3,7 @@ import datetime
 import random
 import uuid
 
-profiles = [
+subs = [
     '57329df6-9f7a-4dad-9383-4633b452efab',
     'f320df83-e2ea-4fe9-969a-4e0239b8da51',
     '89aa1e13-041a-4d15-9e45-f76eba3b0551',
@@ -55,8 +55,8 @@ products = [
 'e4fdadc7-5532-4910-9ed7-3c3690305d86'
 ]
 
-def random_profile():
-    return profiles[random.randrange(len(profiles))]
+def random_sub():
+    return subs[random.randrange(len(subs))]
 
 def random_watershed():
     return watersheds[random.randrange(len(watersheds))]
@@ -73,7 +73,7 @@ start_date = datetime.datetime(2021, 3, 25, 12, 0, 0)
 end_date = datetime.datetime(2021, 10, 20, 12, 0, 0)
 
 
-dl_sql = 'INSERT into cumulus.download (id, datetime_start, datetime_end, progress, status_id, watershed_id, file, processing_start, processing_end, profile_id) VALUES\n'
+dl_sql = 'INSERT into cumulus.download (id, datetime_start, datetime_end, progress, status_id, watershed_id, file, processing_start, processing_end, sub) VALUES\n'
 dl_prod_sql = 'INSERT into cumulus.download_product (download_id, product_id) VALUES\n'
 
 for single_date in daterange(start_date, end_date):
@@ -92,9 +92,9 @@ for single_date in daterange(start_date, end_date):
         file = 'cumulus/test-watershed/download.dss'
         processing_start = single_date.strftime("%Y-%m-%d %H:%I:%M")
         processing_end = (single_date+timedelta(minutes=random.randint(1, 5))).strftime("%Y-%m-%d %H:%I:%M")
-        profile_id = random_profile()
+        sub = random_sub()
 
-        dl_sql += "('{}', '{}', '{}', {}, '{}', '{}', '{}', '{}', '{}', '{}'),\n".format(download_id, datetime_start, datetime_end, progress, status_id, watershed_id, file, processing_start, processing_end, profile_id)
+        dl_sql += "('{}', '{}', '{}', {}, '{}', '{}', '{}', '{}', '{}', '{}'),\n".format(download_id, datetime_start, datetime_end, progress, status_id, watershed_id, file, processing_start, processing_end, sub)
 
         product_id = random_product()
         dl_prod_sql += "('{}', '{}'),\n".format(download_id, product_id)

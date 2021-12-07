@@ -62,11 +62,8 @@ GRANT SELECT ON
     area_group,
     area_group_product_statistics_enabled,
     config,
-    profile,
-    profile_token,
     office,
     parameter,
-    role,
     unit,
     product,
     productfile,
@@ -79,8 +76,7 @@ GRANT SELECT ON
     download,
     download_product,
     watershed,
-    my_watersheds,
-    watershed_roles
+    my_watersheds
 TO cumulus_reader;
 
 -- Role cumulus_writer
@@ -89,11 +85,8 @@ GRANT INSERT,UPDATE,DELETE ON
     area_group,
     area_group_product_statistics_enabled,
     config,
-    profile,
-    profile_token,
     office,
     parameter,
-    role,
     unit,
     product,
     productfile,
@@ -106,6 +99,5 @@ GRANT INSERT,UPDATE,DELETE ON
     download,
     download_product,
     watershed,
-    watershed_roles,
     my_watersheds
 TO cumulus_writer;

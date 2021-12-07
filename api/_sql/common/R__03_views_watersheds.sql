@@ -33,27 +33,7 @@ CREATE OR REPLACE VIEW v_area_5070 AS (
 	FROM area
 );
 
--- v_watershed_roles
-CREATE OR REPLACE VIEW v_watershed_roles AS (
-    SELECT a.id,
-           a.profile_id,
-           b.edipi,
-           b.username,
-           b.email,
-           b.is_admin,
-           c.id AS watershed_id,
-           r.id   AS role_id,
-           r.name AS role,
-           UPPER(c.slug || '.' || r.name) AS rolename
-    FROM watershed_roles a
-    INNER JOIN profile b ON b.id = a.profile_id
-    INNER JOIN watershed c ON c.id = a.watershed_id AND NOT c.deleted
-    INNER JOIN role    r ON r.id = a.role_id
-    ORDER BY username, role
-);
-
 GRANT SELECT ON
     v_area_5070,
-    v_watershed,
-    v_watershed_roles
+    v_watershed
 TO cumulus_reader;

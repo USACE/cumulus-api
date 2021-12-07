@@ -43,14 +43,14 @@ func ListDownloads(db *pgxpool.Pool) echo.HandlerFunc {
 	}
 }
 
-// ListMyDownloads returns an array of downloads for a ProfileID
+// ListMyDownloads returns an array of downloads for a sub
 func ListMyDownloads(db *pgxpool.Pool) echo.HandlerFunc {
 	return func(c echo.Context) error {
-		p, ok := c.Get("profile").(*models.Profile)
-		if !ok {
+		sub, err := GetSub(c)
+		if err != nil {
 			return c.JSON(http.StatusBadRequest, models.DefaultMessageBadRequest)
 		}
-		dd, err := models.ListMyDownloads(db, &p.ID)
+		dd, err := models.ListMyDownloads(db, sub)
 		if err != nil {
 			return c.String(http.StatusInternalServerError, err.Error())
 		}
@@ -67,13 +67,16 @@ func CreateDownload(db *pgxpool.Pool) echo.HandlerFunc {
 		if err := c.Bind(&dr); err != nil {
 			return c.String(http.StatusBadRequest, err.Error())
 		}
-		p, ok := c.Get("profile").(*models.Profile)
-		if !ok || p == nil {
+		sub, err := GetSub(c)
+		if err != nil {
+			return c.JSON(http.StatusBadRequest, models.DefaultMessageBadRequest)
+		}
+		if sub == nil {
 			// Unauthenticated Download Request
-			dr.ProfileID = nil
+			dr.Sub = nil
 		} else {
-			// Authenticated Download Request; Set Profile in Request
-			dr.ProfileID = &p.ID
+			// Authenticated Download Request; Set Sub in Request
+			dr.Sub = sub
 		}
 		d, err := models.CreateDownload(db, &dr)
 		if err != nil {

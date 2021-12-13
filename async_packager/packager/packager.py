@@ -15,9 +15,11 @@ from packager_update_functions import update_status_api
 
 from dss import write_contents_to_dssfile
 
-if CONFIG.AWS_ACCESS_KEY_ID == 'x':
-    # Running in AWS
-    # Using IAM Role for Credentials
+if CONFIG.AWS_ACCESS_KEY_ID is None:
+    # Running in AWS; Using IAM Role for Credentials
+    #####
+    # SQS
+    #####
     if CONFIG.ENDPOINT_URL_SQS:
         SQS_CLIENT = boto3.resource(
             'sqs',
@@ -25,9 +27,20 @@ if CONFIG.AWS_ACCESS_KEY_ID == 'x':
         )
     else:
         SQS_CLIENT = boto3.resource('sqs')
+    ####
+    # S3
+    ####
+    if CONFIG.ENDPOINT_URL_S3:
+        S3_CLIENT = boto3.resource(
+            's3',
+            endpoint_url=CONFIG.ENDPOINT_URL_S3
+        )
+    else:
+        S3_CLIENT = boto3.resource('s3')
+
 else:
-    # Local Testing
-    # ElasticMQ with Credentials via AWS_ environment variables
+    # Local Testing; Credentials provided via AWS_ environment variables
+    # ElasticMQ (SQS)
     SQS_CLIENT = boto3.resource(
         'sqs',
         endpoint_url=CONFIG.ENDPOINT_URL_SQS,
@@ -36,20 +49,7 @@ else:
         aws_access_key_id=CONFIG.AWS_ACCESS_KEY_ID,
         use_ssl=CONFIG.USE_SSL
     )
-
-if CONFIG.AWS_ACCESS_KEY_ID == 'x':
-    # Running in AWS
-    # Using IAM Role for Credentials
-    if CONFIG.ENDPOINT_URL_S3:
-        S3_CLIENT = boto3.resource(
-            's3',
-            endpoint_url=CONFIG.ENDPOINT_URL_S3
-        )
-    else:
-        S3_CLIENT = boto3.resource('s3')
-else:
-    # Local Testing
-    # MINIO with Credentials via AWS_ environment variables
+    # Minio (S3)
     S3_CLIENT = boto3.resource(
         's3',
         endpoint_url=CONFIG.ENDPOINT_URL_S3,

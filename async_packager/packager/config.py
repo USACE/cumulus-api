@@ -6,8 +6,8 @@ CUMULUS_API_URL = os.getenv('CUMULUS_API_URL', default='http://api')
 #################
 # AWS Credentials
 #################
-AWS_SECRET_ACCESS_KEY = os.getenv('AWS_SECRET_ACCESS_KEY', default='x')
-AWS_ACCESS_KEY_ID = os.getenv('AWS_ACCESS_KEY_ID', default='x')
+AWS_SECRET_ACCESS_KEY = os.getenv('AWS_SECRET_ACCESS_KEY', default=None)
+AWS_ACCESS_KEY_ID = os.getenv('AWS_ACCESS_KEY_ID', default=None)
 AWS_REGION = os.getenv('AWS_REGION', default='us-east-1')
 
 ###################

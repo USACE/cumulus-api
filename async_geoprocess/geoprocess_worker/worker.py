@@ -18,9 +18,8 @@ logger = logging.getLogger(__name__)
 logger.setLevel(CONFIG.LOGLEVEL)
 logger.addHandler(logging.StreamHandler(sys.stdout))
 
-if CONFIG.AWS_ACCESS_KEY_ID == 'x':
-    # Running in AWS
-    # Using IAM Role for Credentials
+if CONFIG.AWS_ACCESS_KEY_ID is None:
+    # Running in AWS Using IAM Role for Credentials
     if CONFIG.ENDPOINT_URL_SQS:
         CLIENT = boto3.resource(
             'sqs',

@@ -23,7 +23,6 @@
           "CUMULUS_DBNAME": "postgres",
           "CUMULUS_DBHOST": "localhost",
           "CUMULUS_DBSSLMODE": "disable",
-          "CUMULUS_LAMBDACONTEXT": "FALSE",
           "CUMULUS_ASYNC_ENGINE_ACQUISITION": "MOCK",
           "CUMULUS_ASYNC_ENGINE_ACQUISITION_TARGET": "",
           "CUMULUS_ASYNC_ENGINE_PACKAGER": "AWSSQS",

@@ -27,8 +27,9 @@ vendor
 
 **/__debug*
 
-!tmp/README.md
 tmp/*
+!tmp/README.md
 
 # Acquirable data directory
-data/
+data/*
+!data/README.md

@@ -1,0 +1,1 @@
+## Bind Mount Directory for Docker; Intermediate Geoprocessing Files

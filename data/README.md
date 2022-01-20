@@ -1,1 +1,1 @@
-## Temporary files produced by async_geoprocess
+## Bind Mount Directory for Docker; Data files

@@ -15,9 +15,7 @@ type Config struct {
 	DBName                       string
 	DBHost                       string
 	DBSSLMode                    string
-	AuthDisabled                 bool `split_words:"true"`
-	AuthJWTMocked                bool `envconfig:"CUMULUS_AUTH_JWT_MOCKED"`
-	LambdaContext                bool
+	AuthEnvironment              string `envconfig:"AUTH_ENVIRONMENT" default:"DEVELOP"`
 	AsyncEngineAcquisition       string `envconfig:"ASYNC_ENGINE_ACQUISITION"`
 	AsyncEngineAcquisitionTarget string `envconfig:"ASYNC_ENGINE_ACQUISITION_TARGET"`
 	AsyncEnginePackager          string `envconfig:"ASYNC_ENGINE_PACKAGER"`

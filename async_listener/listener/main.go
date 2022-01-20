@@ -26,7 +26,7 @@ type Config struct {
 	DBPass                      string
 	DBName                      string
 	DBHost                      string
-	DBSSLMode                   string
+	DBSSLMode                   string `default:"require"`
 	AsyncEnginePackager         string `envconfig:"ASYNC_ENGINE_PACKAGER"`
 	AsyncEnginePackagerTarget   string `envconfig:"ASYNC_ENGINE_PACKAGER_TARGET"`
 	AsyncEngineStatistics       string `envconfig:"ASYNC_ENGINE_STATISTICS"`

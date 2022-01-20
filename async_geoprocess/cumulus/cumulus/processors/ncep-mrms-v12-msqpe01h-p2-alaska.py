@@ -7,7 +7,7 @@ from ..geoprocess.core.base import info, translate, create_overviews
 
 
 def process(infile, outdir):
-    """MRMS MultiSensor QPE 01H Pass2 Caribbean
+    """MRMS MultiSensor QPE 01H Pass2 Alaska
 
     Parameters
     ----------

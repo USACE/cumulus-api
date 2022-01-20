@@ -33,11 +33,6 @@ def process(infile, outdir):
 
     outfile_list = list()
 
-    # Get a list of files in the tar.gz
-    # Parse the grid info
-    # Convert to tiff
-    # Add to outfile list
-    # Use gdal exceptions
     gdal.UseExceptions()
     try:
         gribs = gdal.ReadDir(f"/vsitar/{infile}")

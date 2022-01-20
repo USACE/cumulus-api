@@ -1,11 +1,23 @@
-"""
-Local development testing products
+"""Local development testing products
+    Sending a message to the SQS queue for the geoprocessor
+    Products should be under the following directory structure:
 
-Sending a message to the SQS queue for the geoprocessor
+        <repo dir>/data/cumulus/acquirables/<acquirable slug>/<product>
 
-Products should be under the directory structure
+    Raises
+    ------
+    Exception
+        None.  Never errors. :)
 
-    ./data/cumulus/acquirables/<acquirable slug>/<product>
+    Usage
+    -----
+    Example: Send message for all files
+        >>> python send_process_msg.py
+
+    Example: Send message for files using filter that contain 'Pass1'
+        >>> python send_process_msg.py -f .*Pass1.*
+
+    Adding switch '-n' will 'dry-run' each execution printing the message(s)
 """
 
 import os

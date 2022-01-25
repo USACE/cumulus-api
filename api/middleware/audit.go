@@ -46,8 +46,8 @@ func AttachUserInfo(next echo.HandlerFunc) echo.HandlerFunc {
 		cumulusRoles := cumulusResourceAccess["roles"].([]interface{})
 		// Attach Role Info
 		userInfo := UserInfo{
-			Sub:   &sub,
-			Roles: make([]string, 0),
+			Sub:     &sub,
+			Roles:   make([]string, 0),
 			IsAdmin: false,
 		}
 		for _, r := range cumulusRoles {

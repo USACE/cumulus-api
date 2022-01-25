@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"log"
 	"net/http"
+	"strings"
 	"time"
 
 	"github.com/labstack/echo/v4"
@@ -65,17 +66,22 @@ func main() {
 
 	// Private Routes Supporting CAC (JWT) or Key Auth
 	private := e.Group("")
-	// JWT (CAC) Middleware
-	if cfg.AuthJWTMocked {
-		private.Use(middleware.JWTMock(cfg.AuthDisabled, true))
-	} else {
-		private.Use(middleware.JWT(cfg.AuthDisabled, true))
+
+	// JWT Authentication Middleware
+	log.Printf("AUTH_ENVIRONMENT: %s", cfg.AuthEnvironment)
+	switch strings.ToUpper(cfg.AuthEnvironment) {
+	case "MOCK":
+		private.Use(middleware.JWTMock)
+	case "DEVELOP":
+		private.Use(middleware.JWTDevelop)
+	case "STABLE":
+		private.Use(middleware.JWTStable)
+	default:
+		log.Fatalf("Unknown AUTH_ENVIRONMENT Variable: %s", cfg.AuthEnvironment)
 	}
-	// Key Auth Middleware
-	private.Use(
-		middleware.KeyAuth(cfg.AuthDisabled, cfg.ApplicationKey),
-		middleware.AttachUserInfo,
-	)
+
+	// Key Authentication Middleware
+	private.Use(middleware.KeyAuth(cfg.ApplicationKey), middleware.AttachUserInfo)
 
 	// Health Check
 	public.GET("/health", func(c echo.Context) error {

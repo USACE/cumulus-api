@@ -32,14 +32,7 @@ INSERT INTO product (id, slug, label, temporal_duration, temporal_resolution, ds
 
 -- product_tags
 INSERT INTO product_tags (product_id, tag_id) VALUES
-    ('0de4d4a8-2a18-4564-a14d-fb426c2046a8','2d64c718-e7af-41c0-be53-035af341c464'),
-    ('8e8adafa-9240-47df-857c-e2cec4b3dc62','2d64c718-e7af-41c0-be53-035af341c464'),
     ('71644147-5910-4e65-9195-43c37fc6ddc6','cc93b3f9-fbe1-4b35-8f9c-2d1515961c6a'),
-    ('78c193b4-00ea-46d6-8a97-60dcbd0d64f5','2d64c718-e7af-41c0-be53-035af341c464'),
-    ('bb45d8e4-830e-4d96-98ab-3dd04370192a','2d64c718-e7af-41c0-be53-035af341c464'),
-    ('c88d6cad-21de-4fd9-a680-64abf3d6a923','2d64c718-e7af-41c0-be53-035af341c464'),
-    ('70d9be00-ad3e-4509-9511-730e57a32987','2d64c718-e7af-41c0-be53-035af341c464'),
-    ('c3976ec6-cbe0-4f68-a6d5-03beb9514041','2d64c718-e7af-41c0-be53-035af341c464'),
     ('4b556067-9610-42fc-a71d-0fa0fcbd8ea1','cc93b3f9-fbe1-4b35-8f9c-2d1515961c6a'),
     ('90a3d16b-dde2-43a8-aced-16f6aeaaf70a','cc93b3f9-fbe1-4b35-8f9c-2d1515961c6a'),
     ('8b5672d2-2cf1-4ccf-8785-8a9d9302b3a8','cc93b3f9-fbe1-4b35-8f9c-2d1515961c6a'),

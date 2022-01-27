@@ -1,6 +1,6 @@
 FROM golang:1.15-alpine AS builder
 # Install Git
-RUN apk update && apk add --no-cache git
+RUN apk update && apk add --no-cache ca-certificates
 # Copy In Source Code
 WORKDIR /go/src/app
 COPY . .
@@ -16,5 +16,7 @@ RUN go get -d -v \
 FROM scratch
 COPY --from=builder /go/bin/cumulus-api /go/bin/cumulus-api
 COPY --from=builder /go/src/app/_sql /sql/
+COPY --from=builder /etc/ssl/certs/ca-certificates.crt \
+                    /etc/ssl/certs/ca-certificates.crt
 VOLUME [ "/sql" ]
 ENTRYPOINT ["/go/bin/cumulus-api"]

@@ -49,7 +49,7 @@ def process(payload, outdir):
     )
 
     processed_productfiles.append(
-        {"filetype": f'{product_name}-interpolated', "file": swe_interpolated, "datetime": dt, "version": None}
+        {"filetype": f'{product_name}-interpolated', "file": swe_interpolated, "datetime": dt.isoformat(), "version": None}
     )
 
 
@@ -73,7 +73,7 @@ def process(payload, outdir):
     )
 
     processed_productfiles.append(
-        {"filetype": f'{product_name}-interpolated', "file": snowdepth_interpolated, "datetime": dt, "version": None}
+        {"filetype": f'{product_name}-interpolated', "file": snowdepth_interpolated, "datetime": dt.isoformat(), "version": None}
     )
 
     # ============================
@@ -97,7 +97,7 @@ def process(payload, outdir):
     )
 
     processed_productfiles.append(
-        {"filetype": f'{product_name}-interpolated', "file": snowtemp_interpolated, "datetime": dt, "version": None}
+        {"filetype": f'{product_name}-interpolated', "file": snowtemp_interpolated, "datetime": dt.isoformat(), "version": None}
     )        
 
     # ========
@@ -120,7 +120,7 @@ def process(payload, outdir):
         )
     )
     processed_productfiles.append(
-        {"filetype": f'{product_name}-interpolated', "file": snowmelt_interpolated, "datetime": dt, "version": None}
+        {"filetype": f'{product_name}-interpolated', "file": snowmelt_interpolated, "datetime": dt.isoformat(), "version": None}
     )
 
     # ============
@@ -140,7 +140,7 @@ def process(payload, outdir):
     )
 
     processed_productfiles.append(
-        {"filetype": f'{product_name}-interpolated', "file": coldcontent_interpolated, "datetime": dt, "version": None}
+        {"filetype": f'{product_name}-interpolated', "file": coldcontent_interpolated, "datetime": dt.isoformat(), "version": None}
     )
 
     return processed_productfiles

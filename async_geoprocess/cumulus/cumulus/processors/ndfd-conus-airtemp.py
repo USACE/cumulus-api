@@ -1,5 +1,6 @@
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 import os, sys
+from pprint import pformat
 from uuid import uuid4
 from ..geoprocess.core.base import info, translate, create_overviews
 from ..handyutils.core import change_final_file_extension
@@ -55,6 +56,7 @@ def process(infile, outdir):
     
     # Process the gdal information
     fileinfo: dict = info(infile)
+
     all_bands: List = fileinfo["bands"]
     
     # Build a list of dictionaries then run through that to translate the grid
@@ -66,13 +68,11 @@ def process(infile, outdir):
         meta_dict = band_.metadata[""]
         meta = Metadata(**meta_dict)
         
-        ref_time_str, _, ref_tz = meta.GRIB_REF_TIME.split()
-        valid_time_str, _, valid_tz = meta.GRIB_VALID_TIME.split()
-        ref_time = datetime.utcfromtimestamp(int(ref_time_str))
-        valid_time = datetime.utcfromtimestamp(int(valid_time_str))
+        ref_time = datetime.fromtimestamp(int(meta.GRIB_REF_TIME), timezone.utc)
+        valid_time = datetime.fromtimestamp(int(meta.GRIB_VALID_TIME), timezone.utc)
 
         # Check the time deltas to see if they are consistant
-        tdelta_seconds = float(meta.GRIB_FORECAST_SECONDS.split()[0])
+        tdelta_seconds = float(meta.GRIB_FORECAST_SECONDS)
         tdelta2 = timedelta(seconds=tdelta_seconds)
         tdelta = (tdelta2 - tdelta1).seconds
 
@@ -106,7 +106,14 @@ def process(infile, outdir):
                 )
             )
 
-            outfile_list.append({ "filetype": f_type, "file": cog, "datetime": valid_time.isoformat(), "version": ref_time })
+            outfile_list.append(
+                {
+                    "filetype": f_type,
+                    "file": cog,
+                    "datetime": valid_time.isoformat(),
+                    "version": ref_time.isoformat()
+                }
+            )
         except KeyError as ex:
             print(ex)
             

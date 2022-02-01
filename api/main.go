@@ -183,8 +183,6 @@ func main() {
 	public.GET("/cumulus/download/dss/*", handlers.ServeMedia(&awsCfg, &cfg.AWSS3Bucket)) // Serve Downloads
 	// List Downloads
 	private.GET("/downloads", handlers.ListDownloads(db), middleware.IsAdmin)
-	// Download Metrics
-	public.GET("/downloads/metrics", handlers.GetDownloadMetrics(db))
 	// Create Download (Anonymous)
 	private.POST("/downloads", handlers.CreateDownload(db))
 	public.GET("/downloads/:download_id", handlers.GetDownload(db))
@@ -194,6 +192,10 @@ func main() {
 	// Routes used by packager to prepare download
 	public.GET("/downloads/:download_id/packager_request", handlers.GetDownloadPackagerRequest(db))
 	private.PUT("/downloads/:download_id", handlers.UpdateDownload(db))
+
+	// Metrics
+	// -- Download Metrics
+	public.GET("/metrics/downloads", handlers.GetDownloadMetrics(db))
 
 	// // Watersheds
 	public.GET("/watersheds", handlers.ListWatersheds(db))

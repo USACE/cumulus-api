@@ -1,12 +1,11 @@
-import os
-from dataclasses import dataclass
 from datetime import datetime, timezone
-from typing import List, OrderedDict
+from logging import log
+import os
 from uuid import uuid4
-
-from ..geoprocess.core.base import create_overviews, info, translate, warp
-from ..handyutils.core import change_final_file_extension, gunzip_file
-
+from ...geoprocess.core.base import info, translate, create_overviews, warp
+from ...handyutils.core import change_final_file_extension, gunzip_file
+from dataclasses import dataclass
+from typing import List, OrderedDict
 
 @dataclass
 class Band():
@@ -64,8 +63,8 @@ def process(infile, outdir) -> List:
     meta_dict = band.metadata[""]
     meta = Metadata(**meta_dict)
 
-    # ref_time = datetime.fromtimestamp(int(meta.GRIB_REF_TIME))
-    valid_time = datetime.fromtimestamp(int(meta.GRIB_VALID_TIME), timezone.utc)
+    # ref_time = datetime.fromtimestamp(int(meta.GRIB_REF_TIME.split(" ")[0]))
+    valid_time = datetime.fromtimestamp(int(meta.GRIB_VALID_TIME.split(" ")[0]))
 
     # Extract Band; Convert to COG
 
@@ -83,7 +82,7 @@ def process(infile, outdir) -> List:
         {
             "filetype": ftype,
             "file": cog,
-            "datetime": valid_time.isoformat(), 
+            "datetime": valid_time.replace(tzinfo=timezone.utc).isoformat(), 
             "version": None
         }
     )

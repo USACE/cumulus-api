@@ -17,7 +17,7 @@ logger = logging.getLogger(__name__)
 def get_infile_processor(name):
     """Import library for processing a given product_name"""
     
-    processor = importlib.import_module(f'cumulus.processors.{name}')
+    processor = importlib.import_module(name)
     
     return processor
 
@@ -28,11 +28,15 @@ def process(payload, outdir):
     
     # Filename and product_name
     pathparts = key.split('/')
-    acquirable_name, filename = pathparts[2], pathparts[-1]
+    pathparts[0] = "cumulus"
+    pathparts[1] = "processors"
+    acquirable_name = ".".join(pathparts[:-1])
+    filename = pathparts[-1]
 
     _file = get_infile(bucket, key, os.path.join(outdir, filename))
 
     processor = get_infile_processor(acquirable_name)
+
     logger.debug(f'Using processor: {processor}')
        
     # Process the file and return a list of files

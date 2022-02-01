@@ -1,11 +1,12 @@
-from datetime import datetime
-from logging import log
 import os
-from uuid import uuid4
-from ..geoprocess.core.base import info, translate, create_overviews
-from ..handyutils.core import change_final_file_extension, gunzip_file
 from dataclasses import dataclass
+from datetime import datetime, timezone
 from typing import List, OrderedDict
+from uuid import uuid4
+
+from ..geoprocess.core.base import create_overviews, info, translate, warp
+from ..handyutils.core import change_final_file_extension, gunzip_file
+
 
 @dataclass
 class Band():
@@ -62,13 +63,14 @@ def process(infile, outdir) -> List:
     band = Band(**all_bands[band_number - 1])
     meta_dict = band.metadata[""]
     meta = Metadata(**meta_dict)
-    
-    ref_time = datetime.fromtimestamp(int(meta.GRIB_REF_TIME.split(" ")[0]))
-    valid_time = datetime.fromtimestamp(int(meta.GRIB_VALID_TIME.split(" ")[0]))
+
+    # ref_time = datetime.fromtimestamp(int(meta.GRIB_REF_TIME))
+    valid_time = datetime.fromtimestamp(int(meta.GRIB_VALID_TIME), timezone.utc)
 
     # Extract Band; Convert to COG
-    tif = translate(new_infile, os.path.join(outdir, f"temp-tif-{uuid4()}"), extra_args=["-b", str(band_number)])
-    tif_with_overviews = create_overviews(tif)
+
+    tif_trans = translate(new_infile, os.path.join(outdir, f"temp-tif-{uuid4()}"), extra_args=["-b", str(band_number)])
+    tif_with_overviews = create_overviews(tif_trans)
     cog = translate(
         tif_with_overviews,
         os.path.join(
@@ -87,4 +89,3 @@ def process(infile, outdir) -> List:
     )
 
     return outfile_list
-

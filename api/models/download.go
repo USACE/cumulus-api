@@ -270,9 +270,9 @@ func GetDownloadMetrics(db *pgxpool.Pool) ([]byte, error) {
 			select json_build_object(
 				'count', (select json_build_object(
 					'total', (SELECT count(id) from download),
-					'1day', (SELECT count(id) FROM download WHERE processing_start >= NOW() - INTERVAL '24 HOURS'),
-					'7day', (SELECT count(id) FROM download WHERE processing_start >= NOW() - INTERVAL '7 DAYS'),
-					'30day', (SELECT count(id) FROM download WHERE processing_start >= NOW() - INTERVAL '30 DAYS')
+					'days_1', (SELECT count(id) FROM download WHERE processing_start >= NOW() - INTERVAL '24 HOURS'),
+					'days_7', (SELECT count(id) FROM download WHERE processing_start >= NOW() - INTERVAL '7 DAYS'),
+					'days_30', (SELECT count(id) FROM download WHERE processing_start >= NOW() - INTERVAL '30 DAYS')
 				)),
 				'top_watersheds', (
 						WITH top_watersheds AS (

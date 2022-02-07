@@ -7,8 +7,25 @@ from datetime import datetime, timezone
 from collections import namedtuple
 from osgeo import gdal
 from uuid import uuid4
-from ..geoprocess.core.base import info, translate, create_overviews, write_array_to_raster
+from ..geoprocess.core.base import info, translate, create_overviews, translate_cog, write_array_to_raster
 from ..handyutils.core import change_file_extension, change_final_file_extension, gunzip_file
+
+import logging
+logger = logging.getLogger(__name__)
+
+def get_stop_date(gridfile):
+    try:
+        dataset = gdal.Open(f"NETCDF:{gridfile}:Data")        
+        meta = dataset.GetMetadata()       
+        return meta['Data#stop_date']
+
+    except Exception as e:
+       logger.error(e)
+       return None
+
+    finally:
+        if dataset is not None:
+            dataset = None
 
 
 def process(infile, outdir):
@@ -17,9 +34,8 @@ def process(infile, outdir):
     """
 
     outfile_list = []
-    # ftype = "nohrsc-snodas-assimilated"
     
-    print(infile)
+    logger.debug(infile)
 
     '''
     Inside the original assim_layers_YYYYMMDDHH.tar file:
@@ -51,17 +67,9 @@ def process(infile, outdir):
     
     tar.close()
 
-    # print('File for processing is: {}'.format(uncompressed_file))
-
-    dataset = gdal.Open(f"NETCDF:{uncompressed_file}:Data")
-    fileinfo = gdal.Info(dataset, format="json")
-
-    # Parse the grid information
-    # fileinfo = info(uncompressed_file)
-    band = dataset.GetRasterBand(1)
-    meta = dataset.GetMetadata()    
-    # Meta = namedtuple("Meta", meta.keys())(**meta)
-    stop_date = meta['Data#stop_date']
+    stop_date = get_stop_date(uncompressed_file)
+    if stop_date is None:
+        return outfile_list    
 
     # Compile regex to get times from timestamp
     time_pattern = re.compile(r"\d{4}-\d{2}-\d{2}\s\d{2}:\d{2}:\d{2}")
@@ -70,40 +78,13 @@ def process(infile, outdir):
         datetime.strptime(stop_date+' +0000', '%Y-%m-%d %H:%M:%S %z').isoformat()
         if valid_time_match
         else None
-    ) 
-
-    xsize = band.XSize
-    ysize = band.YSize    
-    datatype = band.DataType
-    nodata_value = band.GetNoDataValue()
-    b_array = band.ReadAsArray(0, 0 , xsize, ysize).astype(np.dtype("float32"))
-
-    # print('x, y, datatype, nodata_value, b_array: {}, {}, {}, {}, {}'.format(xsize, ysize, datatype, nodata_value, b_array))
-
-    geo_transform = dataset.GetGeoTransform()
-    src_projection = dataset.GetProjection()
-
-    # Create the raster
-    tif = write_array_to_raster(
-        b_array,
-        os.path.join(outdir, f"temp-tif-{uuid4()}"),
-        xsize,
-        ysize,
-        geo_transform,
-        src_projection,
-        datatype,
-        nodata_value
     )
-    # Create the overviews
-    tif_with_overviews = create_overviews(tif)
-    # COG with name based on time
-    cog = translate(
-        tif_with_overviews,
-        os.path.join(
-            outdir,
-            change_final_file_extension(uncompressed_file, 'tif')
-        )
-    )
+
+    if valid_time is None:
+        return outfile_list
+
+
+    cog = translate_cog(uncompressed_file, os.path.join(outdir, change_final_file_extension(uncompressed_file, 'tif')))
 
     # Append dictionary object to outfile list
     outfile_list.append(

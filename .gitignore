@@ -31,5 +31,10 @@ tmp/*
 !tmp/README.md
 
 # Acquirable data directory
-data/*
-!data/README.md
+# Keep data/cumulus/README.md in order to keep folder structure
+# Ignore all other files in data/ directory and all sub-directories
+# Attribution to multiple stackOverflow articles to figure this one out!
+data/**
+!data/cumulus
+data/cumulus/**
+!data/cumulus/README.md

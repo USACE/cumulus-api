@@ -52,7 +52,7 @@ services:
       - ENDPOINT_URL_S3=http://minio:9000
       - USE_SSL=False
     volumes:
-      - ./tmp:/tmp
+      - ./_volumes/async_geoprocess/tmp:/tmp
     restart: always
   # packager:
   #   build:
@@ -77,7 +77,7 @@ services:
   #     - WRITE_TO_BUCKET=castle-data-develop
   #   # Volume to persist packager created file
   #   volumes:
-  #     - ./data:/output
+  #     - ./_volumes/async_packager/output:/output
   #   restart: always
   # statistics:
   #   build:

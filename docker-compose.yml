@@ -9,9 +9,8 @@ services:
     ports:
         - "5432:5432"
   elasticmq:
-    image: softwaremill/elasticmq
-    volumes:
-      - ./elasticmq.conf:/opt/elasticmq.conf
+    build:
+      context: elasticmq
     ports:
       - "9324:9324"
       - "9325:9325"
@@ -53,50 +52,50 @@ services:
       - ENDPOINT_URL_S3=http://minio:9000
       - USE_SSL=False
     volumes:
-      - ./tmp:/tmp
+      - ./_volumes/async_geoprocess/tmp:/tmp
     restart: always
-  packager:
-    build:
-      context: async_packager
-    environment:
-      - APPLICATION_KEY=appkey
-      - AWS_REGION=us-east-1
-      - AWS_S3_ENDPOINT=minio:9000
-      - AWS_VIRTUAL_HOSTING=FALSE
-      - AWS_HTTPS=NO
-      - AWS_ACCESS_KEY_ID=AKIAIOSFODNN7EXAMPLE
-      - AWS_SECRET_ACCESS_KEY=wJalrXUtnFEMI/K7MDENG/bPxRfiCYEXAMPLEKEY
-      - AWS_REGION_SQS=elasticmq
-      - CUMULUS_MOCK_S3_UPLOAD=FALSE
-      - QUEUE_NAME_PACKAGER=cumulus-packager
-      - CUMULUS_API_URL=http://api
-      - ENDPOINT_URL_SQS=http://elasticmq:9324
-      - PACKAGER_UPDATE_INTERVAL=5
-      - CPL_DEBUG=YES
-      - CPL_CURL_VERBOSE=YES
-      - USE_SSL=False
-      - WRITE_TO_BUCKET=castle-data-develop
-    # Volume to persist packager created file
-    volumes:
-      - ./data:/output
-    restart: always
-  statistics:
-    build:
-      context: async_statistics
-    environment:
-      - AWS_REGION=$AWS_REGION
-      - AWS_ACCESS_KEY_ID=$AWS_ACCESS_KEY_ID
-      - AWS_SECRET_ACCESS_KEY=$AWS_SECRET_ACCESS_KEY
-      - CUMULUS_MOCK_S3_UPLOAD=TRUE
-      - QUEUE_NAME_STATISTICS=cumulus-statistics
-      - CUMULUS_API_URL=http://api:80
-      - CUMULUS_DBUSER=cumulus_user
-      - CUMULUS_DBPASS=cumulus_pass
-      - CUMULUS_DBNAME=postgres
-      - CUMULUS_DBHOST=cumulusdb
-      - CUMULUS_DBSSLMODE=disable
-      - ENDPOINT_URL=http://elasticmq:9324
-    restart: always
+  # packager:
+  #   build:
+  #     context: async_packager
+  #   environment:
+  #     - APPLICATION_KEY=appkey
+  #     - AWS_REGION=us-east-1
+  #     - AWS_S3_ENDPOINT=minio:9000
+  #     - AWS_VIRTUAL_HOSTING=FALSE
+  #     - AWS_HTTPS=NO
+  #     - AWS_ACCESS_KEY_ID=AKIAIOSFODNN7EXAMPLE
+  #     - AWS_SECRET_ACCESS_KEY=wJalrXUtnFEMI/K7MDENG/bPxRfiCYEXAMPLEKEY
+  #     - AWS_REGION_SQS=elasticmq
+  #     - CUMULUS_MOCK_S3_UPLOAD=FALSE
+  #     - QUEUE_NAME_PACKAGER=cumulus-packager
+  #     - CUMULUS_API_URL=http://api
+  #     - ENDPOINT_URL_SQS=http://elasticmq:9324
+  #     - PACKAGER_UPDATE_INTERVAL=5
+  #     - CPL_DEBUG=YES
+  #     - CPL_CURL_VERBOSE=YES
+  #     - USE_SSL=False
+  #     - WRITE_TO_BUCKET=castle-data-develop
+  #   # Volume to persist packager created file
+  #   volumes:
+  #     - ./_volumes/async_packager/output:/output
+  #   restart: always
+  # statistics:
+  #   build:
+  #     context: async_statistics
+  #   environment:
+  #     - AWS_REGION=$AWS_REGION
+  #     - AWS_ACCESS_KEY_ID=$AWS_ACCESS_KEY_ID
+  #     - AWS_SECRET_ACCESS_KEY=$AWS_SECRET_ACCESS_KEY
+  #     - CUMULUS_MOCK_S3_UPLOAD=TRUE
+  #     - QUEUE_NAME_STATISTICS=cumulus-statistics
+  #     - CUMULUS_API_URL=http://api:80
+  #     - CUMULUS_DBUSER=cumulus_user
+  #     - CUMULUS_DBPASS=cumulus_pass
+  #     - CUMULUS_DBNAME=postgres
+  #     - CUMULUS_DBHOST=cumulusdb
+  #     - CUMULUS_DBSSLMODE=disable
+  #     - ENDPOINT_URL=http://elasticmq:9324
+  #   restart: always
   api:
     build:
       context: api
@@ -129,21 +128,24 @@ services:
       - "80:80"
     restart: always
   flyway:
-    image: flyway/flyway
+    build:
+      context: sql
     restart: on-failure
-    command: -url=jdbc:postgresql://cumulusdb:5432/postgres -schemas=cumulus -user=postgres -password=postgres -connectRetries=60 migrate
+    command: -connectRetries=60 migrate
     environment:
       - FLYWAY_EDITION=community
       - FLYWAY_LOCATIONS=filesystem:/flyway/sql/common,filesystem:/flyway/sql/develop,filesystem:/flyway/sql/local
-    volumes:
-      - ./api/_sql:/flyway/sql
+      - FLYWAY_PASSWORD=postgres
+      - FLYWAY_SCHEMAS=cumulus
+      - FLYWAY_URL=jdbc:postgresql://cumulusdb:5432/postgres
+      - FLYWAY_USER=postgres
     depends_on:
       - cumulusdb
-  pgadmin:
-    image: dpage/pgadmin4
-    environment:
-      - PGADMIN_DEFAULT_EMAIL=postgres@postgres.com
-      - PGADMIN_DEFAULT_PASSWORD=postgres
-    ports:
-      - "7000:80"
-    restart: always
+  # pgadmin:
+  #   image: dpage/pgadmin4
+  #   environment:
+  #     - PGADMIN_DEFAULT_EMAIL=postgres@postgres.com
+  #     - PGADMIN_DEFAULT_PASSWORD=postgres
+  #   ports:
+  #     - "7000:80"
+  #   restart: always

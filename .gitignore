@@ -30,6 +30,26 @@ vendor
 tmp/*
 !tmp/README.md
 
-# Acquirable data directory
-data/*
-!data/README.md
+# _volumes directory, used for local containerized development and debugging
+# Keep _volumes/*/*/README.md in order to keep folder structure
+# Ignore all other files in directories and all sub-directories
+# Attribution to multiple stackOverflow articles to figure this one out!
+_volumes/**
+# keep _volumes/async_geoprocess/tmp directory structure
+!_volumes/async_geoprocess
+_volumes/async_geoprocess/**
+!_volumes/async_geoprocess/tmp
+_volumes/async_geoprocess/tmp/**
+!_volumes/async_geoprocess/tmp/README.md
+# keep _volumes/async_packager/output directory structure
+!_volumes/async_packager
+_volumes/async_packager/**
+!_volumes/async_packager/output
+_volumes/async_packager/output/**
+!_volumes/async_packager/output/README.md
+# keep _volumes/minio/cumulus directory structure
+!_volumes/minio
+_volumes/minio/**
+!_volumes/minio/cumulus
+_volumes/minio/cumulus/**
+!_volumes/minio/cumulus/README.md

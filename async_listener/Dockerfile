@@ -1,13 +1,15 @@
 # BUILD GO BINARIES
-FROM golang:1.14-alpine AS builder
+FROM golang:1.17-alpine AS builder
 # Install Git
 RUN apk update && apk add --no-cache git ca-certificates
 # Copy In Source Code
 WORKDIR /go/src/app
-COPY ./listener .
+COPY go.mod go.sum ./
 # Install Dependencies
-RUN go get -d -v
+RUN go mod download && \
+    go mod verify
 # Build
+COPY ./listener ./
 RUN GOOS=linux GOARCH=amd64 CGO_ENABLED=0 \
     go build -ldflags="-w -s" -o /go/bin/cumulus-listener
 

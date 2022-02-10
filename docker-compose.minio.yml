@@ -32,4 +32,4 @@ services:
       exit 0;
       "
     volumes:
-      - ./data:/media
+      - ./_volumes/minio:/media

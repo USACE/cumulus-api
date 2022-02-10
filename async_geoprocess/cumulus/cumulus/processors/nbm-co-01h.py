@@ -1,5 +1,4 @@
 import os
-import re
 from collections import namedtuple
 from uuid import uuid4
 from datetime import datetime, timezone
@@ -7,24 +6,26 @@ from ..geoprocess.core.base import info, translate, create_overviews
 from ..handyutils.core import change_final_file_extension
 
 def process(infile, outdir):
-    """Takes an infile to process and path to a directory where output files should be saved
-    Returns array of objects [{ "filetype": "nohrsc_snodas_swe", "file": "file.tif", ... }, {}, ]
-    
-    National Blend of Models
-    
-    Band 46:
-    --------
-    01 hr Total precipitation [kg/(m^2)] at 0[-] SRC (Ground surface)
-    
-    Band 54: 
-    --------
-    Temperature [C] at 2[m] HTGL (Specified height above ground)
-    
+    """National Blend of Models: Hourly air temperature and QPF
+
+    Parameters
+    ----------
+    infile : String
+        FQPN to file to process
+    outdir : String
+        Path to directory to save processed file
+
+    Returns
+    -------
+    List of objects
+        {
+            "filetype": acquirable slug,
+            "file": GeoTiff from processor,
+            "datetime": datetime.isoformat(),
+            "version": version.isoformat()
+        }
+
     """
-    bands = {
-        46: "nbm-co-qpf",
-        54: "nbm-co-airtemp"
-    }
 
     outfile_list = list()
 
@@ -32,31 +33,26 @@ def process(infile, outdir):
     fileinfo: dict = info(infile)
     all_bands = fileinfo['bands']
 
-    # Compile regex to get only the integer from times
-    grib_time_pattern = re.compile(r'\d+')
 
-    # Go through the bands dictionary to get the band and process the filetype
-    for band, filetype in bands.items():
-        band_ = all_bands[band]
-        no_data_value = band_['noDataValue']
-        metadata = band_['metadata']
-        first_key = list(metadata.keys())[0]
-        meta_grib = metadata[first_key]
-        # Named tuple getting metadata
-        Metadata = namedtuple(
-            'Metadata',
-            band_['metadata'][''].keys()
-        )(**meta_grib)
+    for band in all_bands:
+        band_number = band["band"]
+        metadata = band["metadata"][""]
+        metadata_ = namedtuple(
+            'metadata_',
+            metadata.keys()
+        )(**metadata)
+        if "temperature" in metadata_.GRIB_COMMENT.lower() and metadata_.GRIB_SHORT_NAME == "0-SFC":
+            filetype = "nbm-co-airtemp"
+        elif "total precipitation" in metadata_.GRIB_COMMENT.lower() and metadata_.GRIB_ELEMENT == "QPF01":
+            filetype = "nbm-co-qpf"
+        else:
+            continue
         
-        # Get the reference time and valid time
-        # Assign empty string if no re.match()
-        match_r_time = grib_time_pattern.search(Metadata.GRIB_REF_TIME)
-        match_v_time = grib_time_pattern.search(Metadata.GRIB_VALID_TIME)
         # fromtimestamp with utc assignment gives proper iso format
-        r_time = datetime.fromtimestamp(int(match_r_time[0]), timezone.utc) if match_r_time else ''
-        v_time = datetime.fromtimestamp(int(match_v_time[0]), timezone.utc) if match_v_time else ''
+        r_time = datetime.fromtimestamp(int(metadata_.GRIB_REF_TIME), timezone.utc)
+        v_time = datetime.fromtimestamp(int(metadata_.GRIB_VALID_TIME), timezone.utc)
 
-        tif = translate(infile, os.path.join(outdir, f"temp-tif-{uuid4()}"), extra_args=["-b", str(band)])
+        tif = translate(infile, os.path.join(outdir, f"temp-tif-{uuid4()}"), extra_args=["-b", str(band_number)])
         tif_with_overviews = create_overviews(tif)
         cog = translate(
             tif_with_overviews,

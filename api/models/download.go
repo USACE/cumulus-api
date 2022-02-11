@@ -26,12 +26,15 @@ type DownloadStatus struct {
 }
 
 // DownloadRequest holds all information from a download request coming from a user
+// TODO; Update DownloadRequest to accept a bbox instead of an explicit WatershedID
+// Could choose to leave WatershedID as optional field for metrics tracking by Watershed
 type DownloadRequest struct {
 	Sub           *uuid.UUID  `json:"sub" db:"sub"`
 	DatetimeStart time.Time   `json:"datetime_start" db:"datetime_start"`
 	DatetimeEnd   time.Time   `json:"datetime_end" db:"datetime_end"`
 	WatershedID   uuid.UUID   `json:"watershed_id" db:"watershed_id"`
 	ProductID     []uuid.UUID `json:"product_id" db:"product_id"`
+	Format        *string     `json:"format" db:"format"`
 }
 
 // Download holds all information about a download
@@ -58,8 +61,15 @@ type PackagerInfo struct {
 type PackagerRequest struct {
 	DownloadID uuid.UUID             `json:"download_id"`
 	OutputKey  string                `json:"output_key"`
-	Watershed  Watershed             `json:"watershed"`
 	Contents   []PackagerContentItem `json:"contents"`
+	Format     string                `json:"format"`
+	Extent     Extent                `json:"extent"`
+}
+
+// Extent is a name and a bounding box
+type Extent struct {
+	Name string    `json:"name"`
+	Bbox []float64 `json:"bbox"`
 }
 
 // PackagerContentItem is a single item for Packager to include in output file
@@ -110,76 +120,89 @@ func GetDownload(db *pgxpool.Pool, downloadID *uuid.UUID) (*Download, error) {
 }
 
 // GetDownloadPackagerRequest retrieves the information packager needs to package a download
+// Beware of [NULL] (https://stackoverflow.com/questions/37922340/why-postgresql-json-agg-function-does-not-return-an-empty-array)
 func GetDownloadPackagerRequest(db *pgxpool.Pool, downloadID *uuid.UUID) (*PackagerRequest, error) {
 
 	pr := PackagerRequest{
-		DownloadID: *downloadID,
-		OutputKey:  fmt.Sprintf("cumulus/download/dss/download_%s.dss", downloadID),
-		Contents:   make([]PackagerContentItem, 0),
+		Contents: make([]PackagerContentItem, 0),
 	}
 
-	if err = pgxscan.Select(
-		context.Background(), db, &pr.Contents,
-		`WITH download_products AS (
-			SELECT 
-			key,
-			bucket,
-			dss_datatype,
-			dss_cpart,
-			dss_dpart,
-			dss_epart,
-			dss_fpart,
-			dss_unit,
-			forecast_version,
-			download_id,
-			product_id,
-			datetime_start,
-			datetime_end
-			FROM v_download_request
-			WHERE download_id = $1
-		)		
-		select 
-				key,
-				bucket,
-				dss_datatype,
-				dss_cpart,
-				dss_dpart,
-				dss_epart,
-				dss_fpart,
-				dss_unit
-				from download_products dp
-				where date_part('year', dp.forecast_version) != '1111'
-				and dp.forecast_version in (
-					select distinct forecast_version 
-					from download_products d
-					where d.download_id = dp.download_id 
-					and d.product_id = dp.product_id 
-					and d.forecast_version between dp.datetime_start - interval '24 hours' and dp.datetime_end 
-					order by d.forecast_version desc limit 2)
-				UNION
-				select 
-				key,
-				bucket,
-				dss_datatype,
-				dss_cpart,
-				dss_dpart,
-				dss_epart,
-				dss_fpart,
-				dss_unit
-				from download_products dp 
-				where date_part('year', forecast_version) = '1111'
-				order by dss_fpart, key`,
-		downloadID,
+	if err = pgxscan.Get(
+		context.Background(), db, &pr,
+		`WITH download_contents AS (
+			SELECT download_id,
+			       key,
+		           bucket,
+			       dss_datatype,
+			       dss_cpart,
+			       dss_dpart,
+			       dss_epart,
+			       dss_fpart,
+			       dss_unit
+		    FROM v_download_request r
+		    WHERE download_id = $1
+		        AND date_part('year', r.forecast_version) != '1111'
+		    	AND r.forecast_version in (
+		    		SELECT DISTINCT forecast_version
+		    		FROM v_download_request r2
+		    		WHERE r2.download_id = $1
+					    AND r2.product_id = r.product_id
+		    			AND r2.forecast_version BETWEEN r.datetime_start - interval '24 hours' AND r.datetime_end
+		    		ORDER BY r2.forecast_version DESC
+		    		LIMIT 2
+		    	)
+		    UNION
+		    SELECT download_id,
+			       key,
+		           bucket,
+		           dss_datatype,
+		           dss_cpart,
+		           dss_dpart,
+		           dss_epart,
+		           dss_fpart,
+		           dss_unit
+		    FROM v_download_request
+		    WHERE download_id = $1 AND date_part('year', forecast_version) = '1111'
+		    ORDER BY dss_fpart, key
+		)
+		SELECT d.id AS download_id,
+		       json_build_object(
+				   'name', w.name,
+				   'bbox', ARRAY[
+					   ST_XMin(w.geometry),ST_Ymin(w.geometry),
+					   ST_XMax(w.geometry),ST_YMax(w.geometry)
+					]
+			   ) AS extent,
+			   CONCAT(
+				   'cumulus/download/', f.abbreviation,
+				   '/download_', d.id, '.', f.extension
+				) AS output_key,
+			   f.abbreviation AS format,
+			   COALESCE(c.contents, '[]'::jsonb) AS contents
+		FROM download d
+		INNER JOIN download_format f ON f.id = d.download_format_id
+		INNER JOIN watershed w ON w.id = d.watershed_id
+		LEFT JOIN (
+			SELECT download_id,
+			       jsonb_agg(
+					   jsonb_build_object(
+						   'key',          key,
+						   'bucket',       bucket,
+						   'dss_datatype', dss_datatype,
+						   'dss_cpart',    dss_cpart,
+						   'dss_dpart',    dss_dpart,
+						   'dss_epart',    dss_epart,
+						   'dss_fpart',    dss_fpart,
+						   'dss_unit',     dss_unit
+					   )
+				   ) AS contents
+			FROM download_contents
+			GROUP BY download_id
+		) as c ON c.download_id = d.id
+		WHERE d.id = $1`, downloadID,
 	); err != nil {
 		return nil, err
 	}
-
-	// Attach Watershed
-	w, err := GetDownloadWatershed(db, downloadID)
-	if err != nil {
-		return nil, err
-	}
-	pr.Watershed = *w
 
 	return &pr, nil
 }
@@ -198,9 +221,12 @@ func CreateDownload(db *pgxpool.Pool, dr *DownloadRequest) (*Download, error) {
 	// Insert Record of Download
 	rows, err := tx.Query(
 		context.Background(),
-		`INSERT INTO download (datetime_start, datetime_end, status_id, watershed_id, sub)
-		 VALUES ($1, $2, '94727878-7a50-41f8-99eb-a80eb82f737a', $3, $4)
-		 RETURNING id`, dr.DatetimeStart, dr.DatetimeEnd, dr.WatershedID, dr.Sub,
+		`INSERT INTO download (download_format_id, datetime_start, datetime_end, status_id, watershed_id, sub)
+		 VALUES (
+			 (SELECT id FROM download_format WHERE UPPER(abbreviation) = UPPER($1)), $2, $3,
+			 (SELECT id FROM download_status WHERE UPPER(name) = 'INITIATED'), $4, $5
+		 )
+		 RETURNING id`, dr.Format, dr.DatetimeStart, dr.DatetimeEnd, dr.WatershedID, dr.Sub,
 	)
 	if err != nil {
 		tx.Rollback(context.Background())

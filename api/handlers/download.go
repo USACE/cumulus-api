@@ -72,6 +72,13 @@ func CreateDownload(db *pgxpool.Pool, cfg *config.Config) echo.HandlerFunc {
 		if dr.Format == nil {
 			dr.Format = &cfg.DownloadDefaultFormat
 		}
+		// Set subject
+		sub, err := GetSub(c)
+		if err != nil {
+			return c.JSON(http.StatusUnauthorized, models.DefaultMessageUnauthorized)
+		}
+		dr.Sub = sub
+		
 		d, err := models.CreateDownload(db, &dr)
 		if err != nil {
 			return c.String(http.StatusInternalServerError, err.Error())

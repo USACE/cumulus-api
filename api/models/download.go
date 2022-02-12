@@ -28,6 +28,8 @@ type DownloadStatus struct {
 // DownloadRequest holds all information from a download request coming from a user
 // TODO; Update DownloadRequest to accept a bbox instead of an explicit WatershedID
 // Could choose to leave WatershedID as optional field for metrics tracking by Watershed
+// TODO; Sub has been changed to a NOT NULL field in the database. Investigate changing *uuid.UUID
+// to uuid.UUID
 type DownloadRequest struct {
 	Sub           *uuid.UUID  `json:"sub" db:"sub"`
 	DatetimeStart time.Time   `json:"datetime_start" db:"datetime_start"`

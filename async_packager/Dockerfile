@@ -23,7 +23,7 @@ RUN git clone -b 2.1 --single-branch https://github.com/USACE/pydsstools.git
 RUN cd /pydsstools \
   && python3 setup.py install
 
-COPY packager/* /app/
-WORKDIR /app
+COPY packager /app/packager
+WORKDIR /app/packager
 
 CMD python3 packager.py

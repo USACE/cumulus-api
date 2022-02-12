@@ -16,6 +16,7 @@ type Config struct {
 	DBHost                       string
 	DBSSLMode                    string
 	AuthEnvironment              string `envconfig:"AUTH_ENVIRONMENT" default:"DEVELOP"`
+	DownloadDefaultFormat        string `envconfig:"DOWNLOAD_DEFAULT_FORMAT" default:"dss7"`
 	AsyncEngineAcquisition       string `envconfig:"ASYNC_ENGINE_ACQUISITION"`
 	AsyncEngineAcquisitionTarget string `envconfig:"ASYNC_ENGINE_ACQUISITION_TARGET"`
 	AsyncEnginePackager          string `envconfig:"ASYNC_ENGINE_PACKAGER"`

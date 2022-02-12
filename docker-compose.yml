@@ -54,31 +54,31 @@ services:
     volumes:
       - ./_volumes/async_geoprocess/tmp:/tmp
     restart: always
-  # packager:
-  #   build:
-  #     context: async_packager
-  #   environment:
-  #     - APPLICATION_KEY=appkey
-  #     - AWS_REGION=us-east-1
-  #     - AWS_S3_ENDPOINT=minio:9000
-  #     - AWS_VIRTUAL_HOSTING=FALSE
-  #     - AWS_HTTPS=NO
-  #     - AWS_ACCESS_KEY_ID=AKIAIOSFODNN7EXAMPLE
-  #     - AWS_SECRET_ACCESS_KEY=wJalrXUtnFEMI/K7MDENG/bPxRfiCYEXAMPLEKEY
-  #     - AWS_REGION_SQS=elasticmq
-  #     - CUMULUS_MOCK_S3_UPLOAD=FALSE
-  #     - QUEUE_NAME_PACKAGER=cumulus-packager
-  #     - CUMULUS_API_URL=http://api
-  #     - ENDPOINT_URL_SQS=http://elasticmq:9324
-  #     - PACKAGER_UPDATE_INTERVAL=5
-  #     - CPL_DEBUG=YES
-  #     - CPL_CURL_VERBOSE=YES
-  #     - USE_SSL=False
-  #     - WRITE_TO_BUCKET=castle-data-develop
-  #   # Volume to persist packager created file
-  #   volumes:
-  #     - ./_volumes/async_packager/output:/output
-  #   restart: always
+  packager:
+    build:
+      context: async_packager
+    environment:
+      - APPLICATION_KEY=appkey
+      - AWS_REGION=us-east-1
+      - AWS_S3_ENDPOINT=minio:9000
+      - AWS_VIRTUAL_HOSTING=FALSE
+      - AWS_HTTPS=NO
+      - AWS_ACCESS_KEY_ID=AKIAIOSFODNN7EXAMPLE
+      - AWS_SECRET_ACCESS_KEY=wJalrXUtnFEMI/K7MDENG/bPxRfiCYEXAMPLEKEY
+      - AWS_REGION_SQS=elasticmq
+      - CUMULUS_MOCK_S3_UPLOAD=FALSE
+      - QUEUE_NAME_PACKAGER=cumulus-packager
+      - CUMULUS_API_URL=http://api
+      - ENDPOINT_URL_SQS=http://elasticmq:9324
+      - PACKAGER_UPDATE_INTERVAL=5
+      - CPL_DEBUG=YES
+      - CPL_CURL_VERBOSE=YES
+      - USE_SSL=False
+      - WRITE_TO_BUCKET=castle-data-develop
+    # Volume to persist packager created file
+    volumes:
+      - ./_volumes/async_packager/output:/output
+    restart: always
   # statistics:
   #   build:
   #     context: async_statistics
@@ -107,6 +107,7 @@ services:
       - CUMULUS_APPLICATION_KEY=appkey
       # CUMULUS_AUTH_ENVIRONMENT; OPTIONS:  MOCK | DEVELOP | STABLE
       - CUMULUS_AUTH_ENVIRONMENT=MOCK
+      - CUMULUS_DOWNLOAD_DEFAULT_FORMAT=dss7
       - CUMULUS_DBUSER=cumulus_user
       - CUMULUS_DBPASS=cumulus_pass
       - CUMULUS_DBNAME=postgres
@@ -134,6 +135,9 @@ services:
     command: -connectRetries=60 migrate
     environment:
       - FLYWAY_EDITION=community
+      # Exclude Local Seed Data; Uncomment Line Below
+      # - FLYWAY_LOCATIONS=filesystem:/flyway/sql/common,filesystem:/flyway/sql/develop
+      # Include Local Seed Data; Uncomment Line Below (Comment Line Above)
       - FLYWAY_LOCATIONS=filesystem:/flyway/sql/common,filesystem:/flyway/sql/develop,filesystem:/flyway/sql/local
       - FLYWAY_PASSWORD=postgres
       - FLYWAY_SCHEMAS=cumulus

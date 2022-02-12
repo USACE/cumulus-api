@@ -13,7 +13,9 @@ import requests
 import config as CONFIG
 from packager_update_functions import update_status_api
 
-from dss import write_contents_to_dssfile
+# Multiple Supported Output Formats
+from writers.dss7 import writer as dss7_writer
+from writers.tgz_cog import writer as tgz_cog_writer
 
 if CONFIG.AWS_ACCESS_KEY_ID is None:
     # Running in AWS; Using IAM Role for Credentials
@@ -94,9 +96,18 @@ def upload_file(file_name, object_name=None):
     return True
 
 
-def package(msg, packager_update_fn):
+def get_writer(format):
+    if format == 'dss7':
+        return dss7_writer
+    elif format == 'tgz-cog':
+        return tgz_cog_writer
+    
+    return None
 
-    print(json.dumps(msg, indent=2))
+
+def package(info, packager_update_fn):
+
+    print(json.dumps(info, indent=2))
 
     STATUS = {
         'FAILED': 'a553101e-8c51-4ddd-ac2e-b011ed54389b',
@@ -104,16 +115,16 @@ def package(msg, packager_update_fn):
         'SUCCESS': '3914f0bd-2290-42b1-bc24-41479b3a846f'
     }
 
-    # Get needed information from msg
-    id = msg['download_id']
-    output_key = msg['output_key']
-    contents = msg['contents']
-    watershed = msg['watershed']
-
-    filecount = len(contents)
-    logger.info(f'filecount is: {filecount}')
+    # Get needed information from info
+    id = info['download_id']
+    output_key = info['output_key']
+    contents = info['contents']
+    extent = info['extent']
+    format = info['format']
 
     # If no files are present, notify database of failure and return from function
+    filecount = len(contents)
+    logger.info(f'filecount is: {filecount}')
     if filecount == 0:            
         logger.info('Setting STATUS to FAILED')
         packager_update_fn(id, STATUS['FAILED'], 0, None)
@@ -123,7 +134,16 @@ def package(msg, packager_update_fn):
             "filecount": filecount
         })
     
-
+    # If output format writer not implemented
+    writer = get_writer(format)
+    if writer is None:
+        logger.info('Setting STATUS to FAILED')
+        packager_update_fn(id, STATUS['FAILED'], 0, None)
+        return json.dumps({
+            "failure": f"writer not implemented for format {format}",
+            "filecount": None
+        })
+    
     # I tried to avoid a callback function, but it's the best option among others
     # This allows us to move all code concerned with packaging a DSS file into a separate file
     # without:
@@ -149,11 +169,9 @@ def package(msg, packager_update_fn):
 
     # Get product count from event contents
     with tempfile.TemporaryDirectory() as td:
-        print(f'Working in temporary directory: {td}')
-        print('Output key is: {}'.format(output_key))
-        outfile = write_contents_to_dssfile(
+        outfile = writer(
             os.path.join(td, os.path.basename(output_key)),
-            watershed,
+            extent,
             contents,
             callbackFn
         )

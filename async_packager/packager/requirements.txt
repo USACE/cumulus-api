@@ -1,10 +1,5 @@
-pip
-cython
-numpy>=1.16.4
-pandas
-affine
-gdal>=3.2.2
-rasterio>=1.2.1
-matplotlib
 boto3
 requests
+pandas
+numpy
+https://github.com/usace/pydsstools/zipball/1.6

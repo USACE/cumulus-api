@@ -180,7 +180,7 @@ func main() {
 	)
 
 	// Downloads
-	public.GET("/cumulus/download/dss/*", handlers.ServeMedia(&awsCfg, &cfg.AWSS3Bucket)) // Serve Downloads
+	public.GET("/cumulus/download/*", handlers.ServeMedia(&awsCfg, &cfg.AWSS3Bucket)) // Serve Downloads
 	// List Downloads
 	private.GET("/downloads", handlers.ListDownloads(db), middleware.IsAdmin)
 	// Create Download (Anonymous)

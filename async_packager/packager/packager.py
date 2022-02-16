@@ -107,7 +107,7 @@ def get_writer(format):
 
 def package(info, packager_update_fn):
 
-    print(json.dumps(info, indent=2))
+    logger.debug(json.dumps(info, indent=2))
 
     STATUS = {
         'FAILED': 'a553101e-8c51-4ddd-ac2e-b011ed54389b',

@@ -17,7 +17,7 @@ COPY packager/requirements.txt ./
 RUN pip3 install --no-cache-dir -r requirements.txt --upgrade
 RUN rm requirements.txt
 
-COPY packager/* /app/
-WORKDIR /app
+COPY packager /app/packager
+WORKDIR /app/packager
 
 CMD python3 packager.py

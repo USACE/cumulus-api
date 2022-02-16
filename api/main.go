@@ -180,14 +180,14 @@ func main() {
 	)
 
 	// Downloads
-	public.GET("/cumulus/download/dss/*", handlers.ServeMedia(&awsCfg, &cfg.AWSS3Bucket)) // Serve Downloads
+	public.GET("/cumulus/download/*", handlers.ServeMedia(&awsCfg, &cfg.AWSS3Bucket)) // Serve Downloads
 	// List Downloads
 	private.GET("/downloads", handlers.ListDownloads(db), middleware.IsAdmin)
 	// Create Download (Anonymous)
-	private.POST("/downloads", handlers.CreateDownload(db))
+	private.POST("/downloads", handlers.CreateDownload(db, cfg))
 	public.GET("/downloads/:download_id", handlers.GetDownload(db))
 	// Create Download (Authenticated)
-	private.POST("/my_downloads", handlers.CreateDownload(db))
+	private.POST("/my_downloads", handlers.CreateDownload(db, cfg))
 	private.GET("/my_downloads", handlers.ListMyDownloads(db))
 	// Routes used by packager to prepare download
 	public.GET("/downloads/:download_id/packager_request", handlers.GetDownloadPackagerRequest(db))

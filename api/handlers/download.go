@@ -3,6 +3,7 @@ package handlers
 import (
 	"net/http"
 
+	"github.com/USACE/cumulus-api/api/config"
 	"github.com/USACE/cumulus-api/api/models"
 	"github.com/google/uuid"
 	"github.com/jackc/pgx/v4/pgxpool"
@@ -59,7 +60,7 @@ func ListMyDownloads(db *pgxpool.Pool) echo.HandlerFunc {
 }
 
 // CreateDownload creates record of a new download
-func CreateDownload(db *pgxpool.Pool) echo.HandlerFunc {
+func CreateDownload(db *pgxpool.Pool, cfg *config.Config) echo.HandlerFunc {
 	return func(c echo.Context) error {
 		//need to check if products provided are valid uuids for existing products
 		//sanity check on dates in time windows and geometry??
@@ -67,17 +68,17 @@ func CreateDownload(db *pgxpool.Pool) echo.HandlerFunc {
 		if err := c.Bind(&dr); err != nil {
 			return c.String(http.StatusBadRequest, err.Error())
 		}
+		// If output format unspecified, use default format
+		if dr.Format == nil {
+			dr.Format = &cfg.DownloadDefaultFormat
+		}
+		// Set subject
 		sub, err := GetSub(c)
 		if err != nil {
-			return c.JSON(http.StatusBadRequest, models.DefaultMessageBadRequest)
+			return c.JSON(http.StatusUnauthorized, models.DefaultMessageUnauthorized)
 		}
-		if sub == nil {
-			// Unauthenticated Download Request
-			dr.Sub = nil
-		} else {
-			// Authenticated Download Request; Set Sub in Request
-			dr.Sub = sub
-		}
+		dr.Sub = sub
+		
 		d, err := models.CreateDownload(db, &dr)
 		if err != nil {
 			return c.String(http.StatusInternalServerError, err.Error())

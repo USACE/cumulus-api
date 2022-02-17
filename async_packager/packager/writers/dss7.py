@@ -4,6 +4,7 @@ import numpy.ma as ma
 from osgeo import gdal
 from affine import Affine
 import config as CONFIG
+import traceback
 
 from pydsstools.heclib.dss.HecDss import Open
 from pydsstools.heclib.utils import gridInfo
@@ -87,6 +88,7 @@ def writer(outfile, extent, items, callback, cellsize=2000, dst_srs="EPSG:5070")
                 )
             except:
                 print(f'Unable to process: {item["bucket"]}/{item["key"]}')
+                print(traceback.print_exc())
             finally:
                 ds = None
                 data = None

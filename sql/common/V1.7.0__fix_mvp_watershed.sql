@@ -1,0 +1,1 @@
+UPDATE watershed set slug = 'eau-galle-river', name='Eau Galle River' WHERE id = '03206ff6-fe91-426c-a5e9-4c651b06f9c6';

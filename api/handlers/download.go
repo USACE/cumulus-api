@@ -44,6 +44,17 @@ func ListDownloads(db *pgxpool.Pool) echo.HandlerFunc {
 	}
 }
 
+//ListAdminDownloads returns downloads for admin
+func ListAdminDownloads(db *pgxpool.Pool) echo.HandlerFunc {
+	return func(c echo.Context) error {
+		dd, err := models.ListAdminDownloads(db)
+		if err != nil {
+			return c.JSON(http.StatusInternalServerError, models.DefaultMessageInternalServerError)
+		}
+		return c.JSON(http.StatusOK, dd)
+	}
+}
+
 // ListMyDownloads returns an array of downloads for a sub
 func ListMyDownloads(db *pgxpool.Pool) echo.HandlerFunc {
 	return func(c echo.Context) error {
@@ -78,7 +89,7 @@ func CreateDownload(db *pgxpool.Pool, cfg *config.Config) echo.HandlerFunc {
 			return c.JSON(http.StatusUnauthorized, models.DefaultMessageUnauthorized)
 		}
 		dr.Sub = sub
-		
+
 		d, err := models.CreateDownload(db, &dr)
 		if err != nil {
 			return c.String(http.StatusInternalServerError, err.Error())

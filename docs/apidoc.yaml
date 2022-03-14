@@ -58,6 +58,23 @@ components:
       type: object
     download:
       type: object
+      x-examples:
+        example-1:
+          id: 497f6eca-6276-4993-bfeb-53cbbbba6f08
+          sub: 753487e7-10bc-4e69-b3b2-4da33721ea3e
+          datetime_start: '2020-12-01T01:00:00Z'
+          datetime_end: '2020-12-15T01:00:00Z'
+          watershed_id: 94e7713a-ccd6-432d-b2f0-972422511171
+          product_id:
+            - 64756f41-75e2-40ce-b91a-fda5aeb441fc
+          status_id: 4e949624-bc0f-439e-a9f2-25a23938812c
+          status: SUCCESS
+          progress: 100
+          file: 'https://cumulus-api.corps.cloud/path/to/file.dss'
+          processing_start: '2022-03-01T14:15:22Z'
+          processing_end: '2022-03-01T14:45:50Z'
+          watershed_slug: genesee-river
+          watershed_name: Genesee River
       properties:
         id:
           type: string
@@ -88,49 +105,52 @@ components:
           type: integer
         file:
           type: string
+          nullable: true
         processing_start:
           type: string
           format: date-time
         processing_end:
           type: string
           format: date-time
+          nullable: true
         watershed_slug:
           type: string
         watershed_name:
           type: string
+    downloadRequest:
+      type: object
       x-examples:
-        example-1:
-          id: 497f6eca-6276-4993-bfeb-53cbbbba6f08
-          sub: 753487e7-10bc-4e69-b3b2-4da33721ea3e
-          datetime_start: '2019-08-24T14:15:22Z'
+        download-request-example:
+          datetime_start: '2020-12-01T01:00:00Z'
           datetime_end: '2019-08-24T14:15:22Z'
           watershed_id: 94e7713a-ccd6-432d-b2f0-972422511171
           product_id:
-            - 497f6eca-6276-4993-bfeb-53cbbbba6f08
-          status_id: 4e949624-bc0f-439e-a9f2-25a23938812c
-          status: SUCCESS
-          progress: 100
-          file: 'https://cumulus-api.corps.cloud/path/to/file.dss'
-          processing_start: '2019-08-24T14:15:22Z'
-          processing_end: '2019-08-24T14:15:22Z'
-          watershed_slug: genesee-river
-          watershed_name: Genesee River
-    downloadRequest:
-      type: object
+            - 64756f41-75e2-40ce-b91a-fda5aeb441fc
       properties:
         datetime_start:
           type: string
           format: date-time
+          default: '2020-12-01T01:00:00Z'
         datetime_end:
-          type: integer
+          type: string
           format: date-time
+          default: '2020-12-15T01:00:00Z'
         watershed_id:
           type: string
+          minLength: 1
+          default: 94e7713a-ccd6-432d-b2f0-972422511171
         product_id:
           type: array
+          minItems: 1
           items:
             type: string
             format: uuid
+            default: 64756f41-75e2-40ce-b91a-fda5aeb441fc
+      required:
+        - datetime_start
+        - datetime_end
+        - watershed_id
+        - product_id
     product:
       type: object
       properties:
@@ -785,34 +805,16 @@ paths:
         content:
           application/json:
             schema:
-              type: object
-              properties:
-                datetime_start:
-                  type: string
-                  format: date-time
-                datetime_end:
-                  type: integer
-                  format: date-time
-                watershed_id:
-                  type: string
-                product_id:
-                  type: array
-                  items:
-                    type: string
-                    format: uuid
+              $ref: '#/components/schemas/downloadRequest'
             examples:
-              example-1:
+              download-example-rquest:
                 value:
-                  datetime_start: '2019-08-24T14:15:22Z'
-                  datetime_end: 0
-                  watershed_id: string
+                  datetime_start: '2020-12-01T01:00:00Z'
+                  datetime_end: '2020-12-15T01:00:00Z'
+                  watershed_id: 94e7713a-ccd6-432d-b2f0-972422511171
                   product_id:
-                    - 497f6eca-6276-4993-bfeb-53cbbbba6f08
-          application/xml:
-            schema:
-              type: object
-              properties: {}
-        description: ''
+                    - 64756f41-75e2-40ce-b91a-fda5aeb441fc
+        description: The example below is for the Genesee River (Buffalo District) watershed and the "PRISM-EARLY PPT PRECIP 24hr" product.
       responses:
         '201':
           description: Created
@@ -821,23 +823,23 @@ paths:
               schema:
                 $ref: '#/components/schemas/download'
               examples:
-                example-1:
+                example-response-initiated:
                   value:
                     id: 497f6eca-6276-4993-bfeb-53cbbbba6f08
                     sub: 753487e7-10bc-4e69-b3b2-4da33721ea3e
-                    datetime_start: '2019-08-24T14:15:22Z'
-                    datetime_end: '2019-08-24T14:15:22Z'
-                    watershed_id: a1496c40-682b-48e2-9a08-b4962665b7aa
+                    datetime_start: '2020-12-01T01:00:00Z'
+                    datetime_end: '2020-12-15T01:00:00Z'
+                    watershed_id: 94e7713a-ccd6-432d-b2f0-972422511171
                     product_id:
-                      - 497f6eca-6276-4993-bfeb-53cbbbba6f08
+                      - 64756f41-75e2-40ce-b91a-fda5aeb441fc
                     status_id: 4e949624-bc0f-439e-a9f2-25a23938812c
-                    status: string
-                    progress: 0
-                    file: string
-                    processing_start: '2019-08-24T14:15:22Z'
-                    processing_end: '2019-08-24T14:15:22Z'
-                    watershed_slug: string
-                    watershed_name: string
+                    status: INITIATED
+                    progress: 20
+                    file: null
+                    processing_start: '2022-03-01T14:15:22Z'
+                    processing_end: null
+                    watershed_slug: genesee-river
+                    watershed_name: Genesee River
             application/xml:
               schema:
                 type: object
@@ -866,6 +868,24 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/download'
+              examples:
+                example-download-completed:
+                  value:
+                    id: 497f6eca-6276-4993-bfeb-53cbbbba6f08
+                    sub: 753487e7-10bc-4e69-b3b2-4da33721ea3e
+                    datetime_start: '2020-12-01T01:00:00Z'
+                    datetime_end: '2020-12-15T01:00:00Z'
+                    watershed_id: 94e7713a-ccd6-432d-b2f0-972422511171
+                    product_id:
+                      - 64756f41-75e2-40ce-b91a-fda5aeb441fc
+                    status_id: 4e949624-bc0f-439e-a9f2-25a23938812c
+                    status: SUCCESS
+                    progress: 100
+                    file: 'https://cumulus-api.corps.cloud/path/to/file.dss'
+                    processing_start: '2022-03-01T14:15:22Z'
+                    processing_end: '2022-03-01T14:45:50Z'
+                    watershed_slug: genesee-river
+                    watershed_name: Genesee River
       parameters: []
       operationId: get-download
       summary: Download Status

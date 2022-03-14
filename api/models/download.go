@@ -112,6 +112,15 @@ func ListMyDownloads(db *pgxpool.Pool, sub *uuid.UUID) ([]Download, error) {
 	return dd, nil
 }
 
+// ListAdminDownloads returns downloads for admin
+func ListAdminDownloads(db *pgxpool.Pool) ([]Download, error) {
+	dd := make([]Download, 0)
+	if err := pgxscan.Select(context.Background(), db, &dd, listDownloadsSQL+" ORDER BY processing_start DESC LIMIT 50"); err != nil {
+		return make([]Download, 0), err
+	}
+	return dd, nil
+}
+
 // GetDownload returns a single download record
 func GetDownload(db *pgxpool.Pool, downloadID *uuid.UUID) (*Download, error) {
 	var d Download

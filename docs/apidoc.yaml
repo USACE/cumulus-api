@@ -1,0 +1,1134 @@
+openapi: 3.0.2
+info:
+  title: Cumulus REST API
+  version: 1.0.0
+  description: Realtime processing engine and REST API to support hydrologic modeling
+  contact:
+    name: Cumulus API Support
+    url: 'https://github.com/USACE/cumulus/issues'
+    email: support@example.com
+servers:
+  - url: 'https://cumulus-api.corps.cloud'
+    description: Stable API
+  - url: 'https://develop-cumulus-api.corps.cloud'
+    description: Development API
+  - url: 'http://localhost'
+    description: Local Development API
+components:
+  schemas:
+    acquirable:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        name:
+          type: string
+        slug:
+          type: string
+    acquirables:
+      type: array
+      items:
+        $ref: '#/components/schemas/acquirable'
+    acquirablefile:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        datetime:
+          type: string
+          format: date-time
+        file:
+          type: string
+        create_date:
+          type: string
+          format: date-time
+        process_date:
+          type: string
+          format: date-time
+        acquirable_id:
+          type: string
+          format: uuid
+    acquirablefiles:
+      type: array
+      items:
+        $ref: '#/components/schemas/acquirablefile'
+    empty_object:
+      type: object
+    download:
+      type: object
+      x-examples:
+        example-1:
+          id: 497f6eca-6276-4993-bfeb-53cbbbba6f08
+          sub: 753487e7-10bc-4e69-b3b2-4da33721ea3e
+          datetime_start: '2020-12-01T01:00:00Z'
+          datetime_end: '2020-12-15T01:00:00Z'
+          watershed_id: 94e7713a-ccd6-432d-b2f0-972422511171
+          product_id:
+            - 64756f41-75e2-40ce-b91a-fda5aeb441fc
+          status_id: 4e949624-bc0f-439e-a9f2-25a23938812c
+          status: SUCCESS
+          progress: 100
+          file: 'https://cumulus-api.corps.cloud/path/to/file.dss'
+          processing_start: '2022-03-01T14:15:22Z'
+          processing_end: '2022-03-01T14:45:50Z'
+          watershed_slug: genesee-river
+          watershed_name: Genesee River
+      properties:
+        id:
+          type: string
+          format: uuid
+        sub:
+          type: string
+          format: uuid
+        datetime_start:
+          type: string
+          format: date-time
+        datetime_end:
+          type: string
+          format: date-time
+        watershed_id:
+          type: string
+          format: uuid
+        product_id:
+          type: array
+          items:
+            type: string
+            format: uuid
+        status_id:
+          type: string
+          format: uuid
+        status:
+          type: string
+        progress:
+          type: integer
+        file:
+          type: string
+          nullable: true
+        processing_start:
+          type: string
+          format: date-time
+        processing_end:
+          type: string
+          format: date-time
+          nullable: true
+        watershed_slug:
+          type: string
+        watershed_name:
+          type: string
+    downloadRequest:
+      type: object
+      x-examples:
+        download-request-example:
+          datetime_start: '2020-12-01T01:00:00Z'
+          datetime_end: '2019-08-24T14:15:22Z'
+          watershed_id: 94e7713a-ccd6-432d-b2f0-972422511171
+          product_id:
+            - 64756f41-75e2-40ce-b91a-fda5aeb441fc
+      properties:
+        datetime_start:
+          type: string
+          format: date-time
+          default: '2020-12-01T01:00:00Z'
+        datetime_end:
+          type: string
+          format: date-time
+          default: '2020-12-15T01:00:00Z'
+        watershed_id:
+          type: string
+          minLength: 1
+          default: 94e7713a-ccd6-432d-b2f0-972422511171
+        product_id:
+          type: array
+          minItems: 1
+          items:
+            type: string
+            format: uuid
+            default: 64756f41-75e2-40ce-b91a-fda5aeb441fc
+      required:
+        - datetime_start
+        - datetime_end
+        - watershed_id
+        - product_id
+    product:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        slug:
+          type: string
+        name:
+          type: string
+        tags:
+          type: array
+          items:
+            type: string
+            format: uuid
+        temporal_resolution:
+          type: integer
+        temporal_duration:
+          type: integer
+        dss_fpart:
+          type: string
+        parameter_id:
+          type: string
+          format: uuid
+        parameter:
+          type: string
+        unit_id:
+          type: string
+          format: uuid
+        unit:
+          type: string
+        description:
+          type: string
+    products:
+      type: array
+      items:
+        $ref: '#/components/schemas/product'
+    productfile:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        datetime:
+          type: string
+          format: date-time
+        file:
+          type: string
+    productfiles:
+      type: array
+      items:
+        $ref: '#/components/schemas/productfile'
+    tag:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        name:
+          type: string
+        description:
+          type: string
+        color:
+          type: string
+    tags:
+      type: array
+      items:
+        $ref: '#/components/schemas/tag'
+  examples:
+    createProductRequest:
+      value:
+        name: NOHRSC Snodas SWE
+        temporal_resolution: 86400
+        temporal_duration: 0
+        dss_fpart: SNODAS
+        parameter_id: 683a55b9-4a94-46b5-9f47-26e66f3037a8
+        unit_id: e245d39f-3209-4e58-bfb7-4eae94b3f8dd
+        description: Snow Water Equivalent dataset produced by NOHRSC
+    createProductResponse:
+      value:
+        id: 757c809c-dda0-412b-9831-cb9bd0f62d1d
+        slug: nohrsc-snodas-swe
+        tags: []
+        name: NOHRSC Snodas SWE
+        temporal_resolution: 86400
+        temporal_duration: 0
+        dss_fpart: SNODAS
+        parameter_id: 683a55b9-4a94-46b5-9f47-26e66f3037a8
+        parameter: SWE
+        unit_id: e245d39f-3209-4e58-bfb7-4eae94b3f8dd
+        unit: MM
+        description: Snow Water Equivalent dataset produced by NOHRSC
+    productExample:
+      value:
+        id: 757c809c-dda0-412b-9831-cb9bd0f62d1d
+        slug: nohrsc-snodas-swe
+        tags:
+          - 57bda84f-ecec-4cd7-b3b1-c0c36f838a05
+        name: NOHRSC Snodas SWE
+        temporal_resolution: 86400
+        temporal_duration: 0
+        dss_fpart: SNODAS
+        parameter_id: 683a55b9-4a94-46b5-9f47-26e66f3037a8
+        parameter: SWE
+        unit_id: e245d39f-3209-4e58-bfb7-4eae94b3f8dd
+        unit: MM
+        description: Snow Water Equivalent dataset produced by NOHRSC
+    productfileExample:
+      value:
+        id: 951d8838-75ac-4250-ad48-4cdb249484b2
+        datetime: '2021-03-21T01:00:00-05:00'
+        file: cumulus/nohrsc_snodas_swe/zz_ssmv11034tS__T0001TTNATS2021032105HP001_cloud_optimized.tif
+  securitySchemes:
+    Bearer:
+      type: http
+      scheme: bearer
+      description: ''
+    API-Key:
+      name: key
+      type: apiKey
+      in: query
+      description: Internal Use Only
+x-tagGroups:
+  - name: Products
+    tags:
+      - Acquirables
+      - Products
+      - Tags
+  - name: Downloads
+    tags:
+      - Downloads
+      - My Downloads
+  - name: Watersheds
+    tags:
+      - Watersheds
+      - My Watersheds
+      - Role Management
+  - name: Account Management
+    tags:
+      - Accounts
+paths:
+  /acquirablefiles:
+    post:
+      tags:
+        - Acquirables
+      summary: Create Acquirable File
+      description: Create database record of an acquirablefile
+      responses:
+        '201':
+          description: Acquirable File
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/acquirablefile'
+      operationId: post-acquirable-file
+      security:
+        - Bearer: []
+        - API-Key: []
+      x-internal: true
+  '/acquirables/{acquirable_id}/files':
+    get:
+      tags:
+        - Acquirables
+      summary: List Acquirable Files
+      description: List Acquirable Files for a single Acquirable within a specified date range
+      parameters:
+        - name: acquirable_id
+          in: path
+          required: true
+          description: The ID of the acquirable
+          schema:
+            type: string
+            format: uuid
+        - schema:
+            type: string
+            default: '2022-03-01'
+          in: query
+          name: after
+          required: true
+          description: After this date
+        - schema:
+            type: string
+            default: '2022-03-05'
+          in: query
+          name: before
+          required: true
+          description: Before this date
+      responses:
+        '200':
+          description: List of Acquirable Files
+          content:
+            application/json:
+              schema:
+                type: array
+                description: ''
+                minItems: 1
+                uniqueItems: true
+                x-examples:
+                  example-1:
+                    - id: 17fd4f85-01ea-4242-85b6-19d7220bac73
+                      datetime: '2022-03-01T12:30:00Z'
+                      file: 'https://api.rsgis.dev/cumulus/acquirables/prism-ppt-early/PRISM_ppt_early_4kmD2_20220301_bil.zip'
+                      create_date: '2022-03-02T12:30:04.215549Z'
+                      process_date: null
+                      acquirable_id: 099916d1-83af-48ed-85d7-6688ae96023d
+                    - id: d72dbabf-9ab5-4c4b-8dff-fac8d05c6ebe
+                      datetime: '2022-02-28T12:30:00Z'
+                      file: 'https://api.rsgis.dev/cumulus/acquirables/prism-ppt-early/PRISM_ppt_early_4kmD2_20220228_bil.zip'
+                      create_date: '2022-03-01T12:30:05.59972Z'
+                      process_date: null
+                      acquirable_id: 099916d1-83af-48ed-85d7-6688ae96023d
+                    - id: e276881d-989b-4ff4-8f0c-c8f16460f8bb
+                      datetime: '2022-03-02T12:30:00Z'
+                      file: 'https://api.rsgis.dev/cumulus/acquirables/prism-ppt-early/PRISM_ppt_early_4kmD2_20220302_bil.zip'
+                      create_date: '2022-03-03T12:30:05.578263Z'
+                      process_date: null
+                      acquirable_id: 099916d1-83af-48ed-85d7-6688ae96023d
+                    - id: 8c6a5416-4f29-41de-9470-441b66ba9830
+                      datetime: '2022-03-03T12:30:00Z'
+                      file: 'https://api.rsgis.dev/cumulus/acquirables/prism-ppt-early/PRISM_ppt_early_4kmD2_20220303_bil.zip'
+                      create_date: '2022-03-04T12:30:05.353424Z'
+                      process_date: null
+                      acquirable_id: 099916d1-83af-48ed-85d7-6688ae96023d
+                    - id: e1ae26db-d04a-4121-8783-8ad1eac4a63b
+                      datetime: '2022-03-04T12:30:00Z'
+                      file: 'https://api.rsgis.dev/cumulus/acquirables/prism-ppt-early/PRISM_ppt_early_4kmD2_20220304_bil.zip'
+                      create_date: '2022-03-05T12:30:05.297617Z'
+                      process_date: null
+                      acquirable_id: 099916d1-83af-48ed-85d7-6688ae96023d
+                items:
+                  type: object
+                  properties:
+                    id:
+                      type: string
+                      minLength: 1
+                      format: uuid
+                    datetime:
+                      type: string
+                      minLength: 1
+                      format: date-time
+                    file:
+                      type: string
+                      minLength: 1
+                    create_date:
+                      type: string
+                      minLength: 1
+                      format: date-time
+                    process_date:
+                      type: string
+                      format: date-time
+                    acquirable_id:
+                      type: string
+                      minLength: 1
+                      format: uuid
+                  required:
+                    - id
+                    - datetime
+                    - file
+                    - create_date
+                    - acquirable_id
+      operationId: list-acquirable-files
+      x-internal: true
+    parameters:
+      - schema:
+          type: string
+          format: uuid
+          example: 64756f41-75e2-40ce-b91a-fda5aeb441fc
+          default: 64756f41-75e2-40ce-b91a-fda5aeb441fc
+        name: acquirable_id
+        in: path
+        required: true
+        description: Acquirable UUID
+  /products:
+    get:
+      tags:
+        - Products
+      description: List Products
+      responses:
+        '200':
+          description: Array of Products
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/products'
+      operationId: list-products
+      summary: List All Products
+    post:
+      tags:
+        - Products
+      description: Create Product
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                name:
+                  type: string
+                temporal_resolution:
+                  type: integer
+                temporal_duration:
+                  type: integer
+                dss_fpart:
+                  type: string
+                parameter_id:
+                  type: string
+                  format: uuid
+                unit_id:
+                  type: string
+                  format: uuid
+            examples:
+              example-request:
+                value:
+                  name: string
+                  temporal_resolution: 0
+                  temporal_duration: 0
+                  dss_fpart: string
+                  parameter_id: d4531ae7-3de2-4d63-ad99-c60ad3103820
+                  unit_id: 5becc822-b69e-4e66-a762-ad8e868dcab6
+      responses:
+        '201':
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/product'
+              examples:
+                response-body-example:
+                  value:
+                    id: 497f6eca-6276-4993-bfeb-53cbbbba6f08
+                    slug: string
+                    name: string
+                    tags:
+                      - 497f6eca-6276-4993-bfeb-53cbbbba6f08
+                    temporal_resolution: 0
+                    temporal_duration: 0
+                    dss_fpart: string
+                    parameter_id: d4531ae7-3de2-4d63-ad99-c60ad3103820
+                    parameter: string
+                    unit_id: 5becc822-b69e-4e66-a762-ad8e868dcab6
+                    unit: string
+                    description: string
+      operationId: create-product
+      security:
+        - Bearer: []
+      summary: Create New Product
+  '/products/{product_id}':
+    parameters:
+      - name: product_id
+        in: path
+        required: true
+        description: The ID of the product to update or delete
+        schema:
+          type: string
+          format: uuid
+    get:
+      tags:
+        - Products
+      description: Get Product
+      responses:
+        '200':
+          description: A Single Product
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/product'
+              example:
+                $ref: '#/components/examples/productExample'
+      operationId: get-product
+      summary: Get Single Product
+    put:
+      tags:
+        - Products
+      description: Update Product
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/product'
+      responses:
+        '200':
+          description: A Single Product
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/product'
+              example:
+                $ref: '#/components/examples/productExample'
+      operationId: update-product
+      security:
+        - Bearer: []
+      summary: Update Single Product
+    delete:
+      tags:
+        - Products
+      description: Delete Product
+      responses:
+        '200':
+          description: Empty Object
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/empty_object'
+      operationId: delete-product
+      security:
+        - Bearer: []
+      summary: Delete Product
+  '/products/{product_id}/undelete':
+    parameters:
+      - name: product_id
+        in: path
+        required: true
+        description: ID of Product to Undelete
+        schema:
+          type: string
+          format: uuid
+    post:
+      tags:
+        - Products
+      description: Undo Product Delete
+      responses:
+        '200':
+          description: Product
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/product'
+              example:
+                $ref: '#/components/examples/productExample'
+      operationId: undo-delete-product
+      security:
+        - Bearer: []
+  '/products/{product_id}/files':
+    get:
+      tags:
+        - Products
+      summary: List Productfiles
+      description: List Productfiles for a single product within a specified date range
+      parameters:
+        - name: product_id
+          in: path
+          required: true
+          description: The ID of the product
+          schema:
+            type: string
+            format: uuid
+        - name: after
+          in: query
+          schema:
+            type: string
+            format: date-time
+          required: true
+        - name: before
+          in: query
+          schema:
+            type: string
+            format: date-time
+          required: true
+      responses:
+        '200':
+          description: List of Productfiles
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/productfiles'
+      operationId: list-product-files
+  '/products/{product_id}/availability':
+    get:
+      tags:
+        - Products
+      summary: Get Product Availability
+      description: Get file count by day for a single product
+      parameters:
+        - name: product_id
+          in: path
+          required: true
+          description: The ID of the product
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Product Availability
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  product_id:
+                    type: string
+                    format: uuid
+                  date_counts:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        date:
+                          type: string
+                          format: date-time
+                        count:
+                          type: integer
+      operationId: get-product-availability
+    parameters:
+      - schema:
+          type: string
+          format: uuid
+          example: 64756f41-75e2-40ce-b91a-fda5aeb441fc
+          default: 64756f41-75e2-40ce-b91a-fda5aeb441fc
+        name: product_id
+        in: path
+        required: true
+        description: Product UUID
+  /tags:
+    get:
+      tags:
+        - Tags
+      description: List All Tags
+      responses:
+        '200':
+          description: Array of Tags
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/tags'
+      operationId: list-tags
+    post:
+      tags:
+        - Tags
+      description: Create Tag
+      responses:
+        '201':
+          description: A Single Tag
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/tag'
+      security:
+        - Bearer: []
+      operationId: create-tag
+  '/tags/{tag_id}':
+    parameters:
+      - name: tag_id
+        in: path
+        required: true
+        description: The ID of the tag to update or delete
+        schema:
+          type: string
+          format: uuid
+    put:
+      tags:
+        - Tags
+      description: Update Tag
+      responses:
+        '200':
+          description: A Single Tag
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/tag'
+      operationId: update-tag
+      security:
+        - Bearer: []
+    delete:
+      tags:
+        - Tags
+      description: Delete Tag
+      responses:
+        '200':
+          description: Empty Object
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/empty_object'
+      operationId: delete-tag
+      security:
+        - Bearer: []
+  '/products/{product_id}/tags/{tag_id}':
+    post:
+      tags:
+        - Tags
+      summary: Tag Product
+      description: Add a tag to a product
+      parameters:
+        - name: product_id
+          in: path
+          required: true
+          description: ID of the product to be tagged
+          schema:
+            type: string
+            format: uuid
+        - name: tag_id
+          in: path
+          required: true
+          description: Tag ID
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Product Tagged Successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/product'
+              example:
+                $ref: '#/components/examples/productExample'
+      operationId: add-tag-to-product
+      security:
+        - Bearer: []
+    delete:
+      tags:
+        - Tags
+      summary: Untag Product
+      description: Remove a tag from a product
+      parameters:
+        - name: product_id
+          in: path
+          required: true
+          description: Product ID
+          schema:
+            type: string
+            format: uuid
+        - name: tag_id
+          in: path
+          required: true
+          description: ID of Tag to be Removed
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Product Tag Removed Successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/product'
+              example:
+                $ref: '#/components/examples/productExample'
+      operationId: remove-tag-from-product
+      security:
+        - Bearer: []
+  /downloads:
+    post:
+      tags:
+        - Downloads
+      summary: Authenticated Download Request
+      description: Submit download request
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/downloadRequest'
+            examples:
+              download-example-rquest:
+                value:
+                  datetime_start: '2020-12-01T01:00:00Z'
+                  datetime_end: '2020-12-15T01:00:00Z'
+                  watershed_id: 94e7713a-ccd6-432d-b2f0-972422511171
+                  product_id:
+                    - 64756f41-75e2-40ce-b91a-fda5aeb441fc
+        description: The example below is for the Genesee River (Buffalo District) watershed and the "PRISM-EARLY PPT PRECIP 24hr" product.
+      responses:
+        '201':
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/download'
+              examples:
+                example-response-initiated:
+                  value:
+                    id: 497f6eca-6276-4993-bfeb-53cbbbba6f08
+                    sub: 753487e7-10bc-4e69-b3b2-4da33721ea3e
+                    datetime_start: '2020-12-01T01:00:00Z'
+                    datetime_end: '2020-12-15T01:00:00Z'
+                    watershed_id: 94e7713a-ccd6-432d-b2f0-972422511171
+                    product_id:
+                      - 64756f41-75e2-40ce-b91a-fda5aeb441fc
+                    status_id: 4e949624-bc0f-439e-a9f2-25a23938812c
+                    status: INITIATED
+                    progress: 20
+                    file: null
+                    processing_start: '2022-03-01T14:15:22Z'
+                    processing_end: null
+                    watershed_slug: genesee-river
+                    watershed_name: Genesee River
+            application/xml:
+              schema:
+                type: object
+                properties: {}
+      parameters: []
+      security:
+        - Bearer: []
+      operationId: create-download
+  '/downloads/{download_id}':
+    parameters:
+      - name: download_id
+        in: path
+        required: true
+        description: Download ID
+        schema:
+          type: string
+          format: uuid
+    get:
+      tags:
+        - Downloads
+      description: Get Download
+      responses:
+        '200':
+          description: Get A Single Download
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/download'
+              examples:
+                example-download-completed:
+                  value:
+                    id: 497f6eca-6276-4993-bfeb-53cbbbba6f08
+                    sub: 753487e7-10bc-4e69-b3b2-4da33721ea3e
+                    datetime_start: '2020-12-01T01:00:00Z'
+                    datetime_end: '2020-12-15T01:00:00Z'
+                    watershed_id: 94e7713a-ccd6-432d-b2f0-972422511171
+                    product_id:
+                      - 64756f41-75e2-40ce-b91a-fda5aeb441fc
+                    status_id: 4e949624-bc0f-439e-a9f2-25a23938812c
+                    status: SUCCESS
+                    progress: 100
+                    file: 'https://cumulus-api.corps.cloud/path/to/file.dss'
+                    processing_start: '2022-03-01T14:15:22Z'
+                    processing_end: '2022-03-01T14:45:50Z'
+                    watershed_slug: genesee-river
+                    watershed_name: Genesee River
+      parameters: []
+      operationId: get-download
+      summary: Download Status
+    put:
+      tags:
+        - Downloads
+      description: Update Download Status (Packager)
+      responses:
+        '200':
+          description: A Single Download
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/download'
+      operationId: update-download
+      x-internal: true
+      security:
+        - API-Key: []
+      summary: Update Download Status
+  '/downloads/{download_id}/packager_request':
+    parameters:
+      - name: download_id
+        in: path
+        required: true
+        description: Download ID
+        schema:
+          type: string
+          format: uuid
+    get:
+      tags:
+        - Downloads
+      summary: Download Info for Packager
+      description: Returns all information required by packager service to create a DSS File to fulfill download request
+      responses:
+        '200':
+          description: Packager Download Info
+          content:
+            application/json:
+              schema:
+                type: object
+      operationId: packager-download-request
+      x-internal: true
+  /my_downloads:
+    post:
+      tags:
+        - My Downloads
+      summary: Authenticated Download
+      description: Create an authenticated download; Currently supports DSS output format
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/downloadRequest'
+      responses:
+        '201':
+          description: Download Object
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/download'
+      operationId: create-my-download
+      security:
+        - Bearer: []
+    get:
+      tags:
+        - My Downloads
+      summary: List My Downloads
+      description: List downloads associated with logged-in user's account
+      responses:
+        '200':
+          description: 'List of Downloads, All Belong to Logged-In User'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/download'
+      operationId: list-my-downloads
+  /watersheds:
+    get:
+      tags:
+        - Watersheds
+      summary: List Watersheds
+      responses:
+        '200':
+          description: Watershed List
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: object
+      operationId: list-watersheds
+      description: List All Watersheds
+    post:
+      tags:
+        - Watersheds
+      summary: Create Watershed
+      responses:
+        '201':
+          description: Watershed Item
+          content:
+            application/json:
+              schema:
+                type: object
+      operationId: create-watershed
+      security:
+        - Bearer: []
+      description: Create New Watershed
+  '/watersheds/{watershed_id}':
+    parameters:
+      - name: watershed_id
+        in: path
+        required: true
+        description: Watershed ID
+        schema:
+          type: string
+          format: uuid
+    get:
+      tags:
+        - Watersheds
+      summary: Get Watershed
+      responses:
+        '200':
+          description: Watershed Item
+          content:
+            application/json:
+              schema:
+                type: object
+      operationId: get-watershed
+      description: Get single watershed
+    put:
+      tags:
+        - Watersheds
+      summary: Update Watershed
+      responses:
+        '200':
+          description: Watershed Item
+          content:
+            application/json:
+              schema:
+                type: object
+      operationId: update-watershed
+      description: Update Single Watershed
+    delete:
+      tags:
+        - Watersheds
+      summary: Delete Watershed
+      responses:
+        '200':
+          description: Watershed Item
+          content:
+            application/json:
+              schema:
+                type: object
+      operationId: delete-watershed
+      description: Delete Watershed
+  '/watersheds/{watershed_id}/undelete':
+    parameters:
+      - name: watershed_id
+        in: path
+        required: true
+        description: Watershed ID
+        schema:
+          type: string
+          format: uuid
+    post:
+      tags:
+        - Watersheds
+      summary: Undelete Watershed
+      description: Undo delete of a previously deleted watershed
+      responses:
+        '200':
+          description: Watershed Item
+          content:
+            application/json:
+              schema:
+                type: object
+      operationId: undo-watershed-delete
+      security:
+        - Bearer: []
+  /my_watersheds:
+    get:
+      tags:
+        - My Watersheds
+      summary: List My Watersheds
+      description: List all watersheds logged-in user has "favorited"
+      responses:
+        '200':
+          description: Watershed List
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: object
+      operationId: list-my-watersheds
+      deprecated: true
+  '/my_watersheds/{watershed_id}':
+    parameters:
+      - name: watershed_id
+        in: path
+        required: true
+        description: Watershed ID
+        schema:
+          type: string
+          format: uuid
+    post:
+      tags:
+        - My Watersheds
+      summary: My Watershed Add
+      description: Add Watershed to "My Watersheds"
+      responses:
+        '200':
+          description: Empty Object
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/empty_object'
+      operationId: add-watershed-my-watersheds
+      deprecated: true
+      security:
+        - Bearer: []
+    delete:
+      tags:
+        - My Watersheds
+      summary: My Watershed Remove
+      description: Remove Watershed from "My Watersheds"
+      responses:
+        '200':
+          description: Empty Object
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/empty_object'
+      operationId: remove-watershed-my-watersheds
+      deprecated: true
+      security:
+        - Bearer: []
+tags:
+  - name: Acquirables
+  - name: Downloads
+  - name: My Downloads
+  - name: My Watersheds
+  - name: Products
+  - name: Tags
+  - name: Watersheds

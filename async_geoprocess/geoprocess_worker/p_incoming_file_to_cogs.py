@@ -33,13 +33,15 @@ def process(payload, outdir):
     acquirable_name = ".".join(pathparts[:-1])
     filename = pathparts[-1]
 
-    _file = get_infile(bucket, key, os.path.join(outdir, filename))
+    if _file := get_infile(bucket, key, os.path.join(outdir, filename)):
 
-    processor = get_infile_processor(acquirable_name)
+        processor = get_infile_processor(acquirable_name)
 
-    logger.debug(f'Using processor: {processor}')
-       
-    # Process the file and return a list of files
-    outfiles = processor.process(_file, outdir)
-    
-    return outfiles
+        logger.debug(f'Using processor: {processor}')
+        
+        # Process the file and return a list of files
+        outfiles = processor.process(_file, outdir)
+        
+        return outfiles
+
+    return []

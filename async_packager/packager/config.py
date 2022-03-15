@@ -2,6 +2,7 @@ import os
 
 APPLICATION_KEY = os.getenv("APPLICATION_KEY", default="appkey")
 CUMULUS_API_URL = os.getenv('CUMULUS_API_URL', default='http://api')
+PACKAGER_LOG_LEVEL = os.getenv('PACKAGER_LOG_LEVEL', default='INFO').upper()
 
 #################
 # AWS Credentials

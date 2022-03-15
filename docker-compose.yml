@@ -71,8 +71,9 @@ services:
       - CUMULUS_API_URL=http://api
       - ENDPOINT_URL_SQS=http://elasticmq:9324
       - PACKAGER_UPDATE_INTERVAL=5
+      - PACKAGER_LOG_LEVEL=INFO
       - CPL_DEBUG=YES
-      - CPL_CURL_VERBOSE=YES
+      - CPL_CURL_VERBOSE=NO
       - USE_SSL=False
       - WRITE_TO_BUCKET=castle-data-develop
     # Volume to persist packager created file

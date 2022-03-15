@@ -67,7 +67,7 @@ print(f'queue; packager       : {queue_packager}')
 
 # Logger
 logger = logging.getLogger()
-logger.setLevel(logging.INFO)
+logger.setLevel(CONFIG.PACKAGER_LOG_LEVEL)
 logger.addHandler(logging.StreamHandler())
 
 # Packager Update Function

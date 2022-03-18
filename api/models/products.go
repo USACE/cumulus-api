@@ -14,7 +14,7 @@ import (
 
 var listProductsSQL = `SELECT id, slug, name, label, tags, temporal_resolution, temporal_duration,
                               parameter_id, parameter, unit_id, unit, dss_fpart, description,
-							  suite_id, suite, after, before, productfile_count
+							  suite_id, suite, after, before, productfile_count, last_forecast_version
 	                   FROM v_product`
 
 // ProductInfo holds information required to create a product
@@ -55,9 +55,10 @@ type Product struct {
 // Given an hourly product (TemporalResolution 3600 (seconds)) and
 // 12 ProductFiles on hand, we can calculate PercentCoverage as 50.00
 type CoverageSummary struct {
-	After            *time.Time `json:"after" db:"after"`
-	Before           *time.Time `json:"before" db:"before"`
-	ProductfileCount int        `json:"productfile_count" db:"productfile_count"`
+	After               *time.Time `json:"after" db:"after"`
+	Before              *time.Time `json:"before" db:"before"`
+	ProductfileCount    int        `json:"productfile_count" db:"productfile_count"`
+	LastForecastVersion *time.Time `json:"last_forecast_version" db:"last_forecast_version"`
 }
 
 // Availability includes a date count for each product id

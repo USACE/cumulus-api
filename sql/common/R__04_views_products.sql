@@ -45,6 +45,7 @@ CREATE OR REPLACE VIEW v_product AS (
            u.name                            AS unit,
            pf.after                          AS after,
            pf.before                         AS before,
+           pf.last_forecast_version          AS last_forecast_version,
            COALESCE(pf.productfile_count, 0) AS productfile_count
 	FROM product a
 	JOIN unit u ON u.id = a.unit_id
@@ -55,7 +56,8 @@ CREATE OR REPLACE VIEW v_product AS (
         SELECT product_id    AS product_id,
                 COUNT(id)     AS productfile_count,
                 MIN(datetime) AS after,
-                MAX(datetime) AS before
+                MAX(datetime) AS before,
+                NULLIF(max(productfile."version"),'1111-11-11T11:11:11.11Z') AS last_forecast_version
         FROM productfile
         GROUP BY product_id
     ) AS pf ON pf.product_id = a.id

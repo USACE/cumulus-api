@@ -1,6 +1,6 @@
 {
 	"info": {
-		"_postman_id": "7c202ca4-4ce6-49b1-be3a-d4e41d0fa024",
+		"_postman_id": "0738872b-44df-4c26-a47a-53700580689e",
 		"name": "cumulus-regression-admin",
 		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
 	},
@@ -1124,13 +1124,14 @@
 									"        \"description\": { \"type\": \"string\" },",
 									"        \"after\": {\"type\": [\"null\", \"string\"]},",
 									"        \"before\": {\"type\": [\"null\", \"string\"]},",
+									"        \"last_forecast_version\": {\"type\": [\"null\", \"string\"]},",
 									"        \"productfile_count\": {\"type\": \"number\"},",
 									"        \"suite_id\" : { \"type\": \"string\"},",
 									"        \"suite\" : { \"type\": \"string\"},",
 									"        \"label\" : { \"type\": [\"null\", \"string\"]}",
 									"    },",
 									"    \"required\": [\"id\", \"slug\", \"tags\", \"name\", \"temporal_resolution\", \"temporal_duration\", \"dss_fpart\",",
-									"                 \"parameter_id\", \"parameter\", \"unit_id\", \"unit\", \"suite_id\", \"suite\", \"description\", \"after\", \"before\", \"productfile_count\"",
+									"                 \"parameter_id\", \"parameter\", \"unit_id\", \"unit\", \"suite_id\", \"suite\", \"description\", \"after\", \"before\", \"last_forecast_version\", \"productfile_count\"",
 									"    ],",
 									"    \"additionalProperties\": false",
 									"}",

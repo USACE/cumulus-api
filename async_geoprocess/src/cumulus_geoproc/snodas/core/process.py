@@ -1,6 +1,6 @@
 #!/usr/env python3
-import logging
-logging.basicConfig()
+
+# logging.basicConfig()
 
 import datetime
 import numpy as np
@@ -14,14 +14,14 @@ from ...geoprocess.core.base import (
     create_overviews,
     scale_raster_values,
     translate,
-    write_array_to_raster
+    write_array_to_raster,
 )
 
 from ...handyutils.core import (
     gunzip_file,
     change_file_extension,
     delete_files_by_extension,
-    mkdir_p
+    mkdir_p,
 )
 
 # snodas module
@@ -29,25 +29,25 @@ from .helpers import snodas_get_headerfile
 
 
 def snodas_filename_prefix(infile_type):
-    
-    if infile_type.upper() == 'UNMASKED':
-        return 'zz'
-    elif infile_type.upper() == 'MASKED':
-        return 'us'
+
+    if infile_type.upper() == "UNMASKED":
+        return "zz"
+    elif infile_type.upper() == "MASKED":
+        return "us"
 
 
 def snodas_filenames(datetime, infile_type):
     """Return a dictionary of SNODAS filenames for a given datetime"""
 
-    dtstr = datetime.strftime('%Y%m%d')
+    dtstr = datetime.strftime("%Y%m%d")
 
     prefix = snodas_filename_prefix(infile_type)
 
     filenames = {
-        'nohrsc-snodas-swe': '{}_ssmv11034tS__T0001TTNATS{}05HP001',
-        'nohrsc-snodas-snowdepth': '{}_ssmv11036tS__T0001TTNATS{}05HP001',
-        'nohrsc-snodas-snowpack-average-temperature': '{}_ssmv11038wS__A0024TTNATS{}05DP001',
-        'nohrsc-snodas-snowmelt': '{}_ssmv11044bS__T0024TTNATS{}05DP000',
+        "nohrsc-snodas-swe": "{}_ssmv11034tS__T0001TTNATS{}05HP001",
+        "nohrsc-snodas-snowdepth": "{}_ssmv11036tS__T0001TTNATS{}05HP001",
+        "nohrsc-snodas-snowpack-average-temperature": "{}_ssmv11038wS__A0024TTNATS{}05DP001",
+        "nohrsc-snodas-snowmelt": "{}_ssmv11044bS__T0024TTNATS{}05DP000",
     }
 
     return {k: v.format(prefix, dtstr) for k, v in filenames.items()}
@@ -55,16 +55,18 @@ def snodas_filenames(datetime, infile_type):
 
 def computed_filenames(datetime, infile_type):
 
-    dtstr = datetime.strftime('%Y%m%d')
+    dtstr = datetime.strftime("%Y%m%d")
     prefix = snodas_filename_prefix(infile_type)
 
     return {
-        'nohrsc-snodas-coldcontent': '{}_coldcontent_{}'.format(prefix, dtstr),
-        'nohrsc-snodas-snowmeltmm': '{}_snowmeltmm_{}'.format(prefix, dtstr)
+        "nohrsc-snodas-coldcontent": "{}_coldcontent_{}".format(prefix, dtstr),
+        "nohrsc-snodas-snowmeltmm": "{}_snowmeltmm_{}".format(prefix, dtstr),
     }
 
 
-def snodas_write_coldcontent(snowpack_average_temperature, snow_water_equivalent, outfile):
+def snodas_write_coldcontent(
+    snowpack_average_temperature, snow_water_equivalent, outfile
+):
 
     # snowpack_average_temperature dataset
     snowtemp_ds = gdal.Open(snowpack_average_temperature, gdal.GA_ReadOnly)
@@ -78,26 +80,48 @@ def snodas_write_coldcontent(snowpack_average_temperature, snow_water_equivalent
     nodata_value = snowtemp_band.GetNoDataValue()
 
     # snowpack_average_temperature as an array
-    snowtemp_array = snowtemp_band.ReadAsArray(0, 0, xsize, ysize).astype(np.dtype('float32'))
+    snowtemp_array = snowtemp_band.ReadAsArray(0, 0, xsize, ysize).astype(
+        np.dtype("float32")
+    )
 
     # snow_water_equivalent dataset
     swe_ds = gdal.Open(snow_water_equivalent, gdal.GA_ReadOnly)
 
     # snow_water_equivalent array
     # Note: Must have same boundaries and cell size as snowpack_average_temperature
-    swe_array = swe_ds.GetRasterBand(1).ReadAsArray(0, 0, xsize, ysize).astype(np.dtype('float32'))
-    
+    swe_array = (
+        swe_ds.GetRasterBand(1)
+        .ReadAsArray(0, 0, xsize, ysize)
+        .astype(np.dtype("float32"))
+    )
+
     # Convert snowpack_average_temperature to degrees Celsius
-    snowtemp_array_degc = np.where(snowtemp_array == nodata_value, nodata_value, snowtemp_array - 273.15)
+    snowtemp_array_degc = np.where(
+        snowtemp_array == nodata_value, nodata_value, snowtemp_array - 273.15
+    )
 
     # computed coldcontent_array
     coldcontent_array = np.where(
-        snowtemp_array_degc >= 0, 0,
-        np.where((swe_array == nodata_value) | (snowtemp_array_degc == nodata_value), nodata_value, swe_array * 2114 * snowtemp_array_degc / 333000)
+        snowtemp_array_degc >= 0,
+        0,
+        np.where(
+            (swe_array == nodata_value) | (snowtemp_array_degc == nodata_value),
+            nodata_value,
+            swe_array * 2114 * snowtemp_array_degc / 333000,
+        ),
     )
 
     # Write numpy array to TIF
-    coldcontent_raster = write_array_to_raster(coldcontent_array, outfile, xsize, ysize, geotransform, projection, gdal.GDT_Float32, nodata_value)
+    coldcontent_raster = write_array_to_raster(
+        coldcontent_array,
+        outfile,
+        xsize,
+        ysize,
+        geotransform,
+        projection,
+        gdal.GDT_Float32,
+        nodata_value,
+    )
 
     # make sure to free-up memory
     snowtemp_ds = None
@@ -117,9 +141,8 @@ def snodas_write_coldcontent(snowpack_average_temperature, snow_water_equivalent
 
 
 def snodas_translate_args(dt, infile_type):
-
     def get_ullr(dt, infile_type):
-        """UpperLeft/LowerRight of dataset has changed over time 
+        """UpperLeft/LowerRight of dataset has changed over time
         and is a function of when the snodas grids were produced.
 
         For unmasked dataset:
@@ -128,7 +151,7 @@ def snodas_translate_args(dt, infile_type):
             2013-10-01 - 2017-08-23 (including 23rd) :                     [-130.516666666662, 58.2333333333310, -62.2499999999977, 24.0999999999990]
             2017-08-24 - 2019-08-20 (present)                              [-130.516666666661, 58.2333333333310, -62.2499999999975, 24.0999999999990]
 
-            Note: The 2017 shift in the "x" by ~ 0.000000000001 will be disregarded because the difference is far enough to the right of the decimal point 
+            Note: The 2017 shift in the "x" by ~ 0.000000000001 will be disregarded because the difference is far enough to the right of the decimal point
             and should not make a difference. The ULLR values in use at 2019-08-20 will be applied to all transoformations from 2013-10-01 forward (to present)
 
         For masked dataset:
@@ -152,27 +175,38 @@ def snodas_translate_args(dt, infile_type):
         """
 
         # Unmasked dataset
-        if infile_type.upper() == 'UNMASKED':
+        if infile_type.upper() == "UNMASKED":
             if dt < datetime.datetime(2013, 10, 1):
-                ullr = [-130.517083333332, 58.2329166666655, -62.2504166666677, 24.0995833333335]
+                ullr = [
+                    -130.517083333332,
+                    58.2329166666655,
+                    -62.2504166666677,
+                    24.0995833333335,
+                ]
             else:
-                ullr = [-130.516666666661, 58.2333333333310, -62.2499999999975, 24.0999999999990]
-        
-        elif infile_type.upper() == 'MASKED':
+                ullr = [
+                    -130.516666666661,
+                    58.2333333333310,
+                    -62.2499999999975,
+                    24.0999999999990,
+                ]
+
+        elif infile_type.upper() == "MASKED":
             if dt < datetime.datetime(2013, 10, 1):
                 ullr = [-124.73375000, 52.87458333, -66.94208333, 24.87458333]
             else:
                 ullr = [-124.73333333, 52.87500000, -66.94166667, 24.95000000]
 
-
         return [str(v) for v in ullr]
 
-
     args = [
-        '-a_srs', '+proj=longlat +ellps=WGS84 +datum=WGS84 +no_defs',
-        '-a_nodata', '-9999',
-        '-a_ullr', ] + get_ullr(dt, infile_type)
-    
+        "-a_srs",
+        "+proj=longlat +ellps=WGS84 +datum=WGS84 +no_defs",
+        "-a_nodata",
+        "-9999",
+        "-a_ullr",
+    ] + get_ullr(dt, infile_type)
+
     return args
 
 
@@ -182,27 +216,26 @@ def prepared_file_from_tarfile(tar, filename, outdir, infile_type):
     """
     # Extract .dat.gz file
     with tarfile.open(tar) as _tar:
-        outfile = _tar.extract(f'{filename}.dat.gz', path=outdir)
-       
+        outfile = _tar.extract(f"{filename}.dat.gz", path=outdir)
+
     # Unzip file and rename ".dat" extension to ".bil"
     gunzip_file(
-        os.path.join(outdir, f'{filename}.dat.gz'),
-        os.path.join(outdir, change_file_extension(f'{filename}.dat', 'bil'))
+        os.path.join(outdir, f"{filename}.dat.gz"),
+        os.path.join(outdir, change_file_extension(f"{filename}.dat", "bil")),
     )
     # Delete .dat.gz file, it is no longer needed
-    os.remove(os.path.join(outdir, f'{filename}.dat.gz'))
+    os.remove(os.path.join(outdir, f"{filename}.dat.gz"))
 
     # Write appropriate .hdr file in same directory, same root name as .bil file
     shutil.copy(
         snodas_get_headerfile(infile_type),
-        os.path.join(outdir, change_file_extension(f'{filename}.dat', 'hdr'))
+        os.path.join(outdir, change_file_extension(f"{filename}.dat", "hdr")),
     )
 
-    return os.path.abspath(os.path.join(outdir, f'{filename}.bil'))
+    return os.path.abspath(os.path.join(outdir, f"{filename}.bil"))
 
 
 def process_snodas_for_date(dt, infile, infile_type, outdir):
-
     def path_factory(directory, file_format, filename_base=None):
         """Generate a unique absolute path for intermediate processing files
 
@@ -213,49 +246,49 @@ def process_snodas_for_date(dt, infile, infile_type, outdir):
 
         """
 
-        if file_format.upper() == 'TIF':
-            return os.path.join(directory, 'tif', '{}.tif'.format(filename_base))
-        elif file_format.upper() == 'COG':
-            return os.path.join(directory, 'cog', '{}_cloud_optimized.tif'.format(filename_base))
-        elif file_format.upper() == 'RAW':
-            return os.path.join(directory, 'raw')
-
+        if file_format.upper() == "TIF":
+            return os.path.join(directory, "tif", "{}.tif".format(filename_base))
+        elif file_format.upper() == "COG":
+            return os.path.join(
+                directory, "cog", "{}_cloud_optimized.tif".format(filename_base)
+            )
+        elif file_format.upper() == "RAW":
+            return os.path.join(directory, "raw")
 
     def add_to_outdict_if_exists(infile, keyword, outdict):
-        """Check if a file exists. If so, add it to the provided dictionary
-        """
+        """Check if a file exists. If so, add it to the provided dictionary"""
         if os.path.isfile(infile):
             outdict[keyword] = infile
-
 
     # Keep track of files that are processed
     processed_files = {}
 
     # Make temporary directories for processing
-    [mkdir_p('{}/{}'.format(outdir, td)) for td in ('tif', 'cog', 'raw')]
+    [mkdir_p("{}/{}".format(outdir, td)) for td in ("tif", "cog", "raw")]
 
     for parameter, filename in snodas_filenames(dt, infile_type).items():
-        logging.debug(f'working on parameter: {parameter}; filename: {filename}')
+        # logging.debug(f"working on parameter: {parameter}; filename: {filename}")
 
         # extract the raw file of interest into something gdal can work with
         _file = prepared_file_from_tarfile(
-            infile,
-            filename,
-            os.path.join(outdir, "raw"),
-            infile_type
+            infile, filename, os.path.join(outdir, "raw"), infile_type
         )
 
         # NATIVE COORDINATE SYSTEM
         # ========================
         # (1) Save TIF file (translate) (2) Create overviews (pyramids) (3) Save Cloud Optimized Geotiff (translate)
-        outfile = translate(_file, path_factory(outdir, 'tif', filename), extra_args=snodas_translate_args(dt, infile_type))
+        outfile = translate(
+            _file,
+            path_factory(outdir, "tif", filename),
+            extra_args=snodas_translate_args(dt, infile_type),
+        )
         create_overviews(outfile)
-        outfile_cog = translate(outfile, path_factory(outdir, 'cog', filename))
+        outfile_cog = translate(outfile, path_factory(outdir, "cog", filename))
         # Add tif and cloud optimized geotiff to list of outfiles if they were created
         add_to_outdict_if_exists(outfile_cog, parameter, processed_files)
         # Delete tif after cloud optimized geotiff is created
         os.remove(outfile)
-    
+
     # Delete snodas raw .tar file
     os.remove(infile)
 
@@ -263,19 +296,37 @@ def process_snodas_for_date(dt, infile, infile_type, outdir):
     # COMPUTE COLD CONTENT GRID FROM SWE AND SNOWPACK AVERAGE TEMPERATURE
     # -------------------------------------------------------------------
     coldcontent = snodas_write_coldcontent(
-        path_factory(outdir, 'cog', snodas_filenames(dt, infile_type)['nohrsc-snodas-snowpack-average-temperature']),
-        path_factory(outdir, 'cog', snodas_filenames(dt, infile_type)['nohrsc-snodas-swe']),
-        path_factory(outdir, 'tif', computed_filenames(dt, infile_type)['nohrsc-snodas-coldcontent'])
+        path_factory(
+            outdir,
+            "cog",
+            snodas_filenames(dt, infile_type)[
+                "nohrsc-snodas-snowpack-average-temperature"
+            ],
+        ),
+        path_factory(
+            outdir, "cog", snodas_filenames(dt, infile_type)["nohrsc-snodas-swe"]
+        ),
+        path_factory(
+            outdir,
+            "tif",
+            computed_filenames(dt, infile_type)["nohrsc-snodas-coldcontent"],
+        ),
     )
     # Overviews
     create_overviews(coldcontent)
     # Cloud Optimized Geotiff
     coldcontent_cog = translate(
         coldcontent,
-        path_factory(outdir, 'cog', computed_filenames(dt, infile_type)['nohrsc-snodas-coldcontent']),
+        path_factory(
+            outdir,
+            "cog",
+            computed_filenames(dt, infile_type)["nohrsc-snodas-coldcontent"],
+        ),
     )
     # Add tif and cloud optimized geotiff to list of outfiles if they were created
-    add_to_outdict_if_exists(coldcontent_cog, 'nohrsc-snodas-coldcontent', processed_files)
+    add_to_outdict_if_exists(
+        coldcontent_cog, "nohrsc-snodas-coldcontent", processed_files
+    )
 
     # Delete tif after cloud optimized geotiff is created
     os.remove(coldcontent)
@@ -286,19 +337,29 @@ def process_snodas_for_date(dt, infile, infile_type, outdir):
     # Snowmelt in Millimeters, Native Projection
     snowmeltmm = scale_raster_values(
         0.01,
-        path_factory(outdir, 'cog', snodas_filenames(dt, infile_type)['nohrsc-snodas-snowmelt']),
-        path_factory(outdir, 'tif', computed_filenames(dt, infile_type)['nohrsc-snodas-snowmeltmm'])
+        path_factory(
+            outdir, "cog", snodas_filenames(dt, infile_type)["nohrsc-snodas-snowmelt"]
+        ),
+        path_factory(
+            outdir,
+            "tif",
+            computed_filenames(dt, infile_type)["nohrsc-snodas-snowmeltmm"],
+        ),
     )
     # Overviews
     create_overviews(snowmeltmm)
     # Cloud Optimized Geotiff
     snowmeltmm_cog = translate(
         snowmeltmm,
-        path_factory(outdir, 'cog', computed_filenames(dt, infile_type)['nohrsc-snodas-snowmeltmm']),
+        path_factory(
+            outdir,
+            "cog",
+            computed_filenames(dt, infile_type)["nohrsc-snodas-snowmeltmm"],
+        ),
     )
 
     # Add tif and cloud optimized geotiff to list of outfiles if they were created
-    add_to_outdict_if_exists(snowmeltmm_cog, 'nohrsc-snodas-snowmelt', processed_files)
+    add_to_outdict_if_exists(snowmeltmm_cog, "nohrsc-snodas-snowmelt", processed_files)
 
     # Delete tif after cloud optimized geotiff is created
     os.remove(snowmeltmm)
@@ -307,7 +368,12 @@ def process_snodas_for_date(dt, infile, infile_type, outdir):
     outfile_list = []
     for k, v in processed_files.items():
         outfile_list.append(
-            {"file": v, "filetype": k, "datetime": dt.replace(tzinfo=datetime.timezone.utc).isoformat(), "version": None }
+            {
+                "file": v,
+                "filetype": k,
+                "datetime": dt.replace(tzinfo=datetime.timezone.utc).isoformat(),
+                "version": None,
+            }
         )
 
     return outfile_list

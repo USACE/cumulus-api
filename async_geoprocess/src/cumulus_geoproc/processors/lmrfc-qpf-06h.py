@@ -1,5 +1,5 @@
 from datetime import datetime, timezone
-from logging import log
+
 import os
 from uuid import uuid4
 from ..geoprocess.core.base import info, translate, create_overviews

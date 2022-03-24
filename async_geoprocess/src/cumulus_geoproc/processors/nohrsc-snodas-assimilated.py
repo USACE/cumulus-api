@@ -20,10 +20,6 @@ from ..handyutils.core import (
     gunzip_file,
 )
 
-import logging
-
-logger = logging.getLogger(__name__)
-
 
 def get_stop_date(gridfile):
     try:
@@ -32,7 +28,7 @@ def get_stop_date(gridfile):
         return meta["Data#stop_date"]
 
     except Exception as e:
-        logger.error(e)
+        # logger.error(e)
         return None
 
     finally:
@@ -51,7 +47,7 @@ def process(infile, outdir):
 
     outfile_list = []
 
-    logger.debug(infile)
+    # logger.debug(infile)
 
     """
     Inside the original assim_layers_YYYYMMDDHH.tar file:

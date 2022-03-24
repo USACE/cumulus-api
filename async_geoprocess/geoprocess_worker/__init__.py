@@ -12,11 +12,12 @@ from signal import SIGINT, SIGTERM, signal
 # setup the logging for the package
 # ------------------------- #
 logger = logging.getLogger(__package__)
-logger.setLevel(os.getenv("LOGGER_LEVEL", default=2))
+LOGGING_LEVEL = int(os.getenv("LOGGER_LEVEL", default=2))
+logger.setLevel(10)
 
 formatter = logging.Formatter(
-    "%(asctime)s.%(msecs)03d - "
-    + "%(name)s:%(funcName)15s - %(levelname)-5s - %(message)s",
+    "[%(asctime)s.%(msecs)03d] "
+    + "{%(name)s:%(funcName)15s} - %(levelname)-7s - %(message)s",
     "%Y-%m-%dT%H:%M:%S",
 )
 

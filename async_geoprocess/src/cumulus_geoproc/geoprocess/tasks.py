@@ -1,5 +1,5 @@
 from config import celery_app
-from celery.utils.log import get_task_logger
+from celery.utils.log import get_task_  # logger
 
 import io
 import os
@@ -12,8 +12,8 @@ from django.core.files.base import ContentFile
 from products.models import ProductFile, ProductFileStatistics
 from .core.zstats import zstats_redriver, zstats_generic
 
-# Logger for specific task
-logger = get_task_logger(__name__)
+# # logger for specific task
+# logger = get_task_# logger(__name__)
 
 
 @celery_app.task()
@@ -25,7 +25,7 @@ def task_statistics_redrivernorth_for_productfile(productfile_id):
     # Get Productfile
     _pf = ProductFile.objects.get(pk=str(productfile_id))
     # Compute zonal statistics
-    _pfstats = zstats_redriver(f'{SETTINGS.MEDIA_URL}{_pf.file.name}')
+    _pfstats = zstats_redriver(f"{SETTINGS.MEDIA_URL}{_pf.file.name}")
     # Write zonal statistics to file
     _pfs = ProductFileStatistics(
         basin="redrivernorth",
@@ -44,7 +44,7 @@ def task_statistics_redrivernorth_for_productfile(productfile_id):
 def task_statistics_for_productfile(productfile_id, shapefile):
     _pf = ProductFile.objects.get(pk=str(productfile_id))
     # Compute zonal statistics
-    _pfstats = zstats_generic(f'{SETTINGS.MEDIA_URL}{_pf.file.name}', shapefile)
+    _pfstats = zstats_generic(f"{SETTINGS.MEDIA_URL}{_pf.file.name}", shapefile)
     # Write zonal statistics to file
     _basin = os.path.splitext(os.path.basename(shapefile))[0]
     _pfs = ProductFileStatistics(
@@ -60,12 +60,14 @@ def task_statistics_for_productfile(productfile_id, shapefile):
     return {"created": _pfs.pk}
 
 
-@celery_app.task(task_reject_on_worker_lost=True, retry_kwargs={'max_retries': 3})
-def process_and_post(datetime, infile_type, save_method='orm'):
+@celery_app.task(task_reject_on_worker_lost=True, retry_kwargs={"max_retries": 3})
+def process_and_post(datetime, infile_type, save_method="orm"):
 
     with TemporaryDirectory() as td:
         processed_files = process_snodas_for_date(datetime, infile_type, td)
         post_results = []
-        for productname, productfile in processed_files['cog'].items():
-            p = post_to_cumulus(productname, productfile, datetime, save_method=save_method)
+        for productname, productfile in processed_files["cog"].items():
+            p = post_to_cumulus(
+                productname, productfile, datetime, save_method=save_method
+            )
             post_results.append(p)

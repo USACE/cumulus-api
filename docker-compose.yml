@@ -39,6 +39,10 @@ services:
   geoprocess:
     build:
       context: async_geoprocess
+      dockerfile: "Dockerfile"
+      args:
+        HOST_WORKING_DIRECTORY: async_geoprocess
+        LOGGER_LEVEL: 2
     environment:
       - APPLICATION_KEY=appkey
       - AWS_REGION=us-east-1

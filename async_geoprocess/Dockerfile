@@ -1,27 +1,27 @@
 FROM osgeo/gdal
 
+ARG HOST_WORKING_DIRECTORY
+
+ARG LOGGER_LEVEL=2
+
 ENV PYTHONUNBUFFERED=1
 
-RUN apt-get update -y \
-  && apt-get install -y python3-pip
+RUN apt-get update -y && apt-get install -y \
+  python3-pip \
+  && rm -rf /var/lib/apt/lists/*
 
-COPY requirements*.txt ./
-RUN \
-    pip3 install -r requirements-pre.txt; \
-    pip3 install -r requirements.txt
+RUN mkdir -p /app/$HOST_WORKING_DIRECTORY
 
-# Copy, build, install cumulus
-COPY ./cumulus ./cumulus
-RUN cd cumulus \
- && pip3 install wheel \
- && python3 setup.py bdist_wheel \
- && pip3 install dist/snodas-0.0.1-py3-none-any.whl \
- && cd ../ \
- && rm -rf ./cumulus
+ENV HOME /app/$HOST_WORKING_DIRECTORY
 
-# Copy, build, install geoprocess
-RUN mkdir /app
-COPY geoprocess_worker /app/geoprocess_worker
-WORKDIR /app/geoprocess_worker
+WORKDIR $HOME
 
-CMD python3 worker.py
+ENV PATH $HOME/bin:$HOME/local/bin:$PATH
+
+COPY . .
+
+# pip install/upgrade requirements before the cumulus package
+RUN python3 -m pip install --upgrade pip wheel setuptools \
+  && python3 -m pip install $HOME/
+
+CMD ["python3", "start_worker.py"]

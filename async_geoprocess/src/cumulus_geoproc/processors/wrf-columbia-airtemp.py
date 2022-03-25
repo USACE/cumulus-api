@@ -1,4 +1,8 @@
-from ..wrfcolumbia.core import wrf2cog
+"""_summary_
+"""
+
+from cumulus_geoproc.wrfcolumbia.core import wrf2cog
+
 import pyplugs
 
 

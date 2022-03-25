@@ -3,6 +3,7 @@
 
 
 import os
+import sys
 
 import boto3
 import botocore
@@ -59,13 +60,13 @@ def write_database(entries):
 
 def get_product_slugs():
     """Map of <slug>:<product_id> for all products in the database"""
-
     try:
         r = requests.get(f"{CUMULUS_API_URL}/product_slugs")
+        return r.json()
     except Exception as e:
         logger.warning(e)
-
-    return r.json()
+        logger.warning("exit program!")
+        sys.exit(1)
 
 
 def get_infile(bucket, key, filepath):

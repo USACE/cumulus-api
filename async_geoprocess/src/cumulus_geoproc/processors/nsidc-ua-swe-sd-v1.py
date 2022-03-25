@@ -3,7 +3,11 @@ import re
 from uuid import uuid4
 import numpy as np
 from osgeo import gdal
-from ..geoprocess.core.base import translate, create_overviews, write_array_to_raster
+from cumulus_geoproc.geoprocess.core.base import (
+    translate,
+    create_overviews,
+    write_array_to_raster,
+)
 from datetime import datetime, timedelta, timezone
 import pyplugs
 

@@ -1,10 +1,12 @@
-from datetime import datetime, timedelta
+"""_summary_
+"""
+
 import os
 import re
-
-from ..snodas.core.process import process_snodas_for_date
+from datetime import datetime, timedelta
 
 import pyplugs
+from cumulus_geoproc.snodas.core.process import process_snodas_for_date
 
 
 @pyplugs.register

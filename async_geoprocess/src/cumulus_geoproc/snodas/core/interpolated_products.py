@@ -1,34 +1,35 @@
 #!/usr/env python3
+"""_summary_
+"""
 
+
+import importlib.resources
 import os
-
+import tempfile
 from uuid import uuid4
 
-import tempfile
-
-from ...geoprocess.core.base import (
+from cumulus_geoproc.geoprocess.core.base import (
     create_overviews,
-    translate,
     interpolate,
+    translate,
 )
-
-from .lakefix import (
+from cumulus_geoproc.snodas.core.helpers import snodas_get_nodata_value
+from cumulus_geoproc.snodas.core.lakefix import (
     file_needs_lakefix,
-    lakefix_zero_values_to_nodata,
     lakefix_set_cells_to_nodata,
+    lakefix_zero_values_to_nodata,
 )
+from cumulus_geoproc.snodas.core.process import snodas_write_coldcontent
 
-from .process import snodas_write_coldcontent
-
-from .helpers import snodas_get_nodata_value
-
-MASKRASTER = (
-    "/usr/local/lib/python3.8/dist-packages/cumulus/data/no_data_areas_swe_20140201.tif"
-)
+MASKRASTER = None
+if importlib.resources.is_resource("cumulus_geoproc", "data"):
+    MASKRASTER = importlib.resources.path(
+        "cumulus_geoproc", "no_data_areas_swe_20140201.tif"
+    )
 
 
 def create_interpolated_swe(swe, datetime, outfile, max_distance):
-
+    """_summary_"""
     with tempfile.TemporaryDirectory(prefix=uuid4().__str__()) as td:
 
         # Fix the zero values around lakes, a bug in SNODAS files from ~2014 to present (2019)
@@ -62,7 +63,7 @@ def create_interpolated_swe(swe, datetime, outfile, max_distance):
 
 
 def create_interpolated_snowdepth(snowdepth, datetime, outfile, max_distance):
-
+    """_summary_"""
     with tempfile.TemporaryDirectory(prefix=uuid4().__str__()) as td:
 
         # Fix the zero values around lakes, a bug in SNODAS files from ~2014 to present (2019)
@@ -98,7 +99,7 @@ def create_interpolated_snowdepth(snowdepth, datetime, outfile, max_distance):
 def create_interpolated_snowtemp(
     snowtemp, swe_interpolated, datetime, max_distance, outfile
 ):
-
+    """_summary_"""
     with tempfile.TemporaryDirectory(prefix=uuid4().__str__()) as td:
 
         _interpolated = interpolate(
@@ -130,7 +131,7 @@ def create_interpolated_snowtemp(
 def create_interpolated_snowmelt(
     snowmelt, swe_interpolated, datetime, max_distance, outfile
 ):
-
+    """_summary_"""
     with tempfile.TemporaryDirectory(prefix=uuid4().__str__()) as td:
 
         _interpolated = interpolate(
@@ -162,7 +163,7 @@ def create_interpolated_snowmelt(
 def create_interpolated_coldcontent(
     snowpack_average_temperature_interpolated, swe_interpolated, outfile
 ):
-
+    """_summary_"""
     with tempfile.TemporaryDirectory(prefix=uuid4().__str__()) as td:
 
         _coldcontent = snodas_write_coldcontent(

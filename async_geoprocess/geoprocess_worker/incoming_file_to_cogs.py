@@ -14,6 +14,7 @@
 """
 
 import os
+from typing import List
 
 from cumulus_geoproc.processors import geo_proc
 from cumulus_geoproc.processors.ldm import geo_proc as ldm_proc
@@ -23,12 +24,30 @@ from geoprocess_worker import logger
 
 
 def process(bucket, key, plugin, outdir):
+    """_summary_
+
+    Parameters
+    ----------
+    bucket : str
+        _description_
+    key : str
+        _description_
+    plugin : str
+        _description_
+    outdir : str
+        _description_
+
+    Returns
+    -------
+    List[dict]
+        _description_
+    """
     # Filename and product_name
     key_parts = key.split("/")
     filename = key_parts[-1]
 
     if infile := helpers.get_infile(bucket, key, os.path.join(outdir, filename)):
-        if "ldm" in key:
+        if "ldm" in key_parts:
             return ldm_proc(plugin=plugin, infile=infile, outdir=outdir)
         else:
             return geo_proc(plugin=plugin, infile=infile, outdir=outdir)

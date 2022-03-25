@@ -1,3 +1,7 @@
+"""_summary_
+"""
+
+
 import argparse
 import datetime
 
@@ -6,7 +10,7 @@ import sys
 import tempfile
 from timeit import default_timer as timer
 
-from .process import process_snodas_for_date
+from cumulus_geoproc.snodas.core.process import process_snodas_for_date
 
 if __name__ == "__main__":
 
@@ -48,8 +52,8 @@ if __name__ == "__main__":
 
     # Configure logger
     # logging.basicConfig(
-        level=args.loglevel, format="%(asctime)s; %(levelname)s; %(message)s"
-    )
+    #     level=args.loglevel, format="%(asctime)s; %(levelname)s; %(message)s"
+    # )
 
     # Catch bad dates passed on the command-line (i.e. January 32nd: 20190132)
     try:
@@ -57,8 +61,8 @@ if __name__ == "__main__":
         dt = datetime.datetime.strptime(args.date[0], "%Y%m%d")
     except:
         # logging.critical(
-            "Could not parse supplied date argument: {}".format(args.date[0])
-        )
+        #     "Could not parse supplied date argument: {}".format(args.date[0])
+        # )
         sys.exit(1)
 
     # If Output Directory is not explictly provided, work in a temporary directory with automatic file cleanup

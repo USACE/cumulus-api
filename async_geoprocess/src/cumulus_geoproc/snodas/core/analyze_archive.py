@@ -1,3 +1,7 @@
+"""_summary_
+"""
+
+
 import argparse
 import datetime
 import gzip
@@ -5,13 +9,9 @@ import gzip
 import os
 import re
 import tarfile
-import tempfile
 from timeit import default_timer as timer
 
 # https://stackoverflow.com/questions/7370801/measure-time-elapsed-in-python
-
-import config
-from .helpers import snodas_get_raw_infile
 
 
 def headerfile_content_from_raw_archive(infile, headerfile_name):
@@ -107,8 +107,8 @@ if __name__ == "__main__":
 
     # Configure logger
     # logging.basicConfig(
-        level=config.LOGLEVEL, format="%(asctime)s; %(levelname)s; %(message)s"
-    )
+    #     level=config.LOGLEVEL, format="%(asctime)s; %(levelname)s; %(message)s"
+    # )
 
     raw_infiles = get_raw_infile_dict(
         datetime.datetime.strptime(args.start, "%Y%m%d"),
@@ -141,8 +141,8 @@ if __name__ == "__main__":
             with open(args.outfile, "a") as f:
                 f.write("{}\n".format(values_as_csv))
 
-        else:
-            # logging.warning("Missing File: {}".format(raw_infile))
+        # else:
+        # logging.warning("Missing File: {}".format(raw_infile))
 
     finish = timer()
 

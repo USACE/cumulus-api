@@ -1,8 +1,8 @@
 from datetime import datetime, timezone
 import os
 from uuid import uuid4
-from ..geoprocess.core.base import info, translate, create_overviews
-from ..handyutils.core import change_final_file_extension
+from cumulus_geoproc.geoprocess.core.base import info, translate, create_overviews
+from cumulus_geoproc.handyutils.core import change_final_file_extension
 import pyplugs
 
 
@@ -11,6 +11,8 @@ def process(infile, outdir):
     """Takes an infile to process and path to a directory where output files should be saved
     Returns array of objects [{ "filetype": "nohrsc_snodas_swe", "file": "file.tif", ... }, {}, ]
     """
+
+    outfile_list = list()
 
     fileinfo = info(infile)
 

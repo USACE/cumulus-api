@@ -1,27 +1,19 @@
 FROM osgeo/gdal
 
-ARG HOST_WORKING_DIRECTORY
-
-ARG LOGGER_LEVEL=2
-
 ENV PYTHONUNBUFFERED=1
 
 RUN apt-get update -y && apt-get install -y \
   python3-pip \
   && rm -rf /var/lib/apt/lists/*
 
-RUN mkdir -p /app/$HOST_WORKING_DIRECTORY
+RUN mkdir -p /app/async_geoprocess
 
-ENV HOME /app/$HOST_WORKING_DIRECTORY
-
-WORKDIR $HOME
-
-ENV PATH $HOME/bin:$HOME/local/bin:$PATH
+WORKDIR /app/async_geoprocess
 
 COPY . .
 
 # pip install/upgrade requirements before the cumulus package
 RUN python3 -m pip install --upgrade pip wheel setuptools \
-  && python3 -m pip install $HOME/
+  && python3 -m pip install /app/async_geoprocess/
 
-CMD ["python3", "start_worker.py"]
+CMD ["python3", "worker.py"]

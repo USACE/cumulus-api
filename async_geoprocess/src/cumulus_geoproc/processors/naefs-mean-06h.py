@@ -3,7 +3,7 @@ import re
 from uuid import uuid4
 import numpy as np
 from osgeo import gdal
-from ..geoprocess.core.base import (
+from cumulus_geoproc.geoprocess.core.base import (
     info,
     translate,
     create_overviews,

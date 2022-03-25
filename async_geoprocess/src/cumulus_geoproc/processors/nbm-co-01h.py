@@ -2,8 +2,8 @@ import os
 from collections import namedtuple
 from uuid import uuid4
 from datetime import datetime, timezone
-from ..geoprocess.core.base import info, translate, create_overviews
-from ..handyutils.core import change_final_file_extension
+from cumulus_geoproc.geoprocess.core.base import info, translate, create_overviews
+from cumulus_geoproc.handyutils.core import change_final_file_extension
 import pyplugs
 
 

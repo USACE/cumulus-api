@@ -1,31 +1,32 @@
 #!/usr/env python3
+"""
+    Description
 
-# Description
+    The process requires 3 high-level steps:
 
-# The process requires 3 high-level steps:
+    High-level steps
 
-# High-level steps
-#
-# 1) Apply "Lakefix"
-# 2) Interpolate values over waterbodies using bilinear interpolation
-# 3) Restore legitimate nodata cells from original input dataset not located over waterbodies.
+    1) Apply "Lakefix"
+    2) Interpolate values over waterbodies using bilinear interpolation
+    3) Restore legitimate nodata cells from original input dataset not located over waterbodies.
 
-# Details
-#
-# Lakefix: Need to apply the lakefix is based on the date of the file and the variable code (1034 and 1036), which correspond to Snow Water Equivalent and Snow Depth
-#          Some of the values around lakes have been set to 0. They are not necessarily 0, but are more appropriately "nodata".
-#          "Lakefix" is the process of setting these 0 cells to nodata and requires 2 steps:
-#          (1) Set values in the "nodata" areas specified by a Mask Raster to "-9999"
-#          (2) Set values of "-9999" to nodata. This is required so interpolation works
+    Details
+
+    Lakefix: Need to apply the lakefix is based on the date of the file and the variable code (1034 and 1036), which correspond to Snow Water Equivalent and Snow Depth
+            Some of the values around lakes have been set to 0. They are not necessarily 0, but are more appropriately "nodata".
+            "Lakefix" is the process of setting these 0 cells to nodata and requires 2 steps:
+            (1) Set values in the "nodata" areas specified by a Mask Raster to "-9999"
+            (2) Set values of "-9999" to nodata. This is required so interpolation works
+"""
+
 
 # Interpolation:
 import datetime
+import subprocess
 
-import os
 import numpy as np
 from osgeo import gdal, gdal_array
 from pytz import utc
-import subprocess
 
 
 def file_needs_lakefix(process_date, varcode):
@@ -141,15 +142,15 @@ def lakefix_set_cells_to_nodata(file_after_fill, file_before_fill, swe_nodata_fi
 
     # compare datasets size_y
     # logging.debug(
-        f"size_y of arrays: {len(swe)}; {len(arr_before_fill)}; {len(arr_after_fill)}"
-    )
+    #     f"size_y of arrays: {len(swe)}; {len(arr_before_fill)}; {len(arr_after_fill)}"
+    # )
     if len(swe) != len(arr_before_fill) != len(arr_after_fill):
         # logging.critical(f"Datasets do not have the same size_y!")
         return None
     # compare datasets size_x
     # logging.debug(
-        f"size_x of arrays: {len(swe[0])}; {len(arr_before_fill[0])}; {len(arr_after_fill[0])}"
-    )
+    #     f"size_x of arrays: {len(swe[0])}; {len(arr_before_fill[0])}; {len(arr_after_fill[0])}"
+    # )
     if len(swe[0]) != len(arr_before_fill[0]) != len(arr_after_fill[0]):
         # logging.critical(f"Datasets do not have the same size_x!")
         return None

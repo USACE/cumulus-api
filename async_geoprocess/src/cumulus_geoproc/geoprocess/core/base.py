@@ -349,7 +349,7 @@ def warp(infile, outfile, extra_args=[]):
 
     out, err = p.communicate()
 
-    if not os.path.isfile(outfile):
-        # logging.fatal(f"Warp failed; file not created: {outfile}")
+    # if not os.path.isfile(outfile):
+    # logging.fatal(f"Warp failed; file not created: {outfile}")
 
     return outfile

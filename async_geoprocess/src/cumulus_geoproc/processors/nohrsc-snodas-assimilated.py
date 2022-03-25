@@ -7,14 +7,14 @@ from datetime import datetime, timezone
 from collections import namedtuple
 from osgeo import gdal
 from uuid import uuid4
-from ..geoprocess.core.base import (
+from cumulus_geoproc.geoprocess.core.base import (
     info,
     translate,
     create_overviews,
     translate_cog,
     write_array_to_raster,
 )
-from ..handyutils.core import (
+from cumulus_geoproc.handyutils.core import (
     change_file_extension,
     change_final_file_extension,
     gunzip_file,

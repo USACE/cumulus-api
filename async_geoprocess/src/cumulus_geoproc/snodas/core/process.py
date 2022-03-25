@@ -3,29 +3,20 @@
 # logging.basicConfig()
 
 import datetime
-import numpy as np
-from osgeo import gdal
 import os
 import shutil
 import tarfile
 
-
-from ...geoprocess.core.base import (
+import numpy as np
+from cumulus_geoproc.geoprocess.core.base import (
     create_overviews,
     scale_raster_values,
     translate,
     write_array_to_raster,
 )
-
-from ...handyutils.core import (
-    gunzip_file,
-    change_file_extension,
-    delete_files_by_extension,
-    mkdir_p,
-)
-
-# snodas module
-from .helpers import snodas_get_headerfile
+from cumulus_geoproc.handyutils.core import change_file_extension, gunzip_file, mkdir_p
+from cumulus_geoproc.snodas.core.helpers import snodas_get_headerfile
+from osgeo import gdal
 
 
 def snodas_filename_prefix(infile_type):

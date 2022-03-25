@@ -39,10 +39,6 @@ services:
   geoprocess:
     build:
       context: async_geoprocess
-      dockerfile: "Dockerfile"
-      args:
-        HOST_WORKING_DIRECTORY: async_geoprocess
-        LOGGER_LEVEL: 1
     environment:
       - APPLICATION_KEY=appkey
       - AWS_REGION=us-east-1
@@ -55,6 +51,7 @@ services:
       - ENDPOINT_URL_SQS=http://elasticmq:9324
       - ENDPOINT_URL_S3=http://minio:9000
       - USE_SSL=False
+      - LOGGER_LEVEL=DEBUG
     volumes:
       - ./_volumes/async_geoprocess/tmp:/tmp
     restart: always

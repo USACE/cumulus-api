@@ -4,8 +4,8 @@ from datetime import datetime, timezone
 from typing import List, OrderedDict
 from uuid import uuid4
 
-from ..geoprocess.core.base import create_overviews, info, translate, warp
-from ..handyutils.core import change_final_file_extension, gunzip_file
+from cumulus_geoproc.geoprocess.core.base import create_overviews, info, translate, warp
+from cumulus_geoproc.handyutils.core import change_final_file_extension, gunzip_file
 import pyplugs
 
 

@@ -13,8 +13,7 @@ import boto3
 
 import geoprocess_worker.helpers as helpers
 import geoprocess_worker.incoming_file_to_cogs as incoming_file_to_cogs
-
-# import geoprocess_worker.snodas_interpolate as snodas_interpolate
+import geoprocess_worker.snodas_interpolate as snodas_interpolate
 from geoprocess_worker import (
     AWS_ACCESS_KEY_ID,
     AWS_REGION_SQS,
@@ -29,37 +28,41 @@ from geoprocess_worker import (
     logger,
 )
 
-if AWS_ACCESS_KEY_ID is None:
-    # Running in AWS Using IAM Role for Credentials
-    if ENDPOINT_URL_SQS:
-        CLIENT = boto3.resource("sqs", endpoint_url=ENDPOINT_URL_SQS)
-    else:
-        CLIENT = boto3.resource("sqs")
-else:
-    # Local Testing
-    # ElasticMQ with Credentials via AWS_ environment variables
-    CLIENT = boto3.resource(
-        "sqs",
-        endpoint_url=ENDPOINT_URL_SQS,
-        region_name=AWS_REGION_SQS,
-        aws_secret_access_key=AWS_SECRET_ACCESS_KEY,
-        aws_access_key_id=AWS_ACCESS_KEY_ID,
-        use_ssl=USE_SSL,
-    )
+PRODUCT_MAP = helpers.get_product_slugs()
+logger.debug("Initialize Product Slug -> UUID mapping'%s'" % PRODUCT_MAP)
 
-# Incoming Requests
-queue = CLIENT.get_queue_by_name(QueueName=QUEUE_NAME)
-logger.info(f"{queue=}")
+
+def update_product_map():
+    if PRODUCT_MAP == helpers.get_product_slugs():
+        return False
+    else:
+        PRODUCT_MAP = helpers.get_product_slugs()
+        return True
 
 
 def processed_files(file_list, acq_file_id):
-    product_map = helpers.get_product_slugs()
+    """Send processed files to their respective S3 bucket and record
+    its payload information for the cumulus database
+
+    Parameters
+    ----------
+    file_list : List[dict]
+        list of dictionaries produced by the processor
+    acq_file_id : str
+        acquirable file id
+
+    Returns
+    -------
+    List[dict]
+        list of dictionaries describing successful grid transforms
+    """
+
     uploads = list()
     for file in file_list:
         ProcessorPayload = namedtuple("ProcessorPayload", file)(**file)
         # See that we have a valid
-        if ProcessorPayload.filetype in product_map.keys():
-            logger.debug("found acquirable: {ProcessorPayload.filetype}")
+        if ProcessorPayload.filetype in PRODUCT_MAP.keys():
+            logger.info(f"found acquirable: {ProcessorPayload.filetype}")
             # Write output files to different bucket
             write_key = "cumulus/products/{}/{}".format(
                 ProcessorPayload.filetype, os.path.basename(ProcessorPayload.file)
@@ -85,7 +88,7 @@ def processed_files(file_list, acq_file_id):
                     {
                         "datetime": file["datetime"],
                         "file": write_key,
-                        "product_id": product_map[ProcessorPayload.filetype],
+                        "product_id": PRODUCT_MAP[ProcessorPayload.filetype],
                         "version": file_version,
                         "acquirablefile_id": acq_file_id,
                     }
@@ -100,6 +103,8 @@ def handle_message(msg):
 
     Geo processing is either 'snodas-interpolate' or 'incoming-file-to-cogs'
 
+    Send payload to database for successful uploaded and processed file(s)
+
     Parameters
     ----------
     msg : sqs.Message
@@ -112,18 +117,27 @@ def handle_message(msg):
     """
     payload = json.loads(msg.body)
     geoprocess = payload["geoprocess"]
-    GeoCfg = namedtuple("GeoCfg", payload["geoprocess_config"])(
-        **payload["geoprocess_config"]
-    )
 
     logger.info(f"Geo Process: {geoprocess}")
-    logger.info(f"Geo Processor Plugin: {GeoCfg.acquirable_slug}")
 
     with TemporaryDirectory() as temporary_directory:
         if geoprocess == "snodas-interpolate":
-            pass
-            # outfiles = snodas_interpolate.process(geoprocess_config, temporary_directory)
+            GeoCfg = namedtuple("GeoCfg", payload["geoprocess_config"])(
+                **payload["geoprocess_config"]
+            )
+            outfiles = snodas_interpolate.process(
+                bucket=GeoCfg.bucket,
+                date_time=GeoCfg.datetime,
+                max_dist=int(GeoCfg.max_distance),
+                outdir=temporary_directory,
+            )
         elif geoprocess == "incoming-file-to-cogs":
+            GeoCfg = namedtuple("GeoCfg", payload["geoprocess_config"])(
+                **payload["geoprocess_config"]
+            )
+
+            logger.info(f"Geo Processor Plugin: {GeoCfg.acquirable_slug}")
+
             outfiles = incoming_file_to_cogs.process(
                 bucket=GeoCfg.bucket,
                 key=GeoCfg.key,
@@ -136,15 +150,42 @@ def handle_message(msg):
         )
 
         successes = processed_files(file_list=outfiles, acq_file_id=acquirablefile_id)
-        logger.debug(f"{successes=}")
+        logger.debug(f"Successful Processed Files: {successes}")
 
         if len(successes) > 0:
             count = helpers.write_database(successes)
 
-    return {"count": count, "productfiles": successes}
+        return {"count": count, "productfiles": successes}
 
 
 def start_worker():
+    """starting the worker thread"""
+    if AWS_ACCESS_KEY_ID is None:
+        # Running in AWS Using IAM Role for Credentials
+        if ENDPOINT_URL_SQS:
+            CLIENT = boto3.resource("sqs", endpoint_url=ENDPOINT_URL_SQS)
+        else:
+            CLIENT = boto3.resource("sqs")
+    else:
+        # Local Testing
+        # ElasticMQ with Credentials via AWS_ environment variables
+        CLIENT = boto3.resource(
+            "sqs",
+            endpoint_url=ENDPOINT_URL_SQS,
+            region_name=AWS_REGION_SQS,
+            aws_secret_access_key=AWS_SECRET_ACCESS_KEY,
+            aws_access_key_id=AWS_ACCESS_KEY_ID,
+            use_ssl=USE_SSL,
+        )
+
+    # Incoming Requests
+    queue = CLIENT.get_queue_by_name(QueueName=QUEUE_NAME)
+
+    logger.info(
+        "%(spacer)s Starting the worker thread %(spacer)s" % {"spacer": "*" * 20}
+    )
+    logger.info("Queue: %s" % queue)
+
     while True:
         messages = queue.receive_messages(
             MaxNumberOfMessages=MAX_Q_MESSAGES, WaitTimeSeconds=WAIT_TIME_SECONDS
@@ -154,6 +195,7 @@ def start_worker():
 
         for message in messages:
             try:
+                logger.info("%(spacer)s new message %(spacer)s" % {"spacer": "*" * 20})
                 logger.debug(handle_message(message))
             except Exception as ex:
                 logger.warning(ex)

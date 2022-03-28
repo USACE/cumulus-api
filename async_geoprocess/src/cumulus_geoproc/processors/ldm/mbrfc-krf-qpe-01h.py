@@ -1,15 +1,16 @@
-"""_summary_
+"""Missouri Basin River Forecast Center
 """
 
 
-from datetime import datetime, timezone
-
 import os
-from uuid import uuid4
-from cumulus_geoproc.geoprocess.core.base import info, translate, create_overviews, warp
-from cumulus_geoproc.handyutils.core import change_final_file_extension, gunzip_file
 from dataclasses import dataclass
+from datetime import datetime, timezone
 from typing import List, OrderedDict
+from uuid import uuid4
+
+from cumulus_geoproc.geoprocess.core.base import create_overviews, info, translate, warp
+from cumulus_geoproc.handyutils.core import change_final_file_extension, gunzip_file
+import pyplugs
 
 
 @dataclass
@@ -50,13 +51,27 @@ class Metadata:
 #     PROD_STATUS: str
 #     TYPE: str
 
-import pyplugs
-
 
 @pyplugs.register
-def process(infile, outdir) -> List:
-    """Takes an infile to process and path to a directory where output files should be saved
-    Returns array of objects [{ "filetype": "nohrsc_snodas_swe", "file": "file.tif", ... }, {}, ]
+def process(infile: str, outdir: str):
+    """Grid processor
+
+    Parameters
+    ----------
+    infile : str
+        path to input file for processing
+    outdir : str
+        path to processor result
+
+    Returns
+    -------
+    List[dict]
+        {
+            "filetype": str,         Matching database acquirable
+            "file": str,             Converted file
+            "datetime": str,         Valid Time, ISO format with timezone
+            "version": str           Reference Time (forecast), ISO format with timezone
+        }
     """
     band_number = 1
     ftype = "mbrfc-krf-qpe-01h"
@@ -73,8 +88,8 @@ def process(infile, outdir) -> List:
     meta_dict = band.metadata[""]
     meta = Metadata(**meta_dict)
 
-    # ref_time = datetime.fromtimestamp(int(meta.GRIB_REF_TIME.split(" ")[0]))
-    valid_time = datetime.fromtimestamp(int(meta.GRIB_VALID_TIME.split(" ")[0]))
+    # ref_time = datetime.fromtimestamp(int(meta.GRIB_REF_TIME))
+    valid_time = datetime.fromtimestamp(int(meta.GRIB_VALID_TIME), timezone.utc)
 
     # Extract Band; Convert to COG
 
@@ -95,7 +110,7 @@ def process(infile, outdir) -> List:
         {
             "filetype": ftype,
             "file": cog,
-            "datetime": valid_time.replace(tzinfo=timezone.utc).isoformat(),
+            "datetime": valid_time.isoformat(),
             "version": None,
         }
     )

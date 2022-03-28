@@ -1,4 +1,4 @@
-"""_summary_
+"""National Blend of Models: Hourly air temperature and QPF
 """
 
 
@@ -12,26 +12,25 @@ import pyplugs
 
 
 @pyplugs.register
-def process(infile, outdir):
-    """National Blend of Models: Hourly air temperature and QPF
+def process(infile: str, outdir: str):
+    """Grid processor
 
     Parameters
     ----------
-    infile : String
-        FQPN to file to process
-    outdir : String
-        Path to directory to save processed file
+    infile : str
+        path to input file for processing
+    outdir : str
+        path to processor result
 
     Returns
     -------
-    List of objects
+    List[dict]
         {
-            "filetype": acquirable slug,
-            "file": GeoTiff from processor,
-            "datetime": datetime.isoformat(),
-            "version": version.isoformat()
+            "filetype": str,         Matching database acquirable
+            "file": str,             Converted file
+            "datetime": str,         Valid Time, ISO format with timezone
+            "version": str           Reference Time (forecast), ISO format with timezone
         }
-
     """
 
     outfile_list = list()

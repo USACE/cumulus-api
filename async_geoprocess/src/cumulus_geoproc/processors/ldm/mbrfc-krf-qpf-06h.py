@@ -1,4 +1,4 @@
-"""_summary_
+"""Missouri Basin River Forecast Center
 """
 
 
@@ -10,6 +10,7 @@ from cumulus_geoproc.geoprocess.core.base import info, translate, create_overvie
 from cumulus_geoproc.handyutils.core import change_final_file_extension, gunzip_file
 from dataclasses import dataclass
 from typing import List, OrderedDict
+import pyplugs
 
 
 @dataclass
@@ -50,13 +51,27 @@ class Metadata:
 #     PROD_STATUS: str
 #     TYPE: str
 
-import pyplugs
-
 
 @pyplugs.register
-def process(infile, outdir) -> List:
-    """Takes an infile to process and path to a directory where output files should be saved
-    Returns array of objects [{ "filetype": "nohrsc_snodas_swe", "file": "file.tif", ... }, {}, ]
+def process(infile: str, outdir: str):
+    """Grid processor
+
+    Parameters
+    ----------
+    infile : str
+        path to input file for processing
+    outdir : str
+        path to processor result
+
+    Returns
+    -------
+    List[dict]
+        {
+            "filetype": str,         Matching database acquirable
+            "file": str,             Converted file
+            "datetime": str,         Valid Time, ISO format with timezone
+            "version": str           Reference Time (forecast), ISO format with timezone
+        }
     """
     band_number = 1
     ftype = "mbrfc-krf-qpf-06h"

@@ -1,4 +1,6 @@
-"""_summary_
+"""North Central River Forecast Center
+
+Real Time Mesoscale Analysis Observed 01Hr Surface Temperature
 """
 
 
@@ -14,24 +16,24 @@ import pyplugs
 
 
 @pyplugs.register
-def process(infile, outdir):
-    """NCRFC Real Time Mesoscale Analysis Observed 01Hr Surface Temperature
+def process(infile: str, outdir: str):
+    """Grid processor
 
     Parameters
     ----------
-    infile : string
-        File to be processed
-    outdir : string
-        Directory where output files are saved
+    infile : str
+        path to input file for processing
+    outdir : str
+        path to processor result
 
-    Return:
+    Returns
     -------
-    list[dict]
+    List[dict]
         {
-            "filetype": string,         Matching database acquirable
-            "file": string,             Converted file
-            "datetime": string,         Valid Time, ISO format with timezone
-            "version": string           Reference Time (forecast), ISO format with timezone
+            "filetype": str,         Matching database acquirable
+            "file": str,             Converted file
+            "datetime": str,         Valid Time, ISO format with timezone
+            "version": str           Reference Time (forecast), ISO format with timezone
         }
     """
 

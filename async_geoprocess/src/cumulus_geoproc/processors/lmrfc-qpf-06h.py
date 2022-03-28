@@ -1,4 +1,6 @@
-"""_summary_
+"""Lower Mississippi River Forecast Center (LMRFC)
+
+Quantitative Precipitation Forecast (QPF), 6 hour
 """
 
 
@@ -40,22 +42,26 @@ class Metadata:
     GRIB_VALID_TIME: str
 
 
-# @dataclass
-# class GribIds():
-#     CENTER: str
-#     SUBCENTER: int
-#     MASTER_TABLE: int
-#     LOCAL_TABLE: int
-#     SIGNF_REF_TIME: str
-#     REF_TIME: datetime
-#     PROD_STATUS: str
-#     TYPE: str
-
-
 @pyplugs.register
-def process(infile, outdir) -> List:
-    """Takes an infile to process and path to a directory where output files should be saved
-    Returns array of objects [{ "filetype": "nohrsc_snodas_swe", "file": "file.tif", ... }, {}, ]
+def process(infile: str, outdir: str):
+    """Grid processor
+
+    Parameters
+    ----------
+    infile : str
+        path to input file for processing
+    outdir : str
+        path to processor result
+
+    Returns
+    -------
+    List[dict]
+        {
+            "filetype": str,         Matching database acquirable
+            "file": str,             Converted file
+            "datetime": str,         Valid Time, ISO format with timezone
+            "version": str           Reference Time (forecast), ISO format with timezone
+        }
     """
     band_number = 1
     ftype = "lmrfc-qpf-06h"

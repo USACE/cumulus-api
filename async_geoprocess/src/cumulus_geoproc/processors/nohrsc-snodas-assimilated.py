@@ -1,4 +1,9 @@
-"""_summary_
+"""NOHRSC SNODAS Assimilated
+
+Inside the original assim_layers_YYYYMMDDHH.tar file:
+Inside a folder that looks like: ssm1054_2022012212.20220122134004 (without the word 'east')
+There is a file that looks like: ssm1054_2022012212.nc.gz
+Need to uncompress that NetCDF file
 """
 
 
@@ -44,21 +49,30 @@ import pyplugs
 
 
 @pyplugs.register
-def process(infile, outdir):
-    """Takes an infile to process and path to a directory where output files should be saved
-    Returns array of objects [{ "filetype": "nohrsc_snodas_swe", "file": "file.tif", ... }, {}, ]
+def process(infile: str, outdir: str):
+    """Grid processor
+
+    Parameters
+    ----------
+    infile : str
+        path to input file for processing
+    outdir : str
+        path to processor result
+
+    Returns
+    -------
+    List[dict]
+        {
+            "filetype": str,         Matching database acquirable
+            "file": str,             Converted file
+            "datetime": str,         Valid Time, ISO format with timezone
+            "version": str           Reference Time (forecast), ISO format with timezone
+        }
     """
 
     outfile_list = []
 
     # logger.debug(infile)
-
-    """
-    Inside the original assim_layers_YYYYMMDDHH.tar file:
-    Inside a folder that looks like: ssm1054_2022012212.20220122134004 (without the word 'east')
-    There is a file that looks like: ssm1054_2022012212.nc.gz
-    Need to uncompress that NetCDF file
-    """
 
     working_dir = os.path.dirname(infile)
     r = re.compile("ssm1054_\d{10}.\d{14}/ssm1054_\d{10}.nc.gz")

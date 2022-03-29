@@ -1,37 +1,30 @@
-"""geoprocess worker helper
-"""
-
-
-import os
-import sys
-
 import boto3
 import botocore
 import botocore.exceptions
+from botocore.client import Config
+
+from datetime import timezone
+
+import os
 import requests
 
-from geoprocess_worker import (
-    APPLICATION_KEY,
-    AWS_ACCESS_KEY_ID,
-    AWS_SECRET_ACCESS_KEY,
-    CUMULUS_API_URL,
-    ENDPOINT_URL_S3,
-    logger,
-)
+import config as CONFIG
 
-# from botocore.client import Config
+import logging
+
+logger = logging.getLogger(__name__)
 
 
 def s3_kwargs():
     kwargs = {}
-    if ENDPOINT_URL_S3:
-        kwargs["endpoint_url"] = ENDPOINT_URL_S3
+    if CONFIG.ENDPOINT_URL_S3:
+        kwargs["endpoint_url"] = CONFIG.ENDPOINT_URL_S3
 
-    if AWS_ACCESS_KEY_ID:
-        kwargs["aws_access_key_id"] = AWS_ACCESS_KEY_ID
+    if CONFIG.AWS_ACCESS_KEY_ID:
+        kwargs["aws_access_key_id"] = CONFIG.AWS_ACCESS_KEY_ID
 
-    if AWS_SECRET_ACCESS_KEY:
-        kwargs["aws_secret_access_key"] = AWS_SECRET_ACCESS_KEY
+    if CONFIG.AWS_SECRET_ACCESS_KEY:
+        kwargs["aws_secret_access_key"] = CONFIG.AWS_SECRET_ACCESS_KEY
 
     return kwargs
 
@@ -47,26 +40,36 @@ def s3_client():
 
 
 def write_database(entries):
+    payload = [
+        {
+            "datetime": e["datetime"],
+            "file": e["file"],
+            "product_id": e["product_id"],
+            "version": e["version"],
+            "acquirablefile_id": e["acquirablefile_id"],
+        }
+        for e in entries
+    ]
     try:
         r = requests.post(
-            f"{CUMULUS_API_URL}/productfiles?key={APPLICATION_KEY}",
-            json=entries,
+            f"{CONFIG.CUMULUS_API_URL}/productfiles?key={CONFIG.APPLICATION_KEY}",
+            json=payload,
         )
     except Exception as e:
-        logger.warning(e)
+        print(e)
 
     return len(entries)
 
 
 def get_product_slugs():
     """Map of <slug>:<product_id> for all products in the database"""
+
     try:
-        r = requests.get(f"{CUMULUS_API_URL}/product_slugs")
-        return r.json()
+        r = requests.get(f"{CONFIG.CUMULUS_API_URL}/product_slugs")
     except Exception as e:
-        logger.warning(e)
-        logger.warning("exit program!")
-        sys.exit(1)
+        print(e)
+
+    return r.json()
 
 
 def get_infile(bucket, key, filepath):

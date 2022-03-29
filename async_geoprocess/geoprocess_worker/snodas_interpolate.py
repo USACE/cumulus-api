@@ -63,6 +63,8 @@ def process(bucket, date_time, max_distance, outdir):
     # SWE
     # ======
     product_name = "nohrsc-snodas-swe"
+    logger.info(f"Processing: {product_name}")
+
     key = f'cumulus/products/nohrsc-snodas-swe/zz_ssmv11034tS__T0001TTNATS{dt.strftime("%Y%m%d")}05HP001_cloud_optimized.tif'
 
     swe = helpers.get_infile(bucket, key, os.path.join(outdir, f"swe_{uuid.uuid4()}"))
@@ -70,6 +72,9 @@ def process(bucket, date_time, max_distance, outdir):
         logger.error(f"Unable to retrieve object with key: {key}")
         return None
 
+    logger.debug(f"SWE: {swe}")
+
+    logger.info("Create interpolated SWE")
     swe_interpolated = create_interpolated_swe(
         swe,
         dt,

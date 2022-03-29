@@ -6,6 +6,7 @@ infinit while loop receives SQS messages and process them
 import json
 import os
 import shutil
+import time
 from collections import namedtuple
 from tempfile import TemporaryDirectory
 
@@ -40,7 +41,7 @@ def update_product_map():
         return True
 
 
-def processed_files(file_list, acq_file_id):
+def processed_files(file_list: list, acq_file_id: str):
     """Send processed files to their respective S3 bucket and record
     its payload information for the cumulus database
 
@@ -125,10 +126,12 @@ def handle_message(msg):
             GeoCfg = namedtuple("GeoCfg", payload["geoprocess_config"])(
                 **payload["geoprocess_config"]
             )
+            logger.debug(f"{GeoCfg=}")
+            logger.debug(f"{temporary_directory=}")
             outfiles = snodas_interpolate.process(
                 bucket=GeoCfg.bucket,
                 date_time=GeoCfg.datetime,
-                max_dist=int(GeoCfg.max_distance),
+                max_distance=int(GeoCfg.max_distance),
                 outdir=temporary_directory,
             )
         elif geoprocess == "incoming-file-to-cogs":
@@ -136,6 +139,8 @@ def handle_message(msg):
                 **payload["geoprocess_config"]
             )
 
+            logger.debug(f"{GeoCfg=}")
+            logger.debug(f"{temporary_directory=}")
             logger.info(f"Geo Processor Plugin: {GeoCfg.acquirable_slug}")
 
             outfiles = incoming_file_to_cogs.process(
@@ -150,15 +155,15 @@ def handle_message(msg):
         )
 
         successes = processed_files(file_list=outfiles, acq_file_id=acquirablefile_id)
-        logger.debug(f"Successful Processed Files: {successes}")
+        logger.debug(f"Successfully Processed Files: {successes}")
 
-        if len(successes) > 0:
-            count = helpers.write_database(successes)
+        count = helpers.write_database(successes)
 
         return {"count": count, "productfiles": successes}
 
 
 def start_worker():
+    start = time.time()
     """starting the worker thread"""
     if AWS_ACCESS_KEY_ID is None:
         # Running in AWS Using IAM Role for Credentials
@@ -187,6 +192,12 @@ def start_worker():
     logger.info("Queue: %s" % queue)
 
     while True:
+        # check for updated product mapping each hour
+        if (time.time() - start) > 3600:
+            PRODUCT_MAP = helpers.get_product_slugs()
+            start = time.time()
+            logger.info("Product mapping updated")
+
         messages = queue.receive_messages(
             MaxNumberOfMessages=MAX_Q_MESSAGES, WaitTimeSeconds=WAIT_TIME_SECONDS
         )

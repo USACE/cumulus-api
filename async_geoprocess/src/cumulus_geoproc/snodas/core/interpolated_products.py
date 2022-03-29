@@ -3,8 +3,8 @@
 """
 
 
-import importlib.resources
 import os
+import sys
 import tempfile
 from uuid import uuid4
 
@@ -21,15 +21,16 @@ from cumulus_geoproc.snodas.core.lakefix import (
 )
 from cumulus_geoproc.snodas.core.process import snodas_write_coldcontent
 
-MASKRASTER = None
-if importlib.resources.is_resource("cumulus_geoproc", "data"):
-    MASKRASTER = importlib.resources.path(
-        "cumulus_geoproc", "no_data_areas_swe_20140201.tif"
-    )
+from cumulus_geoproc import logger
+
+pkg_name = __name__.split(".")[0]
+pkg_path = os.path.dirname(sys.modules[pkg_name].__file__)
+MASKRASTER = os.path.join(pkg_path, "data", "no_data_areas_swe_20140201.tif")
 
 
 def create_interpolated_swe(swe, datetime, outfile, max_distance):
     """_summary_"""
+
     with tempfile.TemporaryDirectory(prefix=uuid4().__str__()) as td:
 
         # Fix the zero values around lakes, a bug in SNODAS files from ~2014 to present (2019)

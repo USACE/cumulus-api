@@ -14,7 +14,7 @@ class package_logger(logging.Logger):
 
         formatter = logging.Formatter(
             "[%(asctime)s.%(msecs)03d] "
-            + "{%(name)20s:%(funcName)20s} - %(levelname)-7s - %(message)s",
+            + "{%(name)s:%(funcName)s} - %(levelname)-s - %(message)s",
             "%Y-%m-%dT%H:%M:%S",
         )
 

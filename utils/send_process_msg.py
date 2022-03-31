@@ -37,6 +37,9 @@ class GeoProcess(NamedTuple):
 class GeoProcessConfig(NamedTuple):
     bucket: str
     key: str
+    acquirablefile_id: str
+    acquirable_id: str
+    acquirable_slug: str
 
 
 class PathExpandAction(argparse.Action):

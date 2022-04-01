@@ -12,7 +12,7 @@ from cumulus_geoproc.geoprocess.core.base import info, translate, create_overvie
 import pyplugs
 
 
-@pyplugs.register
+# @pyplugs.register
 def process(infile: str, outdir: str):
     """Grid processor
 

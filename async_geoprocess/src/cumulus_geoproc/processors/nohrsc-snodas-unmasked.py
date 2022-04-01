@@ -9,7 +9,7 @@ import pyplugs
 from cumulus_geoproc.snodas.core.process import process_snodas_for_date
 
 
-@pyplugs.register
+# @pyplugs.register
 def process(infile: str, outdir: str):
     """Grid processor
 

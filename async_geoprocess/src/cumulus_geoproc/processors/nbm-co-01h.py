@@ -11,7 +11,7 @@ from cumulus_geoproc.handyutils.core import change_final_file_extension
 import pyplugs
 
 
-@pyplugs.register
+# @pyplugs.register
 def process(infile: str, outdir: str):
     """Grid processor
 

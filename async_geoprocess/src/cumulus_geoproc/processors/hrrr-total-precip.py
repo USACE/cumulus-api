@@ -50,7 +50,7 @@ class GribIds:
     TYPE: str
 
 
-@pyplugs.register
+# @pyplugs.register
 def process(infile: str, outdir: str):
     """Grid processor
 

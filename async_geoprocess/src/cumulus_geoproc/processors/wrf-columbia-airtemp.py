@@ -6,7 +6,7 @@ from cumulus_geoproc.wrfcolumbia.core import wrf2cog
 import pyplugs
 
 
-@pyplugs.register
+# @pyplugs.register
 def process(infile: str, outdir: str):
     """Grid processor
 

@@ -42,7 +42,7 @@ class Metadata:
     GRIB_VALID_TIME: str
 
 
-@pyplugs.register
+# @pyplugs.register
 def process(infile: str, outdir: str):
     """Grid processor
 

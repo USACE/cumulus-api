@@ -1,7 +1,11 @@
 """Initialize package
 """
 
+
 import logging
+
+from cumulus_geoproc.configurations import LOGGER_LEVEL
+
 
 # ------------------------- #
 # setup the logging for the package
@@ -34,3 +38,4 @@ class package_logger(logging.Logger):
 
 
 logger = package_logger()
+logger.log_level = LOGGER_LEVEL

@@ -9,7 +9,7 @@ from ..prism.core import prism_convert_to_cog
 import pyplugs
 
 
-@pyplugs.register
+# @pyplugs.register
 def process(infile: str, outdir: str):
     """Grid processor
 

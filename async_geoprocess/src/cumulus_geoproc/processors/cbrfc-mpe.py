@@ -15,6 +15,8 @@ from cumulus_geoproc.configurations import CUMULUS_PRODUCTS_BASEKEY
 from cumulus_geoproc.utils import cgdal
 from osgeo import gdal
 
+gdal.UseExceptions()
+
 
 @pyplugs.register
 def process(src: str, dst: TemporaryDirectory, acquirable: str):
@@ -42,43 +44,47 @@ def process(src: str, dst: TemporaryDirectory, acquirable: str):
     filename = src.split("/")[-1]
     filename_ = utils.file_extension(filename)
 
-    ds = gdal.Open(src)
-    fileinfo = gdal.Info(ds, format="json")
+    try:
 
-    logger.debug(f"File Info: {fileinfo}")
+        ds = gdal.Open(src)
+        fileinfo = gdal.Info(ds, format="json")
 
-    # for band in fileinfo["bands"]:
-    #     band_number = str(band["band"])
-    #     band_meta = band["metadata"][""]
-    #     dtStr = band_meta["GRIB_VALID_TIME"]
-    #     if "Total precipitation" in band_meta["GRIB_COMMENT"]:
-    #         break
+        logger.debug(f"File Info: {fileinfo}")
 
-    # # Get Datetime from String Like "1599008400 sec UTC"
-    # time_pattern = re.compile(r"\d+")
-    # valid_time_match = time_pattern.match(dtStr)
-    # dt = datetime.fromtimestamp(int(valid_time_match[0]), timezone.utc)
+        for band in fileinfo["bands"]:
+            band_number = str(band["band"])
+            band_meta = band["metadata"][""]
+            dtStr = band_meta["GRIB_VALID_TIME"]
+            if "Total precipitation" in band_meta["GRIB_COMMENT"]:
+                break
 
-    # # print(f"Band number is {band_number}, date string is {dtStr}, and date is {dt}")
+        # Get Datetime from String Like "1599008400 sec UTC"
+        time_pattern = re.compile(r"\d+")
+        valid_time_match = time_pattern.match(dtStr)
+        dt = datetime.fromtimestamp(int(valid_time_match[0]), timezone.utc)
 
-    # # # Extract Band 0 (QPE); Convert to COG
-    # translate_options = cgdal.gdal_translate_options(bandList=[band_number])
-    # gdal.Translate(
-    #     temp_file := os.path.join(dst, filename_),
-    #     src,
-    #     **translate_options,
-    # )
+        # print(f"Band number is {band_number}, date string is {dtStr}, and date is {dt}")
 
-    # # closing the data source
-    # ds = None
+        # # Extract Band 0 (QPE); Convert to COG
+        translate_options = cgdal.gdal_translate_options(bandList=[band_number])
+        gdal.Translate(
+            temp_file := os.path.join(dst, filename_),
+            src,
+            **translate_options,
+        )
 
-    # outfile_list = [
-    #     {
-    #         "filetype": acquirable,
-    #         "file": temp_file,
-    #         "datetime": dt.isoformat(),
-    #         "version": None,
-    #     },
-    # ]
+        # closing the data source
+        ds = None
+
+        outfile_list = [
+            {
+                "filetype": acquirable,
+                "file": temp_file,
+                "datetime": dt.isoformat(),
+                "version": None,
+            },
+        ]
+    except RuntimeError as ex:
+        logger.debug(ex)
 
     return outfile_list

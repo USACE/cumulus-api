@@ -15,7 +15,6 @@ import boto3
 from cumulus_geoproc import logger, utils
 from cumulus_geoproc.configurations import (
     AWS_ACCESS_KEY_ID,
-    AWS_DEFAULT_REGION,
     AWS_REGION_SQS,
     AWS_SECRET_ACCESS_KEY,
     CUMULUS_API_URL,
@@ -46,23 +45,32 @@ def start_worker():
 
     # aws_access_key_id, aws_secret_access_key, aws_default_region, etc
     # set as env vars for local dev.  IAM role used for implementation
-    if AWS_ACCESS_KEY_ID is None:
-        # Running in AWS Using IAM Role for Credentials
-        if ENDPOINT_URL_SQS:
-            sqs = boto3.resource("sqs", endpoint_url=ENDPOINT_URL_SQS)
-        else:
-            sqs = boto3.resource("sqs")
-    else:
-        # Local Testing
-        # ElasticMQ with Credentials via AWS_ environment variables
-        sqs = boto3.resource(
-            "sqs",
-            endpoint_url=ENDPOINT_URL_SQS,
-            region_name=AWS_REGION_SQS,
-            aws_secret_access_key=AWS_SECRET_ACCESS_KEY,
-            aws_access_key_id=AWS_ACCESS_KEY_ID,
-            use_ssl=USE_SSL,
-        )
+
+    sqs = boto3.resource(
+        service_name="sqs",
+        endpoint_url="http://elasticmq:9324",
+        region_name="us-east-1",
+        aws_secret_access_key="AKIAIOSFODNN7EXAMPLE",
+        aws_access_key_id="wJalrXUtnFEMI/K7MDENG/bPxRfiCYEXAMPLEKEY",
+        use_ssl=False,
+    )
+    # if AWS_ACCESS_KEY_ID is None:
+    #     # Running in AWS Using IAM Role for Credentials
+    #     if ENDPOINT_URL_SQS:
+    #         sqs = boto3.resource("sqs", endpoint_url=ENDPOINT_URL_SQS)
+    #     else:
+    #         sqs = boto3.resource("sqs")
+    # else:
+    #     # Local Testing
+    #     # ElasticMQ with Credentials via AWS_ environment variables
+    #     sqs = boto3.resource(
+    #         "sqs",
+    #         endpoint_url=ENDPOINT_URL_SQS,
+    #         region_name=AWS_REGION_SQS,
+    #         aws_secret_access_key=AWS_SECRET_ACCESS_KEY,
+    #         aws_access_key_id=AWS_ACCESS_KEY_ID,
+    #         use_ssl=USE_SSL,
+    #     )
 
     # Incoming Requests
     queue = sqs.get_queue_by_name(QueueName=QUEUE_NAME)

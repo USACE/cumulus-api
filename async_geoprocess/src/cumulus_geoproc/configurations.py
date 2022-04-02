@@ -19,7 +19,7 @@ AWS_ACCESS_KEY_ID = os.getenv("AWS_ACCESS_KEY_ID", default=None)
 AWS_SECRET_ACCESS_KEY = os.getenv("AWS_SECRET_ACCESS_KEY", default=None)
 AWS_VIRTUAL_HOSTING = os.getenv("AWS_VIRTUAL_HOSTING", default="FALSE")
 AWS_HTTPS = os.getenv("AWS_HTTPS", default="YES")
-ENDPOINT_URL_SQS = os.getenv("ENDPOINT_URL_SQS", default="http://elasticmq:9324")
+ENDPOINT_URL_SQS = os.getenv("ENDPOINT_URL_SQS", default=None)
 ENDPOINT_URL_S3 = os.getenv("ENDPOINT_URL_S3", default=None)
 
 # Use SSL setting to 'True' as default if env var unset from docker-compose

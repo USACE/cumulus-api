@@ -21,6 +21,8 @@ AWS_VIRTUAL_HOSTING = os.getenv("AWS_VIRTUAL_HOSTING", default="FALSE")
 AWS_HTTPS = os.getenv("AWS_HTTPS", default="YES")
 ENDPOINT_URL_SQS = os.getenv("ENDPOINT_URL_SQS", default=None)
 ENDPOINT_URL_S3 = os.getenv("ENDPOINT_URL_S3", default=None)
+AWS_SQS_ENDPOINT = os.getenv("elasticmq:9324", default=None)
+AWS_S3_ENDPOINT = os.getenv("minio:9000", default=None)
 
 # Use SSL setting to 'True' as default if env var unset from docker-compose
 # client and resource use_ssl default=True; ignored is endpoint_url defined

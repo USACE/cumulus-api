@@ -1,8 +1,9 @@
-"""_summary_
+"""utilities for the cumulus geoprocessor package
 """
 
 import os
 from signal import SIGINT, SIGTERM, signal
+from tempfile import TemporaryDirectory
 import boto3
 from botocore.exceptions import ClientError
 from cumulus_geoproc import logger
@@ -30,10 +31,26 @@ class SignalHandler:
         self.received_signal = True
 
 
-def file_extension(file, ext=".tif"):
-    if not ext.startswith("."):
-        ext = "." + ext
-    return os.path.splitext(file)[0] + ext
+def file_extension(file: str, ext=".tif"):
+    exts = (
+        ".gz",
+        ".tar",
+        ".grib",
+        ".grib2",
+        ".grb",
+        ".zip",
+        ".tar.gz",
+        ".grib.gz",
+        ".grb.gz",
+    )
+    if file.endswith(exts):
+        file_ = [
+            file.replace(file[-len(e) :], ext) for e in exts if file[-len(e) :] == e
+        ]
+
+        return file_[-1]
+
+    return file + ext
 
 
 def s3_upload_file(file_name, bucket, key=None):
@@ -43,9 +60,14 @@ def s3_upload_file(file_name, bucket, key=None):
 
     # Upload the file
     try:
-        # if (s3 := boto3_resource("s3")) is None:
-        #     raise Exception(ClientError)
-        # s3.meta.client.upload_file(Filename=file_name, Bucket=bucket, Key=key)
+        if (
+            s3 := boto3_resource(
+                service_name="s3",
+                endpoint_url=ENDPOINT_URL_S3,
+            )
+        ) is None:
+            raise Exception(ClientError)
+        s3.meta.client.upload_file(Filename=file_name, Bucket=bucket, Key=key)
         logger.debug(f"{file_name}\t{bucket=}\t{key=}")
     except ClientError as ex:
         logger.error(ex)
@@ -53,30 +75,39 @@ def s3_upload_file(file_name, bucket, key=None):
     return True
 
 
+def s3_download_file(bucket, key, dst="/tmp"):
+    file = os.path.basename(key)
+
+    filename = os.path.join(dst, file)
+    logger.debug(f"S3 Download File: {filename}")
+
+    # download the file
+    try:
+        if (
+            s3 := boto3_resource(
+                service_name="s3",
+                endpoint_url=ENDPOINT_URL_S3,
+            )
+        ) is None:
+            raise Exception(ClientError)
+        s3.meta.client.download_file(
+            Bucket=bucket,
+            Key=key,
+            Filename=filename,
+        )
+        logger.debug(f"{bucket=}\t{key=}\t{filename=}")
+    except ClientError as ex:
+        logger.error(ex)
+        return False
+    return filename
+
+
 def boto3_resource(**kwargs):
     kwargs_ = {
-        "aws_access_key_id": os.environ.get("AWS_ACCESS_KEY_ID", default=None),
-        "aws_secret_access_key": os.environ.get("AWS_SECRET_ACCESS_KEY", default=None),
+        "aws_access_key_id": AWS_ACCESS_KEY_ID,
+        "aws_secret_access_key": AWS_SECRET_ACCESS_KEY,
+        "region_name": AWS_DEFAULT_REGION,
         **kwargs,
     }
 
     return boto3.resource(**kwargs_)
-
-
-def upload_file(file_name, bucket, object_name=None):
-    # If S3 object_name was not specified, use file_name
-    if object_name is None:
-        object_name = file_name
-
-    # Upload the file
-    s3 = boto3_resource(
-        service_name="s3",
-        endpoint_url=os.environ.get("ENDPOINT_URL_S3", default=None),
-    )
-
-    try:
-        s3.meta.client.upload_file(file_name, bucket, object_name)
-    except ClientError as ex:
-        logger.error(ex)
-        return False
-    return True

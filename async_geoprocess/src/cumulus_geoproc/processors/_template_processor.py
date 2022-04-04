@@ -19,7 +19,7 @@ gdal.UseExceptions()
 
 
 @pyplugs.register
-def process(src: str, dst: str, acquirable: str):
+def process(src: str, dst: TemporaryDirectory, acquirable: str):
     """Grid processor
 
     Parameters
@@ -43,15 +43,23 @@ def process(src: str, dst: str, acquirable: str):
     """
     outfile_list = list()
 
-    filename = os.path.basename(src)
+    filename = src.split("/")[-1]
     filename_ = utils.file_extension(filename)
 
     try:
 
-        ds = gdal.Open("/vsis3_streaming/" + src)
+        ds = gdal.Open(src)
         fileinfo = gdal.Info(ds, format="json")
 
         logger.debug(f"File Info: {fileinfo}")
+
+        # Extract Band 0 (QPE); Convert to COG
+        translate_options = cgdal.gdal_translate_options()
+        gdal.Translate(
+            temp_file := os.path.join(dst, filename_),
+            ds,
+            **translate_options,
+        )
 
         # figure out the band number
         band_number = None
@@ -62,14 +70,6 @@ def process(src: str, dst: str, acquirable: str):
             reference_time = band_meta["GRIB_REF_TIME"]
             if band_meta["GRIB_ELEMENT"].upper() == "APCP":
                 break
-
-        # Extract Band 0 (QPE); Convert to COG
-        translate_options = cgdal.gdal_translate_options(bandList=[band_number])
-        gdal.Translate(
-            temp_file := os.path.join(dst, filename_),
-            ds,
-            **translate_options,
-        )
 
         # Get Datetime from String Like "1599008400 sec UTC"
         time_pattern = re.compile(r"\d+")
@@ -87,11 +87,10 @@ def process(src: str, dst: str, acquirable: str):
             {
                 "filetype": acquirable,
                 "file": temp_file,
-                "datetime": dt_valid.isoformat(),
+                "datetime": dt.isoformat(),
                 "version": None,
             },
         ]
-
     except RuntimeError as ex:
         logger.error(f"RuntimeError: {os.path.basename(__file__)}: {ex}")
     except KeyError as ex:

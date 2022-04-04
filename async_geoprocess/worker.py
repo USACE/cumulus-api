@@ -15,6 +15,7 @@ import boto3
 from cumulus_geoproc import logger, utils
 from cumulus_geoproc.configurations import (
     AWS_ACCESS_KEY_ID,
+    AWS_DEFAULT_REGION,
     AWS_REGION_SQS,
     AWS_SECRET_ACCESS_KEY,
     CUMULUS_API_URL,
@@ -48,11 +49,10 @@ def start_worker():
 
     sqs = boto3.resource(
         service_name="sqs",
-        endpoint_url="http://elasticmq:9324",
-        region_name="us-east-1",
-        aws_secret_access_key="AKIAIOSFODNN7EXAMPLE",
-        aws_access_key_id="wJalrXUtnFEMI/K7MDENG/bPxRfiCYEXAMPLEKEY",
-        use_ssl=False,
+        endpoint_url=ENDPOINT_URL_SQS,
+        region_name=AWS_DEFAULT_REGION,
+        aws_secret_access_key=AWS_SECRET_ACCESS_KEY,
+        aws_access_key_id=AWS_ACCESS_KEY_ID,
     )
     # if AWS_ACCESS_KEY_ID is None:
     #     # Running in AWS Using IAM Role for Credentials
@@ -86,6 +86,7 @@ def start_worker():
             cumulus_api.endpoint = "product_slugs"
             resp = asyncio.run(cumulus_api.get(cumulus_api.url))
             PRODUCT_MAP = resp.json()
+            start = time.time()
 
         messages = queue.receive_messages(
             MaxNumberOfMessages=MAX_Q_MESSAGES, WaitTimeSeconds=WAIT_TIME_SECONDS
@@ -95,9 +96,12 @@ def start_worker():
 
         for message in messages:
             try:
+                start_message = time.perf_counter()
+
                 logger.info("%(spacer)s new message %(spacer)s" % {"spacer": "*" * 20})
                 # parse message to payload as json object
                 payload = json.loads(message.body)
+
                 # get processor and its configurations from the message
                 geoprocess = payload["geoprocess"]
                 GeoCfg = namedtuple("GeoCfg", payload["geoprocess_config"])(
@@ -151,6 +155,9 @@ def start_worker():
             finally:
                 dst = None
                 message.delete()
+                logger.debug(
+                    f"Handle Message Time: {time.perf_counter() - start_message} (sec)"
+                )
 
 
 if __name__ == "__main__":

@@ -51,7 +51,7 @@ services:
       - ENDPOINT_URL_SQS=http://elasticmq:9324
       - ENDPOINT_URL_S3=http://minio:9000
       - USE_SSL=False
-      - LOGGER_LEVEL=DEBUG
+      - LOGGER_LEVEL=INFO
     volumes:
       - ./_volumes/async_geoprocess/tmp:/tmp
     restart: always
@@ -108,7 +108,7 @@ services:
       - AWS_REGION=us-east-1
       - CUMULUS_APPLICATION_KEY=appkey
       # CUMULUS_AUTH_ENVIRONMENT; OPTIONS:  MOCK | DEVELOP | STABLE
-      - CUMULUS_AUTH_ENVIRONMENT=DEVELOP
+      - CUMULUS_AUTH_ENVIRONMENT=MOCK
       - CUMULUS_DOWNLOAD_DEFAULT_FORMAT=dss7
       - CUMULUS_DBUSER=cumulus_user
       - CUMULUS_DBPASS=cumulus_pass
@@ -155,3 +155,9 @@ services:
   #   ports:
   #     - "7000:80"
   #   restart: always
+  # dbdocs:
+  #   image: nginx
+  #   ports:
+  #     - "8123:80"
+  #   volumes:
+  #     - ./docs/db-docs/schemaspy:/usr/share/nginx/html

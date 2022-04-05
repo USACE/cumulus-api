@@ -1,26 +1,35 @@
-"""National Blend of Models: Hourly air temperature and QPF
+"""National Blend of Models (NBM)
+
+CONUS 1hour Forecasted Airtemp and QPF
 """
 
 
 import os
-from collections import namedtuple
-from uuid import uuid4
+import re
 from datetime import datetime, timezone
-from cumulus_geoproc.geoprocess.core.base import info, translate, create_overviews
-from cumulus_geoproc.handyutils.core import change_final_file_extension
+from tempfile import NamedTemporaryFile
+
 import pyplugs
+from cumulus_geoproc import logger, utils
+from cumulus_geoproc.configurations import CUMULUS_PRODUCTS_BASEKEY
+from cumulus_geoproc.utils import cgdal
+from osgeo import gdal
+
+gdal.UseExceptions()
 
 
-# @pyplugs.register
-def process(infile: str, outdir: str):
+@pyplugs.register
+def process(src: str, dst: str, acquirable: str = None):
     """Grid processor
 
     Parameters
     ----------
-    infile : str
+    src : str
         path to input file for processing
-    outdir : str
-        path to processor result
+    dst : str
+        path to temporary directory created from worker thread
+    acquirable: str
+        acquirable slug
 
     Returns
     -------
@@ -32,54 +41,72 @@ def process(infile: str, outdir: str):
             "version": str           Reference Time (forecast), ISO format with timezone
         }
     """
-
     outfile_list = list()
 
-    # Process the gdal information
-    fileinfo: dict = info(infile)
-    all_bands = fileinfo["bands"]
+    filetype_elements = {
+        "nbm-co-airtemp": {"GRIB_ELEMENT": "T", "GRIB_SHORT_NAME": "0-SFC"},
+        "nbm-co-qpf": {"GRIB_ELEMENT": "QPF01", "GRIB_SHORT_NAME": "0-SFC"},
+    }
 
-    for band in all_bands:
-        band_number = band["band"]
-        metadata = band["metadata"][""]
-        metadata_ = namedtuple("metadata_", metadata.keys())(**metadata)
-        if (
-            "temperature" in metadata_.GRIB_COMMENT.lower()
-            and metadata_.GRIB_SHORT_NAME == "0-SFC"
-        ):
-            filetype = "nbm-co-airtemp"
-        elif (
-            "total precipitation" in metadata_.GRIB_COMMENT.lower()
-            and metadata_.GRIB_ELEMENT == "QPF01"
-        ):
-            filetype = "nbm-co-qpf"
-        else:
-            continue
+    for filetype, grib_elements in filetype_elements.items():
+        grib_element = grib_elements["GRIB_ELEMENT"]
+        grib_short_name = grib_elements["GRIB_SHORT_NAME"]
 
-        # fromtimestamp with utc assignment gives proper iso format
-        r_time = datetime.fromtimestamp(int(metadata_.GRIB_REF_TIME), timezone.utc)
-        v_time = datetime.fromtimestamp(int(metadata_.GRIB_VALID_TIME), timezone.utc)
+        try:
 
-        tif = translate(
-            infile,
-            os.path.join(outdir, f"temp-tif-{uuid4()}"),
-            extra_args=["-b", str(band_number)],
-        )
-        tif_with_overviews = create_overviews(tif)
-        cog = translate(
-            tif_with_overviews,
-            os.path.join(
-                outdir, change_final_file_extension(os.path.basename(infile), "tif")
-            ),
-        )
+            ds = gdal.Open("/vsis3_streaming" + src)
+            fileinfo = gdal.Info(ds, format="json")
 
-        outfile_list.append(
-            {
-                "filetype": filetype,
-                "file": cog,
-                "datetime": v_time.isoformat(),
-                "version": r_time.isoformat(),
-            }
-        )
+            logger.debug(f"File Info: {fileinfo}")
+
+            # figure out the band number
+            band_number = None
+            for band in fileinfo["bands"]:
+                band_number = band["band"]
+                band_meta = band["metadata"][""]
+                valid_time = band_meta["GRIB_VALID_TIME"]
+                reference_time = band_meta["GRIB_REF_TIME"]
+                if (
+                    band_meta["GRIB_ELEMENT"].upper() == grib_element
+                    and band_meta["GRIB_SHORT_NAME"].upper() == grib_short_name
+                ):
+                    break
+
+            # Get Datetime from String Like "1599008400 sec UTC"
+            time_pattern = re.compile(r"\d+")
+            valid_time_match = time_pattern.match(valid_time)
+            reference_time_match = time_pattern.match(reference_time)
+            dt_valid = datetime.fromtimestamp(int(valid_time_match[0]), timezone.utc)
+            dt_reference = datetime.fromtimestamp(
+                int(reference_time_match[0]), timezone.utc
+            )
+
+            # Extract Band; Convert to COG
+            temp_file = NamedTemporaryFile(
+                "w+b", suffix=".tif", dir=dst, delete=False
+            ).name
+
+            translate_options = cgdal.gdal_translate_options(bandList=[band_number])
+            gdal.Translate(
+                temp_file,
+                ds,
+                **translate_options,
+            )
+
+            # closing the data source
+            ds = None
+
+            outfile_list.append(
+                {
+                    "filetype": filetype,
+                    "file": temp_file,
+                    "datetime": dt_valid.isoformat(),
+                    "version": None,
+                },
+            )
+        except RuntimeError as ex:
+            logger.error(f"RuntimeError: {os.path.basename(__file__)}: {ex}")
+        except KeyError as ex:
+            logger.error(f"KeyError: {os.path.basename(__file__)}: {ex}")
 
     return outfile_list

@@ -5,23 +5,28 @@
 import os
 import re
 from datetime import datetime, timezone
-from collections import namedtuple
-from uuid import uuid4
-from cumulus_geoproc.geoprocess.core.base import info, translate, create_overviews
 
 import pyplugs
+from cumulus_geoproc import logger, utils
+from cumulus_geoproc.configurations import CUMULUS_PRODUCTS_BASEKEY
+from cumulus_geoproc.utils import cgdal
+from osgeo import gdal
+
+gdal.UseExceptions()
 
 
-# @pyplugs.register
-def process(infile: str, outdir: str):
+@pyplugs.register
+def process(src: str, dst: str, acquirable: str = None):
     """Grid processor
 
     Parameters
     ----------
-    infile : str
+    src : str
         path to input file for processing
-    outdir : str
-        path to processor result
+    dst : str
+        path to temporary directory created from worker thread
+    acquirable: str
+        acquirable slug
 
     Returns
     -------
@@ -33,41 +38,70 @@ def process(infile: str, outdir: str):
             "version": str           Reference Time (forecast), ISO format with timezone
         }
     """
+    grib_element = "GaugeInflIndex_01H_Pass2"
 
     outfile_list = list()
 
-    # Parse the grid information
-    fileinfo = info(f"/vsigzip/{infile}")
-    band = fileinfo["bands"][0]
-    meta = band["metadata"][""]
-    Meta = namedtuple("Meta", meta.keys())(**meta)
-    # Compile regex to get times from timestamp
-    time_pattern = re.compile(r"\d+")
-    valid_time_match = time_pattern.match(Meta.GRIB_VALID_TIME)
+    filename = os.path.basename(src)
+    filename_ = utils.file_extension(filename)
 
-    valid_time = (
-        datetime.fromtimestamp(int(valid_time_match[0]), timezone.utc).isoformat()
-        if valid_time_match
-        else ""
-    )
+    try:
+        bucket, key = src.split("/", maxsplit=1)
+        logger.debug(f"s3_download_file({bucket=}, {key=})")
 
-    # Extract Band 0 (QPE); Convert to COG
-    tif = translate(f"/vsigzip/{infile}", os.path.join(outdir, f"temp-tif-{uuid4()}"))
-    tif_with_overviews = create_overviews(tif)
-    cog = translate(
-        tif_with_overviews,
-        os.path.join(
-            outdir, "{}.tif".format(os.path.basename(infile).split(".grib2.gz")[0])
-        ),
-    )
-    # Append dictionary object to outfile list
-    outfile_list.append(
-        {
-            "filetype": "ncep-mrms-v12-msqpe01h-p2-alaska",
-            "file": cog,
-            "datetime": valid_time,
-            "version": None,
-        }
-    )
+        src_ = utils.s3_download_file(bucket=bucket, key=key, dst=dst)
+        logger.debug(f"S3 Downloaded File: {src_}")
+
+        ds = gdal.Open("/vsigzip/" + src_)
+        fileinfo = gdal.Info(ds, format="json")
+
+        logger.debug(f"File Info: {fileinfo}")
+
+        # figure out the band number
+        band_number = None
+        for band in fileinfo["bands"]:
+            band_number = band["band"]
+            band_meta = band["metadata"][""]
+            valid_time = band_meta["GRIB_VALID_TIME"]
+            reference_time = band_meta["GRIB_REF_TIME"]
+            if (
+                hasattr(band_meta, "GRIG_ELEMENT")
+                and band_meta["GRIB_ELEMENT"].upper() == grib_element
+            ):
+                break
+
+        # Get Datetime from String Like "1599008400 sec UTC"
+        time_pattern = re.compile(r"\d+")
+        valid_time_match = time_pattern.match(valid_time)
+        reference_time_match = time_pattern.match(reference_time)
+        dt_valid = datetime.fromtimestamp(int(valid_time_match[0]), timezone.utc)
+        dt_reference = datetime.fromtimestamp(
+            int(reference_time_match[0]), timezone.utc
+        )
+
+        # Extract Band; Convert to COG
+        translate_options = cgdal.gdal_translate_options(bandList=[band_number])
+        gdal.Translate(
+            temp_file := os.path.join(dst, filename_),
+            ds,
+            **translate_options,
+        )
+
+        # closing the data source
+        ds = None
+
+        outfile_list = [
+            {
+                "filetype": acquirable,
+                "file": temp_file,
+                "datetime": dt_valid.isoformat(),
+                "version": None,
+            },
+        ]
+
+    except RuntimeError as ex:
+        logger.error(f"RuntimeError: {os.path.basename(__file__)}: {ex}")
+    except KeyError as ex:
+        logger.error(f"KeyError: {os.path.basename(__file__)}: {ex}")
 
     return outfile_list

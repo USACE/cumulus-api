@@ -1,25 +1,24 @@
-"""Colorado Basin River Forecast Center (CBRFC)
+"""Lower Mississippi River Forecast Center (LMRFC)
 
-Multisensor Precipitation Estimates (MPE)
+Quantitative Precipitation Estimates (QPF) 6 hour
 """
 
 
 import os
 import re
 from datetime import datetime, timezone
-from tempfile import TemporaryDirectory
 
 import pyplugs
 from cumulus_geoproc import logger, utils
 from cumulus_geoproc.configurations import CUMULUS_PRODUCTS_BASEKEY
-from cumulus_geoproc.utils import cgdal
+from cumulus_geoproc.utils import cgdal, boto
 from osgeo import gdal
 
 gdal.UseExceptions()
 
 
 @pyplugs.register
-def process(src: str, dst: str, acquirable: str):
+def process(src: str, dst: str, acquirable: str = None):
     """Grid processor
 
     Parameters
@@ -41,62 +40,66 @@ def process(src: str, dst: str, acquirable: str):
             "version": str           Reference Time (forecast), ISO format with timezone
         }
     """
+    grib_element = "APCP"
+
     outfile_list = list()
 
     filename = os.path.basename(src)
     filename_ = utils.file_extension(filename)
 
     try:
-        with TemporaryDirectory(dir=dst) as temp_dir:
-            bucket, key = src.split("/", maxsplit=1)
-            logger.debug(f"s3_download_file({bucket=}, {key=})")
+        bucket, key = src.split("/", maxsplit=1)
+        logger.debug(f"s3_download_file({bucket=}, {key=})")
 
-            src_ = utils.s3_download_file(bucket=bucket, key=key, dst=temp_dir)
-            logger.debug(f"S3 Downloaded File: {src_}")
+        src_ = boto.s3_download_file(bucket=bucket, key=key, dst=dst)
+        logger.debug(f"S3 Downloaded File: {src_}")
 
-            ds = gdal.Open("/vsigzip/" + src_)
-            fileinfo = gdal.Info(ds, format="json")
+        ds = gdal.Open("/vsigzip/" + src_)
+        fileinfo = gdal.Info(ds, format="json")
 
-            logger.debug(f"File Info: {fileinfo}")
+        logger.debug(f"File Info: {fileinfo}")
 
-            # figure out the band number
-            band_number = None
-            for band in fileinfo["bands"]:
-                band_number = band["band"]
-                band_meta = band["metadata"][""]
-                valid_time = band_meta["GRIB_VALID_TIME"]
-                reference_time = band_meta["GRIB_REF_TIME"]
-                if band_meta["GRIB_ELEMENT"].upper() == "APCP":
-                    break
+        # figure out the band number
+        band_number = None
+        for band in fileinfo["bands"]:
+            band_number = band["band"]
+            band_meta = band["metadata"][""]
+            valid_time = band_meta["GRIB_VALID_TIME"]
+            reference_time = band_meta["GRIB_REF_TIME"]
+            if (
+                hasattr(band_meta, "GRIG_ELEMENT")
+                and band_meta["GRIB_ELEMENT"].upper() == grib_element
+            ):
+                break
 
-            # Extract Band 0 (QPE); Convert to COG
-            translate_options = cgdal.gdal_translate_options(bandList=[band_number])
-            gdal.Translate(
-                temp_file := os.path.join(dst, filename_),
-                ds,
-                **translate_options,
-            )
+        # Get Datetime from String Like "1599008400 sec UTC"
+        time_pattern = re.compile(r"\d+")
+        valid_time_match = time_pattern.match(valid_time)
+        reference_time_match = time_pattern.match(reference_time)
+        dt_valid = datetime.fromtimestamp(int(valid_time_match[0]), timezone.utc)
+        dt_reference = datetime.fromtimestamp(
+            int(reference_time_match[0]), timezone.utc
+        )
 
-            # Get Datetime from String Like "1599008400 sec UTC"
-            time_pattern = re.compile(r"\d+")
-            valid_time_match = time_pattern.match(valid_time)
-            reference_time_match = time_pattern.match(reference_time)
-            dt_valid = datetime.fromtimestamp(int(valid_time_match[0]), timezone.utc)
-            dt_reference = datetime.fromtimestamp(
-                int(reference_time_match[0]), timezone.utc
-            )
+        # Extract Band; Convert to COG
+        translate_options = cgdal.gdal_translate_options(bandList=[band_number])
+        gdal.Translate(
+            temp_file := os.path.join(dst, filename_),
+            ds,
+            **translate_options,
+        )
 
-            # closing the data source
-            ds = None
+        # closing the data source
+        ds = None
 
-            outfile_list = [
-                {
-                    "filetype": acquirable,
-                    "file": temp_file,
-                    "datetime": dt_valid.isoformat(),
-                    "version": dt_reference.isoformat(),
-                },
-            ]
+        outfile_list = [
+            {
+                "filetype": acquirable,
+                "file": temp_file,
+                "datetime": dt_valid.isoformat(),
+                "version": dt_reference.isoformat(),
+            },
+        ]
 
     except RuntimeError as ex:
         logger.error(f"RuntimeError: {os.path.basename(__file__)}: {ex}")

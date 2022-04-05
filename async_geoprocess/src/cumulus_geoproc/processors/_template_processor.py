@@ -1,13 +1,6 @@
-"""Colorado Basin River Forecast Center (CBRFC)
-
-Multisensor Precipitation Estimates (MPE)
-"""
-
-
 import os
 import re
 from datetime import datetime, timezone
-from tempfile import TemporaryDirectory
 
 import pyplugs
 from cumulus_geoproc import logger, utils
@@ -18,8 +11,8 @@ from osgeo import gdal
 gdal.UseExceptions()
 
 
-@pyplugs.register
-def process(src: str, dst: TemporaryDirectory, acquirable: str):
+# @pyplugs.register
+def process(src: str, dst: str, acquirable: str = None):
     """Grid processor
 
     Parameters
@@ -41,9 +34,11 @@ def process(src: str, dst: TemporaryDirectory, acquirable: str):
             "version": str           Reference Time (forecast), ISO format with timezone
         }
     """
+    grib_element = None
+
     outfile_list = list()
 
-    filename = src.split("/")[-1]
+    filename = os.path.basename(src)
     filename_ = utils.file_extension(filename)
 
     try:
@@ -53,14 +48,6 @@ def process(src: str, dst: TemporaryDirectory, acquirable: str):
 
         logger.debug(f"File Info: {fileinfo}")
 
-        # Extract Band 0 (QPE); Convert to COG
-        translate_options = cgdal.gdal_translate_options()
-        gdal.Translate(
-            temp_file := os.path.join(dst, filename_),
-            ds,
-            **translate_options,
-        )
-
         # figure out the band number
         band_number = None
         for band in fileinfo["bands"]:
@@ -68,7 +55,10 @@ def process(src: str, dst: TemporaryDirectory, acquirable: str):
             band_meta = band["metadata"][""]
             valid_time = band_meta["GRIB_VALID_TIME"]
             reference_time = band_meta["GRIB_REF_TIME"]
-            if band_meta["GRIB_ELEMENT"].upper() == "APCP":
+            if (
+                hasattr(band_meta, "GRIG_ELEMENT")
+                and band_meta["GRIB_ELEMENT"].upper() == grib_element
+            ):
                 break
 
         # Get Datetime from String Like "1599008400 sec UTC"
@@ -80,6 +70,14 @@ def process(src: str, dst: TemporaryDirectory, acquirable: str):
             int(reference_time_match[0]), timezone.utc
         )
 
+        # Extract Band; Convert to COG
+        translate_options = cgdal.gdal_translate_options(bandList=[band_number])
+        gdal.Translate(
+            temp_file := os.path.join(dst, filename_),
+            ds,
+            **translate_options,
+        )
+
         # closing the data source
         ds = None
 
@@ -87,7 +85,7 @@ def process(src: str, dst: TemporaryDirectory, acquirable: str):
             {
                 "filetype": acquirable,
                 "file": temp_file,
-                "datetime": dt.isoformat(),
+                "datetime": dt_valid.isoformat(),
                 "version": None,
             },
         ]

@@ -1,26 +1,28 @@
-"""NCEP RTMA Airtemp
-"""
-
-
-from datetime import datetime, timezone
 import os
-from uuid import uuid4
-from cumulus_geoproc.geoprocess.core.base import info, translate, create_overviews
-from cumulus_geoproc.handyutils.core import change_final_file_extension
+import re
+from datetime import datetime, timezone
 
 import pyplugs
+from cumulus_geoproc import logger, utils
+from cumulus_geoproc.configurations import CUMULUS_PRODUCTS_BASEKEY
+from cumulus_geoproc.utils import cgdal
+from osgeo import gdal
+
+gdal.UseExceptions()
 
 
-# @pyplugs.register
-def process(infile: str, outdir: str):
+@pyplugs.register
+def process(src: str, dst: str, acquirable: str = None):
     """Grid processor
 
     Parameters
     ----------
-    infile : str
+    src : str
         path to input file for processing
-    outdir : str
-        path to processor result
+    dst : str
+        path to temporary directory created from worker thread
+    acquirable: str
+        acquirable slug
 
     Returns
     -------
@@ -32,35 +34,64 @@ def process(infile: str, outdir: str):
             "version": str           Reference Time (forecast), ISO format with timezone
         }
     """
+    grib_element = "TMP"
 
-    # Only Get Air Temperature to Start; Band 3 (i.e. array position 2 because zero-based indexing)
-    dtStr = info(infile)["bands"][2]["metadata"][""]["GRIB_VALID_TIME"]
+    outfile_list = list()
 
-    # Get Datetime from String Like "1599008400 sec UTC"
-    dt = datetime.fromtimestamp(int(dtStr.split(" ")[0]))
+    filename = os.path.basename(src)
+    filename_ = utils.file_extension(filename)
 
-    # Extract Band 3 (Temperature); Convert to COG
-    tif = translate(
-        infile, os.path.join(outdir, f"temp-tif-{uuid4()}"), extra_args=["-b", "3"]
-    )
-    tif_with_overviews = create_overviews(tif)
-    cog = translate(
-        tif_with_overviews,
-        os.path.join(
-            outdir,
-            "{}_{}".format(
-                dt.strftime("%Y%m%d"), change_final_file_extension(infile, "tif")
-            ),
-        ),
-    )
+    try:
 
-    outfile_list = [
-        {
-            "filetype": "ncep-rtma-ru-anl-airtemp",
-            "file": cog,
-            "datetime": dt.replace(tzinfo=timezone.utc).isoformat(),
-            "version": None,
-        },
-    ]
+        ds = gdal.Open(src)
+        fileinfo = gdal.Info(ds, format="json")
+
+        logger.debug(f"File Info: {fileinfo}")
+
+        # figure out the band number
+        band_number = None
+        for band in fileinfo["bands"]:
+            band_number = band["band"]
+            band_meta = band["metadata"][""]
+            valid_time = band_meta["GRIB_VALID_TIME"]
+            reference_time = band_meta["GRIB_REF_TIME"]
+            if (
+                hasattr(band_meta, "GRIG_ELEMENT")
+                and band_meta["GRIB_ELEMENT"].upper() == grib_element
+            ):
+                break
+
+        # Get Datetime from String Like "1599008400 sec UTC"
+        time_pattern = re.compile(r"\d+")
+        valid_time_match = time_pattern.match(valid_time)
+        reference_time_match = time_pattern.match(reference_time)
+        dt_valid = datetime.fromtimestamp(int(valid_time_match[0]), timezone.utc)
+        dt_reference = datetime.fromtimestamp(
+            int(reference_time_match[0]), timezone.utc
+        )
+
+        # Extract Band; Convert to COG
+        translate_options = cgdal.gdal_translate_options(bandList=[band_number])
+        gdal.Translate(
+            temp_file := os.path.join(dst, filename_),
+            ds,
+            **translate_options,
+        )
+
+        # closing the data source
+        ds = None
+
+        outfile_list = [
+            {
+                "filetype": acquirable,
+                "file": temp_file,
+                "datetime": dt_valid.isoformat(),
+                "version": None,
+            },
+        ]
+    except RuntimeError as ex:
+        logger.error(f"RuntimeError: {os.path.basename(__file__)}: {ex}")
+    except KeyError as ex:
+        logger.error(f"KeyError: {os.path.basename(__file__)}: {ex}")
 
     return outfile_list

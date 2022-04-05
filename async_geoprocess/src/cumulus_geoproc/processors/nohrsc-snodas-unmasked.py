@@ -10,15 +10,17 @@ from cumulus_geoproc.snodas.core.process import process_snodas_for_date
 
 
 # @pyplugs.register
-def process(infile: str, outdir: str):
+def process(src: str, dst: str, acquirable: str = None):
     """Grid processor
 
     Parameters
     ----------
-    infile : str
+    src : str
         path to input file for processing
-    outdir : str
-        path to processor result
+    dst : str
+        path to temporary directory created from worker thread
+    acquirable: str
+        acquirable slug
 
     Returns
     -------

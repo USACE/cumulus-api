@@ -7,7 +7,6 @@ Multisensor Precipitation Estimates (MPE)
 import os
 import re
 from datetime import datetime, timezone
-from tempfile import TemporaryDirectory
 
 import pyplugs
 from cumulus_geoproc import logger, utils
@@ -19,7 +18,7 @@ gdal.UseExceptions()
 
 
 @pyplugs.register
-def process(src: str, dst: str, acquirable: str):
+def process(src: str, dst: str, acquirable: str = None):
     """Grid processor
 
     Parameters
@@ -41,6 +40,8 @@ def process(src: str, dst: str, acquirable: str):
             "version": str           Reference Time (forecast), ISO format with timezone
         }
     """
+    grib_element = "APCP"
+
     outfile_list = list()
 
     filename = os.path.basename(src)
@@ -60,16 +61,11 @@ def process(src: str, dst: str, acquirable: str):
             band_meta = band["metadata"][""]
             valid_time = band_meta["GRIB_VALID_TIME"]
             reference_time = band_meta["GRIB_REF_TIME"]
-            if band_meta["GRIB_ELEMENT"].upper() == "APCP":
+            if (
+                hasattr(band_meta, "GRIG_ELEMENT")
+                and band_meta["GRIB_ELEMENT"].upper() == grib_element
+            ):
                 break
-
-        # Extract Band 0 (QPE); Convert to COG
-        translate_options = cgdal.gdal_translate_options(bandList=[band_number])
-        gdal.Translate(
-            temp_file := os.path.join(dst, filename_),
-            ds,
-            **translate_options,
-        )
 
         # Get Datetime from String Like "1599008400 sec UTC"
         time_pattern = re.compile(r"\d+")
@@ -78,6 +74,14 @@ def process(src: str, dst: str, acquirable: str):
         dt_valid = datetime.fromtimestamp(int(valid_time_match[0]), timezone.utc)
         dt_reference = datetime.fromtimestamp(
             int(reference_time_match[0]), timezone.utc
+        )
+
+        # Extract Band ; Convert to COG
+        translate_options = cgdal.gdal_translate_options(bandList=[band_number])
+        gdal.Translate(
+            temp_file := os.path.join(dst, filename_),
+            ds,
+            **translate_options,
         )
 
         # closing the data source

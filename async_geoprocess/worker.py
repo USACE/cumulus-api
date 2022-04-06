@@ -6,9 +6,11 @@ infinit while loop receives SQS messages and process them
 import asyncio
 import json
 import os
+import shutil
 import time
-from collections import namedtuple
+from collections import namedtuple, deque
 from tempfile import TemporaryDirectory
+import traceback
 
 import boto3
 
@@ -16,7 +18,6 @@ from cumulus_geoproc import logger, utils
 from cumulus_geoproc.configurations import (
     AWS_ACCESS_KEY_ID,
     AWS_DEFAULT_REGION,
-    AWS_REGION_SQS,
     AWS_SECRET_ACCESS_KEY,
     CUMULUS_API_URL,
     ENDPOINT_URL_SQS,
@@ -24,21 +25,23 @@ from cumulus_geoproc.configurations import (
     MAX_Q_MESSAGES,
     PRODUCT_FILE_VERSION,
     QUEUE_NAME,
-    USE_SSL,
     WAIT_TIME_SECONDS,
 )
 from cumulus_geoproc.geoprocess import handler
 from cumulus_geoproc.utils.capi import CumulusAPI
 
+this = os.path.basename(__file__)
+
 
 def start_worker():
     """starting the worker thread"""
     start = time.time()
+    perf_queue = deque(maxlen=1000)
     # initialize product slug list
     try:
         cumulus_api = CumulusAPI(CUMULUS_API_URL, HTTP2)
         cumulus_api.endpoint = "product_slugs"
-        resp = asyncio.run(cumulus_api.get(cumulus_api.url))
+        resp = asyncio.run(cumulus_api.get_(cumulus_api.url))
         PRODUCT_MAP = resp.json()
         logger.debug("Initialize Product Slug -> UUID mapping'%s'" % PRODUCT_MAP)
     except Exception as ex:
@@ -54,23 +57,6 @@ def start_worker():
         aws_secret_access_key=AWS_SECRET_ACCESS_KEY,
         aws_access_key_id=AWS_ACCESS_KEY_ID,
     )
-    # if AWS_ACCESS_KEY_ID is None:
-    #     # Running in AWS Using IAM Role for Credentials
-    #     if ENDPOINT_URL_SQS:
-    #         sqs = boto3.resource("sqs", endpoint_url=ENDPOINT_URL_SQS)
-    #     else:
-    #         sqs = boto3.resource("sqs")
-    # else:
-    #     # Local Testing
-    #     # ElasticMQ with Credentials via AWS_ environment variables
-    #     sqs = boto3.resource(
-    #         "sqs",
-    #         endpoint_url=ENDPOINT_URL_SQS,
-    #         region_name=AWS_REGION_SQS,
-    #         aws_secret_access_key=AWS_SECRET_ACCESS_KEY,
-    #         aws_access_key_id=AWS_ACCESS_KEY_ID,
-    #         use_ssl=USE_SSL,
-    #     )
 
     # Incoming Requests
     queue = sqs.get_queue_by_name(QueueName=QUEUE_NAME)
@@ -84,15 +70,23 @@ def start_worker():
         # check for updated product mapping each hour
         if (time.time() - start) > 3600:
             cumulus_api.endpoint = "product_slugs"
-            resp = asyncio.run(cumulus_api.get(cumulus_api.url))
+            resp = asyncio.run(cumulus_api.get_(cumulus_api.url))
             PRODUCT_MAP = resp.json()
             start = time.time()
 
         messages = queue.receive_messages(
             MaxNumberOfMessages=MAX_Q_MESSAGES, WaitTimeSeconds=WAIT_TIME_SECONDS
         )
+
         if len(messages) == 0:
             logger.info("No messages")
+            try:
+                average_sec = sum(perf_queue) / len(perf_queue)
+                logger.info(
+                    f"Process Message: Avg {average_sec:0.4f} (sec); Queue Size {len(perf_queue)}"
+                )
+            except ZeroDivisionError as ex:
+                logger.warning(f"{type(ex).__name__} - {this} - {ex}")
 
         for message in messages:
             try:
@@ -136,14 +130,14 @@ def start_worker():
                             **item,
                             **{
                                 "acquirablefile_id": acquirablefile_id,
-                                "product_id": PRODUCT_MAP[GeoCfg.acquirable_slug],
+                                "product_id": PRODUCT_MAP[item["filetype"]],
                                 "version": product_versioning(item["version"]),
                             },
                         }
                         processed_.append(item_)
                         logger.debug(f"New processed dict item: {processed_[-1]}")
                     except KeyError as ex:
-                        logger.warning(ex)
+                        logger.warning(f"{type(ex).__name__} - {this} - {ex}")
                         continue
 
                 # notify cumulus of the processed files
@@ -151,13 +145,16 @@ def start_worker():
                 resp = handler.upload_notify(notices=processed_, bucket=GeoCfg.bucket)
                 logger.info(resp)
             except Exception as ex:
-                logger.warning(ex)
-            finally:
-                dst = None
-                message.delete()
-                logger.debug(
-                    f"Handle Message Time: {time.perf_counter() - start_message} (sec)"
+                logger.warning(
+                    f"{type(ex).__name__} - {this} - {ex} - {traceback.format_exc()}"
                 )
+            finally:
+                if os.path.exists(dst.name):
+                    shutil.rmtree(dst.name, ignore_errors=True)
+                del dst
+                message.delete()
+                perf_queue.append(perf_time := time.perf_counter() - start_message)
+                logger.debug(f"Handle Message Time: {perf_time} (sec)")
 
 
 if __name__ == "__main__":

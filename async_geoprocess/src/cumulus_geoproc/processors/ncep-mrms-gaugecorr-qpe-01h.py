@@ -1,14 +1,18 @@
-"""_summary_
+"""MRMS Gauge Corrected
 """
 
 
 from datetime import datetime, timezone
 import os
-from uuid import uuid4
-from cumulus_geoproc.geoprocess.core.base import info, translate, create_overviews
+import re
+from cumulus_geoproc import logger, utils
+from cumulus_geoproc.utils import boto, cgdal
+from osgeo import gdal
+
 import pyplugs
 
 
+this = os.path.basename(__file__)
 # @pyplugs.register
 def process(src: str, dst: str, acquirable: str = None):
     """Grid processor
@@ -33,28 +37,61 @@ def process(src: str, dst: str, acquirable: str = None):
         }
     """
 
-    # Only Get Air Temperature to Start; Band 3 (i.e. array position 2 because zero-based indexing)
-    dtStr = info(f"/vsigzip/{infile}")["bands"][0]["metadata"][""]["GRIB_VALID_TIME"]
+    outfile_list = list()
 
-    # Get Datetime from String Like "1599008400 sec UTC"
-    dt = datetime.fromtimestamp(int(dtStr.split(" ")[0]))
+    filename = os.path.basename(src)
+    filename_ = utils.file_extension(filename)
 
-    # Extract Band 3 (Temperature); Convert to COG
-    tif = translate(f"/vsigzip/{infile}", os.path.join(outdir, f"temp-tif-{uuid4()}"))
-    tif_with_overviews = create_overviews(tif)
-    cog = translate(
-        tif_with_overviews,
-        os.path.join(
-            outdir, "{}.tif".format(os.path.basename(infile).split(".grib2.gz")[0])
-        ),
-    )
+    try:
+        bucket, key = src.split("/", maxsplit=1)
+        logger.debug(f"s3_download_file({bucket=}, {key=})")
 
-    outfile_list = [
-        {
-            "filetype": "ncep-mrms-gaugecorr-qpe-01h",
-            "file": cog,
-            "datetime": dt.replace(tzinfo=timezone.utc).isoformat(),
-        },
-    ]
+        src_ = boto.s3_download_file(bucket=bucket, key=key, dst=dst)
+        logger.debug(f"S3 Downloaded File: {src_}")
+
+        ds = gdal.Open("/vsigzip/" + src_)
+        fileinfo = gdal.Info(ds, format="json")
+        bands = fileinfo["bands"]
+
+        logger.debug(f"File Info: {fileinfo}")
+
+        band_number = 0
+
+        raster = ds.GetRasterBand(band_number)
+        meta = raster.GetMetadata_Dict()
+        valid_time = meta["GRIB_VALID_TIME"]
+
+        # Get Datetime from String Like "1599008400 sec UTC"
+        time_pattern = re.compile(r"\d+")
+        valid_time_match = time_pattern.match(valid_time)
+        dt_valid = datetime.fromtimestamp(int(valid_time_match[0]), timezone.utc)
+
+        # Extract Band; Convert to COG
+        translate_options = cgdal.gdal_translate_options()
+        gdal.Translate(
+            temp_file := os.path.join(dst, filename_),
+            raster.GetDataset(),
+            **translate_options,
+        )
+
+        # closing the data source
+        ds = None
+        raster = None
+
+        outfile_list = [
+            {
+                "filetype": acquirable,
+                "file": temp_file,
+                "datetime": dt_valid.isoformat(),
+                "version": None,
+            },
+        ]
+
+    except RuntimeError as ex:
+        logger.error(f"{type(ex).__name__}: {this}: {ex}")
+    except KeyError as ex:
+        logger.error(f"{type(ex).__name__}: {this}: {ex}")
+    except IndexError as ex:
+        logger.error(f"IndexError: {__name__}: {ex}")
 
     return outfile_list

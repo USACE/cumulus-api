@@ -8,6 +8,7 @@ import os, subprocess
 import pyplugs
 
 
+this = os.path.basename(__file__)
 # @pyplugs.register
 def process(src: str, dst: str, acquirable: str = None):
     """Grid processor
@@ -41,7 +42,7 @@ def process(src: str, dst: str, acquirable: str = None):
 
     # import pdb; pdb.set_trace()
 
-    ncDataset = Dataset(infile)
+    ncDataset = Dataset(src)
     hour_array = ncDataset.variables["time"][:]
     ncDataset.close()
 
@@ -73,14 +74,14 @@ def process(src: str, dst: str, acquirable: str = None):
         strCurrentDate = datetime.datetime.strftime(currentPDate, strDateFormat)
         print(strCurrentDate)
         outName = f"{varName}_{strCurrentDate}"
-        strTempFile = os.path.join(outdir, f"temp_{outName}.tif")
-        finalFile = os.path.join(outdir, f"{outName}.tif")
+        strTempFile = os.path.join(dst, f"temp_{outName}.tif")
+        finalFile = os.path.join(dst, f"{outName}.tif")
 
         # First command is like:
         # C:\Continuum\miniconda3_64bit\Library\bin\gdal_translate.exe NETCDF:"D:\temp\n1\PRECIPAH.nc":var -b 2490 -a_srs "+proj=lcc +lat_1=45 +lat_2=45 +lon_0=-120 +lat_0=45.80369 +x_0=0 +y_0=0 +a=6370000 +b=6370000 +units=m" -a_ullr -341997.806, 816645.371, 858002.194, -539354.629 -of GTiff D:\crb_temp\t1.tif
         # TIF output with no compression seems to be fastest on this first step
 
-        strCommand = f'gdal_translate NETCDF:"{infile}":var -b {str(intBand)} {strProjLccSphere} {strNcExtent} -of GTiff {strTempFile}'
+        strCommand = f'gdal_translate NETCDF:"{src}":var -b {str(intBand)} {strProjLccSphere} {strNcExtent} -of GTiff {strTempFile}'
         # print(); print(strCommand); print()
         subprocess.check_call(strCommand, shell=True)
 
@@ -104,7 +105,7 @@ def process(src: str, dst: str, acquirable: str = None):
             }
         )
 
-    # fileinfo = info(infile)
+    # fileinfo = info(src)
     # print(fileinfo)
 
     print()

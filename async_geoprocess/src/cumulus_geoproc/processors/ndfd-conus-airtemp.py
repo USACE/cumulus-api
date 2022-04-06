@@ -1,7 +1,7 @@
 import os
 import re
 from datetime import datetime, timedelta, timezone
-from tempfile import NamedTemporaryFile, TemporaryDirectory, TemporaryFile
+from string import Template
 
 import pyplugs
 from cumulus_geoproc import logger, utils
@@ -11,44 +11,10 @@ from osgeo import gdal
 
 gdal.UseExceptions()
 
+this = os.path.basename(__file__)
 
-def bands(bands: "list[dict]"):
-    """Generator for bands in the gdalinfo list of dictionary objects
 
-    Parameters
-    ----------
-    bands : list[dict]
-        list of dictionaries describing each raster band
-
-    Yields
-    ------
-    tuple
-        band_number: int, reference_time: datetime, valid_time: datetime and timedelta: timedelta
-    """
-
-    time_pattern = re.compile(r"\d+")
-    tdelta2 = timedelta()
-    for band in bands:
-        tdelta1 = tdelta2
-
-        band_number = band["band"]
-        raster_band = gdal.GetRasterBand(band_number)
-
-        metadata_dict = raster_band.GetMetadata_Dict()
-
-        valid_time_match = time_pattern.match(metadata_dict["GRIB_VALID_TIME"])
-        ref_time_match = time_pattern.match(metadata_dict["GRIB_REF_TIME"])
-        forcast_time_match = time_pattern.match(metadata_dict["GRIB_FORECAST_SECONDS"])
-
-        ref_time = datetime.fromtimestamp(int(valid_time_match[0]), timezone.utc)
-        valid_time = datetime.fromtimestamp(int(ref_time_match[0]), timezone.utc)
-        forcast_time = float(forcast_time_match[0])
-
-        # Check the time deltas to see if they are consistant
-        tdelta2 = timedelta(seconds=forcast_time)
-        tdelta = (tdelta2 - tdelta1).seconds
-
-        yield (band_number, ref_time, valid_time, tdelta)
+this = os.path.basename(__file__)
 
 
 @pyplugs.register
@@ -80,6 +46,8 @@ def process(src: str, dst: str, acquirable: str = None):
     filename = os.path.basename(src)
     filename_ = utils.file_extension(filename, ext="")
 
+    filename_temp = Template("${filename}-${ymd}.tif")
+
     # Create a dictionary of time deltas and equivalent filetype
     f_type_dict = {
         3600: "ndfd-conus-airtemp-01h",
@@ -88,41 +56,70 @@ def process(src: str, dst: str, acquirable: str = None):
     }
 
     try:
-        ds = gdal.Open("/vsis3_streaming" + src)
+        ds = gdal.Open("/vsis3_streaming/" + src)
 
-        fileinfo = gdal.Info(ds, format="json")
+        count = ds.RasterCount
+        time_pattern = re.compile(r"\d+")
+        tdelta2 = timedelta()
 
-        # Create the tif files based on the list of dictionaries from above
-        for i, band in enumerate(bands(fileinfo["bands"])):
+        for b in range(1, count + 1):
             try:
-                bandn, rtime, vtime, tdelta = band
+                tdelta1 = tdelta2
 
-                # Extract Band; Convert to COG
-                translate_options = cgdal.gdal_translate_options(bandList=[bandn])
+                raster = ds.GetRasterBand(b)
 
-                _filename = f"{filename_}-{vtime.strftime('%Y%m%d%H%M').tif}"
-
-                gdal.Translate(
-                    temp_file := os.path.join(dst, _filename),
-                    ds,
-                    **translate_options,
+                valid_time_match = time_pattern.match(
+                    raster.GetMetadataItem("GRIB_VALID_TIME")
                 )
+                vtime = datetime.fromtimestamp(int(valid_time_match[0]), timezone.utc)
 
-                outfile_list.append(
-                    {
-                        "filetype": f_type_dict[tdelta],
-                        "file": temp_file,
-                        "datetime": vtime.isoformat(),
-                        "version": rtime.isoformat(),
-                    }
+                ref_time_match = time_pattern.match(
+                    raster.GetMetadataItem("GRIB_REF_TIME")
                 )
+                rtime = datetime.fromtimestamp(int(ref_time_match[0]), timezone.utc)
+
+                forcast_time_match = time_pattern.match(
+                    raster.GetMetadataItem("GRIB_FORECAST_SECONDS")
+                )
+                forcast_time = float(forcast_time_match[0])
+
+                # Check the time deltas to see if they are consistant
+                tdelta2 = timedelta(seconds=forcast_time)
+                tdelta = (tdelta2 - tdelta1).seconds  # Extract Band; Convert to COG
+
+                if tdelta in f_type_dict:
+                    translate_options = cgdal.gdal_translate_options(bandList=[b])
+
+                    _filename = filename_temp.substitute(
+                        filename=filename_, ymd=vtime.strftime("%Y%m%d%H%M")
+                    )
+                    logger.debug(f"New Filename: {_filename}")
+
+                    gdal.Translate(
+                        temp_file := os.path.join(dst, _filename),
+                        ds,
+                        **translate_options,
+                    )
+
+                    outfile_list.append(
+                        {
+                            "filetype": f_type_dict[tdelta],
+                            "file": temp_file,
+                            "datetime": vtime.isoformat(),
+                            "version": rtime.isoformat(),
+                        }
+                    )
+
             except RuntimeError as ex:
-                logger.error(f"RuntimeError: {os.path.basename(__file__)}: {ex}")
+                logger.error(f"{type(ex).__name__}: {this}: {ex}")
+            except Exception as ex:
+                logger.error(f"{type(ex).__name__}: {this}: {ex}")
+            finally:
                 continue
 
     except RuntimeError as ex:
-        logger.error(f"RuntimeError: {os.path.basename(__file__)}: {ex}")
+        logger.error(f"{type(ex).__name__}: {this}: {ex}")
     except KeyError as ex:
-        logger.error(f"KeyError: {os.path.basename(__file__)}: {ex}")
+        logger.error(f"{type(ex).__name__}: {this}: {ex}")
 
     return outfile_list

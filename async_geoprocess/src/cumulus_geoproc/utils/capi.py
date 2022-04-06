@@ -13,7 +13,7 @@ from cumulus_geoproc.configurations import APPLICATION_KEY
 class CumulusAPI:
     """Cumulus API class providing functionality to make requests"""
 
-    def __init__(self, url, http2=True):
+    def __init__(self, url: str, http2: bool = True):
         # set url to env var if not provided
         self.url = url
         self.http2 = http2
@@ -49,18 +49,18 @@ class CumulusAPI:
         self.url_split["query"] = urlencode(query)
         self.build_url(self.url_split)
 
-    async def post(self, url, payload):
+    async def post_(self, url, payload):
         try:
-            with httpx.AsyncClient(http2=self.http2) as client:
-                headers = [(b"content-type", b"application/json")]
-                resp = await client.post(url, headers=headers, json=payload)
-                if resp.status_code == 201:
-                    return resp.json()
+            client = httpx.AsyncClient(http2=self.http2)
+            headers = [(b"content-type", b"application/json")]
+            resp = await client.post(url, headers=headers, json=payload)
+            if resp.status_code == 201:
+                return resp.json()
         except ConnectionError as ex:
             # logger.warning(ex)
             print(ex)
 
-    async def get(self, url):
+    async def get_(self, url):
         try:
             async with httpx.AsyncClient(http2=self.http2) as client:
                 resp = await client.get(url)

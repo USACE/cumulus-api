@@ -5,6 +5,7 @@
 import os
 import re
 from datetime import datetime, timezone
+from string import Template
 
 import pyplugs
 from cumulus_geoproc import logger, utils
@@ -14,35 +15,10 @@ from osgeo import gdal
 
 gdal.UseExceptions()
 
+this = os.path.basename(__file__)
 
-def bands(bands: "list[dict]"):
-    """Generator for bands in the gdalinfo list of dictionary objects
 
-    Parameters
-    ----------
-    bands : list[dict]
-        list of dictionaries describing each raster band
-
-    Yields
-    ------
-    tuple
-        band_number: int, reference_time: datetime and valid_time: datetime
-    """
-
-    time_pattern = re.compile(r"\d+")
-    for band in bands:
-        band_number = band["band"]
-        raster_band = gdal.GetRasterBand(band_number)
-
-        metadata_dict = raster_band.GetMetadata_Dict()
-
-        valid_time_match = time_pattern.match(metadata_dict["GRIB_VALID_TIME"])
-        ref_time_match = time_pattern.match(metadata_dict["GRIB_REF_TIME"])
-
-        ref_time = datetime.fromtimestamp(int(valid_time_match[0]), timezone.utc)
-        valid_time = datetime.fromtimestamp(int(ref_time_match[0]), timezone.utc)
-
-        yield (band_number, ref_time, valid_time)
+this = os.path.basename(__file__)
 
 
 @pyplugs.register
@@ -68,26 +44,39 @@ def process(src: str, dst: str, acquirable: str = None):
             "version": str           Reference Time (forecast), ISO format with timezone
         }
     """
-
-    outfile_list = list()
+    outfile_list = []
 
     filename = os.path.basename(src)
     filename_ = utils.file_extension(filename, ext="")
 
+    filename_temp = Template("${filename}-${ymd}.tif")
+
     try:
-        ds = gdal.Open("/vsis3_streaming" + src)
+        ds = gdal.Open("/vsis3_streaming/" + src)
 
-        fileinfo = gdal.Info(ds, format="json")
-
-        # Create the tif files based on the list of dictionaries from above
-        for i, band in enumerate(bands(fileinfo["bands"])):
+        count = ds.RasterCount
+        time_pattern = re.compile(r"\d+")
+        for b in range(1, count + 1):
             try:
-                bandn, rtime, vtime, tdelta = band
+                raster = ds.GetRasterBand(b)
+
+                valid_time_match = time_pattern.match(
+                    raster.GetMetadataItem("GRIB_VALID_TIME")
+                )
+                vtime = datetime.fromtimestamp(int(valid_time_match[0]), timezone.utc)
+
+                ref_time_match = time_pattern.match(
+                    raster.GetMetadataItem("GRIB_REF_TIME")
+                )
+                rtime = datetime.fromtimestamp(int(ref_time_match[0]), timezone.utc)
 
                 # Extract Band; Convert to COG
-                translate_options = cgdal.gdal_translate_options(bandList=[bandn])
+                translate_options = cgdal.gdal_translate_options(bandList=[b])
 
-                _filename = f"{filename_}-{vtime.strftime('%Y%m%d%H%M').tif}"
+                _filename = filename_temp.substitute(
+                    filename=filename_, ymd=vtime.strftime("%Y%m%d%H%M")
+                )
+                logger.debug(f"New Filename: {_filename}")
 
                 gdal.Translate(
                     temp_file := os.path.join(dst, _filename),
@@ -97,19 +86,22 @@ def process(src: str, dst: str, acquirable: str = None):
 
                 outfile_list.append(
                     {
-                        "filetype": "ndfd-conus-qpf-06h",
+                        "filetype": acquirable,
                         "file": temp_file,
                         "datetime": vtime.isoformat(),
                         "version": rtime.isoformat(),
                     }
                 )
             except RuntimeError as ex:
-                logger.error(f"RuntimeError: {os.path.basename(__file__)}: {ex}")
+                logger.error(f"{type(ex).__name__}: {this}: {ex}")
+            except Exception as ex:
+                logger.error(f"{type(ex).__name__}: {this}: {ex}")
+            finally:
                 continue
 
     except RuntimeError as ex:
-        logger.error(f"RuntimeError: {os.path.basename(__file__)}: {ex}")
+        logger.error(f"{type(ex).__name__}: {this}: {ex}")
     except KeyError as ex:
-        logger.error(f"KeyError: {os.path.basename(__file__)}: {ex}")
+        logger.error(f"{type(ex).__name__}: {this}: {ex}")
 
     return outfile_list

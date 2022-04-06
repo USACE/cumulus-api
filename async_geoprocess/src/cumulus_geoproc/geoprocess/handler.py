@@ -6,7 +6,7 @@ import asyncio
 import os
 
 from botocore.exceptions import ClientError
-from cumulus_geoproc import logger, utils
+from cumulus_geoproc import logger
 from cumulus_geoproc.configurations import (
     APPLICATION_KEY,
     CUMULUS_API_URL,
@@ -14,7 +14,7 @@ from cumulus_geoproc.configurations import (
     HTTP2,
 )
 from cumulus_geoproc.processors import geo_proc
-from cumulus_geoproc.utils.capi import CumulusAPI
+from cumulus_geoproc.utils import boto, capi
 
 
 def handle_message(geoprocess, GeoCfg, dst):
@@ -60,8 +60,8 @@ def handle_message(geoprocess, GeoCfg, dst):
 
 
 def upload_notify(notices: list, bucket: str):
-    responses = list()
-    payload = list()
+    responses = []
+    payload = []
 
     # upload
     for notice in notices:
@@ -70,12 +70,12 @@ def upload_notify(notices: list, bucket: str):
         try:
             # try to upload to S3
             file = notice["file"]
-            filename = os.path.basename(notice["file"])
+            filename = os.path.basename(file)
             key = "/".join([CUMULUS_PRODUCTS_BASEKEY, notice["filetype"], filename])
             logger.debug(f"Notice key: {key}")
 
             # upload the file to S3
-            if utils.s3_upload_file(file, bucket, key):
+            if boto.s3_upload_file(file, bucket, key):
                 logger.debug(f"S3 Upload: {file} -> {bucket}/{key}")
 
                 # If successful on upload, notify cumulus, but
@@ -86,22 +86,22 @@ def upload_notify(notices: list, bucket: str):
                 payload.append(notice)
                 logger.debug(f"Append Response: {responses[-1]}")
         except KeyError as ex:
-            logger.warning(f"KeyError: {ex}")
+            logger.warning(f"KeyError: {__name__}: {ex}")
             continue
         except ClientError as ex:
-            logger.warning(f"ClientError: {ex}")
+            logger.warning(f"ClientError: {__name__}: {ex}")
             continue
         except Exception as ex:
-            logger.warning(ex)
+            logger.warning(f"Exception: {__name__}: {ex}")
             continue
 
     # notify
     if len(payload) > 1:
-        cumulus_api = CumulusAPI(CUMULUS_API_URL, HTTP2)
+        cumulus_api = capi.CumulusAPI(CUMULUS_API_URL, HTTP2)
         cumulus_api.endpoint = "productfiles"
         cumulus_api.query = {"key": APPLICATION_KEY}
 
-        resp = asyncio.run(cumulus_api.post(cumulus_api.url, payload=payload))
+        resp = asyncio.run(cumulus_api.post_(cumulus_api.url, payload=payload))
         responses.append({"upload": resp})
 
     return responses

@@ -15,6 +15,9 @@ from osgeo import gdal
 gdal.UseExceptions()
 
 
+this = os.path.basename(__file__)
+
+
 @pyplugs.register
 def process(src: str, dst: str, acquirable: str = None):
     """Grid processor
@@ -92,8 +95,8 @@ def process(src: str, dst: str, acquirable: str = None):
         ]
 
     except RuntimeError as ex:
-        logger.error(f"RuntimeError: {os.path.basename(__file__)}: {ex}")
+        logger.error(f"{type(ex).__name__}: {this}: {ex}")
     except KeyError as ex:
-        logger.error(f"KeyError: {os.path.basename(__file__)}: {ex}")
+        logger.error(f"{type(ex).__name__}: {this}: {ex}")
 
     return outfile_list

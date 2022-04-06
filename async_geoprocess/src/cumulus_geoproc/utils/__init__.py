@@ -2,30 +2,19 @@
 """
 
 import os
-from signal import SIGINT, SIGTERM, signal
+from zipfile import ZipFile
 
 
-# ------------------------- #
-# Signal Handler
-# ------------------------- #
-class SignalHandler:
-    def __init__(self):
-        self.received_signal = False
-        signal(SIGINT, self._signal_handler)
-        signal(SIGTERM, self._signal_handler)
+def file_extension(file: str, preffix: str = None, ext=".tif"):
+    file = preffix + "-" + file if preffix else file
 
-    def _signal_handler(self, signal, frame):
-        print(f"handling signal {signal}, exiting gracefully")
-        self.received_signal = True
-
-
-def file_extension(file: str, ext=".tif"):
     exts = (
         ".gz",
         ".tar",
         ".bin",
         ".grb",
         ".zip",
+        ".bil",
         ".grib",
         ".grib2",
         ".tar.gz",
@@ -41,6 +30,11 @@ def file_extension(file: str, ext=".tif"):
         return file_[-1]
 
     return file + ext
+
+
+def uncompress(src: str, dst: str = "/tmp"):
+    with ZipFile(src, "r") as zip_file:
+        zip_file.extractall(path=dst)
 
 
 if __name__ == "__main__":

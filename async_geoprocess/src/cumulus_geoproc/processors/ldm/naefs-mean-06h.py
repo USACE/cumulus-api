@@ -5,15 +5,16 @@
 import os
 import re
 from datetime import datetime, timedelta, timezone
-from tempfile import NamedTemporaryFile, TemporaryDirectory, TemporaryFile
+from tempfile import NamedTemporaryFile, TemporaryDirectory
 
 import numpy as np
 import pyplugs
-from cumulus_geoproc import logger, utils
-from cumulus_geoproc.utils import cgdal
+from cumulus_geoproc import logger
+from cumulus_geoproc.utils import boto, cgdal
 from osgeo import gdal
 
 
+this = os.path.basename(__file__)
 # @pyplugs.register
 def process(src: str, dst: str, acquirable: str = None):
     """Grid processor
@@ -44,7 +45,7 @@ def process(src: str, dst: str, acquirable: str = None):
             bucket, key = src.split("/", maxsplit=1)
             logger.debug(f"s3_download_file({bucket=}, {key=})")
 
-            infile = utils.s3_download_file(bucket=bucket, key=key, dst=temp_dir)
+            infile = boto.s3_download_file(bucket=bucket, key=key, dst=temp_dir)
             logger.debug(f"S3 Downloaded File: {infile}")
 
             #
@@ -129,8 +130,8 @@ def process(src: str, dst: str, acquirable: str = None):
                     )
 
     except RuntimeError as ex:
-        logger.error(f"RuntimeError: {os.path.basename(__file__)}: {ex}")
+        logger.error(f"{type(ex).__name__}: {this}: {ex}")
     except KeyError as ex:
-        logger.error(f"KeyError: {os.path.basename(__file__)}: {ex}")
+        logger.error(f"{type(ex).__name__}: {this}: {ex}")
 
     return outfile_list

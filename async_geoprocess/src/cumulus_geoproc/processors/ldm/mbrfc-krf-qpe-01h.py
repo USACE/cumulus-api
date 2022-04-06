@@ -16,6 +16,9 @@ from osgeo import gdal
 gdal.UseExceptions()
 
 
+this = os.path.basename(__file__)
+
+
 @pyplugs.register
 def process(src: str, dst: str, acquirable: str = None):
     """Grid processor
@@ -51,7 +54,7 @@ def process(src: str, dst: str, acquirable: str = None):
             bucket, key = src.split("/", maxsplit=1)
             logger.debug(f"s3_download_file({bucket=}, {key=})")
 
-            src_ = utils.s3_download_file(bucket=bucket, key=key, dst=temp_dir)
+            src_ = boto.s3_download_file(bucket=bucket, key=key, dst=temp_dir)
             logger.debug(f"S3 Downloaded File: {src_}")
 
             ds = gdal.Open("/vsigzip/" + src_)
@@ -102,8 +105,8 @@ def process(src: str, dst: str, acquirable: str = None):
             ]
 
     except RuntimeError as ex:
-        logger.error(f"RuntimeError: {os.path.basename(__file__)}: {ex}")
+        logger.error(f"{type(ex).__name__}: {this}: {ex}")
     except KeyError as ex:
-        logger.error(f"KeyError: {os.path.basename(__file__)}: {ex}")
+        logger.error(f"{type(ex).__name__}: {this}: {ex}")
 
     return outfile_list

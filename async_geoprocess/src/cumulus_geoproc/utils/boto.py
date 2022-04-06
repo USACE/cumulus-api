@@ -1,4 +1,4 @@
-"""_summary_
+"""Cumulus utilities helping with S3 functionality
 """
 
 import os
@@ -36,8 +36,9 @@ def s3_upload_file(file_name, bucket, key=None):
     return True
 
 
-def s3_download_file(bucket, key, dst="/tmp"):
+def s3_download_file(bucket: str, key: str, prefix: str = None, dst: str = "/tmp"):
     file = os.path.basename(key)
+    file = prefix + "-" + file if prefix else file
 
     filename = os.path.join(dst, file)
     logger.debug(f"S3 Download File: {filename}")

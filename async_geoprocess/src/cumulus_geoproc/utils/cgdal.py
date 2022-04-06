@@ -1,9 +1,16 @@
-"""_summary_
+"""Cumulus specific gdal utilities
 """
 
+import datetime
+import os
+import re
 from osgeo import gdal
 
+from cumulus_geoproc import logger
+
 gdal.UseExceptions()
+
+this = os.path.basename(__file__)
 
 
 def gdal_translate_options(**kwargs):
@@ -14,28 +21,31 @@ def gdal_translate_options(**kwargs):
     return {**base, **kwargs}
 
 
-# def gdal_array_to_raster(
-#     array, dst, transform, projection, nodata, driver="GTiff", *args, **kwargs
-# ):
-#     """utf8_path: str,
-#     xsize: int,
-#     ysize: int,
-#     data_type,
-#     bands: int = 1,
-#     """
+# TODO: create a generator to support reading grid metadata
 
-#     base_options = {"options": ["COMPRESS=DEFLATE", "TILED=YES"]}
+# get a band based on provided attributes in the metadata
+def find_band(data_set: "gdal.Dataset", attr: dict = {}):
+    count = data_set.RasterCount
+    for b in range(1, count + 1):
+        try:
+            raster = data_set.GetRasterBand(b)
+            meta = raster.GetMetadata_Dict()
+            has_attr = [
+                True
+                for key, val in attr.items()
+                if (key in meta and val == raster.GetMetadataItem(key))
+            ]
+            logger.debug(f"{has_attr=}")
+            if len(has_attr) == len(attr):
+                return b
 
-#     driver = gdal.GetDriverByName(driver)
-#     data_set = driver.Create(dst, *args, options={**base_options, **kwargs})
+        except RuntimeError as ex:
+            logger.error(f"{type(ex).__name__}: {this}: {ex}")
+            continue
 
-#     data_set.SetGeoTransform(transform)
-#     data_set.SetProjection(projection)
-#     data_set.GetRasterBand(1).SetNoDataValue(nodata)
-#     data_set.GetRasterBand(1).WriteArray(array)
-#     data_set.FlushCache()
-#     data_set.GetRasterBand(1).GetStatistics(0, 1)
+    return None
 
 
-def band_generator(bands: "list[dict]"):
+# TODO: GridProcess class
+class GridProcess:
     pass

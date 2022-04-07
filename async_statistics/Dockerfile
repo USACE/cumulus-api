@@ -1,6 +1,6 @@
 # Dockerfile
 # FROM ubuntu
-FROM osgeo/gdal
+FROM osgeo/gdal:ubuntu-small-latest
 
 ENV PYTHONUNBUFFERED=1 GDAL_DISABLE_READDIR_ON_OPEN=EMPTY_DIR
 
@@ -14,5 +14,8 @@ RUN pip3 install --no-cache-dir rasterstats boto3 psycopg2-binary
 
 COPY stats/* /app/
 WORKDIR /app
+
+RUN useradd appuser
+USER appuser
 
 CMD python3 stats.py

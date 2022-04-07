@@ -18,9 +18,6 @@ gdal.UseExceptions()
 this = os.path.basename(__file__)
 
 
-this = os.path.basename(__file__)
-
-
 @pyplugs.register
 def process(src: str, dst: str, acquirable: str = None):
     """Grid processor
@@ -46,12 +43,12 @@ def process(src: str, dst: str, acquirable: str = None):
     """
     outfile_list = []
 
-    filename = os.path.basename(src)
-    filename_ = utils.file_extension(filename, ext="")
-
-    filename_temp = Template("${filename}-${ymd}.tif")
-
     try:
+        filename_ = utils.file_extension(filename, ext="")
+        filename = os.path.basename(src)
+
+        filename_temp = Template("${filename}-${ymd}.tif")
+
         ds = gdal.Open("/vsis3_streaming/" + src)
 
         count = ds.RasterCount
@@ -71,7 +68,9 @@ def process(src: str, dst: str, acquirable: str = None):
                 rtime = datetime.fromtimestamp(int(ref_time_match[0]), timezone.utc)
 
                 # Extract Band; Convert to COG
-                translate_options = cgdal.gdal_translate_options(bandList=[b])
+                translate_options = cgdal.gdal_translate_options(
+                    bandList=[b], creationOptions=["TILED=YES", "COMPRESS=DEFLATE"]
+                )
 
                 _filename = filename_temp.substitute(
                     filename=filename_, ymd=vtime.strftime("%Y%m%d%H%M")
@@ -92,16 +91,15 @@ def process(src: str, dst: str, acquirable: str = None):
                         "version": rtime.isoformat(),
                     }
                 )
-            except RuntimeError as ex:
-                logger.error(f"{type(ex).__name__}: {this}: {ex}")
-            except Exception as ex:
+            except (RuntimeError, Exception) as ex:
                 logger.error(f"{type(ex).__name__}: {this}: {ex}")
             finally:
                 continue
 
-    except RuntimeError as ex:
+    except (RuntimeError, KeyError) as ex:
         logger.error(f"{type(ex).__name__}: {this}: {ex}")
-    except KeyError as ex:
-        logger.error(f"{type(ex).__name__}: {this}: {ex}")
+    finally:
+        ds = None
+        raster = None
 
     return outfile_list

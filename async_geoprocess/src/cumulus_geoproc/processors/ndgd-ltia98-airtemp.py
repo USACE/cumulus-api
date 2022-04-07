@@ -9,7 +9,7 @@ from datetime import datetime, timezone
 import pyplugs
 from cumulus_geoproc import logger, utils
 from cumulus_geoproc.configurations import CUMULUS_PRODUCTS_BASEKEY
-from cumulus_geoproc.utils import cgdal
+from cumulus_geoproc.utils import boto, cgdal
 from osgeo import gdal
 
 gdal.UseExceptions()
@@ -41,38 +41,27 @@ def process(src: str, dst: str, acquirable: str = None):
             "version": str           Reference Time (forecast), ISO format with timezone
         }
     """
-    grib_element = None
-
-    outfile_list = list()
-
-    filename = os.path.basename(src)
-    filename_ = utils.file_extension(filename)
+    outfile_list = []
 
     try:
+        attr = {}
+
+        filename = os.path.basename(src)
+        filename_ = utils.file_extension(filename)
 
         ds = gdal.Open("/vsis3_streaming/" + src)
-        fileinfo = gdal.Info(ds, format="json")
 
-        logger.debug(f"File Info: {fileinfo}")
+        if (band_number := cgdal.find_band(ds, attr)) is None:
+            raise Exception("Band number not found for attributes: {attr}")
 
-        # figure out the band number
-        band_number = None
-        for band in fileinfo["bands"]:
-            band_number = band["band"]
-            band_meta = band["metadata"][""]
-            valid_time = band_meta["GRIB_VALID_TIME"]
-            reference_time = band_meta["GRIB_REF_TIME"]
-            if "Temperature [C]" in band_meta["GRIB_COMMENT"]:
-                break
+        logger.debug(f"Band number '{band_number}' found for attributes {attr}")
+
+        raster = ds.GetRasterBand(band_number)
 
         # Get Datetime from String Like "1599008400 sec UTC"
         time_pattern = re.compile(r"\d+")
-        valid_time_match = time_pattern.match(valid_time)
-        reference_time_match = time_pattern.match(reference_time)
+        valid_time_match = time_pattern.match(raster.GetMetadataItem("GRIB_VALID_TIME"))
         dt_valid = datetime.fromtimestamp(int(valid_time_match[0]), timezone.utc)
-        dt_reference = datetime.fromtimestamp(
-            int(reference_time_match[0]), timezone.utc
-        )
 
         # Extract Band; Convert to COG
         translate_options = cgdal.gdal_translate_options(bandList=[band_number])
@@ -84,6 +73,7 @@ def process(src: str, dst: str, acquirable: str = None):
 
         # closing the data source
         ds = None
+        raster = None
 
         outfile_list = [
             {
@@ -93,10 +83,10 @@ def process(src: str, dst: str, acquirable: str = None):
                 "version": None,
             },
         ]
-
-    except RuntimeError as ex:
+    except (RuntimeError, KeyError, Exception) as ex:
         logger.error(f"{type(ex).__name__}: {this}: {ex}")
-    except KeyError as ex:
-        logger.error(f"{type(ex).__name__}: {this}: {ex}")
+    finally:
+        ds = None
+        raster = None
 
     return outfile_list

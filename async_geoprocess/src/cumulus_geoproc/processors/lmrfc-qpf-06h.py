@@ -79,10 +79,6 @@ def process(src: str, dst: str, acquirable: str = None):
             **translate_options,
         )
 
-        # closing the data source
-        ds = None
-        raster = None
-
         outfile_list = [
             {
                 "filetype": acquirable,
@@ -93,5 +89,8 @@ def process(src: str, dst: str, acquirable: str = None):
         ]
     except (RuntimeError, KeyError, Exception) as ex:
         logger.error(f"{type(ex).__name__}: {this}: {ex}")
+    finally:
+        ds = None
+        raster = None
 
     return outfile_list

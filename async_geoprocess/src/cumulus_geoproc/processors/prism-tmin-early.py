@@ -10,7 +10,6 @@ import os
 import re
 from datetime import datetime, timezone
 from tempfile import TemporaryDirectory
-from zipfile import ZipFile
 
 import pyplugs
 from cumulus_geoproc import logger, utils
@@ -99,5 +98,7 @@ def process(src: str, dst: str, acquirable: str = None):
         ]
     except (RuntimeError, KeyError, IndexError) as ex:
         logger.error(f"{type(ex).__name__}: {this}: {ex}")
+    finally:
+        ds = None
 
     return outfile_list

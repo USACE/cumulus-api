@@ -108,8 +108,9 @@ def start_worker():
                     else None
                 )
 
-                logger.info(f"Geo Process: {geoprocess}")
-                logger.info(f"Geo Processor Plugin: {GeoCfg.acquirable_slug}")
+                logger.info(
+                    f"Geo Process; Plugin: {geoprocess}; {GeoCfg.acquirable_slug}"
+                )
                 logger.debug(f"Message Payload: {payload}")
 
                 # create a temporary directory and release in final exception
@@ -141,9 +142,11 @@ def start_worker():
                         continue
 
                 # notify cumulus of the processed files
-                logger.info(f"Attempt to notify {len(processed_)} processed product(s)")
+                logger.debug(
+                    f"Attempt to notify {len(processed_)} processed product(s)"
+                )
                 resp = handler.upload_notify(notices=processed_, bucket=GeoCfg.bucket)
-                logger.info(resp)
+                logger.debug(resp)
             except Exception as ex:
                 logger.warning(
                     f"{type(ex).__name__} - {this} - {ex} - {traceback.format_exc()}"

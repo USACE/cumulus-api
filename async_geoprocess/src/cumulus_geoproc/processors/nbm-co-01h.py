@@ -46,44 +46,31 @@ def process(src: str, dst: str, acquirable: str = None):
     """
     outfile_list = list()
 
-    filename = os.path.basename(src)
-    filename_ = utils.file_extension(filename)
-
-    filetype_elements = {
-        "nbm-co-airtemp": {"GRIB_ELEMENT": "T", "GRIB_SHORT_NAME": "0-SFC"},
-        "nbm-co-qpf": {"GRIB_ELEMENT": "QPF01", "GRIB_SHORT_NAME": "0-SFC"},
-    }
-
     try:
+        filename = os.path.basename(src)
+        filename_ = utils.file_extension(filename)
+
+        filetype_elements = {
+            "nbm-co-airtemp": {"GRIB_ELEMENT": "T", "GRIB_SHORT_NAME": "0-SFC"},
+            "nbm-co-qpf": {"GRIB_ELEMENT": "QPF01", "GRIB_SHORT_NAME": "0-SFC"},
+        }
+
         ds = gdal.Open("/vsis3_streaming/" + src)
-        fileinfo = gdal.Info(ds, format="json")
 
-        # logger.debug(f"File Info: {fileinfo}")
-
-        for filetype, grib_elements in filetype_elements.items():
-            grib_element = grib_elements["GRIB_ELEMENT"]
-            grib_short_name = grib_elements["GRIB_SHORT_NAME"]
-
-            logger.debug(f"{filetype=}\t{grib_element=}\t{grib_short_name=}")
-
+        for filetype, attr in filetype_elements.items():
             try:
-                # figure out the band number
-                band_number = None
-                for band in fileinfo["bands"]:
-                    band_number = band["band"]
-                    band_meta = band["metadata"][""]
-                    valid_time = band_meta["GRIB_VALID_TIME"]
-                    if (
-                        band_meta["GRIB_ELEMENT"].upper() == grib_element
-                        and band_meta["GRIB_SHORT_NAME"].upper() == grib_short_name
-                    ):
-                        break
+                if (band_number := cgdal.find_band(ds, attr)) is None:
+                    raise Exception("Band number not found for attributes: {attr}")
 
-                logger.debug(f"Band Number: {band_number}")
+                logger.debug(f"Band number '{band_number}' found for attributes {attr}")
+
+                raster = ds.GetRasterBand(band_number)
 
                 # Get Datetime from String Like "1599008400 sec UTC"
                 time_pattern = re.compile(r"\d+")
-                valid_time_match = time_pattern.match(valid_time)
+                valid_time_match = time_pattern.match(
+                    raster.GetMetadataItem("GRIB_VALID_TIME")
+                )
                 dt_valid = datetime.fromtimestamp(
                     int(valid_time_match[0]), timezone.utc
                 )
@@ -110,12 +97,11 @@ def process(src: str, dst: str, acquirable: str = None):
                 logger.error(f"{type(ex).__name__}: {this}: {ex}")
                 continue
 
-    except RuntimeError as ex:
+    except (RuntimeError, KeyError) as ex:
         logger.error(f"{type(ex).__name__}: {this}: {ex}")
-    except KeyError as ex:
-        logger.error(f"{type(ex).__name__}: {this}: {ex}")
-
-    # closing the data source
-    ds = None
+    finally:
+        # closing the data source
+        ds = None
+        raster = None
 
     return outfile_list

@@ -10,7 +10,6 @@ import os
 import re
 from datetime import datetime, timezone
 from tempfile import TemporaryDirectory
-from zipfile import ZipFile
 
 import pyplugs
 from cumulus_geoproc import logger, utils
@@ -48,7 +47,7 @@ def process(src: str, dst: str, acquirable: str = None):
         }
     """
 
-    outfile_list = list()
+    outfile_list = []
 
     try:
         filename = os.path.basename(src)
@@ -86,9 +85,6 @@ def process(src: str, dst: str, acquirable: str = None):
             **translate_options,
         )
 
-        # closing the data source
-        ds = None
-
         outfile_list = [
             {
                 "filetype": acquirable,
@@ -99,5 +95,7 @@ def process(src: str, dst: str, acquirable: str = None):
         ]
     except (RuntimeError, KeyError, IndexError) as ex:
         logger.error(f"{type(ex).__name__}: {this}: {ex}")
+    finally:
+        ds = None
 
     return outfile_list

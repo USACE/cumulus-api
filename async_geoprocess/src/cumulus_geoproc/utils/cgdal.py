@@ -1,9 +1,7 @@
 """Cumulus specific gdal utilities
 """
 
-import datetime
 import os
-import re
 from osgeo import gdal
 
 from cumulus_geoproc import logger
@@ -35,8 +33,8 @@ def find_band(data_set: "gdal.Dataset", attr: dict = {}):
                 for key, val in attr.items()
                 if (key in meta and val == raster.GetMetadataItem(key))
             ]
-            logger.debug(f"{has_attr=}")
             if len(has_attr) == len(attr):
+                logger.debug(f"{has_attr=}")
                 return b
 
         except RuntimeError as ex:

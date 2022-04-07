@@ -42,14 +42,14 @@ def process(src: str, dst: str, acquirable: str = None):
             "version": str           Reference Time (forecast), ISO format with timezone
         }
     """
-    grib_element = "MultiSensor_QPE_01H_Pass1"
-
-    outfile_list = list()
-
-    filename = os.path.basename(src)
-    filename_ = utils.file_extension(filename)
+    outfile_list = []
 
     try:
+        attr = {"GRIB_ELEMENT": "MultiSensor_QPE_01H_Pass1"}
+
+        filename = os.path.basename(src)
+        filename_ = utils.file_extension(filename, preffix="al")
+
         bucket, key = src.split("/", maxsplit=1)
         logger.debug(f"s3_download_file({bucket=}, {key=})")
 
@@ -58,25 +58,17 @@ def process(src: str, dst: str, acquirable: str = None):
         logger.debug(f"S3 Downloaded File: {src_}")
 
         ds = gdal.Open("/vsigzip/" + src_)
-        fileinfo = gdal.Info(ds, format="json")
-        bands = fileinfo["bands"]
 
-        logger.debug(f"File Info: {fileinfo}")
+        if (band_number := cgdal.find_band(ds, attr)) is None:
+            raise Exception("Band number not found for attributes: {attr}")
 
-        # figure out the band number
-        band_number = [
-            b["band"]
-            for b in bands
-            if b["metadata"][""]["GRIB_ELEMENT"] == grib_element
-        ][-1]
+        logger.debug(f"Band number '{band_number}' found for attributes {attr}")
 
         raster = ds.GetRasterBand(band_number)
-        meta = raster.GetMetadata_Dict()
-        valid_time = meta["GRIB_VALID_TIME"]
 
         # Get Datetime from String Like "1599008400 sec UTC"
         time_pattern = re.compile(r"\d+")
-        valid_time_match = time_pattern.match(valid_time)
+        valid_time_match = time_pattern.match(raster.GetMetadataItem("GRIB_VALID_TIME"))
         dt_valid = datetime.fromtimestamp(int(valid_time_match[0]), timezone.utc)
 
         # Extract Band; Convert to COG
@@ -87,10 +79,6 @@ def process(src: str, dst: str, acquirable: str = None):
             **translate_options,
         )
 
-        # closing the data source
-        ds = None
-        raster = None
-
         outfile_list = [
             {
                 "filetype": acquirable,
@@ -100,11 +88,11 @@ def process(src: str, dst: str, acquirable: str = None):
             },
         ]
 
-    except RuntimeError as ex:
+    except (RuntimeError, KeyError) as ex:
         logger.error(f"{type(ex).__name__}: {this}: {ex}")
-    except KeyError as ex:
-        logger.error(f"{type(ex).__name__}: {this}: {ex}")
-    except IndexError as ex:
-        logger.error(f"IndexError: {__name__}: {ex}")
+    finally:
+        # closing the data source
+        ds = None
+        raster = None
 
     return outfile_list

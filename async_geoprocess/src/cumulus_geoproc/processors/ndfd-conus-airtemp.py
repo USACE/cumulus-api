@@ -1,3 +1,7 @@
+"""NDFD CONUS Airtemp
+"""
+
+
 import os
 import re
 from datetime import datetime, timedelta, timezone
@@ -10,9 +14,6 @@ from cumulus_geoproc.utils import cgdal
 from osgeo import gdal
 
 gdal.UseExceptions()
-
-this = os.path.basename(__file__)
-
 
 this = os.path.basename(__file__)
 
@@ -41,21 +42,21 @@ def process(src: str, dst: str, acquirable: str = None):
         }
     """
 
-    outfile_list = list()
-
-    filename = os.path.basename(src)
-    filename_ = utils.file_extension(filename, ext="")
-
-    filename_temp = Template("${filename}-${ymd}.tif")
-
-    # Create a dictionary of time deltas and equivalent filetype
-    f_type_dict = {
-        3600: "ndfd-conus-airtemp-01h",
-        10800: "ndfd-conus-airtemp-03h",
-        21600: "ndfd-conus-airtemp-06h",
-    }
+    outfile_list = []
 
     try:
+        filename = os.path.basename(src)
+        filename_ = utils.file_extension(filename, ext="")
+
+        filename_temp = Template("${filename}-${ymd}.tif")
+
+        # Create a dictionary of time deltas and equivalent filetype
+        f_type_dict = {
+            3600: "ndfd-conus-airtemp-01h",
+            10800: "ndfd-conus-airtemp-03h",
+            21600: "ndfd-conus-airtemp-06h",
+        }
+
         ds = gdal.Open("/vsis3_streaming/" + src)
 
         count = ds.RasterCount
@@ -88,7 +89,9 @@ def process(src: str, dst: str, acquirable: str = None):
                 tdelta = (tdelta2 - tdelta1).seconds  # Extract Band; Convert to COG
 
                 if tdelta in f_type_dict:
-                    translate_options = cgdal.gdal_translate_options(bandList=[b])
+                    translate_options = cgdal.gdal_translate_options(
+                        bandList=[b], creationOptions=["TILED=YES", "COMPRESS=DEFLATE"]
+                    )
 
                     _filename = filename_temp.substitute(
                         filename=filename_, ymd=vtime.strftime("%Y%m%d%H%M")
@@ -110,16 +113,15 @@ def process(src: str, dst: str, acquirable: str = None):
                         }
                     )
 
-            except RuntimeError as ex:
-                logger.error(f"{type(ex).__name__}: {this}: {ex}")
-            except Exception as ex:
+            except (RuntimeError, Exception) as ex:
                 logger.error(f"{type(ex).__name__}: {this}: {ex}")
             finally:
                 continue
 
-    except RuntimeError as ex:
+    except (RuntimeError, KeyError) as ex:
         logger.error(f"{type(ex).__name__}: {this}: {ex}")
-    except KeyError as ex:
-        logger.error(f"{type(ex).__name__}: {this}: {ex}")
+    finally:
+        ds = None
+        raster = None
 
     return outfile_list

@@ -1,7 +1,8 @@
 """WRF Columbia Airtemp
 """
 
-from cumulus_geoproc.wrfcolumbia.core import wrf2cog
+import os
+
 
 import pyplugs
 
@@ -31,6 +32,6 @@ def process(src: str, dst: str, acquirable: str = None):
         }
     """
 
-    varName = "wrf-columbia-airtemp"
-    outfile_list = wrf2cog(infile, outdir, varName)
-    return outfile_list
+    # varName = "wrf-columbia-airtemp"
+    # outfile_list = wrf2cog(infile, outdir, varName)
+    return []

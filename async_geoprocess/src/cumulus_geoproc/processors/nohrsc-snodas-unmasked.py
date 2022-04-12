@@ -1,20 +1,14 @@
 """NOHRSC SNODAS Unmasked
 """
 
+from asyncio.log import logger
 import os
-import re
-from datetime import datetime, timedelta
 
 import pyplugs
-from cumulus_geoproc import logger, utils
-from cumulus_geoproc.geoprocess.snodas import (
-    BOUNDING_DATE,
-    utils,
-    translate_options as snodas_translate_options,
-    product_code as snodas_product_code,
-)
-from cumulus_geoproc.geoprocess.snodas import handler
-from cumulus_geoproc.utils import cgdal, file_extension
+from cumulus_geoproc import utils
+from cumulus_geoproc.geoprocess import handler, snodas
+from cumulus_geoproc.utils import cgdal
+
 from osgeo import gdal
 
 this = os.path.basename(__file__)
@@ -66,15 +60,15 @@ def process(src: str, dst: str, acquirable: str = None):
                 region = snodas_file.region
 
                 # True (1) or False (0) determines which output bounds to use
-                output_bounds = snodas_translate_options[region]["translate_option"][
-                    (snodas_file.date_time >= BOUNDING_DATE)
-                ]
+                output_bounds = cgdal.gdal_translate_options[region][
+                    "translate_option"
+                ][(snodas_file.date_time >= snodas.BOUNDING_DATE)]
                 # Hdr text to write
-                hdr_ = snodas_translate_options[region]["hdr"]
+                hdr_ = snodas.translate_options[region]["hdr"]
                 with open(hdr_file := dat_file_path.replace(".dat", ".hdr")) as fh:
                     fh.write(hdr_)
                 # add the kwargs to the translate options
-                options_ = snodas_translate_options["global"]
+                options_ = snodas.translate_options["global"]
                 translate_options = cgdal.gdal_translate_options(
                     creationOptions=None, **options_, **output_bounds
                 )
@@ -100,7 +94,7 @@ def process(src: str, dst: str, acquirable: str = None):
 
                 translate_to_tif[snodas_file_product] = {
                     "file": tif_file,
-                    "filetype": snodas_product_code[snodas_file_product]["product"],
+                    "filetype": snodas.product_code[snodas_file_product]["product"],
                     "datetime": snodas_file.date_time.isoformat(),
                     "version": None,
                 }

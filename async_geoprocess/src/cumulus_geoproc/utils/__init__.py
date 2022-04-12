@@ -34,6 +34,7 @@ def file_extension(file: str, preffix: str = "", suffix=".tif", maxsplit=-1):
 
     exts = (
         ".gz",
+        ".nc",
         ".tar",
         ".bin",
         ".grb",

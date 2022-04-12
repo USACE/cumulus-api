@@ -1,6 +1,9 @@
 """WRF Columbia Airtemp
 """
 
+# TODO: Refactor to new geoprocess package
+
+
 import os
 
 
@@ -8,6 +11,8 @@ import pyplugs
 
 
 this = os.path.basename(__file__)
+
+# plugin not available when decorator commented out
 # @pyplugs.register
 def process(src: str, dst: str, acquirable: str = None):
     """Grid processor

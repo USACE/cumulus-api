@@ -6,28 +6,18 @@ There is a file that looks like: ssm1054_2022012212.nc.gz
 Need to uncompress that NetCDF file
 """
 
+# TODO: Refactor to new geoprocess package
 
-from datetime import datetime, timedelta
 import os
 import re
 import tarfile
-import numpy as np
-from datetime import datetime, timezone
-from collections import namedtuple
+from datetime import datetime
+
+from cumulus_geoproc import utils
+from cumulus_geoproc.utils import cgdal
+
+
 from osgeo import gdal
-from uuid import uuid4
-from cumulus_geoproc.geoprocess.core.base import (
-    info,
-    translate,
-    create_overviews,
-    translate_cog,
-    write_array_to_raster,
-)
-from cumulus_geoproc.handyutils.core import (
-    change_file_extension,
-    change_final_file_extension,
-    gunzip_file,
-)
 
 
 def get_stop_date(gridfile):
@@ -47,17 +37,21 @@ def get_stop_date(gridfile):
 
 import pyplugs
 
+this = os.path.basename(__file__)
 
-@pyplugs.register
-def process(infile: str, outdir: str):
+
+# @pyplugs.register
+def process(src: str, dst: str, acquirable: str = None):
     """Grid processor
 
     Parameters
     ----------
-    infile : str
+    src : str
         path to input file for processing
-    outdir : str
-        path to processor result
+    dst : str
+        path to temporary directory created from worker thread
+    acquirable: str
+        acquirable slug
 
     Returns
     -------
@@ -74,9 +68,9 @@ def process(infile: str, outdir: str):
 
     # logger.debug(infile)
 
-    working_dir = os.path.dirname(infile)
+    working_dir = os.path.dirname(src)
     r = re.compile("ssm1054_\d{10}.\d{14}/ssm1054_\d{10}.nc.gz")
-    tar = tarfile.open(infile)
+    tar = tarfile.open(src)
 
     # Scan through the files in the tar file to find the compressed netcdf file.
     # Example Result: <TarInfo 'ssm1054_2022013112.20220131181006/ssm1054_2022013112.nc.gz' at 0x7f2dbc1a9e80>
@@ -91,9 +85,7 @@ def process(infile: str, outdir: str):
     compressed_file = os.path.join(working_dir, member_to_extract.name)
 
     # unzip the file and move it to the working_dir (instead of the member sub dir)
-    uncompressed_filename = change_file_extension(compressed_file, "nc")
-    uncompressed_file = os.path.join(working_dir, uncompressed_filename)
-    gunzip_file(compressed_file, uncompressed_file)
+    uncompressed_file = utils.decompress(src, dst)
 
     tar.close()
 
@@ -113,16 +105,22 @@ def process(infile: str, outdir: str):
     if valid_time is None:
         return outfile_list
 
-    cog = translate_cog(
-        uncompressed_file,
-        os.path.join(outdir, change_final_file_extension(uncompressed_file, "tif")),
+    translate_options = cgdal.gdal_translate_options(
+        creationOptions=["TILED=YES", "COMPRESS=DEFLATE"]
+    )
+
+    ds = gdal.Open(uncompressed_file, gdal.GA_ReadOnly)
+    gdal.Translate(
+        tif := utils.file_extension(uncompressed_file),
+        ds,
+        **translate_options,
     )
 
     # Append dictionary object to outfile list
     outfile_list.append(
         {
             "filetype": "nohrsc-snodas-swe-corrections",
-            "file": cog,
+            "file": tif,
             "datetime": valid_time,
             "version": None,
         }

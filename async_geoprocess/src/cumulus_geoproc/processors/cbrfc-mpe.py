@@ -5,24 +5,33 @@ Multisensor Precipitation Estimates (MPE)
 
 
 import os
+import re
 from datetime import datetime, timezone
-from uuid import uuid4
 
 import pyplugs
-from cumulus_geoproc.geoprocess.core.base import create_overviews, info, translate
-from cumulus_geoproc.handyutils.core import change_final_file_extension
+from cumulus_geoproc import logger, utils
+from cumulus_geoproc.configurations import CUMULUS_PRODUCTS_BASEKEY
+from cumulus_geoproc.utils import boto, cgdal
+from osgeo import gdal
+
+gdal.UseExceptions()
+
+
+this = os.path.basename(__file__)
 
 
 @pyplugs.register
-def process(infile: str, outdir: str):
+def process(src: str, dst: str, acquirable: str = None):
     """Grid processor
 
     Parameters
     ----------
-    infile : str
+    src : str
         path to input file for processing
-    outdir : str
-        path to processor result
+    dst : str
+        path to temporary directory created from worker thread
+    acquirable: str
+        acquirable slug
 
     Returns
     -------
@@ -34,43 +43,52 @@ def process(infile: str, outdir: str):
             "version": str           Reference Time (forecast), ISO format with timezone
         }
     """
-    outfile_list = list()
+    outfile_list = []
 
-    fileinfo = info(infile)
+    try:
+        attr = {"GRIB_ELEMENT": "APCP"}
 
-    for band in fileinfo["bands"]:
-        band_number = str(band["band"])
-        band_meta = band["metadata"][""]
-        dtStr = band_meta["GRIB_VALID_TIME"]
-        if "Total precipitation" in band_meta["GRIB_COMMENT"]:
-            break
+        filename = os.path.basename(src)
+        filename_ = utils.file_extension(filename)
 
-    # Get Datetime from String Like "1599008400 sec UTC"
-    dt = datetime.fromtimestamp(int(dtStr.split(" ")[0]))
+        ds = gdal.Open("/vsis3_streaming/" + src)
 
-    # print(f"Band number is {band_number}, date string is {dtStr}, and date is {dt}")
+        if (band_number := cgdal.find_band(ds, attr)) is None:
+            raise Exception("Band number not found for attributes: {attr}")
 
-    # # Extract Band 0 (QPE); Convert to COG
-    tif = translate(
-        infile,
-        os.path.join(outdir, f"temp-tif-{uuid4()}"),
-        extra_args=["-b", band_number],
-    )
-    tif_with_overviews = create_overviews(tif)
-    cog = translate(
-        tif_with_overviews,
-        os.path.join(
-            outdir, change_final_file_extension(os.path.basename(infile), "tif")
-        ),
-    )
+        logger.debug(f"Band number '{band_number}' found for attributes {attr}")
 
-    outfile_list = [
-        {
-            "filetype": "cbrfc-mpe",
-            "file": cog,
-            "datetime": dt.replace(tzinfo=timezone.utc).isoformat(),
-            "version": None,
-        },
-    ]
+        raster = ds.GetRasterBand(band_number)
+
+        # Get Datetime from String Like "1599008400 sec UTC"
+        time_pattern = re.compile(r"\d+")
+        valid_time_match = time_pattern.match(raster.GetMetadataItem("GRIB_VALID_TIME"))
+        dt_valid = datetime.fromtimestamp(int(valid_time_match[0]), timezone.utc)
+
+        # Extract Band; Convert to COG
+        translate_options = cgdal.gdal_translate_options(bandList=[band_number])
+        gdal.Translate(
+            temp_file := os.path.join(dst, filename_),
+            ds,
+            **translate_options,
+        )
+
+        # closing the data source
+        ds = None
+        raster = None
+
+        outfile_list = [
+            {
+                "filetype": acquirable,
+                "file": temp_file,
+                "datetime": dt_valid.isoformat(),
+                "version": None,
+            },
+        ]
+    except (RuntimeError, KeyError, Exception) as ex:
+        logger.error(f"{type(ex).__name__}: {this}: {ex}")
+    finally:
+        ds = None
+        raster = None
 
     return outfile_list

@@ -1,31 +1,33 @@
 """NSIDC SWE v1
 """
 
+# TODO: Refactor to new geoprocess package
 
 import os
 import re
 from uuid import uuid4
 import numpy as np
 from osgeo import gdal
-from cumulus_geoproc.geoprocess.core.base import (
-    translate,
-    create_overviews,
-    write_array_to_raster,
-)
+
 from datetime import datetime, timedelta, timezone
 import pyplugs
 
 
-@pyplugs.register
-def process(infile: str, outdir: str):
+this = os.path.basename(__file__)
+
+# plugin not available when decorator commented out
+# @pyplugs.register
+def process(src: str, dst: str, acquirable: str = None):
     """Grid processor
 
     Parameters
     ----------
-    infile : str
+    src : str
         path to input file for processing
-    outdir : str
-        path to processor result
+    dst : str
+        path to temporary directory created from worker thread
+    acquirable: str
+        acquirable slug
 
     Returns
     -------
@@ -45,7 +47,7 @@ def process(infile: str, outdir: str):
     day_since_pattern = re.compile(r"\d+-\d+-\d+")
     day2date = lambda m, t: timedelta(days=int(m)) + t
     for nc_variable, nc_slug in nc_variables.items():
-        subdataset = gdal.Open(f"NETCDF:{infile}:{nc_variable}")
+        subdataset = gdal.Open(f"NETCDF:{src}:{nc_variable}")
         subset_meta_dict = subdataset.GetMetadata_Dict()
         # Band last time, since time, and date created as last time
         subset_times = subset_meta_dict["NETCDF_DIM_time_VALUES"]
@@ -74,28 +76,28 @@ def process(infile: str, outdir: str):
             nodata_value = band.GetNoDataValue()
             b_array = band.ReadAsArray(0, 0, xsize, ysize).astype(np.dtype("float32"))
             # Create the raster
-            tif = write_array_to_raster(
-                b_array,
-                os.path.join(outdir, f"temp-tif-{uuid4()}"),
-                xsize,
-                ysize,
-                geo_transform,
-                src_projection,
-                datatype,
-                nodata_value,
-            )
-            # Create the overviews
-            tif_with_overviews = create_overviews(tif)
-            # COG with name based on time
-            cog = translate(tif_with_overviews, os.path.join(outdir, band_filename))
+            # tif = write_array_to_raster(
+            #     b_array,
+            #     os.path.join(outdir, f"temp-tif-{uuid4()}"),
+            #     xsize,
+            #     ysize,
+            #     geo_transform,
+            #     src_projection,
+            #     datatype,
+            #     nodata_value,
+            # )
+            # # Create the overviews
+            # tif_with_overviews = create_overviews(tif)
+            # # COG with name based on time
+            # cog = translate(tif_with_overviews, os.path.join(outdir, band_filename))
 
-            outfile_list.append(
-                {
-                    "filetype": nc_slug,
-                    "file": cog,
-                    "datetime": band_date.replace(tzinfo=timezone.utc).isoformat(),
-                    "version": None,
-                }
-            )
+            # outfile_list.append(
+            #     {
+            #         "filetype": nc_slug,
+            #         "file": cog,
+            #         "datetime": band_date.replace(tzinfo=timezone.utc).isoformat(),
+            #         "version": None,
+            #     }
+            # )
 
     return outfile_list

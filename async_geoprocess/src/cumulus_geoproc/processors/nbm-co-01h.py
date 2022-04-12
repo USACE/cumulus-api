@@ -1,26 +1,38 @@
-"""National Blend of Models: Hourly air temperature and QPF
+"""National Blend of Models (NBM)
+
+CONUS 1hour Forecasted Airtemp and QPF
 """
 
 
 import os
-from collections import namedtuple
-from uuid import uuid4
+import re
 from datetime import datetime, timezone
-from cumulus_geoproc.geoprocess.core.base import info, translate, create_overviews
-from cumulus_geoproc.handyutils.core import change_final_file_extension
+from uuid import uuid4
+
 import pyplugs
+from cumulus_geoproc import logger, utils
+from cumulus_geoproc.configurations import CUMULUS_PRODUCTS_BASEKEY
+from cumulus_geoproc.utils import cgdal
+from osgeo import gdal
+
+gdal.UseExceptions()
+
+
+this = os.path.basename(__file__)
 
 
 @pyplugs.register
-def process(infile: str, outdir: str):
+def process(src: str, dst: str, acquirable: str = None):
     """Grid processor
 
     Parameters
     ----------
-    infile : str
+    src : str
         path to input file for processing
-    outdir : str
-        path to processor result
+    dst : str
+        path to temporary directory created from worker thread
+    acquirable: str
+        acquirable slug
 
     Returns
     -------
@@ -32,54 +44,64 @@ def process(infile: str, outdir: str):
             "version": str           Reference Time (forecast), ISO format with timezone
         }
     """
-
     outfile_list = list()
 
-    # Process the gdal information
-    fileinfo: dict = info(infile)
-    all_bands = fileinfo["bands"]
+    try:
+        filename = os.path.basename(src)
+        filename_ = utils.file_extension(filename)
 
-    for band in all_bands:
-        band_number = band["band"]
-        metadata = band["metadata"][""]
-        metadata_ = namedtuple("metadata_", metadata.keys())(**metadata)
-        if (
-            "temperature" in metadata_.GRIB_COMMENT.lower()
-            and metadata_.GRIB_SHORT_NAME == "0-SFC"
-        ):
-            filetype = "nbm-co-airtemp"
-        elif (
-            "total precipitation" in metadata_.GRIB_COMMENT.lower()
-            and metadata_.GRIB_ELEMENT == "QPF01"
-        ):
-            filetype = "nbm-co-qpf"
-        else:
-            continue
+        filetype_elements = {
+            "nbm-co-airtemp": {"GRIB_ELEMENT": "T", "GRIB_SHORT_NAME": "0-SFC"},
+            "nbm-co-qpf": {"GRIB_ELEMENT": "QPF01", "GRIB_SHORT_NAME": "0-SFC"},
+        }
 
-        # fromtimestamp with utc assignment gives proper iso format
-        r_time = datetime.fromtimestamp(int(metadata_.GRIB_REF_TIME), timezone.utc)
-        v_time = datetime.fromtimestamp(int(metadata_.GRIB_VALID_TIME), timezone.utc)
+        ds = gdal.Open("/vsis3_streaming/" + src)
 
-        tif = translate(
-            infile,
-            os.path.join(outdir, f"temp-tif-{uuid4()}"),
-            extra_args=["-b", str(band_number)],
-        )
-        tif_with_overviews = create_overviews(tif)
-        cog = translate(
-            tif_with_overviews,
-            os.path.join(
-                outdir, change_final_file_extension(os.path.basename(infile), "tif")
-            ),
-        )
+        for filetype, attr in filetype_elements.items():
+            try:
+                if (band_number := cgdal.find_band(ds, attr)) is None:
+                    raise Exception("Band number not found for attributes: {attr}")
 
-        outfile_list.append(
-            {
-                "filetype": filetype,
-                "file": cog,
-                "datetime": v_time.isoformat(),
-                "version": r_time.isoformat(),
-            }
-        )
+                logger.debug(f"Band number '{band_number}' found for attributes {attr}")
+
+                raster = ds.GetRasterBand(band_number)
+
+                # Get Datetime from String Like "1599008400 sec UTC"
+                time_pattern = re.compile(r"\d+")
+                valid_time_match = time_pattern.match(
+                    raster.GetMetadataItem("GRIB_VALID_TIME")
+                )
+                dt_valid = datetime.fromtimestamp(
+                    int(valid_time_match[0]), timezone.utc
+                )
+
+                # Extract Band; Convert to COG
+                translate_options = cgdal.gdal_translate_options(bandList=[band_number])
+                gdal.Translate(
+                    temp_file := os.path.join(dst, filename_),
+                    ds,
+                    **translate_options,
+                )
+
+                outfile_list.append(
+                    {
+                        "filetype": filetype,
+                        "file": temp_file,
+                        "datetime": dt_valid.isoformat(),
+                        "version": None,
+                    },
+                )
+                logger.debug(f"Appended Payload: {outfile_list[-1]}")
+
+            except RuntimeError as ex:
+                logger.error(f"{type(ex).__name__}: {this}: {ex}")
+                continue
+
+    except (RuntimeError, KeyError) as ex:
+        logger.error(f"{type(ex).__name__}: {this}: {ex}")
+    finally:
+        # closing the data source
+        ds = None
+        raster = None
 
     return outfile_list

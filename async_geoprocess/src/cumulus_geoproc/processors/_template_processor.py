@@ -1,19 +1,23 @@
-"""MRMS Gauge Corrected
+"""_summary_
 """
 
-
-from datetime import datetime, timezone
 import os
 import re
+from datetime import datetime, timezone
+
+import pyplugs
 from cumulus_geoproc import logger, utils
+from cumulus_geoproc.configurations import CUMULUS_PRODUCTS_BASEKEY
 from cumulus_geoproc.utils import boto, cgdal
 from osgeo import gdal
 
-import pyplugs
+gdal.UseExceptions()
 
 
 this = os.path.basename(__file__)
-# @pyplugs.register
+
+
+@pyplugs.register
 def process(src: str, dst: str, acquirable: str = None):
     """Grid processor
 
@@ -36,41 +40,33 @@ def process(src: str, dst: str, acquirable: str = None):
             "version": str           Reference Time (forecast), ISO format with timezone
         }
     """
-
-    outfile_list = list()
-
-    filename = os.path.basename(src)
-    filename_ = utils.file_extension(filename)
+    outfile_list = []
 
     try:
-        bucket, key = src.split("/", maxsplit=1)
-        logger.debug(f"s3_download_file({bucket=}, {key=})")
+        attr = {}
 
-        src_ = boto.s3_download_file(bucket=bucket, key=key, dst=dst)
-        logger.debug(f"S3 Downloaded File: {src_}")
+        filename = os.path.basename(src)
+        filename_ = utils.file_extension(filename)
 
-        ds = gdal.Open("/vsigzip/" + src_)
-        fileinfo = gdal.Info(ds, format="json")
-        bands = fileinfo["bands"]
+        ds = gdal.Open("/vsis3_streaming/" + src)
 
-        logger.debug(f"File Info: {fileinfo}")
+        if (band_number := cgdal.find_band(ds, attr)) is None:
+            raise Exception("Band number not found for attributes: {attr}")
 
-        band_number = 0
+        logger.debug(f"Band number '{band_number}' found for attributes {attr}")
 
         raster = ds.GetRasterBand(band_number)
-        meta = raster.GetMetadata_Dict()
-        valid_time = meta["GRIB_VALID_TIME"]
 
         # Get Datetime from String Like "1599008400 sec UTC"
         time_pattern = re.compile(r"\d+")
-        valid_time_match = time_pattern.match(valid_time)
+        valid_time_match = time_pattern.match(raster.GetMetadataItem("GRIB_VALID_TIME"))
         dt_valid = datetime.fromtimestamp(int(valid_time_match[0]), timezone.utc)
 
         # Extract Band; Convert to COG
-        translate_options = cgdal.gdal_translate_options()
+        translate_options = cgdal.gdal_translate_options(bandList=[band_number])
         gdal.Translate(
             temp_file := os.path.join(dst, filename_),
-            raster.GetDataset(),
+            ds,
             **translate_options,
         )
 
@@ -86,12 +82,10 @@ def process(src: str, dst: str, acquirable: str = None):
                 "version": None,
             },
         ]
-
-    except RuntimeError as ex:
+    except (RuntimeError, KeyError, Exception) as ex:
         logger.error(f"{type(ex).__name__}: {this}: {ex}")
-    except KeyError as ex:
-        logger.error(f"{type(ex).__name__}: {this}: {ex}")
-    except IndexError as ex:
-        logger.error(f"IndexError: {__name__}: {ex}")
+    finally:
+        ds = None
+        raster = None
 
     return outfile_list

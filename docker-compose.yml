@@ -40,18 +40,23 @@ services:
     build:
       context: async_geoprocess
     environment:
-      - APPLICATION_KEY=appkey
-      - AWS_REGION=us-east-1
-      - AWS_ACCESS_KEY_ID=AKIAIOSFODNN7EXAMPLE
-      - AWS_SECRET_ACCESS_KEY=wJalrXUtnFEMI/K7MDENG/bPxRfiCYEXAMPLEKEY
-      - AWS_REGION_SQS=elasticmq
-      - CUMULUS_MOCK_S3_UPLOAD=FALSE
-      - QUEUE_NAME=cumulus-geoprocess
-      - CUMULUS_API_URL=http://api
+      - AWS_SQS_ENDPOINT=elasticmq:9324
+      - AWS_S3_ENDPOINT=minio:9000
       - ENDPOINT_URL_SQS=http://elasticmq:9324
       - ENDPOINT_URL_S3=http://minio:9000
+      - AWS_DEFAULT_REGION=us-east-1
+      - AWS_ACCESS_KEY_ID=AKIAIOSFODNN7EXAMPLE
+      - AWS_SECRET_ACCESS_KEY=wJalrXUtnFEMI/K7MDENG/bPxRfiCYEXAMPLEKEY
+      - AWS_VIRTUAL_HOSTING=FALSE
+      - AWS_HTTPS=NO
+      - APPLICATION_KEY=appkey
       - USE_SSL=False
-      - LOGGER_LEVEL=INFO
+      - QUEUE_NAME=cumulus-geoprocess
+      - CUMULUS_MOCK_S3_UPLOAD=FALSE
+      - CUMULUS_API_URL=http://api
+      - HTTP2=False
+      - GDAL_DISABLE_READDIR_ON_OPEN=YES
+      - LOGGER_LEVEL=DEBUG
     volumes:
       - ./_volumes/async_geoprocess/tmp:/tmp
     restart: always
@@ -134,7 +139,7 @@ services:
     restart: always
   flyway:
     build:
-      context: sql
+      context: sql  
     restart: on-failure
     command: -connectRetries=60 migrate
     environment:

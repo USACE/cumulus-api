@@ -1,24 +1,40 @@
-"""Prism Early
+"""PRISM Climate Group
+
+Daily (D2) total precipitation (ppt)(rain+melted snow)
+
+Reference: https://www.prism.oregonstate.edu/documents/PRISM_datasets.pdf
 """
 
 
-from datetime import timezone
-from ..prism.core import prism_datetime_from_filename
-from ..prism.core import prism_convert_to_cog
+import os
+import re
+from datetime import datetime, timezone
+from tempfile import TemporaryDirectory
 
 import pyplugs
+from cumulus_geoproc import logger, utils
+from cumulus_geoproc.configurations import CUMULUS_PRODUCTS_BASEKEY
+from cumulus_geoproc.utils import boto, cgdal
+from osgeo import gdal
+
+gdal.UseExceptions()
+
+
+this = os.path.basename(__file__)
 
 
 @pyplugs.register
-def process(infile: str, outdir: str):
+def process(src: str, dst: str, acquirable: str = None):
     """Grid processor
 
     Parameters
     ----------
-    infile : str
+    src : str
         path to input file for processing
-    outdir : str
-        path to processor result
+    dst : str
+        path to temporary directory created from worker thread
+    acquirable: str
+        acquirable slug
 
     Returns
     -------
@@ -31,17 +47,55 @@ def process(infile: str, outdir: str):
         }
     """
 
-    dt = prism_datetime_from_filename(infile)
+    outfile_list = []
 
-    outfile_cog = prism_convert_to_cog(infile, outdir)
+    try:
+        filename = os.path.basename(src)
+        filename_ = utils.file_extension\(.*, suffix=".tif")
 
-    outfile_list = [
-        {
-            "filetype": "prism-ppt-early",
-            "file": outfile_cog,
-            "datetime": dt.replace(tzinfo=timezone.utc).isoformat(),
-            "version": None,
-        },
-    ]
+        bucket, key = src.split("/", maxsplit=1)
+        logger.debug(f"s3_download_file({bucket=}, {key=})")
+
+        # download the file to the current filesystem and extract
+        td = TemporaryDirectory(dir=dst)
+        src_ = boto.s3_download_file(bucket=bucket, key=key, dst=td.name)
+        logger.debug(f"S3 Downloaded File: {src_} -> {td.name}")
+
+        utils.decompress(src_, td.name)
+        logger.debug(f"Extract from zip: {src_}")
+
+        src_bil = utils.file_extension\(.*, suffix=".bil")
+        ds = gdal.Open(src_bil)
+
+        # get date from filename like PRISM_ppt_early_4kmD2_yyyyMMdd_bil.zip
+        time_pattern = re.compile(r"\w+_(?P<ymd>\d+)_\w+")
+
+        m = time_pattern.match(filename)
+        dt_valid = datetime.strptime(m.group("ymd"), "%Y%m%d").replace(
+            hour=12, minute=0, second=0, tzinfo=timezone.utc
+        )
+
+        # Extract Band; Convert to COG
+        translate_options = cgdal.gdal_translate_options(
+            creationOptions=["TILED=YES", "COPY_SRC_OVERVIEWS=YES", "COMPRESS=LZW"]
+        )
+        gdal.Translate(
+            temp_file := os.path.join(dst, filename_),
+            ds,
+            **translate_options,
+        )
+
+        outfile_list = [
+            {
+                "filetype": acquirable,
+                "file": temp_file,
+                "datetime": dt_valid.isoformat(),
+                "version": None,
+            },
+        ]
+    except (RuntimeError, KeyError, IndexError) as ex:
+        logger.error(f"{type(ex).__name__}: {this}: {ex}")
+    finally:
+        ds = None
 
     return outfile_list

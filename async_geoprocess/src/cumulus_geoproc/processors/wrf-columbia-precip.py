@@ -1,6 +1,8 @@
 """WRF Columbia Precipitation
 """
 
+# TODO: Refactor to new geoprocess package
+
 
 import datetime
 from netCDF4 import Dataset
@@ -8,16 +10,21 @@ import os, subprocess
 import pyplugs
 
 
-@pyplugs.register
-def process(infile: str, outdir: str):
+this = os.path.basename(__file__)
+
+# plugin not available when decorator commented out
+# @pyplugs.register
+def process(src: str, dst: str, acquirable: str = None):
     """Grid processor
 
     Parameters
     ----------
-    infile : str
+    src : str
         path to input file for processing
-    outdir : str
-        path to processor result
+    dst : str
+        path to temporary directory created from worker thread
+    acquirable: str
+        acquirable slug
 
     Returns
     -------
@@ -39,7 +46,7 @@ def process(infile: str, outdir: str):
 
     # import pdb; pdb.set_trace()
 
-    ncDataset = Dataset(infile)
+    ncDataset = Dataset(src)
     hour_array = ncDataset.variables["time"][:]
     ncDataset.close()
 
@@ -71,14 +78,14 @@ def process(infile: str, outdir: str):
         strCurrentDate = datetime.datetime.strftime(currentPDate, strDateFormat)
         print(strCurrentDate)
         outName = f"{varName}_{strCurrentDate}"
-        strTempFile = os.path.join(outdir, f"temp_{outName}.tif")
-        finalFile = os.path.join(outdir, f"{outName}.tif")
+        strTempFile = os.path.join(dst, f"temp_{outName}.tif")
+        finalFile = os.path.join(dst, f"{outName}.tif")
 
         # First command is like:
         # C:\Continuum\miniconda3_64bit\Library\bin\gdal_translate.exe NETCDF:"D:\temp\n1\PRECIPAH.nc":var -b 2490 -a_srs "+proj=lcc +lat_1=45 +lat_2=45 +lon_0=-120 +lat_0=45.80369 +x_0=0 +y_0=0 +a=6370000 +b=6370000 +units=m" -a_ullr -341997.806, 816645.371, 858002.194, -539354.629 -of GTiff D:\crb_temp\t1.tif
         # TIF output with no compression seems to be fastest on this first step
 
-        strCommand = f'gdal_translate NETCDF:"{infile}":var -b {str(intBand)} {strProjLccSphere} {strNcExtent} -of GTiff {strTempFile}'
+        strCommand = f'gdal_translate NETCDF:"{src}":var -b {str(intBand)} {strProjLccSphere} {strNcExtent} -of GTiff {strTempFile}'
         # print(); print(strCommand); print()
         subprocess.check_call(strCommand, shell=True)
 
@@ -102,7 +109,7 @@ def process(infile: str, outdir: str):
             }
         )
 
-    # fileinfo = info(infile)
+    # fileinfo = info(src)
     # print(fileinfo)
 
     print()
@@ -113,5 +120,4 @@ def process(infile: str, outdir: str):
     strInfo += "Duration: " + str(endTime - startTime)
     print(strInfo)
 
-    return outfile_list
-    # return []
+    return []

@@ -19,11 +19,10 @@ from typing import List
 from cumulus_geoproc.processors import geo_proc
 from cumulus_geoproc.processors.ldm import geo_proc as ldm_proc
 
-import geoprocess_worker.helpers as helpers
-from geoprocess_worker import logger
+from cumulus_geoproc import logger
 
 
-def process(bucket, key, plugin, outdir):
+def process(bucket, key, plugin):
     """_summary_
 
     Parameters
@@ -33,8 +32,6 @@ def process(bucket, key, plugin, outdir):
     key : str
         _description_
     plugin : str
-        _description_
-    outdir : str
         _description_
 
     Returns
@@ -46,8 +43,7 @@ def process(bucket, key, plugin, outdir):
     key_parts = key.split("/")
     filename = key_parts[-1]
 
-    if infile := helpers.get_infile(bucket, key, os.path.join(outdir, filename)):
-        if "ldm" in key_parts:
-            return ldm_proc(plugin=plugin, infile=infile, outdir=outdir)
-        else:
-            return geo_proc(plugin=plugin, infile=infile, outdir=outdir)
+    if "ldm" in key_parts:
+        return ldm_proc(plugin=plugin, bucket=bucket, key=key)
+    else:
+        return geo_proc(plugin=plugin, bucket=bucket, key=key)

@@ -1,4 +1,4 @@
-FROM osgeo/gdal
+FROM osgeo/gdal:ubuntu-small-latest
 
 ENV PYTHONUNBUFFERED=1
 
@@ -15,5 +15,8 @@ COPY . .
 # pip install/upgrade requirements before the cumulus package
 RUN python3 -m pip install --upgrade pip wheel setuptools \
   && python3 -m pip install /app/async_geoprocess/
+
+RUN useradd appuser
+USER appuser
 
 CMD ["python3", "worker.py"]

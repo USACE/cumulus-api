@@ -44,7 +44,7 @@ def process(src: str, dst: str, acquirable: str = None):
     outfile_list = []
 
     try:
-        filename_ = utils.file_extension(filename, ext="")
+        filename_ = utils.file_extension\(.*, suffix="")
         filename = os.path.basename(src)
 
         filename_temp = Template("${filename}-${ymd}.tif")

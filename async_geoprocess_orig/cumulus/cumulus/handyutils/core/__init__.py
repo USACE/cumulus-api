@@ -70,7 +70,7 @@ def delete_files_by_extension(directory, extensions):
             )
 
 
-def change_file_extension(infile, extension):
+def change_file_extension\(.*, suffixension):
     """Replace file extension starting from leftmost '.' with provided <extension>
     Note: provided <extension> should not include leading '.'
 
@@ -83,7 +83,7 @@ def change_file_extension(infile, extension):
         extension
     ])
 
-def change_final_file_extension(infile, extension):
+def change_final_file_extension\(.*, suffixension):
     """Replace last file extension from rightmost '.' with provided <extension>
     Note: provided <extension> should not include leading '.'
 

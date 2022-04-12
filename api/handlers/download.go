@@ -90,6 +90,13 @@ func CreateDownload(db *pgxpool.Pool, cfg *config.Config) echo.HandlerFunc {
 		}
 		dr.Sub = sub
 
+		// @TODO: This is ready, need limitation in UI
+		// limit to 6 month (4383 hours) window, return client error if exceeded
+		// diff := dr.DatetimeEnd.Sub(dr.DatetimeStart)
+		// if diff.Hours() > 4383 {
+		// 	return c.String(http.StatusBadRequest, "Time window too large.")
+		// }
+
 		d, err := models.CreateDownload(db, &dr)
 		if err != nil {
 			return c.String(http.StatusInternalServerError, err.Error())

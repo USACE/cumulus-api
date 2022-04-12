@@ -51,7 +51,7 @@ def process(src: str, dst: str, acquirable: str = None):
 
     try:
         filename = os.path.basename(src)
-        filename_ = utils.file_extension(filename, ext=".tif")
+        filename_ = utils.file_extension\(.*, suffix=".tif")
 
         bucket, key = src.split("/", maxsplit=1)
         logger.debug(f"s3_download_file({bucket=}, {key=})")
@@ -61,10 +61,10 @@ def process(src: str, dst: str, acquirable: str = None):
         src_ = boto.s3_download_file(bucket=bucket, key=key, dst=td.name)
         logger.debug(f"S3 Downloaded File: {src_}")
 
-        utils.uncompress(src_, td.name)
+        utils.decompress(src_, td.name)
         logger.debug(f"Extract from zip: {src_}")
 
-        src_bil = utils.file_extension(src_, ext=".bil")
+        src_bil = utils.file_extension\(.*, suffix=".bil")
         ds = gdal.Open(src_bil)
 
         # get date from filename like PRISM_ppt_early_4kmD2_yyyyMMdd_bil.zip

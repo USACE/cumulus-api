@@ -57,10 +57,11 @@ services:
       - HTTP2=False
       - GDAL_DISABLE_READDIR_ON_OPEN=YES
       - LOGGER_LEVEL=DEBUG
-
     volumes:
       - ./_volumes/async_geoprocess/tmp:/tmp
     restart: always
+    depends_on:
+      - api
   packager:
     build:
       context: async_packager
@@ -138,7 +139,7 @@ services:
     restart: always
   flyway:
     build:
-      context: sql
+      context: sql  
     restart: on-failure
     command: -connectRetries=60 migrate
     environment:
@@ -161,3 +162,9 @@ services:
   #   ports:
   #     - "7000:80"
   #   restart: always
+  # dbdocs:
+  #   image: nginx
+  #   ports:
+  #     - "8123:80"
+  #   volumes:
+  #     - ./docs/db-docs/schemaspy:/usr/share/nginx/html

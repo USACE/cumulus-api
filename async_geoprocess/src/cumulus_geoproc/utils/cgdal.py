@@ -68,8 +68,11 @@ def find_band(data_set: "gdal.Dataset", attr: dict = {}):
 
 def gdal_calculate(*args):
     """Implement gdal-utils gdal_calc CLI utility"""
-    argv = list(gdal_calc.__file__)
-    argv.append(list(args))
+    argv = [gdal_calc.__file__]
+    argv.extend(list(args))
+
+    logger.debug(f"Argvs: {argv=}")
+
     gdal_calc.main(argv)
 
 

@@ -56,7 +56,7 @@ services:
       - CUMULUS_API_URL=http://api
       - HTTP2=False
       - GDAL_DISABLE_READDIR_ON_OPEN=YES
-      - LOGGER_LEVEL=DEBUG
+      - LOGGER_LEVEL=INFO
     volumes:
       - ./_volumes/async_geoprocess/tmp:/tmp
     restart: always

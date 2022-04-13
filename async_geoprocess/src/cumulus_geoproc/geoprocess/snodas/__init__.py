@@ -1,163 +1,125 @@
 """Geoprocessing SNODAS state variables
+
+example message for this process:
+
+    {
+        'geoprocess': 'snodas-interpolate',
+        'geoprocess_config': {
+            'bucket': 'castle-data-develop',
+            'datetime': '20220323',
+            'max_distance': 16
+        }
+    }
+
 """
 
 
-import re
+import os
 from datetime import datetime, timezone
 
-BOUNDING_DATE: datetime = datetime.fromisoformat("2013-10-01").replace(
-    tzinfo=timezone.utc
-)
+from cumulus_geoproc import logger
+from cumulus_geoproc.utils import cgdal
+from osgeo import gdal
 
-translate_options: dict = {
-    "global": {
-        "format": "GTiff",
-        "outputSRS": "+proj=longlat +ellps=WGS84 +datum=WGS84 +no_defs",
-        "noData": -9999,
-    },
-    "masked": {
-        "hdr": "ENVI\nsamples = 6935\nlines = 3351\nbands = 1\nheader offset = 0\nfile type = ENVI Standard\ndata type = 2\ninterleave = bsq\nbyte order = 1\n",
-        "translate_option": {
-            0: {  # >= 2013-10-01 => False
-                "outputBounds": [
-                    -124.73375000000000,
-                    52.87458333333333,
-                    -66.94208333333333,
-                    24.94958333333333,
-                ],
-            },
-            1: {  # >= 2013-10-01 => True
-                "outputBounds": [
-                    -124.73333333333333,
-                    52.87500000000000,
-                    -66.94166666666667,
-                    24.95000000000000,
-                ],
-            },
-        },
-    },
-    "unmasked": {
-        "hdr": "ENVI\nsamples = 8192\nlines = 4096\nbands = 1\nheader offset = 0\nfile type = ENVI Standard\ndata type = 2\ninterleave = bsq\nbyte order = 1\n",
-        "translate_option": {
-            0: {  # > 2013-10-01 => False
-                "outputBounds": [
-                    -130.51708333333333,
-                    58.23291666666667,
-                    -62.25041666666667,
-                    24.09958333333333,
-                ],
-            },
-            1: {  # >= 2013-10-01 => True
-                "outputBounds": [
-                    -130.51666666666667,
-                    58.23333333333333,
-                    -62.25000000000000,
-                    24.10000000000000,
-                ],
-            },
-        },
-    },
-}
+gdal.UseExceptions()
+
+this = os.path.basename(__file__)
 
 
-regions: dict = {"us": "masked", "zz": "unmasked"}
 product_code: dict = {
-    1025: {"description": "Precipitation", "product": None},
-    1034: {"description": "Snow water equivalent", "product": "nohrsc-snodas-swe"},
-    1036: {"description": "Snow depth", "product": "nohrsc-snodas-snowdepth"},
-    1038: {
+    "1025": {"description": "Precipitation", "product": None},
+    "1034": {"description": "Snow water equivalent", "product": "nohrsc-snodas-swe"},
+    "1036": {"description": "Snow depth", "product": "nohrsc-snodas-snowdepth"},
+    "1038": {
         "description": "Snow pack average temperature",
         "product": "nohrsc-snodas-snowpack-average-temperature",
     },
-    1039: {"description": "Blowing snow sublimation", "product": None},
-    1044: {"description": "Snow melt", "product": "nohrsc-snodas-snowmelt"},
-    1050: {"description": "Snow pack sublimation", "product": None},
-    2072: {"description": "", "product": "nohrsc-snodas-coldcontent"},
-    3333: {"description": "Snow melt (mm)", "product": "nohrsc-snodas-snowmelt"},
-}
-
-snow_integration: dict = {
-    "lL00": "Fluxes to and from the snow surface such as sublimation",
-    "tS__": "Integral through all the layers of the snow pack",
-    "bS__": "Bottom of the snow pack such as snow melt",
-    "wS__": "Snow-water-equivalent-weighted average of the snowpack layers",
-}
-
-precip_integration: dict = {
-    "lL00": "Non-snow (liquid) precipitation",
-    "lL01": "Snow precipitation",
+    "1039": {"description": "Blowing snow sublimation", "product": None},
+    "1044": {"description": "Snow melt", "product": "nohrsc-snodas-snowmelt"},
+    "1050": {"description": "Snow pack sublimation", "product": None},
+    "2072": {"description": "", "product": "nohrsc-snodas-coldcontent"},
+    "3333": {"description": "Snow melt (mm)", "product": "nohrsc-snodas-snowmelt"},
 }
 
 
-class SnodasFilenameParse:
-    """Class to parse SNODAS filename
+def snow_melt_mm(translated_tif):
+    snowmelt_code = "2072"
+    snowmelt_code_mm = "3333"
 
-    pattern = "rr_mmmffppppSvvvvTttttaaaaTSyyyymmddhhIP00Z.xxx.ee"
-    """
+    snowmelt = translated_tif[snowmelt_code]["file"]
+    snowmelt_dt = translated_tif[snowmelt_code]["datetime"]
 
-    def __init__(self, filename):
-        self.filename = filename
+    snowmelt_mm = snowmelt.replace(snowmelt_code, snowmelt_code_mm)
 
-    @property
-    def region(self):
-        region_ = self.filename[:2]
-        if region_ == "us":
-            return "masked"
-        elif region_ == "zz":
-            return "unmasked"
-        else:
-            return "unknown"
-
-    @property
-    def model(self):
-        return self.filename[3:6]
-
-    @property
-    def version(self):
-        return self.filename[6:8]
-
-    @property
-    def product(self):
-        return self.filename[8:12]
-
-    @property
-    def vertical_integration(self):
-        m = re.match(r"\w{7}\d{5}S*([lL|tS|bS|wS]\w{3}).*", self.filename)
-        return m[1]
-
-    @property
-    def time_integration(self):
-        m = re.match(r".*([AT]\d{4}).*", self.filename)
-        return m[1]
-
-    @property
-    def model_operations(self):
-        return "TTNA"
-
-    @property
-    def time_step(self):
-        m = re.match(r".*TS(\d{10}).*", self.filename)
-        return m[1]
-
-    @property
-    def date_time(self):
-        return datetime.strptime(self.time_step(), "%Y%m%d%H").replace(
-            tzinfo=timezone.utc
+    # convert snow melt runoff as meters / 100_000 to mm
+    # 100_000 is the scale factor getting values to meters
+    try:
+        cgdal.gdal_calculate(
+            "-A",
+            snowmelt,
+            "--outfile",
+            tif := snowmelt_mm,
+            "--calc",
+            "A.astype(numpy.float64) / 100_000 * 1000",
+            "--quiet",
         )
+    except RuntimeError as ex:
+        logger.debug(f"{type(ex).__name__}: {this}: {ex}")
+        return None
 
-    @property
-    def offset(self):
-        m = re.match(r".*TS(\d{10}).*", self.filename)
-        return m[1]
+    return {
+        snowmelt_code_mm: {
+            "file": tif,
+            "filetype": product_code[snowmelt_code_mm]["product"],
+            "datetime": snowmelt_dt,
+            "version": None,
+        }
+    }
 
-    @property
-    def extension(self):
-        m = re.match(r".*(\.\w{3}).*", self.filename)
-        return m[1]
+
+def cold_content(translated_tif):
+    """
+    {
+        "file": tif,
+        "filetype": snodas_product_code[snodas_file.product]["product"],
+        "datetime": snodas_file.date_time.isoformat(),
+        "version": None,
+    }
+    """
+    coldcontent_code = "2072"
+    swe_code = "1034"
+    avg_temp_sp = "1038"
+
+    swe = translated_tif[swe_code]["file"]
+    swe_dt = translated_tif[swe_code]["datetime"]
+    avg_temp = translated_tif[avg_temp_sp]["file"]
+
+    cold_content_filename = swe.replace(swe_code, coldcontent_code)
+    try:
+        cgdal.gdal_calculate(
+            "-A",
+            swe,
+            "-B",
+            avg_temp,
+            "--outfile",
+            tif := cold_content_filename,
+            "--calc",
+            "A.astype(numpy.float64) * 2114 * (B.astype(numpy.float64) - 273) / 333000",
+            "--quiet",
+        )
+    except RuntimeError as ex:
+        logger.debug(f"{type(ex).__name__}: {this}: {ex}")
+        return None
+
+    return {
+        coldcontent_code: {
+            "file": tif,
+            "filetype": product_code[coldcontent_code]["product"],
+            "datetime": swe_dt,
+            "version": None,
+        }
+    }
 
 
 if __name__ == "__main__":
-    parse = SnodasFilenameParse("zz_ssmv01025SlL01T0024TTNATS2010041905DP001.dat")
-    print(parse.offset)
-    parse = SnodasFilenameParse("zz_ssmv11038wS__A0024TTNATS2010041905DP001.dat")
-    print(parse.offset)
+    pass

@@ -15,7 +15,6 @@ example message for this process:
 
 
 import os
-from datetime import datetime, timezone
 
 from cumulus_geoproc import logger
 from cumulus_geoproc.utils import cgdal
@@ -27,22 +26,71 @@ this = os.path.basename(__file__)
 
 
 product_code: dict = {
-    "1025": {"description": "Precipitation", "product": None},
-    "1034": {"description": "Snow water equivalent", "product": "nohrsc-snodas-swe"},
-    "1036": {"description": "Snow depth", "product": "nohrsc-snodas-snowdepth"},
+    "1025": {
+        "description": "Precipitation",
+        "product": None,
+    },
+    "1034": {
+        "description": "Snow water equivalent",
+        "product": "nohrsc-snodas-swe",
+    },
+    "1036": {
+        "description": "Snow depth",
+        "product": "nohrsc-snodas-snowdepth",
+    },
     "1038": {
         "description": "Snow pack average temperature",
         "product": "nohrsc-snodas-snowpack-average-temperature",
     },
-    "1039": {"description": "Blowing snow sublimation", "product": None},
-    "1044": {"description": "Snow melt", "product": "nohrsc-snodas-snowmelt"},
-    "1050": {"description": "Snow pack sublimation", "product": None},
-    "2072": {"description": "", "product": "nohrsc-snodas-coldcontent"},
-    "3333": {"description": "Snow melt (mm)", "product": "nohrsc-snodas-snowmelt"},
+    "1039": {
+        "description": "Blowing snow sublimation",
+        "product": None,
+    },
+    "1044": {
+        "description": "Snow melt",
+        "product": "nohrsc-snodas-snowmelt",
+        "element": "",
+    },
+    "1050": {
+        "description": "Snow pack sublimation",
+        "product": None,
+        "element": "",
+    },
+    "2072": {
+        "description": "",
+        "product": "nohrsc-snodas-coldcontent",
+    },
+    "3333": {
+        "description": "Snow melt (mm)",
+        "product": "nohrsc-snodas-snowmelt",
+    },
 }
 
 
-def snow_melt_mm(translated_tif):
+def snow_melt_mm(translated_tif: dict):
+    """Dictionary of tiffs generated from gdal translate
+
+    Parameters
+    ----------
+    translated_tif : dict
+
+        "product_code": {
+            "filetype": str,         Matching database acquirable
+            "file": str,             Converted file
+            "datetime": str,         Valid Time, ISO format with timezone
+            "version": str           Reference Time (forecast), ISO format with timezone
+        }
+
+    Returns
+    -------
+    dict
+        {
+            "filetype": str,         Matching database acquirable
+            "file": str,             Converted file
+            "datetime": str,         Valid Time, ISO format with timezone
+            "version": str           Reference Time (forecast), ISO format with timezone
+        }
+    """
     snowmelt_code = "2072"
     snowmelt_code_mm = "3333"
 
@@ -78,13 +126,28 @@ def snow_melt_mm(translated_tif):
 
 
 def cold_content(translated_tif):
-    """
-    {
-        "file": tif,
-        "filetype": snodas_product_code[snodas_file.product]["product"],
-        "datetime": snodas_file.date_time.isoformat(),
-        "version": None,
-    }
+    """Compute cold content as a function of SWE and snow pack avg temp
+
+    Parameters
+    ----------
+    translated_tif : dict
+
+        "product_code": {
+            "filetype": str,         Matching database acquirable
+            "file": str,             Converted file
+            "datetime": str,         Valid Time, ISO format with timezone
+            "version": str           Reference Time (forecast), ISO format with timezone
+        }
+
+    Returns
+    -------
+    dict
+        {
+            "filetype": str,         Matching database acquirable
+            "file": str,             Converted file
+            "datetime": str,         Valid Time, ISO format with timezone
+            "version": str           Reference Time (forecast), ISO format with timezone
+        }
     """
     coldcontent_code = "2072"
     swe_code = "1034"

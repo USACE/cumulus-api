@@ -2,15 +2,14 @@
 """
 
 
-from datetime import datetime, timezone
 import os
 import re
+from datetime import datetime, timezone
+
+import pyplugs
 from cumulus_geoproc import logger, utils
 from cumulus_geoproc.utils import boto, cgdal
 from osgeo import gdal
-
-import pyplugs
-
 
 this = os.path.basename(__file__)
 # @pyplugs.register

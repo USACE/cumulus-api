@@ -9,7 +9,6 @@ from string import Template
 
 import pyplugs
 from cumulus_geoproc import logger, utils
-from cumulus_geoproc.configurations import CUMULUS_PRODUCTS_BASEKEY
 from cumulus_geoproc.utils import cgdal
 from osgeo import gdal
 
@@ -44,8 +43,8 @@ def process(src: str, dst: str, acquirable: str = None):
     outfile_list = []
 
     try:
-        filename_ = utils.file_extension\(.*, suffix="")
         filename = os.path.basename(src)
+        filename_ = utils.file_extension(filename, suffix="")
 
         filename_temp = Template("${filename}-${ymd}.tif")
 

@@ -1,4 +1,4 @@
-"""_summary_
+"""Metadata parser
 """
 
 from collections import namedtuple
@@ -6,6 +6,20 @@ from textwrap import dedent
 
 
 def to_dictionary(src: str):
+    """ASCII input from SNODAS metadata to a dictionary
+
+    all keys are psuedo-slugified
+
+    Parameters
+    ----------
+    src : str
+        SNODAS metadata as .txt
+
+    Returns
+    -------
+    dict | None
+        dictionary of metadata parameters and their values or None
+    """
     try:
         with open(src, "r") as fh:
             config_dict = {}
@@ -26,12 +40,42 @@ def to_dictionary(src: str):
 
 
 def to_namedtuple(src: str, name: str = "Metadata"):
+    """Use to_dictionary to generate a namedtuple
+
+    Parameters
+    ----------
+    src : str
+        SNODAS metadata as .txt
+    name : str, optional
+        collections.namedtuple name, by default "Metadata"
+
+    Returns
+    -------
+    collections.namedtuple
+        namedtuple
+    """
     mdata = to_dictionary(src)
     if isinstance(mdata, dict):
         return namedtuple(name, mdata.keys())(*mdata.values())
 
 
 def write_hdr(src: str, /, columns: int, rows: int):
+    """Write a header file (hdr)
+
+    Parameters
+    ----------
+    src : str
+        SNODAS metadata as .txt
+    columns: int
+        number of columns from the metadata text file
+    rows: int
+        number of rows from the metadata text file
+
+    Returns
+    -------
+    str
+        FQPN to the written hdr file | None
+    """
     try:
         if src.endswith(".txt"):
             with open(hdr_file := src.replace(".txt", ".hdr"), "w") as fh:
@@ -53,8 +97,3 @@ def write_hdr(src: str, /, columns: int, rows: int):
             return hdr_file
     except OSError as ex:
         return
-
-
-# TODO: return a list of META-TAG=VALUE using dictionary of snodas metadata
-def meta_tags():
-    pass

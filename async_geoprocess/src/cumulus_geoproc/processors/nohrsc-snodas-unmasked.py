@@ -76,8 +76,8 @@ def process(src: str, dst: str, acquirable: str = None):
                 )
                 # set translate options
                 translate_options = cgdal.gdal_translate_options(
-                    creationOptions=None,
                     format="COG",
+                    bandList=[1],
                     outputSRS=f"+proj=longlat +ellps={meta_ntuple.horizontal_datum} +datum={meta_ntuple.horizontal_datum} +no_defs",
                     noData=int(meta_ntuple.no_data_value),
                     outputBounds=[
@@ -86,7 +86,10 @@ def process(src: str, dst: str, acquirable: str = None):
                         meta_ntuple.maximum_x_axis_coordinate,
                         meta_ntuple.minimum_y_axis_coordinate,
                     ],
-                    metadataOptions=[],
+                    metadataOptions=[
+                        f"{field_.upper()}={str(getattr(meta_ntuple, field_))}"
+                        for field_ in meta_ntuple._fields
+                    ],
                 )
 
                 # write hdr so gdal can tranlate

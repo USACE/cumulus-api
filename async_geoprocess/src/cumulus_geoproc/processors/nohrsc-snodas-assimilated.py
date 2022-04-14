@@ -15,8 +15,6 @@ from datetime import datetime
 
 from cumulus_geoproc import utils
 from cumulus_geoproc.utils import cgdal
-
-
 from osgeo import gdal
 
 

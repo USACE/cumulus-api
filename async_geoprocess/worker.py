@@ -108,9 +108,11 @@ def start_worker():
                     else None
                 )
 
-                logger.info(
-                    f"Geo Process; Plugin: {geoprocess}; {GeoCfg.acquirable_slug}"
-                )
+                if hasattr(GeoCfg, "acquirable_slug"):
+                    logger.info(
+                        f"Geo Process:{geoprocess}; Plugin: {GeoCfg.acquirable_slug}"
+                    )
+
                 logger.debug(f"Message Payload: {payload}")
 
                 # create a temporary directory and release in final exception
@@ -154,7 +156,7 @@ def start_worker():
             finally:
                 if os.path.exists(dst.name):
                     shutil.rmtree(dst.name, ignore_errors=True)
-                del dst
+                dst = None
                 message.delete()
                 perf_queue.append(perf_time := time.perf_counter() - start_message)
                 logger.debug(f"Handle Message Time: {perf_time} (sec)")

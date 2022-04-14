@@ -9,12 +9,10 @@ Reference: https://www.prism.oregonstate.edu/documents/PRISM_datasets.pdf
 import os
 import re
 from datetime import datetime, timezone
-from tempfile import TemporaryDirectory
 
 import pyplugs
 from cumulus_geoproc import logger, utils
-from cumulus_geoproc.configurations import CUMULUS_PRODUCTS_BASEKEY
-from cumulus_geoproc.utils import boto, cgdal
+from cumulus_geoproc.utils import boto
 from osgeo import gdal
 
 gdal.UseExceptions()
@@ -51,38 +49,30 @@ def process(src: str, dst: str, acquirable: str = None):
 
     try:
         filename = os.path.basename(src)
-        filename_ = utils.file_extension\(.*, suffix=".tif")
+        filename_ = utils.file_extension(filename, suffix=".tif")
 
         bucket, key = src.split("/", maxsplit=1)
         logger.debug(f"s3_download_file({bucket=}, {key=})")
 
         # download the file to the current filesystem and extract
-        td = TemporaryDirectory(dir=dst)
-        src_ = boto.s3_download_file(bucket=bucket, key=key, dst=td.name)
-        logger.debug(f"S3 Downloaded File: {src_} -> {td.name}")
+        src_ = boto.s3_download_file(bucket=bucket, key=key, dst=dst)
+        logger.debug(f"S3 Downloaded File: {src_} -> {dst}")
 
-        utils.decompress(src_, td.name)
-        logger.debug(f"Extract from zip: {src_}")
-
-        src_bil = utils.file_extension\(.*, suffix=".bil")
-        ds = gdal.Open(src_bil)
+        file_ = utils.decompress(src_, dst)
+        logger.debug(f"Extract from zip: {file_}")
 
         # get date from filename like PRISM_ppt_early_4kmD2_yyyyMMdd_bil.zip
         time_pattern = re.compile(r"\w+_(?P<ymd>\d+)_\w+")
-
         m = time_pattern.match(filename)
         dt_valid = datetime.strptime(m.group("ymd"), "%Y%m%d").replace(
             hour=12, minute=0, second=0, tzinfo=timezone.utc
         )
 
-        # Extract Band; Convert to COG
-        translate_options = cgdal.gdal_translate_options(
-            creationOptions=["TILED=YES", "COPY_SRC_OVERVIEWS=YES", "COMPRESS=LZW"]
-        )
+        src_bil = utils.file_extension(file_, suffix=".bil")
+        ds = gdal.Open(src_bil)
         gdal.Translate(
             temp_file := os.path.join(dst, filename_),
             ds,
-            **translate_options,
         )
 
         outfile_list = [

@@ -16,6 +16,8 @@ from cumulus_geoproc.configurations import (
 from cumulus_geoproc.processors import geo_proc
 from cumulus_geoproc.utils import boto, capi
 
+this = os.path.basename(__file__)
+
 
 def handle_message(geoprocess, GeoCfg, dst):
     """Handle the message from SQS determining what to do with it
@@ -85,14 +87,8 @@ def upload_notify(notices: list, bucket: str):
                 responses.append({"key": key})
                 payload.append(notice)
                 logger.debug(f"Append Response: {responses[-1]}")
-        except KeyError as ex:
-            logger.warning(f"KeyError: {__name__}: {ex}")
-            continue
-        except ClientError as ex:
-            logger.warning(f"ClientError: {__name__}: {ex}")
-            continue
-        except Exception as ex:
-            logger.warning(f"Exception: {__name__}: {ex}")
+        except (KeyError, ClientError, Exception) as ex:
+            logger.warning(f"{type(ex).__name__}: {this}: {ex}")
             continue
 
     # notify

@@ -9,7 +9,6 @@ from tempfile import TemporaryDirectory
 
 import pyplugs
 from cumulus_geoproc import logger, utils
-from cumulus_geoproc.configurations import CUMULUS_PRODUCTS_BASEKEY
 from cumulus_geoproc.utils import boto, cgdal
 from osgeo import gdal
 

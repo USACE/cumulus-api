@@ -5,6 +5,7 @@ import gzip
 import os
 import tarfile
 import zipfile
+from cumulus_geoproc import logger
 
 # from cumulus_geoproc import logger
 
@@ -107,8 +108,8 @@ def decompress(src: str, dst: str = "/tmp", recursive: bool = False):
             with open(src, "wb") as fp:
                 fp.write(content)
     except OSError as ex:
-        print(f"Not gzip: {src}")
-        print(f"{type(ex).__name__}: {this}: {ex}")
+        logger.warning(f"Not gzip: {src}")
+        logger.warning(f"{type(ex).__name__}: {this}: {ex}")
 
     try:
         if zipfile.is_zipfile(src):
@@ -124,33 +125,21 @@ def decompress(src: str, dst: str = "/tmp", recursive: bool = False):
                 dst_ = os.path.join(dst, fname)
 
                 tar.extractall(dst_)
-            if recursive:
-                for member in tar.getmembers():
-                    if member.isfile():
-                        decompress(
-                            os.path.join(dst_, member.name),
-                            dst=dst_,
-                            recursive=recursive,
-                        )
+                if recursive:
+                    for member in tar.getmembers():
+                        if member.isfile():
+                            decompress(
+                                os.path.join(dst_, member.name),
+                                dst=dst_,
+                                recursive=recursive,
+                            )
             return dst_
     except Exception as ex:
-        print(f"{type(ex).__name__}: {this}: {ex}")
+        logger.warning(f"{type(ex).__name__}: {this}: {ex}")
         return False
 
     return src
 
 
 if __name__ == "__main__":
-    # srcs = [
-    #     "/Users/rdcrljsg/projects/cumulus-api/msr-coe-1hrT--NCRFC_hourlyFcstT_2021111812.tar.gz",
-    #     "/Users/rdcrljsg/projects/cumulus-api/nerfc.qpf.2021111518.zip",
-    #     "/Users/rdcrljsg/projects/cumulus-api/xmrg1112202114z.grb.gz",
-    #     "/Users/rdcrljsg/projects/cumulus-api/SNODAS_unmasked_20100419.tar",
-    # ]
-
-    # print(decompress(srcs[-1], recursive=True))
-
-    new_file = file_extension(
-        "/Users/rdcrljsg/projects/cumulus-api/msr-coe-1hrT--NCRFC_hourlyFcstT_2021111812.tar.gz"
-    )
-    print(new_file)
+    pass

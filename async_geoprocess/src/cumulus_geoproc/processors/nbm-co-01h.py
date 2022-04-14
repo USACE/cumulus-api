@@ -7,11 +7,9 @@ CONUS 1hour Forecasted Airtemp and QPF
 import os
 import re
 from datetime import datetime, timezone
-from uuid import uuid4
 
 import pyplugs
 from cumulus_geoproc import logger, utils
-from cumulus_geoproc.configurations import CUMULUS_PRODUCTS_BASEKEY
 from cumulus_geoproc.utils import cgdal
 from osgeo import gdal
 

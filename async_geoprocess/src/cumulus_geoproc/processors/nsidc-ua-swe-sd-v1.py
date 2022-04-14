@@ -5,13 +5,11 @@
 
 import os
 import re
-from uuid import uuid4
+from datetime import datetime, timedelta
+
 import numpy as np
-from osgeo import gdal
-
-from datetime import datetime, timedelta, timezone
 import pyplugs
-
+from osgeo import gdal
 
 this = os.path.basename(__file__)
 

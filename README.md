@@ -28,7 +28,12 @@ These commands launch the following services, availale in the browser
 | Cumulus API           | http://localhost:80   |
 | Pgadmin (Running SQL) | http://localhost:7000 |
 | Minio Browser (S3)    | http://localhost:9000 |
-| Nginx                 | http://localhost:8080 |
+
+---
+### Documentation
+#### API - https://usace.github.io/cumulus-api/api-docs/index.html
+#### Database - https://usace.github.io/cumulus-api/db-docs/schemaspy/index.html
+---
 
 #### Docker-compose Mounted Directories
 

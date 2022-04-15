@@ -11,6 +11,8 @@ from cumulus_geoproc import logger, utils
 from cumulus_geoproc.utils import cgdal
 from osgeo import gdal
 
+gdal.UseExceptions()
+
 this = os.path.basename(__file__)
 
 
@@ -46,14 +48,14 @@ def process(src: str, dst: str, acquirable: str = None):
     }
 
     try:
+        filename = os.path.basename(src)
         for nc_variable, nc_slug in nc_variables.items():
             ds = gdal.Open(f"NETCDF:{src}:{nc_variable}")
 
             # set the start time
-            subset_meta_dict = ds.GetMetadata_Dict()
-            time_pattern = re.compile(r"\d{4}-\d{2}-\d{2}")
-            valid_days_since = time_pattern.match(subset_meta_dict["time#units"])
-            days_since = datetime.fromisoformat(valid_days_since[0]).replace(
+            time_pattern = re.compile(r"\w+ \w+ (\d{4}-\d{2}-\d{2})")
+            day_since_str = time_pattern.match(ds.GetMetadataItem("time#units"))
+            day_since = datetime.fromisoformat(day_since_str[1]).replace(
                 tzinfo=timezone.utc
             )
 
@@ -61,11 +63,11 @@ def process(src: str, dst: str, acquirable: str = None):
                 # set the bands date
                 band = ds.GetRasterBand(band_number)
                 delta_days = band.GetMetadataItem("NETCDF_DIM_time")
-                band_date = days_since + timedelta(days=int(delta_days))
+                band_date = day_since + timedelta(days=int(delta_days))
 
                 datetime_str = band_date.strftime("%Y%m%d")
                 filename_ = utils.file_extension(
-                    src, suffix=f"_{datetime_str}_{nc_variable}.tif"
+                    filename, suffix=f"_{datetime_str}_{nc_variable}.tif"
                 )
 
                 translate_options = cgdal.gdal_translate_options(bandList=[band_number])
@@ -89,3 +91,7 @@ def process(src: str, dst: str, acquirable: str = None):
     finally:
         ds = None
     return outfile_list
+
+
+if __name__ == "__main__":
+    pass

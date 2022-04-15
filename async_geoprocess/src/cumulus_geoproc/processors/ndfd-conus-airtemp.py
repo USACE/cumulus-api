@@ -88,9 +88,7 @@ def process(src: str, dst: str, acquirable: str = None):
                 tdelta = (tdelta2 - tdelta1).seconds  # Extract Band; Convert to COG
 
                 if tdelta in f_type_dict:
-                    translate_options = cgdal.gdal_translate_options(
-                        bandList=[b], creationOptions=["TILED=YES", "COMPRESS=DEFLATE"]
-                    )
+                    translate_options = cgdal.gdal_translate_options(bandList=[b])
 
                     _filename = filename_temp.substitute(
                         filename=filename_, ymd=vtime.strftime("%Y%m%d%H%M")
@@ -98,7 +96,7 @@ def process(src: str, dst: str, acquirable: str = None):
                     logger.debug(f"New Filename: {_filename}")
 
                     gdal.Translate(
-                        temp_file := os.path.join(dst, _filename),
+                        tif := os.path.join(dst, _filename),
                         ds,
                         **translate_options,
                     )
@@ -106,7 +104,7 @@ def process(src: str, dst: str, acquirable: str = None):
                     outfile_list.append(
                         {
                             "filetype": f_type_dict[tdelta],
-                            "file": temp_file,
+                            "file": tif,
                             "datetime": vtime.isoformat(),
                             "version": rtime.isoformat(),
                         }

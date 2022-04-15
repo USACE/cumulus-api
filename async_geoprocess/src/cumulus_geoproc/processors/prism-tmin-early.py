@@ -72,7 +72,7 @@ def process(src: str, dst: str, acquirable: str = None):
         src_bil = utils.file_extension(file_, suffix=".bil")
         ds = gdal.Open(src_bil)
         gdal.Translate(
-            temp_file := os.path.join(dst, filename_),
+            tif := os.path.join(dst, filename_),
             ds,
         )
 
@@ -82,7 +82,7 @@ def process(src: str, dst: str, acquirable: str = None):
         outfile_list = [
             {
                 "filetype": acquirable,
-                "file": temp_file,
+                "file": tif,
                 "datetime": dt_valid.isoformat(),
                 "version": None,
             },

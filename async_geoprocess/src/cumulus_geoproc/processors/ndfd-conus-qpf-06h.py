@@ -77,7 +77,7 @@ def process(src: str, dst: str, acquirable: str = None):
                 logger.debug(f"New Filename: {_filename}")
 
                 gdal.Translate(
-                    temp_file := os.path.join(dst, _filename),
+                    tif := os.path.join(dst, _filename),
                     ds,
                     **translate_options,
                 )
@@ -85,7 +85,7 @@ def process(src: str, dst: str, acquirable: str = None):
                 outfile_list.append(
                     {
                         "filetype": acquirable,
-                        "file": temp_file,
+                        "file": tif,
                         "datetime": vtime.isoformat(),
                         "version": rtime.isoformat(),
                     }

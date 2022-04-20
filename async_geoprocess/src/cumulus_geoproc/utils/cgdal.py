@@ -5,7 +5,7 @@ import os
 
 from cumulus_geoproc import logger
 from osgeo import gdal
-from osgeo_utils import gdal_calc
+from osgeo_utils import gdal_calc, gdal_fillnodata
 
 gdal.UseExceptions()
 
@@ -19,7 +19,9 @@ def gdal_translate_options(**kwargs):
     -------
     dict
         dictionary of gdal translate options with base options
+
     """
+    # COG driver generates overviews while GTiff uses seperate step to build them
     base = {
         "format": "COG",
     }
@@ -66,13 +68,33 @@ def find_band(data_set: "gdal.Dataset", attr: dict = {}):
 
 
 def gdal_calculate(*args):
-    """Implement gdal-utils gdal_calc CLI utility"""
+    """Implement gdal-utils gdal_calc CLI utility
+
+    gdal_translate documentation:
+
+    https://gdal.org/programs/gdal_translate.html
+    """
     argv = [gdal_calc.__file__]
     argv.extend(list(args))
 
     logger.debug(f"Argvs: {argv=}")
 
     gdal_calc.main(argv)
+
+
+def gdal_fillnodataval(*args):
+    """Implement gdal-utils gdal_fillnodata CLI utility
+
+    gdal_fillnodata documentation:
+
+    https://gdal.org/programs/gdal_fillnodata.html
+    """
+    argv = [gdal_calc.__file__]
+    argv.extend(list(args))
+
+    logger.debug(f"Argvs: {argv=}")
+
+    gdal_fillnodata.main(argv)
 
 
 # TODO: GridProcess class

@@ -1,19 +1,20 @@
 """WRF Columbia Precipitation
 """
 
-# TODO: Refactor to new geoprocess package
+import os
+import re
+from datetime import datetime, timedelta, timezone
 
-
-import datetime
-from netCDF4 import Dataset
-import os, subprocess
 import pyplugs
+from netCDF4 import Dataset
+from osgeo import gdal, osr
 
+gdal.UseExceptions()
 
 this = os.path.basename(__file__)
 
-# plugin not available when decorator commented out
-# @pyplugs.register
+
+@pyplugs.register
 def process(src: str, dst: str, acquirable: str = None):
     """Grid processor
 
@@ -35,89 +36,86 @@ def process(src: str, dst: str, acquirable: str = None):
             "datetime": str,         Valid Time, ISO format with timezone
             "version": str           Reference Time (forecast), ISO format with timezone
         }
+    acquirable = "wrf-columbia-precip"
     """
 
-    print(
-        "****************************** WRF Columbia Precip **********************************"
-    )
-    startTime = datetime.datetime.now()
-
-    varName = "wrf-columbia-precip"
-
-    # import pdb; pdb.set_trace()
-
-    ncDataset = Dataset(src)
-    hour_array = ncDataset.variables["time"][:]
-    ncDataset.close()
-
-    strProjLccSphere = '-a_srs "+proj=lcc +lat_1=45 +lat_2=45 +lon_0=-120 +lat_0=45.80369 +x_0=0 +y_0=0 +a=6370000 +b=6370000 +units=m"'
-    strNcExtent = "-a_ullr -341997.806, 816645.371, 858002.194, -539354.629"
-    strFinalExtent = "-projwin -337997.806, 812645.371, 854002.194, -535354.629"
-
-    intBand = 0
     outfile_list = []
-    dtVersion = datetime.datetime.strptime("2021_03_06", "%Y_%m_%d")
 
-    for theHour in hour_array:
-        # We want to round to an integer to make sure that we are using an exact hour.
-        # For some reason round on a numpy.float32 is not giving an integer in the cumulus-api_geoprocess python instance (3.8.5)
-        # The Python standard float is double
-        # So convert numpy.float32 to float and round that.
+    ncds = None
+    try:
+        ncds = Dataset(src, "r")
+        lon = ncds.variables["lon"][:]
+        lat = ncds.variables["lat"][:]
+        var = ncds.variables["var"][:]
+        time_ = ncds.variables["time"]
 
-        intHour = round(float(theHour))
-        currentPDate = datetime.datetime(1850, 1, 1, 0) + datetime.timedelta(
-            hours=intHour
-        )
-        intBand += 1  # They start at 1 for gdal_translate command
+        time_pattern = re.compile(r"\w+ \w+ (\d{4}-\d{2}-\d{2} \d+:\d+:\d+)")
+        time_str = time_pattern.match(time_.units)
+        since_time = datetime.fromisoformat(time_str[1]).replace(tzinfo=timezone.utc)
 
-        # test with 1 band
-        # if intBand != 2490:
-        #     continue
+        nctimes = (since_time + timedelta(hours=int(td)) for td in time_)
 
-        strDateFormat = "%Y_%m_%d_T%H_%M"
-        strCurrentDate = datetime.datetime.strftime(currentPDate, strDateFormat)
-        print(strCurrentDate)
-        outName = f"{varName}_{strCurrentDate}"
-        strTempFile = os.path.join(dst, f"temp_{outName}.tif")
-        finalFile = os.path.join(dst, f"{outName}.tif")
+        xmin, ymin, xmax, ymax = lon.min(), lat.min(), lon.max(), lat.max()
+        for i, nctime in enumerate(nctimes):
+            bandx = var[i]
+            nctime_str = datetime.strftime(nctime, "%Y_%m_%d_T%H_%M")
+            nrows, ncols = bandx.shape
+            xres = (xmax - xmin) / float(ncols)
+            yres = (ymax - ymin) / float(nrows)
 
-        # First command is like:
-        # C:\Continuum\miniconda3_64bit\Library\bin\gdal_translate.exe NETCDF:"D:\temp\n1\PRECIPAH.nc":var -b 2490 -a_srs "+proj=lcc +lat_1=45 +lat_2=45 +lon_0=-120 +lat_0=45.80369 +x_0=0 +y_0=0 +a=6370000 +b=6370000 +units=m" -a_ullr -341997.806, 816645.371, 858002.194, -539354.629 -of GTiff D:\crb_temp\t1.tif
-        # TIF output with no compression seems to be fastest on this first step
+            geotransform = (xmin, xres, 0, ymax, 0, -yres)
 
-        strCommand = f'gdal_translate NETCDF:"{src}":var -b {str(intBand)} {strProjLccSphere} {strNcExtent} -of GTiff {strTempFile}'
-        # print(); print(strCommand); print()
-        subprocess.check_call(strCommand, shell=True)
+            raster = gdal.GetDriverByName("GTiff").Create(
+                tmptif := os.path.join(
+                    dst, src.replace(".nc", f"-{nctime_str}.tmp.tif")
+                ),
+                xsize=ncols,
+                ysize=nrows,
+                bands=1,
+                eType=gdal.GDT_Float32,
+            )
+            raster.SetGeoTransform(geotransform)
+            srs = osr.SpatialReference()
+            srs.ImportFromEPSG(4326)
 
-        # Clip border 0 cells and create COG
-        # 2nd command is like:
-        # C:\Continuum\miniconda3_64bit\Library\bin\gdal_translate.exe D:\crb_temp\t1.tif -projwin -337997.806, 812645.371, 854002.194, -535354.629 -of COG -co COMPRESS=LZW -co PREDICTOR=2 D:\crb_temp\PRECIPAH\PRECIPAH_1980_01_12_T17_00.tif
+            raster.SetProjection(srs.ExportToWkt())
+            band = raster.GetRasterBand(1)
+            band.WriteArray(bandx)
+            raster.FlushCache()
+            raster = None
 
-        # Using DEFLATE compression seems to result in smaller file size than LZW but is just a tad slower
-        strCommand = f"gdal_translate {strTempFile} {strFinalExtent} -of COG -co COMPRESS=DEFLATE -co PREDICTOR=2 {finalFile}"
-        # print(); print(strCommand); print()
-        subprocess.check_call(strCommand, shell=True)
+            gdal.Translate(
+                tif := os.path.join(dst, src.replace(".nc", f"-{nctime_str}.tif")),
+                tmptif,
+                format="GTiff",
+                outputBounds=[-337997.806, 812645.371, 854002.194, -535354.629],
+                outputSRS="+proj=lcc +lat_1=45 +lat_2=45 +lon_0=-120 +lat_0=45.80369 +x_0=0 +y_0=0 +a=6370000 +b=6370000 +units=m",
+                creationOptions=["NUM_THREADS=ALL_CPUS"],
+            )
 
-        outfile_list.append(
-            {
-                "filetype": varName,
-                "file": finalFile,
-                "datetime": currentPDate.replace(
-                    tzinfo=datetime.timezone.utc
-                ).isoformat(),
-                "version": dtVersion.replace(tzinfo=datetime.timezone.utc).isoformat(),
-            }
-        )
+            try:
+                os.remove(tmptif)
+            except OSError as ex:
+                print(ex)
 
-    # fileinfo = info(src)
-    # print(fileinfo)
+            outfile_list.append(
+                {
+                    "filetype": acquirable,
+                    "file": tif,
+                    "datetime": nctime.isoformat(),
+                    "version": datetime.utcnow(),
+                }
+            )
 
-    print()
-    strInfo = "All done\n"
-    strInfo += "Start time: " + startTime.strftime("%Y-%m-%d %H:%M") + "\n"
-    endTime = datetime.datetime.now()
-    strInfo += "End time: " + endTime.strftime("%Y-%m-%d %H:%M") + "\n"
-    strInfo += "Duration: " + str(endTime - startTime)
-    print(strInfo)
+    except Exception as ex:
+        print(ex)
+    finally:
+        if ncds:
+            ncds.close()
+        raster = None
 
-    return []
+    return outfile_list
+
+
+if __name__ == "__main__":
+    pass

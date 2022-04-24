@@ -68,7 +68,7 @@ def process(src: str, dst: str, acquirable: str = None):
         translate_options = cgdal.gdal_translate_options(bandList=[band_number])
         gdal.Translate(
             temp_file := os.path.join(dst, filename_),
-            ds,
+            raster.GetDataset(),
             **translate_options,
         )
 

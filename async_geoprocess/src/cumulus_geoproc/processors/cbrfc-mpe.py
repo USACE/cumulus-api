@@ -61,14 +61,16 @@ def process(src: str, dst: str, acquirable: str = None):
 
         # Get Datetime from String Like "1599008400 sec UTC"
         time_pattern = re.compile(r"\d+")
-        valid_time_match = time_pattern.match(raster.GetMetadataItem("GRIB_VALID_TIME"))
+        time_str = raster.GetMetadataItem("GRIB_VALID_TIME")
+        valid_time_match = time_pattern.match(time_str)
+
         dt_valid = datetime.fromtimestamp(int(valid_time_match[0]), timezone.utc)
 
         # Extract Band; Convert to COG
-        translate_options = cgdal.gdal_translate_options(bandList=[band_number])
+        translate_options = cgdal.gdal_translate_options()
         gdal.Translate(
             temp_file := os.path.join(dst, filename_),
-            ds,
+            raster.GetDataset(),
             **translate_options,
         )
 

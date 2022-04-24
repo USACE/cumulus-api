@@ -7,6 +7,7 @@ from datetime import datetime, timedelta, timezone
 
 import pyplugs
 from netCDF4 import Dataset
+from cumulus_geoproc.utils import cgdal
 from osgeo import gdal, osr
 
 gdal.UseExceptions()
@@ -84,13 +85,16 @@ def process(src: str, dst: str, acquirable: str = None):
             raster.FlushCache()
             raster = None
 
-            gdal.Translate(
-                tif := os.path.join(dst, src.replace(".nc", f"-{nctime_str}.tif")),
-                tmptif,
-                format="GTiff",
+            # Translate to COG
+            translate_options = cgdal.gdal_translate_options(
                 outputBounds=[-337997.806, 812645.371, 854002.194, -535354.629],
                 outputSRS="+proj=lcc +lat_1=45 +lat_2=45 +lon_0=-120 +lat_0=45.80369 +x_0=0 +y_0=0 +a=6370000 +b=6370000 +units=m",
                 creationOptions=["NUM_THREADS=ALL_CPUS"],
+            )
+            gdal.Translate(
+                tif := os.path.join(dst, src.replace(".nc", f"-{nctime_str}.tif")),
+                tmptif,
+                **translate_options,
             )
 
             try:

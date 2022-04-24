@@ -15,11 +15,18 @@ this = os.path.basename(__file__)
 def gdal_translate_options(**kwargs):
     """Return gdal translate options
 
+    Add dictionary attributes to use those options for translate
+
+    Adding an existing attribute in 'base' will overwright that option
+
     Returns
     -------
     dict
-        dictionary of gdal translate options with base options
+        dictionary of gdal translate options with base option(s)
 
+    base = {
+        "format": "COG",
+    }
     """
     # COG driver generates overviews while GTiff uses seperate step to build them
     base = {

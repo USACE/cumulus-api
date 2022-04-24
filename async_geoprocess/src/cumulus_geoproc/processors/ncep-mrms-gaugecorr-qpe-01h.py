@@ -57,12 +57,11 @@ def process(src: str, dst: str, acquirable: str = None):
         band_number = 0
 
         raster = ds.GetRasterBand(band_number)
-        meta = raster.GetMetadata_Dict()
-        valid_time = meta["GRIB_VALID_TIME"]
 
         # Get Datetime from String Like "1599008400 sec UTC"
         time_pattern = re.compile(r"\d+")
-        valid_time_match = time_pattern.match(valid_time)
+        valid_time_str = raster.GetMetadataItem("GRIB_VALID_TIME")
+        valid_time_match = time_pattern.match(valid_time_str)
         dt_valid = datetime.fromtimestamp(int(valid_time_match[0]), timezone.utc)
 
         # Extract Band; Convert to COG

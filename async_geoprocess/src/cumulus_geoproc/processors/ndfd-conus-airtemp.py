@@ -97,7 +97,7 @@ def process(src: str, dst: str, acquirable: str = None):
 
                     gdal.Translate(
                         tif := os.path.join(dst, _filename),
-                        ds,
+                        raster.GetDataset(),
                         **translate_options,
                     )
 

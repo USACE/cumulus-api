@@ -67,9 +67,7 @@ def process(src: str, dst: str, acquirable: str = None):
                 rtime = datetime.fromtimestamp(int(ref_time_match[0]), timezone.utc)
 
                 # Extract Band; Convert to COG
-                translate_options = cgdal.gdal_translate_options(
-                    bandList=[b], creationOptions=["TILED=YES", "COMPRESS=DEFLATE"]
-                )
+                translate_options = cgdal.gdal_translate_options(bandList=[b])
 
                 _filename = filename_temp.substitute(
                     filename=filename_, ymd=vtime.strftime("%Y%m%d%H%M")
@@ -78,7 +76,7 @@ def process(src: str, dst: str, acquirable: str = None):
 
                 gdal.Translate(
                     tif := os.path.join(dst, _filename),
-                    ds,
+                    raster.GetDataset(),
                     **translate_options,
                 )
 

@@ -14,7 +14,7 @@ require (
 	github.com/jmoiron/sqlx v1.3.4
 	github.com/kelseyhightower/envconfig v1.4.0
 	github.com/labstack/echo/v4 v4.6.3
-	golang.org/x/crypto v0.0.0-20220209195652-db638375bc3a
+	golang.org/x/crypto v0.0.0-20220411220226-7b82a4e95df4
 	golang.org/x/net v0.0.0-20220127200216-cd36cc0744dd
 )
 

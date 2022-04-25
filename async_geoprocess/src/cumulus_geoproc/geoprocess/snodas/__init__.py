@@ -14,6 +14,7 @@ example message for this process:
 """
 
 
+from datetime import datetime, timezone
 import os
 
 from cumulus_geoproc import logger
@@ -65,6 +66,14 @@ product_code: dict = {
         "product": "nohrsc-snodas-snowmelt",
     },
 }
+
+
+def no_data_value(dt: datetime):
+    dt_nodata = datetime(2011, 1, 24, 0, 0, tzinfo=timezone.utc)
+    if dt < dt_nodata:
+        return "55537"
+    else:
+        return "-9999"
 
 
 def snow_melt_mm(translated_tif: dict):

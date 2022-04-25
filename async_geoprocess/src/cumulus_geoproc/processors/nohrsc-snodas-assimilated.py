@@ -13,7 +13,7 @@ import tarfile
 from datetime import datetime
 
 import pyplugs
-from cumulus_geoproc import utils
+from cumulus_geoproc import logger, utils
 from osgeo import gdal
 
 this = os.path.basename(__file__)
@@ -62,9 +62,6 @@ def process(src: str, dst: str, acquirable: str = None):
                         ds.GetMetadataItem("Data#stop_date")
                     )
 
-                    # translate_options = cgdal.gdal_translate_options(
-                    #     creationOptions=["TILED=YES", "COMPRESS=DEFLATE"]
-                    # )
                     gdal.Translate(
                         tif := utils.file_extension(snodas_assim),
                         ds,
@@ -85,7 +82,6 @@ def process(src: str, dst: str, acquirable: str = None):
         logger.error(f"{type(ex).__name__}: {this}: {ex}")
     finally:
         ds = None
-        raster = None
 
     return outfile_list
 

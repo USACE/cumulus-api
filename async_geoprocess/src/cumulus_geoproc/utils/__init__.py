@@ -43,6 +43,8 @@ def file_extension(file: str, preffix: str = "", suffix=".tif", maxsplit=-1):
         ".bil",
         ".dat",
         ".txt",
+        ".tif",
+        ".tiff",
         ".grib",
         ".grib2",
         ".tar.gz",

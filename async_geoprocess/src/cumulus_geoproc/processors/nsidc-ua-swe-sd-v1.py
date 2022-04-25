@@ -61,8 +61,8 @@ def process(src: str, dst: str, acquirable: str = None):
 
             for band_number in range(1, ds.RasterCount + 1):
                 # set the bands date
-                band = ds.GetRasterBand(band_number)
-                delta_days = band.GetMetadataItem("NETCDF_DIM_time")
+                raster = ds.GetRasterBand(band_number)
+                delta_days = raster.GetMetadataItem("NETCDF_DIM_time")
                 band_date = day_since + timedelta(days=int(delta_days))
 
                 datetime_str = band_date.strftime("%Y%m%d")
@@ -73,7 +73,7 @@ def process(src: str, dst: str, acquirable: str = None):
                 translate_options = cgdal.gdal_translate_options(bandList=[band_number])
                 gdal.Translate(
                     tif := os.path.join(dst, filename_),
-                    ds,
+                    raster.GetDataset(),
                     **translate_options,
                 )
 

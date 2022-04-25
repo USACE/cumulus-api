@@ -3,12 +3,14 @@
 
 import os
 from datetime import datetime, timezone
+import importlib.resources
 
 import pyplugs
 from cumulus_geoproc import logger, utils
 from cumulus_geoproc.geoprocess import snodas
-from cumulus_geoproc.geoprocess.snodas import metaparse
-from cumulus_geoproc.utils import boto, cgdal
+from cumulus_geoproc.geoprocess.snodas import is_lakefix, metaparse
+from cumulus_geoproc.utils import boto, cgdal, file_extension
+
 from osgeo import gdal
 
 this = os.path.basename(__file__)
@@ -54,7 +56,7 @@ def process(src: str, dst: str, acquirable: str = None):
         if not os.path.isdir(decompressed_files):
             raise Exception(f"Not a directory: {decompressed_files}")
 
-        # generator for only the files ending with .dat
+        # generator for only the files ending with .txt
         txt_files = (f for f in os.listdir(decompressed_files) if f.endswith(".txt"))
 
         translate_to_tif = {}
@@ -64,6 +66,7 @@ def process(src: str, dst: str, acquirable: str = None):
             if snodas_product_code in paramater_codes:
                 fqpn = os.path.join(decompressed_files, txt_file)
                 meta_ntuple = metaparse.to_namedtuple(fqpn)
+                data_filename = meta_ntuple.data_file_pathname
                 region = txt_file[:2]
                 stop_date = datetime(
                     meta_ntuple.stop_year,
@@ -74,40 +77,37 @@ def process(src: str, dst: str, acquirable: str = None):
                     meta_ntuple.stop_second,
                     tzinfo=timezone.utc,
                 )
-                # set translate options
-                translate_options = cgdal.gdal_translate_options(
-                    format="COG",
-                    bandList=[1],
-                    outputSRS=f"+proj=longlat +ellps={meta_ntuple.horizontal_datum} +datum={meta_ntuple.horizontal_datum} +no_defs",
-                    noData=int(meta_ntuple.no_data_value),
-                    outputBounds=[
-                        meta_ntuple.minimum_x_axis_coordinate,
-                        meta_ntuple.maximum_y_axis_coordinate,
-                        meta_ntuple.maximum_x_axis_coordinate,
-                        meta_ntuple.minimum_y_axis_coordinate,
-                    ],
-                    metadataOptions=[
-                        f"{field_.upper()}={str(getattr(meta_ntuple, field_))}"
-                        for field_ in meta_ntuple._fields
-                    ],
-                )
+
+                # FQPN to data file
+                datafile_pathname = os.path.join(decompressed_files, data_filename)
+                logger.debug(f"Data File Path: {datafile_pathname}")
 
                 # write hdr so gdal can tranlate
                 hdr_file = metaparse.write_hdr(
                     fqpn, meta_ntuple.number_of_columns, meta_ntuple.number_of_rows
                 )
-
-                # FQPN to data file
-                datafile_pathname = os.path.join(
-                    decompressed_files, meta_ntuple.data_file_pathname
-                )
-                logger.debug(f"Data File Path: {datafile_pathname}")
-
                 # translate to tif
-                if hdr_file:
+                if hdr_file is not None:
+                    # set translate options
+                    translate_options = cgdal.gdal_translate_options(
+                        format="COG",
+                        bandList=[1],
+                        outputSRS=f"+proj=longlat +ellps={meta_ntuple.horizontal_datum} +datum={meta_ntuple.horizontal_datum} +no_defs",
+                        noData=int(meta_ntuple.no_data_value),
+                        outputBounds=[
+                            meta_ntuple.minimum_x_axis_coordinate,
+                            meta_ntuple.maximum_y_axis_coordinate,
+                            meta_ntuple.maximum_x_axis_coordinate,
+                            meta_ntuple.minimum_y_axis_coordinate,
+                        ],
+                        metadataOptions=[
+                            f"{field_.upper()}={str(getattr(meta_ntuple, field_))}"
+                            for field_ in meta_ntuple._fields
+                        ],
+                    )
                     ds = gdal.Open(datafile_pathname, gdal.GA_ReadOnly)
                     gdal.Translate(
-                        tif := datafile_pathname.replace(".dat", ".tif"),
+                        tif := file_extension(datafile_pathname, suffix=".tif"),
                         ds,
                         **translate_options,
                     )
@@ -122,10 +122,12 @@ def process(src: str, dst: str, acquirable: str = None):
                     logger.debug(f"Update Tif: {translate_to_tif[snodas_product_code]}")
 
         # cold content = swe * 2114 * snowtemp (degc) / 333000
-        translate_to_tif.update(snodas.cold_content(translate_to_tif))
+        if update_dict := snodas.cold_content(translate_to_tif) is not None:
+            translate_to_tif.update(update_dict)
 
         # convert snow melt to mm
-        translate_to_tif.update(snodas.snow_melt_mm(translate_to_tif))
+        if update_dict := snodas.snow_melt_mm(translate_to_tif) is not None:
+            translate_to_tif.update(update_dict)
 
         outfile_list.extend(list(translate_to_tif.values()))
 

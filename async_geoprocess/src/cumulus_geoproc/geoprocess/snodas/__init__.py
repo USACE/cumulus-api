@@ -16,6 +16,7 @@ example message for this process:
 
 from datetime import datetime, timezone
 import os
+from string import Template
 
 from cumulus_geoproc import logger
 from cumulus_geoproc.utils import cgdal
@@ -30,40 +31,47 @@ product_code: dict = {
     "1025": {
         "description": "Precipitation",
         "product": None,
+        "file_template": None,
     },
     "1034": {
         "description": "Snow water equivalent",
         "product": "nohrsc-snodas-swe",
+        "file_template": Template("zz_ssmv11034tS__T0001TTNATS${YMD}05HP001.tif"),
     },
     "1036": {
         "description": "Snow depth",
         "product": "nohrsc-snodas-snowdepth",
+        "file_template": Template("zz_ssmv11036tS__T0001TTNATS${YMD}05HP001.tif"),
     },
     "1038": {
         "description": "Snow pack average temperature",
         "product": "nohrsc-snodas-snowpack-average-temperature",
+        "file_template": Template("zz_ssmv11038wS__A0024TTNATS${YMD}05DP001.tif"),
     },
     "1039": {
         "description": "Blowing snow sublimation",
         "product": None,
+        "file_template": None,
     },
     "1044": {
         "description": "Snow melt",
         "product": "nohrsc-snodas-snowmelt",
-        "element": "",
+        "file_template": Template("zz_ssmv11044bS__T0024TTNATS${YMD}05DP000.tiff"),
     },
     "1050": {
         "description": "Snow pack sublimation",
         "product": None,
-        "element": "",
+        "file_template": None,
     },
     "2072": {
         "description": "",
         "product": "nohrsc-snodas-coldcontent",
+        "file_template": Template("zz_ssmv12072tS__T0001TTNATS${YMD}05HP001.tif"),
     },
     "3333": {
         "description": "Snow melt (mm)",
         "product": "nohrsc-snodas-snowmelt",
+        "file_template": Template("zz_ssmv13333bS__T0024TTNATS${YMD}05DP000.tif"),
     },
 }
 

@@ -8,7 +8,7 @@ import importlib.resources
 import pyplugs
 from cumulus_geoproc import logger, utils
 from cumulus_geoproc.geoprocess import snodas
-from cumulus_geoproc.geoprocess.snodas import is_lakefix, metaparse
+from cumulus_geoproc.geoprocess.snodas import metaparse
 from cumulus_geoproc.utils import boto, cgdal, file_extension
 
 from osgeo import gdal
@@ -122,12 +122,10 @@ def process(src: str, dst: str, acquirable: str = None):
                     logger.debug(f"Update Tif: {translate_to_tif[snodas_product_code]}")
 
         # cold content = swe * 2114 * snowtemp (degc) / 333000
-        if update_dict := snodas.cold_content(translate_to_tif) is not None:
-            translate_to_tif.update(update_dict)
+        translate_to_tif.update(snodas.cold_content(translate_to_tif))
 
         # convert snow melt to mm
-        if update_dict := snodas.snow_melt_mm(translate_to_tif) is not None:
-            translate_to_tif.update(update_dict)
+        translate_to_tif.update(snodas.snow_melt_mm(translate_to_tif))
 
         outfile_list.extend(list(translate_to_tif.values()))
 

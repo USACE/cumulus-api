@@ -15,6 +15,7 @@ from cumulus_geoproc.configurations import (
 )
 from cumulus_geoproc.processors import geo_proc
 from cumulus_geoproc.utils import boto, capi
+from cumulus_geoproc.geoprocess.snodas import interpolate
 
 this = os.path.basename(__file__)
 
@@ -36,16 +37,16 @@ def handle_message(geoprocess, GeoCfg, dst):
     list[dict]
         list of dictionary objects
     """
-    proc_list = list()
+    proc_list = []
 
     if geoprocess == "snodas-interpolate":
-        logger.debug(f"{GeoCfg=}")
-        # outfiles = snodas_interpolate.process(
-        #     bucket=GeoCfg.bucket,
-        #     date_time=GeoCfg.datetime,
-        #     max_distance=int(GeoCfg.max_distance),
-        #     outdir=temporary_directory,
-        # )
+        logger.debug(f"Geoprocess '{geoprocess}' working on '{GeoCfg.datetime}'")
+        proc_list = asyncio.run(
+            interpolate.snodas(
+                GeoCfg,
+                dst=dst,
+            )
+        )
     elif geoprocess == "incoming-file-to-cogs":
         # process and get resulting dictionary object defining the new grid
         # add acquirable id to each object in the list

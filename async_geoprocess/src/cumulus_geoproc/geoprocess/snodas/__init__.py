@@ -1,16 +1,4 @@
 """Geoprocessing SNODAS state variables
-
-example message for this process:
-
-    {
-        'geoprocess': 'snodas-interpolate',
-        'geoprocess_config': {
-            'bucket': 'castle-data-develop',
-            'datetime': '20220323',
-            'max_distance': 16
-        }
-    }
-
 """
 
 
@@ -56,7 +44,7 @@ product_code: dict = {
     "1044": {
         "description": "Snow melt",
         "product": "nohrsc-snodas-snowmelt",
-        "file_template": Template("zz_ssmv11044bS__T0024TTNATS${YMD}05DP000.tiff"),
+        "file_template": Template("zz_ssmv11044bS__T0024TTNATS${YMD}05DP000.tif"),
     },
     "1050": {
         "description": "Snow pack sublimation",
@@ -77,6 +65,18 @@ product_code: dict = {
 
 
 def no_data_value(dt: datetime):
+    """No data value determined by time
+
+    Parameters
+    ----------
+    dt : datetime
+        datetime object
+
+    Returns
+    -------
+    int
+        raster no data value
+    """
     dt_nodata = datetime(2011, 1, 24, 0, 0, tzinfo=timezone.utc)
     if dt < dt_nodata:
         return "55537"
@@ -108,7 +108,7 @@ def snow_melt_mm(translated_tif: dict):
             "version": str           Reference Time (forecast), ISO format with timezone
         }
     """
-    snowmelt_code = "2072"
+    snowmelt_code = "1044"
     snowmelt_code_mm = "3333"
 
     snowmelt = translated_tif[snowmelt_code]["file"]

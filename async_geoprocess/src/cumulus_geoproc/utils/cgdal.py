@@ -1,4 +1,12 @@
 """Cumulus specific gdal utilities
+
+    GTiff Creation Options to be a COG:
+        "-co",
+        "COMPRESS=LZW",
+        "-co",
+        "COPY_SRC_OVERVIEWS=YES",
+        "-co",
+        "TILE=YES",
 """
 
 import os

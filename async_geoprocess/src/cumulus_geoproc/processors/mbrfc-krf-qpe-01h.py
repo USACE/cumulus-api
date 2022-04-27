@@ -1,4 +1,4 @@
-"""High Resolution Rapid Refresh (HRRR) Total Precipitation
+"""Missouri Basin River Forecast Center
 """
 
 
@@ -59,25 +59,29 @@ def process(src: str, dst: str, acquirable: str = None):
 
         # Get Datetime from String Like "1599008400 sec UTC"
         time_pattern = re.compile(r"\d+")
-        valid_time_match = time_pattern.match(raster.GetMetadataItem("GRIB_VALID_TIME"))
+        time_str = raster.GetMetadataItem("GRIB_VALID_TIME")
+        valid_time_match = time_pattern.match(time_str)
+
         dt_valid = datetime.fromtimestamp(int(valid_time_match[0]), timezone.utc)
-        ref_time_match = time_pattern.match(raster.GetMetadataItem("GRIB_REF_TIME"))
-        dt_ref = datetime.fromtimestamp(int(ref_time_match[0]), timezone.utc)
 
         # Extract Band; Convert to COG
-        translate_options = cgdal.gdal_translate_options(bandList=[band_number])
+        translate_options = cgdal.gdal_translate_options()
         gdal.Translate(
             temp_file := os.path.join(dst, filename_),
             raster.GetDataset(),
             **translate_options,
         )
 
+        # closing the data source
+        ds = None
+        raster = None
+
         outfile_list = [
             {
                 "filetype": acquirable,
                 "file": temp_file,
                 "datetime": dt_valid.isoformat(),
-                "version": dt_ref.isoformat(),
+                "version": None,
             },
         ]
     except (RuntimeError, KeyError, Exception) as ex:

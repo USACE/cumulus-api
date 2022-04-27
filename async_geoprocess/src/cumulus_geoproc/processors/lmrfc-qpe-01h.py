@@ -93,3 +93,7 @@ def process(src: str, dst: str, acquirable: str = None):
         raster = None
 
     return outfile_list
+
+
+if __name__ == "__main__":
+    pass

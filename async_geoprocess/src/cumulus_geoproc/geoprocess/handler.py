@@ -63,6 +63,20 @@ def handle_message(geoprocess, GeoCfg, dst):
 
 
 def upload_notify(notices: list, bucket: str):
+    """Upload processed products and POST notification
+
+    Parameters
+    ----------
+    notices : list
+        list of successful uploads to S3
+    bucket : str
+        S3 bucket
+
+    Returns
+    -------
+    List
+        List of successful uploads and POST notifications
+    """
     responses = []
     payload = []
 

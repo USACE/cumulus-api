@@ -3,7 +3,6 @@
 
 import os
 from datetime import datetime, timezone
-import importlib.resources
 
 import pyplugs
 from cumulus_geoproc import logger, utils
@@ -12,6 +11,8 @@ from cumulus_geoproc.geoprocess.snodas import metaparse
 from cumulus_geoproc.utils import boto, cgdal, file_extension
 
 from osgeo import gdal
+
+gdal.UseExceptions()
 
 this = os.path.basename(__file__)
 
@@ -100,10 +101,6 @@ def process(src: str, dst: str, acquirable: str = None):
                             meta_ntuple.maximum_x_axis_coordinate,
                             meta_ntuple.minimum_y_axis_coordinate,
                         ],
-                        metadataOptions=[
-                            f"{field_.upper()}={str(getattr(meta_ntuple, field_))}"
-                            for field_ in meta_ntuple._fields
-                        ],
                     )
                     ds = gdal.Open(datafile_pathname, gdal.GA_ReadOnly)
                     gdal.Translate(
@@ -112,6 +109,16 @@ def process(src: str, dst: str, acquirable: str = None):
                         **translate_options,
                     )
                     ds = None
+
+                    # set metadata to band 1
+                    tif_ds = gdal.Open(datafile_pathname, gdal.GA_ReadOnly)
+                    metadata_options = [
+                        f"{field_.upper()}={str(getattr(meta_ntuple, field_))}"
+                        for field_ in meta_ntuple._fields
+                    ]
+                    tif_ds.GetRasterBand(1).SetMetadata(metadata_options)
+                    tif_ds = None
+
                     # add tif dictionary to compute cold content
                     translate_to_tif[snodas_product_code] = {
                         "file": tif,

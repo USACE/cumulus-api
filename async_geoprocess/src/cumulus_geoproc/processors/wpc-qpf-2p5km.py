@@ -63,7 +63,7 @@ def process(src: str, dst: str, acquirable: str = None):
         dt_valid = datetime.fromtimestamp(int(valid_time_match[0]), timezone.utc)
 
         # Extract Band; Convert to COG
-        translate_options = cgdal.gdal_translate_options(bandList=[band_number])
+        translate_options = cgdal.gdal_translate_options()
         gdal.Translate(
             temp_file := os.path.join(dst, filename_),
             raster.GetDataset(),
@@ -85,3 +85,7 @@ def process(src: str, dst: str, acquirable: str = None):
         raster = None
 
     return outfile_list
+
+
+if __name__ == "__main__":
+    pass

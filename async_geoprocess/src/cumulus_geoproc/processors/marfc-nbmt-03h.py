@@ -1,4 +1,6 @@
-"""High Resolution Rapid Refresh (HRRR) Total Precipitation
+"""Middle Atlantic River Forecast Center
+
+National Blend of Models Surface Temperature 3 hour
 """
 
 
@@ -43,7 +45,7 @@ def process(src: str, dst: str, acquirable: str = None):
     outfile_list = []
 
     try:
-        attr = {"GRIB_ELEMENT": "APCP"}
+        attr = {"GRIB_ELEMENT": "TMP"}
 
         filename = os.path.basename(src)
         filename_ = utils.file_extension(filename)

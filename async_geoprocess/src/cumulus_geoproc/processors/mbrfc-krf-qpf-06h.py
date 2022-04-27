@@ -1,4 +1,4 @@
-"""High Resolution Rapid Refresh (HRRR) Total Precipitation
+"""Missouri Basin River Forecast Center
 """
 
 
@@ -8,7 +8,7 @@ from datetime import datetime, timezone
 
 import pyplugs
 from cumulus_geoproc import logger, utils
-from cumulus_geoproc.utils import cgdal
+from cumulus_geoproc.utils import boto, cgdal
 from osgeo import gdal
 
 gdal.UseExceptions()
@@ -48,7 +48,13 @@ def process(src: str, dst: str, acquirable: str = None):
         filename = os.path.basename(src)
         filename_ = utils.file_extension(filename)
 
-        ds = gdal.Open("/vsis3_streaming/" + src)
+        bucket, key = src.split("/", maxsplit=1)
+        logger.debug(f"s3_download_file({bucket=}, {key=})")
+
+        src_ = boto.s3_download_file(bucket=bucket, key=key, dst=dst)
+        logger.debug(f"S3 Downloaded File: {src_}")
+
+        ds = gdal.Open("/vsigzip/" + src_)
 
         if (band_number := cgdal.find_band(ds, attr)) is None:
             raise Exception("Band number not found for attributes: {attr}")

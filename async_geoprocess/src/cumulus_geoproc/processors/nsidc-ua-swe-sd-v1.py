@@ -70,7 +70,7 @@ def process(src: str, dst: str, acquirable: str = None):
                     filename, suffix=f"_{datetime_str}_{nc_variable}.tif"
                 )
 
-                translate_options = cgdal.gdal_translate_options(bandList=[band_number])
+                translate_options = cgdal.gdal_translate_options()
                 gdal.Translate(
                     tif := os.path.join(dst, filename_),
                     raster.GetDataset(),
@@ -90,6 +90,7 @@ def process(src: str, dst: str, acquirable: str = None):
         logger.error(f"{type(ex).__name__}: {this}: {ex}")
     finally:
         ds = None
+
     return outfile_list
 
 

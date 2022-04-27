@@ -11,13 +11,20 @@ from cumulus_geoproc.configurations import APPLICATION_KEY
 
 # Cumulus API calls
 class CumulusAPI:
-    """Cumulus API class providing functionality to make requests"""
+    """Cumulus API class providing functionality to make requests
+
+    asyncio implemented with httpx for HTTP/2 protocol
+
+    """
 
     def __init__(self, url: str, http2: bool = True):
         # set url to env var if not provided
         self.url = url
         self.http2 = http2
         self.url_split = urlsplit(self.url)._asdict()
+
+    def __repr__(self) -> str:
+        return f"{__class__.__name__}({self.url}, {self.http2}, {self.url_split})"
 
     @property
     def parameters(self):
@@ -72,6 +79,14 @@ class CumulusAPI:
 
 
 class NotifyCumulus(CumulusAPI):
+    """Cumulus notification class extending CumulusAPI
+
+    Parameters
+    ----------
+    CumulusAPI : class
+        base class
+    """
+
     def __init__(self, url, http2=True):
         super().__init__(url, http2)
         self.endpoint = "productfiles"

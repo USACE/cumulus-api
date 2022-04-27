@@ -14,7 +14,28 @@ from cumulus_geoproc.configurations import (
 )
 
 
-def s3_upload_file(file_name, bucket, key=None):
+def s3_upload_file(file_name: str, bucket: str, key: str = None):
+    """Wrapper supporting S3 uploading a file
+
+    Parameters
+    ----------
+    file_name : str
+        file to upload
+    bucket : str
+        S3 bucket
+    key : str, optional
+        S3 object key, by default None
+
+    Returns
+    -------
+    bool
+        boolean describing successful upload
+
+    Raises
+    ------
+    Exception
+        ClientError
+    """
     # If S3 object_name was not specified, use file_name
     if key is None:
         key = os.path.basename(file_name)
@@ -37,6 +58,29 @@ def s3_upload_file(file_name, bucket, key=None):
 
 
 def s3_download_file(bucket: str, key: str, prefix: str = None, dst: str = "/tmp"):
+    """Wrapper supporting S3 downloading a file
+
+    Parameters
+    ----------
+    bucket : str
+        S3 Bucket
+    key : str
+        S3 key object
+    prefix : str, optional
+        Add prefix to filename, by default None
+    dst : str, optional
+        FQP to temporary directory, by default "/tmp"
+
+    Returns
+    -------
+    str | False
+        FQPN to downloaded file | False if failed
+
+    Raises
+    ------
+    Exception
+        ClientError
+    """
     file = os.path.basename(key)
     file = prefix + "-" + file if prefix else file
 
@@ -65,6 +109,13 @@ def s3_download_file(bucket: str, key: str, prefix: str = None, dst: str = "/tmp
 
 
 def boto3_resource(**kwargs):
+    """Define boto3 resource
+
+    Returns
+    -------
+    boto3.resource
+        resource object with default options with or without user defined attributes
+    """
     kwargs_ = {
         "aws_access_key_id": AWS_ACCESS_KEY_ID,
         "aws_secret_access_key": AWS_SECRET_ACCESS_KEY,

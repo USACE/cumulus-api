@@ -69,6 +69,8 @@ def process(src: str, dst: str, acquirable: str = None):
         time_pattern = re.compile(r"\d+")
         valid_time_match = time_pattern.match(raster.GetMetadataItem("GRIB_VALID_TIME"))
         dt_valid = datetime.fromtimestamp(int(valid_time_match[0]), timezone.utc)
+        ref_time_match = time_pattern.match(raster.GetMetadataItem("GRIB_REF_TIME"))
+        dt_ref = datetime.fromtimestamp(int(ref_time_match[0]), timezone.utc)
 
         # Extract Band; Convert to COG
         translate_options = cgdal.gdal_translate_options(bandList=[band_number])
@@ -83,7 +85,7 @@ def process(src: str, dst: str, acquirable: str = None):
                 "filetype": acquirable,
                 "file": temp_file,
                 "datetime": dt_valid.isoformat(),
-                "version": None,
+                "version": dt_ref.isoformat(),
             },
         ]
     except (RuntimeError, KeyError, Exception) as ex:
@@ -93,3 +95,7 @@ def process(src: str, dst: str, acquirable: str = None):
         raster = None
 
     return outfile_list
+
+
+if __name__ == "__main__":
+    pass

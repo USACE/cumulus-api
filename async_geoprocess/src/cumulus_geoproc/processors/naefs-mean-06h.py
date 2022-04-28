@@ -5,17 +5,19 @@
 import os
 import re
 from datetime import datetime, timedelta, timezone
-from tempfile import NamedTemporaryFile, TemporaryDirectory
 
 import numpy as np
 import pyplugs
 from cumulus_geoproc import logger
-from cumulus_geoproc.utils import boto, cgdal
+from cumulus_geoproc import utils
+from cumulus_geoproc.utils import cgdal
 from osgeo import gdal
 
 
 this = os.path.basename(__file__)
-# @pyplugs.register
+
+
+@pyplugs.register
 def process(src: str, dst: str, acquirable: str = None):
     """Grid processor
 
@@ -38,100 +40,92 @@ def process(src: str, dst: str, acquirable: str = None):
             "version": str           Reference Time (forecast), ISO format with timezone
         }
     """
-    outfile_list = list()
+    outfile_list = []
 
     try:
+        filename = os.path.basename(src)
         #
         # Variables and their product slug
         #
         nc_variables = {"QPF": "naefs-mean-qpf-06h", "QTF": "naefs-mean-qtf-06h"}
 
-        bucket, key = src.split("/", maxsplit=1)
-        logger.debug(f"s3_download_file({bucket=}, {key=})")
+        # bucket, key = src.split("/", maxsplit=1)
+        # logger.debug(f"s3_download_file({bucket=}, {key=})")
 
-        src_ = boto.s3_download_file(bucket=bucket, key=key, dst=dst)
-        logger.debug(f"S3 Downloaded File: {src_}")
+        # src_ = boto.s3_download_file(bucket=bucket, key=key, dst=dst)
+        # logger.debug(f"S3 Downloaded File: {src_}")
 
-        # Each band in 'time' is a band in the variable
-        src_time_ds = gdal.Open(f"NETCDF:{src_}:time")
-        time_unit = src_time_ds.GetRasterBand(1).GetMetadataItem("units")
-        time_array = (
-            src_time_ds.GetRasterBand(1).ReadAsArray().astype(np.dtype("float32"))
-        )
-        src_time_ds = None
+        src_ = src
 
-        # re pattern matching to get the start date from the 'time' units
-        # yyyy-mm-dd HH:MM:SS
-        pattern = re.compile(r"\d+-\d+-\d+ \d+:\d+:\d+")
-        since_time_str = re.search(pattern, time_unit).group(0)
-        since_time = datetime.fromisoformat(since_time_str)
+        since_pattern = re.compile(r"\w+ \w+ (?P<since>\d{4}-\d{2}-\d{2})")
+        create_pattern = re.compile(r"\d+-\d+-\d+ \d+:\d+:\d+")
 
-        min2date = lambda x: timedelta(minutes=int(x)) + since_time
-        for nc_variable, nc_slug in nc_variables.items():
-            subdataset = gdal.Open(f"NETCDF:{src_}:{nc_variable}")
-            ds_meta = subdataset.GetMetadata_Dict()
-            date_created_str = subdataset.GetRasterBand(1).GetMetadataItem(
-                "date_created"
-            )
+        ds = gdal.Open(src_)
 
-            date_created = datetime.fromisoformat(date_created_str[0])
+        create_str = ds.GetMetadataItem("NC_GLOBAL#date_created")
+        m = create_pattern.match(create_str)
+        create_date = datetime.fromisoformat(m.group(0)).replace(tzinfo=timezone.utc)
 
-            no_bands = subdataset.RasterCount
+        for subset in ds.GetSubDatasets():
+            subset_name, _ = subset
+            if (parameter_name := subset_name.split(":")[-1]) in nc_variables:
+                # dataset in the nc file
+                subdataset = gdal.Open(subset_name)
 
-            geo_transform = subdataset.GetGeoTransform()
-            src_projection = subdataset.GetProjection()
+                # get the since time each band will reference
+                # "time#units": "minutes since 1970-01-01 00:00:00.0 +0000",
+                # yyyy-mm-dd HH:MM:SS
+                since_time_str = subdataset.GetMetadataItem("analysis_time#units")
 
-            for b in range(1, no_bands + 1):
-                band_date = min2date(time_array[0][b])
-                band_filename = (
-                    "NAEFSmean_"
-                    + nc_variable
-                    + band_date.strftime("%Y%m%d%H%M")
-                    + ".tif"
-                )
-                # Get the band and process to raster
-                band = subdataset.GetRasterBand(b)
-                xsize = band.XSize
-                ysize = band.YSize
-                datatype = band.DataType
-                nodata_value = band.GetNoDataValue()
-                b_array = band.ReadAsArray(0, 0, xsize, ysize).astype(
-                    np.dtype("float32")
-                )
-                # Create at temporary raster and then translate it to the temporary directory
-                tif = cgdal.gdal_array_to_raster(
-                    b_array,
-                    NamedTemporaryFile("w+b", encoding="utf-8", suffix=".tif").name,
-                    xsize,
-                    ysize,
-                    geo_transform,
-                    src_projection,
-                    datatype,
-                    nodata_value,
+                m = since_pattern.match(since_time_str)
+                since_time = datetime.fromisoformat(m.group("since")).replace(
+                    tzinfo=timezone.utc
                 )
 
-                # COG with name based on time
-                cog = translate(tif_with_overviews, os.path.join(outdir, band_filename))
+                product_name = nc_variables[parameter_name]
 
-                outfile_list.append(
-                    {
-                        "filetype": nc_slug,
-                        "file": cog,
-                        "datetime": band_date.replace(tzinfo=timezone.utc).isoformat(),
-                        "version": date_created.replace(
-                            tzinfo=timezone.utc
-                        ).isoformat(),
-                    }
-                )
+                # loop through each band
+                for b in range(1, subdataset.RasterCount + 1):
+                    raster = subdataset.GetRasterBand(b)
+                    nodata = raster.GetNoDataValue()
+                    dim_time = raster.GetMetadataItem("NETCDF_DIM_time")
+                    ref_time = since_time + timedelta(minutes=int(dim_time))
+
+                    filename_ = utils.file_extension(
+                        filename,
+                        suffix=f"_{product_name}_{ref_time.strftime('%Y%m%d%H%M')}.tif",
+                    )
+
+                    # Extract Band; Convert to COG
+                    translate_options = cgdal.gdal_translate_options(noData=nodata)
+                    gdal.Translate(
+                        tif := os.path.join(dst, filename_),
+                        raster.GetDataset(),
+                        **translate_options,
+                    )
+
+                    outfile_list.append(
+                        {
+                            "filetype": product_name,
+                            "file": tif,
+                            "datetime": ref_time.isoformat(),
+                            "version": create_date.isoformat(),
+                        }
+                    )
 
     except (RuntimeError, KeyError, Exception) as ex:
         logger.error(f"{type(ex).__name__}: {this}: {ex}")
     finally:
         ds = None
+        subdataset = None
         raster = None
 
     return outfile_list
 
 
 if __name__ == "__main__":
-    pass
+    srcfile = "/Users/rdcrljsg/projects/cumulus-products/data/cumulus/acquirables/naefs-mean-06h/NAEFSmean_netcdf2021111112.nc"
+    dstdir = "/Users/rdcrljsg/Desktop/products"
+    results = process(srcfile, dstdir)
+    for result in results:
+        print(result)

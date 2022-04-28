@@ -126,7 +126,7 @@ def start_worker():
                 # set product version is set to None from processor
                 # KeyError for slug id not available allows for the loop to continue
                 product_versioning = lambda p: PRODUCT_FILE_VERSION if p is None else p
-                processed_ = list()
+                processed_ = []
                 for item in processed:
                     try:
                         item_ = {

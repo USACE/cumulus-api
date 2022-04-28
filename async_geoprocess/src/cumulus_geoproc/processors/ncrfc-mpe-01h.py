@@ -69,19 +69,15 @@ def process(src: str, dst: str, acquirable: str = None):
         # Extract Band; Convert to COG
         translate_options = cgdal.gdal_translate_options()
         gdal.Translate(
-            temp_file := os.path.join(dst, filename_),
+            tif := os.path.join(dst, filename_),
             raster.GetDataset(),
             **translate_options,
         )
 
-        # closing the data source
-        ds = None
-        raster = None
-
         outfile_list = [
             {
                 "filetype": acquirable,
-                "file": temp_file,
+                "file": tif,
                 "datetime": dt_valid.isoformat(),
                 "version": None,
             },

@@ -45,7 +45,7 @@ def process(src: str, dst: str, acquirable: str = None):
     outfile_list = []
 
     try:
-        attr = {"GRIB_ELEMENT": "APCP"}
+        attr = {"GRIB_ELEMENT": "TMP"}
 
         filename = os.path.basename(src)
         filename_ = utils.file_extension(filename)
@@ -73,10 +73,6 @@ def process(src: str, dst: str, acquirable: str = None):
             raster.GetDataset(),
             **translate_options,
         )
-
-        # closing the data source
-        ds = None
-        raster = None
 
         outfile_list = [
             {

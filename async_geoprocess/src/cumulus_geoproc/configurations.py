@@ -65,7 +65,7 @@ CUMULUS_MOCK_S3_UPLOAD: bool = eval(
 
 
 # HTTP protocol used in httpx
-HTTP2: bool = eval(os.getenv("HTTP2", default="True").title())
+HTTP2: bool = eval(os.getenv("HTTP2", default="False").title())
 
 # Cumulus products key
 CUMULUS_PRODUCTS_BASEKEY: str = os.getenv(

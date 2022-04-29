@@ -7,6 +7,7 @@ from urllib.parse import urlencode, urlsplit, urlunsplit
 
 import httpx
 from cumulus_geoproc.configurations import APPLICATION_KEY
+from cumulus_geoproc import logger
 
 
 # Cumulus API calls
@@ -17,7 +18,7 @@ class CumulusAPI:
 
     """
 
-    def __init__(self, url: str, http2: bool = True):
+    def __init__(self, url: str, http2: bool = False):
         # set url to env var if not provided
         self.url = url
         self.http2 = http2
@@ -61,11 +62,10 @@ class CumulusAPI:
             client = httpx.AsyncClient(http2=self.http2)
             headers = [(b"content-type", b"application/json")]
             resp = await client.post(url, headers=headers, json=payload)
-            if resp.status_code == 201:
+            if resp.status_code in (200, 201):
                 return resp.json()
         except ConnectionError as ex:
-            # logger.warning(ex)
-            print(ex)
+            logger.warning(ex)
 
     async def get_(self, url):
         try:
@@ -74,8 +74,7 @@ class CumulusAPI:
                 if resp.status_code == 200:
                     return resp
         except ConnectionError as ex:
-            # logger.warning(ex)
-            print(ex)
+            logger.warning(ex)
 
 
 class NotifyCumulus(CumulusAPI):

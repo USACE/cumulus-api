@@ -83,7 +83,7 @@ def start_worker():
             try:
                 average_sec = sum(perf_queue) / len(perf_queue)
                 logger.info(
-                    f"Process Message: Avg {average_sec:0.4f} (sec); Queue Size {len(perf_queue)}"
+                    f"Process Message: Avg {average_sec:0.4f} (sec); Deque Size {len(perf_queue)}"
                 )
             except ZeroDivisionError as ex:
                 logger.warning(f"{type(ex).__name__} - {this} - {ex}")

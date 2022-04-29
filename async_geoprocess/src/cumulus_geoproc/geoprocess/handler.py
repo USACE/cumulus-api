@@ -113,12 +113,13 @@ def upload_notify(notices: list, bucket: str):
             continue
 
     # notify
-    if len(payload) > 1:
+    if len(payload) > 0:
         cumulus_api = capi.CumulusAPI(CUMULUS_API_URL, HTTP2)
         cumulus_api.endpoint = "productfiles"
         cumulus_api.query = {"key": APPLICATION_KEY}
 
         resp = asyncio.run(cumulus_api.post_(cumulus_api.url, payload=payload))
+
         responses.append({"upload": resp})
 
     return responses

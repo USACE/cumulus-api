@@ -75,10 +75,6 @@ def process(src: str, dst: str, acquirable: str = None):
             **translate_options,
         )
 
-        # closing the data source
-        ds = None
-        raster = None
-
         outfile_list = [
             {
                 "filetype": acquirable,

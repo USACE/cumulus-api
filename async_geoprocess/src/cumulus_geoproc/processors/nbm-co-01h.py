@@ -42,15 +42,22 @@ def process(src: str, dst: str, acquirable: str = None):
             "version": str           Reference Time (forecast), ISO format with timezone
         }
     """
-    outfile_list = list()
+    outfile_list = []
 
     try:
         filename = os.path.basename(src)
         filename_ = utils.file_extension(filename)
 
         filetype_elements = {
-            "nbm-co-airtemp": {"GRIB_ELEMENT": "T", "GRIB_SHORT_NAME": "0-SFC"},
-            "nbm-co-qpf": {"GRIB_ELEMENT": "QPF01", "GRIB_SHORT_NAME": "0-SFC"},
+            "nbm-co-airtemp": {
+                "GRIB_ELEMENT": "T",
+                "GRIB_SHORT_NAME": "0-SFC",
+                "GRIB_UNIT": "[C]",
+            },
+            "nbm-co-qpf": {
+                "GRIB_ELEMENT": "QPF01",
+                "GRIB_SHORT_NAME": "0-SFC",
+            },
         }
 
         ds = gdal.Open("/vsis3_streaming/" + src)

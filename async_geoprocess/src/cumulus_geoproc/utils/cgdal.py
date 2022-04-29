@@ -67,7 +67,7 @@ def find_band(data_set: "gdal.Dataset", attr: dict = {}):
             has_attr = [
                 True
                 for key, val in attr.items()
-                if (key in meta and val == raster.GetMetadataItem(key))
+                if (key in meta and val in raster.GetMetadataItem(key))
             ]
             if len(has_attr) == len(attr):
                 logger.debug(f"{has_attr=}")

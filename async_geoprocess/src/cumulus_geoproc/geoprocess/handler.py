@@ -4,6 +4,7 @@
 
 import asyncio
 import os
+from collections import namedtuple
 
 from botocore.exceptions import ClientError
 from cumulus_geoproc import logger
@@ -13,24 +14,29 @@ from cumulus_geoproc.configurations import (
     CUMULUS_PRODUCTS_BASEKEY,
     HTTP2,
 )
+from cumulus_geoproc.geoprocess.snodas import interpolate
 from cumulus_geoproc.processors import geo_proc
 from cumulus_geoproc.utils import boto, capi
-from cumulus_geoproc.geoprocess.snodas import interpolate
 
 this = os.path.basename(__file__)
 
 
-def handle_message(geoprocess, GeoCfg, dst):
+def handle_message(geoprocess: str, GeoCfg: namedtuple, dst: str):
     """Handle the message from SQS determining what to do with it
 
     Geo processing is either 'snodas-interpolate' or 'incoming-file-to-cogs'
 
-    Send payload to database for successful uploaded and processed file(s)
+    Return a list of dictionary objects defining what was created and needs
+    to be uploaded to S3 and notify Cumulus DB.
 
     Parameters
     ----------
-    msg : sqs.Message
-        SQS message from the Queue
+    geoprocess : str
+        Geoprocess name
+    GeoCfg : namedtuple
+        namedtuple with geoprocess config from payload
+    dst : str
+        FQP to temporary directory created/downloaded files go
 
     Returns
     -------

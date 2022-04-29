@@ -50,7 +50,8 @@ def process(src: str, dst: str, acquirable: str = None):
         filename = os.path.basename(src)
         filename_ = utils.file_extension(filename)
 
-        ds = gdal.Open("/vsis3_streaming/" + src)
+        # ds = gdal.Open("/vsis3_streaming/" + src)
+        ds = gdal.Open(src)
 
         if (band_number := cgdal.find_band(ds, attr)) is None:
             raise Exception("Band number not found for attributes: {attr}")

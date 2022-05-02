@@ -91,7 +91,7 @@ func main() {
 	// Acquirables
 	public.GET("/acquirables", handlers.ListAcquirables(db))
 	// Disabled 15-Mar-22 by RAS - not used and resource intensive if used
-	//public.GET("/acquirables/:acquirable_id/files", handlers.ListAcquirablefiles(db))
+	private.GET("/acquirables/:acquirable_id/files", handlers.ListAcquirablefiles(db))
 	private.POST("/acquirablefiles", handlers.CreateAcquirablefiles(db),
 		middleware.IsAdmin,
 	)

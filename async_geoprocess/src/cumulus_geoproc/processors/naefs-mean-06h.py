@@ -10,7 +10,7 @@ import numpy as np
 import pyplugs
 from cumulus_geoproc import logger
 from cumulus_geoproc import utils
-from cumulus_geoproc.utils import cgdal
+from cumulus_geoproc.utils import boto, cgdal
 from osgeo import gdal
 
 
@@ -49,13 +49,11 @@ def process(src: str, dst: str, acquirable: str = None):
         #
         nc_variables = {"QPF": "naefs-mean-qpf-06h", "QTF": "naefs-mean-qtf-06h"}
 
-        # bucket, key = src.split("/", maxsplit=1)
-        # logger.debug(f"s3_download_file({bucket=}, {key=})")
+        bucket, key = src.split("/", maxsplit=1)
+        logger.debug(f"s3_download_file({bucket=}, {key=})")
 
-        # src_ = boto.s3_download_file(bucket=bucket, key=key, dst=dst)
-        # logger.debug(f"S3 Downloaded File: {src_}")
-
-        src_ = src
+        src_ = boto.s3_download_file(bucket=bucket, key=key, dst=dst)
+        logger.debug(f"S3 Downloaded File: {src_}")
 
         since_pattern = re.compile(r"\w+ \w+ (?P<since>\d{4}-\d{2}-\d{2})")
         create_pattern = re.compile(r"\d+-\d+-\d+ \d+:\d+:\d+")
@@ -98,9 +96,10 @@ def process(src: str, dst: str, acquirable: str = None):
 
                     # Extract Band; Convert to COG
                     translate_options = cgdal.gdal_translate_options(noData=nodata)
-                    gdal.Translate(
+                    cgdal.gdal_translate_w_overviews(
                         tif := os.path.join(dst, filename_),
                         raster.GetDataset(),
+                        "average",
                         **translate_options,
                     )
 
@@ -124,8 +123,4 @@ def process(src: str, dst: str, acquirable: str = None):
 
 
 if __name__ == "__main__":
-    srcfile = "/Users/rdcrljsg/projects/cumulus-products/data/cumulus/acquirables/naefs-mean-06h/NAEFSmean_netcdf2021111112.nc"
-    dstdir = "/Users/rdcrljsg/Desktop/products"
-    results = process(srcfile, dstdir)
-    for result in results:
-        print(result)
+    pass

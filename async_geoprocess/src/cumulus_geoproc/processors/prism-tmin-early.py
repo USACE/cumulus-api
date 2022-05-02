@@ -12,7 +12,7 @@ from datetime import datetime, timezone
 
 import pyplugs
 from cumulus_geoproc import logger, utils
-from cumulus_geoproc.utils import boto
+from cumulus_geoproc.utils import boto, cgdal
 from osgeo import gdal
 
 gdal.UseExceptions()
@@ -71,9 +71,13 @@ def process(src: str, dst: str, acquirable: str = None):
         # Extract Band; Convert to COG
         src_bil = utils.file_extension(file_, suffix=".bil")
         ds = gdal.Open(src_bil)
-        gdal.Translate(
+
+        translate_options = cgdal.gdal_translate_options()
+        cgdal.gdal_translate_w_overviews(
             tif := os.path.join(dst, filename_),
             ds,
+            "average",
+            **translate_options,
         )
 
         # closing the data source

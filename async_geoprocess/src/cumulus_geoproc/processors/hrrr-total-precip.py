@@ -62,10 +62,15 @@ def process(src: str, dst: str, acquirable: str = None):
         filename_ = utils.file_extension(filename)
 
         bucket, key = src.split("/", maxsplit=1)
+        logger.debug(f"s3_download_file({bucket=}, {key=})")
+
+        src_ = boto.s3_download_file(bucket=bucket, key=key, dst=dst)
+        logger.debug(f"S3 Downloaded File: {src_}")
+
         hrrridx = idx_file = key + ".idx"
 
         # open the hrrr.grib2 file
-        ds = gdal.Open("/vsis3_streaming/" + src)
+        ds = gdal.Open(src_)
 
         # Successful download means we have the idx we need
         if hrrridx := boto.s3_download_file(bucket, idx_file, dst):
@@ -97,9 +102,10 @@ def process(src: str, dst: str, acquirable: str = None):
 
         # Extract Band; Convert to COG
         translate_options = cgdal.gdal_translate_options(bandList=[band_number])
-        gdal.Translate(
+        cgdal.gdal_translate_w_overviews(
             tif := os.path.join(dst, filename_),
             raster.GetDataset(),
+            "average",
             **translate_options,
         )
 

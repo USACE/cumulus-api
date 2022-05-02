@@ -16,6 +16,8 @@ import pyplugs
 from cumulus_geoproc import logger, utils
 from osgeo import gdal
 
+from cumulus_geoproc.utils import cgdal
+
 this = os.path.basename(__file__)
 
 
@@ -56,13 +58,13 @@ def process(src: str, dst: str, acquirable: str = None):
                     # decompress the extracted memeber
                     snodas_assim = utils.decompress(os.path.join(dst, member.name), dst)
 
-                    ds = gdal.Open(snodas_assim, gdal.GA_ReadOnly)
+                    ds = gdal.Open(snodas_assim)
 
                     valid_time = datetime.fromisoformat(
                         ds.GetMetadataItem("Data#stop_date")
                     )
 
-                    gdal.Translate(
+                    cgdal.gdal_translate_w_overviews(
                         tif := utils.file_extension(snodas_assim),
                         ds,
                     )

@@ -48,7 +48,13 @@ def process(src: str, dst: str, acquirable: str = None):
         filename = os.path.basename(src)
         filename_ = utils.file_extension(filename)
 
-        ds = gdal.Open("/vsis3_streaming/" + src)
+        bucket, key = src.split("/", maxsplit=1)
+        logger.debug(f"s3_download_file({bucket=}, {key=})")
+
+        src_ = boto.s3_download_file(bucket=bucket, key=key, dst=dst)
+        logger.debug(f"S3 Downloaded File: {src_}")
+
+        ds = gdal.Open(src_)
 
         if (band_number := cgdal.find_band(ds, attr)) is None:
             raise Exception("Band number not found for attributes: {attr}")
@@ -64,9 +70,10 @@ def process(src: str, dst: str, acquirable: str = None):
 
         # Extract Band; Convert to COG
         translate_options = cgdal.gdal_translate_options(bandList=[band_number])
-        gdal.Translate(
+        cgdal.gdal_translate_w_overviews(
             temp_file := os.path.join(dst, filename_),
             raster.GetDataset(),
+            "average",
             **translate_options,
         )
 

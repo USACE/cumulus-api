@@ -6,8 +6,9 @@ import re
 from datetime import datetime, timedelta, timezone
 
 import pyplugs
+from cumulus_geoproc import logger
+from cumulus_geoproc.utils import boto, cgdal
 from netCDF4 import Dataset
-from cumulus_geoproc.utils import cgdal
 from osgeo import gdal, osr
 
 gdal.UseExceptions()
@@ -44,7 +45,13 @@ def process(src: str, dst: str, acquirable: str = None):
 
     ncds = None
     try:
-        ncds = Dataset(src, "r")
+        bucket, key = src.split("/", maxsplit=1)
+        logger.debug(f"s3_download_file({bucket=}, {key=})")
+
+        src_ = boto.s3_download_file(bucket=bucket, key=key, dst=dst)
+        logger.debug(f"S3 Downloaded File: {src_}")
+
+        ncds = Dataset(src_, "r")
         lon = ncds.variables["lon"][:]
         lat = ncds.variables["lat"][:]
         var = ncds.variables["var"][:]
@@ -91,9 +98,10 @@ def process(src: str, dst: str, acquirable: str = None):
                 outputSRS="+proj=lcc +lat_1=45 +lat_2=45 +lon_0=-120 +lat_0=45.80369 +x_0=0 +y_0=0 +a=6370000 +b=6370000 +units=m",
                 creationOptions=["NUM_THREADS=ALL_CPUS"],
             )
-            gdal.Translate(
+            cgdal.gdal_translate_w_overviews(
                 tif := os.path.join(dst, src.replace(".nc", f"-{nctime_str}.tif")),
                 tmptif,
+                "average",
                 **translate_options,
             )
 

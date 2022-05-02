@@ -8,7 +8,7 @@ from datetime import datetime, timedelta, timezone
 
 import pyplugs
 from cumulus_geoproc import logger, utils
-from cumulus_geoproc.utils import cgdal
+from cumulus_geoproc.utils import boto, cgdal
 from osgeo import gdal
 
 gdal.UseExceptions()
@@ -49,8 +49,16 @@ def process(src: str, dst: str, acquirable: str = None):
 
     try:
         filename = os.path.basename(src)
+        filename_ = utils.file_extension(filename)
+
+        bucket, key = src.split("/", maxsplit=1)
+        logger.debug(f"s3_download_file({bucket=}, {key=})")
+
+        src_ = boto.s3_download_file(bucket=bucket, key=key, dst=dst)
+        logger.debug(f"S3 Downloaded File: {src_}")
+
         for nc_variable, nc_slug in nc_variables.items():
-            ds = gdal.Open(f"NETCDF:{src}:{nc_variable}")
+            ds = gdal.Open(f"NETCDF:{src_}:{nc_variable}")
 
             # set the start time
             time_pattern = re.compile(r"\w+ \w+ (\d{4}-\d{2}-\d{2})")
@@ -71,9 +79,10 @@ def process(src: str, dst: str, acquirable: str = None):
                 )
 
                 translate_options = cgdal.gdal_translate_options()
-                gdal.Translate(
+                cgdal.gdal_translate_w_overviews(
                     tif := os.path.join(dst, filename_),
                     raster.GetDataset(),
+                    "average",
                     **translate_options,
                 )
 

@@ -74,7 +74,7 @@ async def snodas_interp_task(
     """
     try:
         dst, filename = os.path.split(filepath)
-        ds = gdal.Open(filepath, gdal.GA_ReadOnly)
+        ds = gdal.Open(filepath)
         meta_data = ds.GetRasterBand(1).GetMetadata()
         ds = None
 

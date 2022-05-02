@@ -102,16 +102,17 @@ def process(src: str, dst: str, acquirable: str = None):
                             meta_ntuple.minimum_y_axis_coordinate,
                         ],
                     )
-                    ds = gdal.Open(datafile_pathname, gdal.GA_ReadOnly)
-                    gdal.Translate(
+                    ds = gdal.Open(datafile_pathname)
+                    cgdal.gdal_translate_w_overviews(
                         tif := file_extension(datafile_pathname, suffix=".tif"),
                         ds,
+                        "average",
                         **translate_options,
                     )
                     ds = None
 
                     # set metadata to band 1
-                    tif_ds = gdal.Open(datafile_pathname, gdal.GA_ReadOnly)
+                    tif_ds = gdal.Open(datafile_pathname)
                     metadata_options = [
                         f"{field_.upper()}={str(getattr(meta_ntuple, field_))}"
                         for field_ in meta_ntuple._fields

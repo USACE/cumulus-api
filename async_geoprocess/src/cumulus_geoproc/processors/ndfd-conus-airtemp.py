@@ -9,7 +9,7 @@ from string import Template
 
 import pyplugs
 from cumulus_geoproc import logger, utils
-from cumulus_geoproc.utils import cgdal
+from cumulus_geoproc.utils import boto, cgdal
 from osgeo import gdal
 
 gdal.UseExceptions()
@@ -56,7 +56,13 @@ def process(src: str, dst: str, acquirable: str = None):
             21600: "ndfd-conus-airtemp-06h",
         }
 
-        ds = gdal.Open("/vsis3_streaming/" + src)
+        bucket, key = src.split("/", maxsplit=1)
+        logger.debug(f"s3_download_file({bucket=}, {key=})")
+
+        src_ = boto.s3_download_file(bucket=bucket, key=key, dst=dst)
+        logger.debug(f"S3 Downloaded File: {src_}")
+
+        ds = gdal.Open(src_)
 
         count = ds.RasterCount
         time_pattern = re.compile(r"\d+")
@@ -95,9 +101,10 @@ def process(src: str, dst: str, acquirable: str = None):
                     )
                     logger.debug(f"New Filename: {_filename}")
 
-                    gdal.Translate(
+                    cgdal.gdal_translate_w_overviews(
                         tif := os.path.join(dst, _filename),
                         raster.GetDataset(),
+                        "average",
                         **translate_options,
                     )
 

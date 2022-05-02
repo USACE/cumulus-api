@@ -10,7 +10,7 @@ from datetime import datetime, timezone
 
 import pyplugs
 from cumulus_geoproc import logger, utils
-from cumulus_geoproc.utils import cgdal
+from cumulus_geoproc.utils import boto, cgdal
 from osgeo import gdal
 
 gdal.UseExceptions()
@@ -60,7 +60,13 @@ def process(src: str, dst: str, acquirable: str = None):
             },
         }
 
-        ds = gdal.Open("/vsis3_streaming/" + src)
+        bucket, key = src.split("/", maxsplit=1)
+        logger.debug(f"s3_download_file({bucket=}, {key=})")
+
+        src_ = boto.s3_download_file(bucket=bucket, key=key, dst=dst)
+        logger.debug(f"S3 Downloaded File: {src_}")
+
+        ds = gdal.Open(src_)
 
         for filetype, attr in filetype_elements.items():
             try:
@@ -82,9 +88,10 @@ def process(src: str, dst: str, acquirable: str = None):
 
                 # Extract Band; Convert to COG
                 translate_options = cgdal.gdal_translate_options(bandList=[band_number])
-                gdal.Translate(
+                cgdal.gdal_translate_w_overviews(
                     temp_file := os.path.join(dst, filename_),
                     raster.GetDataset(),
+                    "average",
                     **translate_options,
                 )
 

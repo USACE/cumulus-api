@@ -39,6 +39,7 @@ def gdal_translate_options(**kwargs):
     # COG driver generates overviews while GTiff uses seperate step to build them
     base = {
         "format": "COG",
+        "creationOptions": ["OVERVIEWS=IGNORE_EXISTING"],
     }
     return {**base, **kwargs}
 

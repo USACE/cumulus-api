@@ -160,7 +160,11 @@ async def snodas(cfg: namedtuple, dst: str):
         List of dictionary objects with attributes needed to upload to S3
     """
     tasks = []
-    dt = datetime.strptime(cfg.datetime, "%Y%m%d").replace(tzinfo=timezone.utc)
+    dt = (
+        datetime.strptime(cfg.datetime, "%Y%m%d")
+        .replace(hour=6)
+        .replace(tzinfo=timezone.utc)
+    )
     nodata_value = no_data_value(dt)
     for code in ("1034", "1036", "1038", "3333", "2072"):
         filename = Template.substitute(

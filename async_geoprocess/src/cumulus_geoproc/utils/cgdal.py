@@ -88,7 +88,7 @@ def gdal_translate_w_overviews(
     try:
         gdal.Translate(dst, src, **creation_options)
         if resampling:
-            _ds = gdal.Open(dst)
+            _ds = gdal.Open(dst, gdal.GA_Update)
             _ds.BuildOverviews(resampling=resampling, overviewlist=overviewlist)
 
     except RuntimeError as ex:

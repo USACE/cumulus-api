@@ -87,7 +87,7 @@ def process(src: str, dst: str, acquirable: str = None):
                 )
 
                 # Extract Band; Convert to COG
-                translate_options = cgdal.gdal_translate_options(bandList=[band_number])
+                translate_options = cgdal.gdal_translate_options()
                 cgdal.gdal_translate_w_overviews(
                     temp_file := os.path.join(dst, filename_),
                     raster.GetDataset(),

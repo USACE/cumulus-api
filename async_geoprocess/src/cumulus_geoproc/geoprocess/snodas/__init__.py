@@ -1,9 +1,12 @@
 """Geoprocessing SNODAS state variables
+
+Reference:
+    https://nsidc.org/sites/nsidc.org/files/G02158-V001-UserGuide_2.pdf
 """
 
 
-from datetime import datetime, timezone
 import os
+from datetime import datetime, timezone
 from string import Template
 
 from cumulus_geoproc import logger
@@ -125,7 +128,7 @@ def snow_melt_mm(translated_tif: dict):
             "--outfile",
             tif := snowmelt_mm,
             "--calc",
-            "A.astype(numpy.float64) / 100_000 * 1000",
+            "A.astype(numpy.float32) / 100_000 * 1000",
             "--quiet",
         )
     except RuntimeError as ex:
@@ -184,7 +187,7 @@ def cold_content(translated_tif):
             "--outfile",
             tif := cold_content_filename,
             "--calc",
-            "A.astype(numpy.float64) * 2114 * (B.astype(numpy.float64) - 273) / 333000",
+            "A.astype(numpy.float32) * 2114 * (B.astype(numpy.float32) - 273) / 333000",
             "--quiet",
         )
     except RuntimeError as ex:

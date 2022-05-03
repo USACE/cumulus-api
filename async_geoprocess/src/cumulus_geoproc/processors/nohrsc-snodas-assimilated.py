@@ -14,9 +14,8 @@ from datetime import datetime
 
 import pyplugs
 from cumulus_geoproc import logger, utils
-from osgeo import gdal
-
 from cumulus_geoproc.utils import cgdal
+from osgeo import gdal
 
 this = os.path.basename(__file__)
 

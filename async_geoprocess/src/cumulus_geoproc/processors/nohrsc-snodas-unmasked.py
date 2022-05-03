@@ -9,7 +9,6 @@ from cumulus_geoproc import logger, utils
 from cumulus_geoproc.geoprocess import snodas
 from cumulus_geoproc.geoprocess.snodas import metaparse
 from cumulus_geoproc.utils import boto, cgdal, file_extension
-
 from osgeo import gdal
 
 gdal.UseExceptions()
@@ -130,10 +129,19 @@ def process(src: str, dst: str, acquirable: str = None):
                     logger.debug(f"Update Tif: {translate_to_tif[snodas_product_code]}")
 
         # cold content = swe * 2114 * snowtemp (degc) / 333000
-        translate_to_tif.update(snodas.cold_content(translate_to_tif))
+        # id 2072
+        if result := snodas.cold_content(translate_to_tif):
+            translate_to_tif.update(result)
+            logger.debug(f"Cold content product computed and dictionary updated")
 
         # convert snow melt to mm
-        translate_to_tif.update(snodas.snow_melt_mm(translate_to_tif))
+        if result := snodas.snow_melt_mm(translate_to_tif):
+            translate_to_tif.update(result)
+            # remove snowmelt with unit meters and scale factor 100_000
+            _ = translate_to_tif.pop("1044", None)
+            logger.debug(
+                f"Snow melt product conversion and original popped from dictionary"
+            )
 
         outfile_list.extend(list(translate_to_tif.values()))
 

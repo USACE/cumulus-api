@@ -1,12 +1,12 @@
 # Geoprocess Regression Tests
 
 ## Setup
-- Set docker-compose arguments `GIT_REPO_URL` and `GIT_BRANCH` to your new proposed branch.
+- Set docker-compose.yml arguments `GIT_REPO_URL` and `GIT_BRANCH` to your new proposed branch.
 
 ## How to use
 1) Start cumulus-api (using a production - stable/develop branch) including minio and airflow
 2) Turn on DAG(s) for the product(s) you wish to test. _this will write to minio and create db records_
-3) When the geoprocessor is done with pending work, run the `async_geoprocess_regression` by using `docker compose up` while in the async_geoprocess_regression dir.
+3) When the geoprocessor is done with pending work, run the `async_geoprocess_regression` by using `docker compose up --build` while in the async_geoprocess_regression dir.
 
 ## Concepts
 - `Golden` refers to a product that is generated from known good code.

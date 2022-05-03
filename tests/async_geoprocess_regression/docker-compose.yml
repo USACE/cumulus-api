@@ -30,6 +30,9 @@ services:
       - HTTP2=False
       - GDAL_DISABLE_READDIR_ON_OPEN=YES
       - LOGGER_LEVEL=INFO
+      - GIT_REPO_URL=https://github.com/USACE/cumulus-api.git
+      - GIT_BRANCH=refactor/complete-overhaul-snodas
+
     volumes:
       # only mounted for live editing of tester script
       - ./tester.py:/app/async_geoprocess/tester.py

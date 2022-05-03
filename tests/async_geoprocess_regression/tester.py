@@ -76,6 +76,10 @@ print(f"Getting db records in time window {FILES_START_DATE} to {FILES_START_END
 acquirablefiles = get_acquirablefiles(get_acquirables())
 products_dir = "/tmp/cumulus/products"
 
+# for interactive/manual runs, remove any files before another run
+if os.path.isdir(products_dir):
+    shutil.rmtree(products_dir)
+
 for af in acquirablefiles:
     acquirable_slug = af["file"].split("/")[-2]
     payload = {

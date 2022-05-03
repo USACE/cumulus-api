@@ -54,7 +54,7 @@ def get_productfiles(products):
     for p in products:
         # print(p["id"], " - ", p["slug"])
         r = requests.get(
-            f"http://api/products/{p['id']}/files?after=20220401&before=20220530&key=appkey"
+            f"http://api/products/{p['id']}/files?after={FILES_START_DATE}&before={FILES_START_END}&key=appkey"
         )
         # print(len(r.json()))
         if r.status_code == 200 and len(r.json()) > 0:
@@ -105,7 +105,7 @@ for af in acquirablefiles:
             if not os.path.isdir(dst_path):
                 os.makedirs(name=dst_path, exist_ok=False)
 
-            # handler.handle_message(geoprocess, GeoCfg, dst_path)
+            handler.handle_message(geoprocess, GeoCfg, dst_path)
         else:
             print(f"Unable to find acquirablefile_id: {af['id']}")
     except Exception as ex:
@@ -145,24 +145,24 @@ for subdir, dirs, files in os.walk(products_dir):
 
         print(f"Checking {new_file}")
 
-        # diff = gdalcompare.find_diff(
-        #     golden_file=golden_file, new_file=new_file, check_sds=True
-        # )
-        # total_diffs = total_diffs + diff
+        diff = gdalcompare.find_diff(
+            golden_file=golden_file, new_file=new_file, check_sds=True
+        )
+        total_diffs = total_diffs + diff
 
-        # # sys.stdout = sys.__stdout__
-        # # sys.stderr = sys.__stderr__
+        # sys.stdout = sys.__stdout__
+        # sys.stderr = sys.__stderr__
 
-        # print("Validating new COG...")
-        # cog_validation_check = validate_cloud_optimized_geotiff.validate(golden_file)
-        # if len(cog_validation_check[0]) > 0:
-        #     print(f"COG has ERRORS -> {cog_validation_check[0]}")
-        #     for e in cog_validation_check[0]:
-        #         cog_validation_errors = cog_validation_errors + 1
-        # else:
-        #     print("No errors")
+        print("Validating new COG...")
+        cog_validation_check = validate_cloud_optimized_geotiff.validate(golden_file)
+        if len(cog_validation_check[0]) > 0:
+            print(f"COG has ERRORS -> {cog_validation_check[0]}")
+            for e in cog_validation_check[0]:
+                cog_validation_errors = cog_validation_errors + 1
+        else:
+            print("No errors")
 
-        # files_checked.append(file)
+        files_checked.append(file)
 
         print("-" * 64)
 

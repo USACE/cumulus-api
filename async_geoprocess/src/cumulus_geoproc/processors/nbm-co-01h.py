@@ -89,7 +89,7 @@ def process(src: str, dst: str, acquirable: str = None):
                 # Extract Band; Convert to COG
                 translate_options = cgdal.gdal_translate_options()
                 cgdal.gdal_translate_w_overviews(
-                    temp_file := os.path.join(dst, filename_),
+                    tif := os.path.join(dst, filename_),
                     raster.GetDataset(),
                     "average",
                     **translate_options,
@@ -98,7 +98,7 @@ def process(src: str, dst: str, acquirable: str = None):
                 outfile_list.append(
                     {
                         "filetype": filetype,
-                        "file": temp_file,
+                        "file": tif,
                         "datetime": dt_valid.isoformat(),
                         "version": None,
                     },

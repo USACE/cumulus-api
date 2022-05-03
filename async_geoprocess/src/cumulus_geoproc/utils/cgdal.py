@@ -54,6 +54,8 @@ def gdal_translate_w_overviews(
 ):
     """Build overviews for the gdal dataset with the resampling algorithm
 
+    If no sampling algorithm is given, only gdal.Translate() executed
+
     allowable resampling algorithms:
         nearest,average,rms,bilinear,gauss,cubic,cubicspline,lanczos,average_magphase,mode
 
@@ -80,22 +82,19 @@ def gdal_translate_w_overviews(
         "average_magphase",
         "mode",
     )
-    if resampling not in resampling_algo:
+    if resampling is not None and resampling not in resampling_algo:
         raise Exception(f"Resampling algorithm {resampling} not available")
 
-    if isinstance(src, gdal.Dataset):
-        src.BuildOverviews(resampling=resampling, overviewlist=overviewlist)
+    try:
         gdal.Translate(dst, src, **creation_options)
-    else:
-        try:
-            _ds = gdal.Open(src)
-            gdal_translate_w_overviews(
-                dst, _ds, resampling, overviewlist, **creation_options
-            )
-        except RuntimeError as ex:
-            logger.error(f"{type(ex).__name__}: {this}: {ex}")
-        finally:
-            _ds = None
+        if resampling:
+            _ds = gdal.Open(dst)
+            _ds.BuildOverviews(resampling=resampling, overviewlist=overviewlist)
+
+    except RuntimeError as ex:
+        logger.error(f"{type(ex).__name__}: {this}: {ex}")
+    finally:
+        _ds = None
 
 
 # get a band based on provided attributes in the metadata

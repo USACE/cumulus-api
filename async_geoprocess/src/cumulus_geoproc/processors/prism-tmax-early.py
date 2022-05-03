@@ -68,8 +68,7 @@ def process(src: str, dst: str, acquirable: str = None):
             hour=12, minute=0, second=0, tzinfo=timezone.utc
         )
 
-        # Extract Band; Convert to COG
-        src_bil = utils.file_extension(src_, suffix=".bil")
+        src_bil = os.path.join(file_, utils.file_extension(filename_, suffix=".bil"))
         ds = gdal.Open(src_bil)
 
         translate_options = cgdal.gdal_translate_options()

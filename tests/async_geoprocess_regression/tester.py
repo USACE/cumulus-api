@@ -147,6 +147,12 @@ for subdir, dirs, files in os.walk(products_dir):
         # # sys.stdout = open(os.devnull, "w")
         # # sys.stderr = open(os.devnull, "w")
 
+        if not os.path.isfile(golden_file):
+            print(
+                f"Golden file {golden_file} not found.  The file may have been renamed in new processor."
+            )
+            continue
+
         print(f"Checking {new_file}")
 
         diff = gdalcompare.find_diff(

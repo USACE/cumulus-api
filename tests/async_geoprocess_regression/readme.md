@@ -22,3 +22,4 @@ The tester.py script will:
 
 ## Known Issues
 - SNODAS may not work correctly
+- Renaming the output tif between branches may cause errors

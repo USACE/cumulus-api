@@ -29,4 +29,4 @@ COPY setup.sh .
 # USER appuser
 
 # CMD ["python3", "tester.py"]
-CMD ./setup.sh && python tester.py
+CMD ./setup.sh && python tester.py 2>&1 | tee /output/results.log

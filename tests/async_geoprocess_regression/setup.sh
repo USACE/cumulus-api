@@ -8,4 +8,4 @@ cp -r /cumulus-api/async_geoprocess/* /app/async_geoprocess
 
 rm -r /cumulus-api
 
-python3 -m pip install --upgrade pip wheel setuptools && python3 -m pip install /app/async_geoprocess/
+python3 -m pip install --upgrade pip wheel setuptools --user && python3 -m pip install /app/async_geoprocess/ --user

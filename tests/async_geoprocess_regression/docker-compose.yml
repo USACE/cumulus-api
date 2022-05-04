@@ -36,6 +36,7 @@ services:
     volumes:
       # only mounted for live editing of tester script
       - ./tester.py:/app/async_geoprocess/tester.py
+      - ./output:/output
       
     # Uncomment to keep container running
     # command: tail -F anything

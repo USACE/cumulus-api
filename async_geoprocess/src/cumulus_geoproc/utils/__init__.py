@@ -31,7 +31,7 @@ def file_extension(file: str, preffix: str = "", suffix=".tif", maxsplit=-1):
     str
         filename or FQPN with new extension, preffix, or both
     """
-    file += preffix
+    file = preffix + file
 
     exts = (
         ".gz",
@@ -103,8 +103,8 @@ def decompress(src: str, dst: str = "/tmp", recursive: bool = False):
     try:
         with gzip.open(src, "rb") as fh:
             content = fh.read()
-            fname = file_extension(filename, suffix="", maxsplit=1)
 
+            fname = file_extension(filename, suffix="", maxsplit=1)
             src = os.path.join(dst, fname)
 
             with open(src, "wb") as fp:

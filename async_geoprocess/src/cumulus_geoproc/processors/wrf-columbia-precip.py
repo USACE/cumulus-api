@@ -92,18 +92,26 @@ def process(src: str, dst: str, acquirable: str = None):
             raster.FlushCache()
             raster = None
 
-            # Translate to COG
-            translate_options = cgdal.gdal_translate_options(
-                outputBounds=[-337997.806, 812645.371, 854002.194, -535354.629],
-                outputSRS="+proj=lcc +lat_1=45 +lat_2=45 +lon_0=-120 +lat_0=45.80369 +x_0=0 +y_0=0 +a=6370000 +b=6370000 +units=m",
-                creationOptions=["NUM_THREADS=ALL_CPUS"],
-            )
             cgdal.gdal_translate_w_overviews(
                 tif := os.path.join(dst, src.replace(".nc", f"-{nctime_str}.tif")),
                 tmptif,
-                "average",
-                **translate_options,
+                translate_options={
+                    "format": "COG",
+                    "bandList": [1],
+                    "outputBounds": [-337997.806, 812645.371, 854002.194, -535354.629],
+                    "outputSRS": "+proj=lcc +lat_1=45 +lat_2=45 +lon_0=-120 +lat_0=45.80369 +x_0=0 +y_0=0 +a=6370000 +b=6370000 +units=m",
+                    "creationOptions": [
+                        "RESAMPLING=AVERAGE",
+                        "OVERVIEWS=IGNORE_EXISTING",
+                        "OVERVIEW_RESAMPLING=AVERAGE",
+                        "NUM_THREADS=ALL_CPUS",
+                    ],
+                },
             )
+
+            # validate COG
+            if (validate := cgdal.validate_cog("-q", tif)) == 0:
+                logger.info(f"Validate COG = {validate}\t{tif} is a COG")
 
             try:
                 os.remove(tmptif)

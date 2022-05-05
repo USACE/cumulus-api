@@ -57,7 +57,7 @@ def s3_upload_file(file_name: str, bucket: str, key: str = None):
     return True
 
 
-def s3_download_file(bucket: str, key: str, prefix: str = None, dst: str = "/tmp"):
+def s3_download_file(bucket: str, key: str, dst: str = "/tmp", prefix: str = None):
     """Wrapper supporting S3 downloading a file
 
     Parameters
@@ -67,7 +67,7 @@ def s3_download_file(bucket: str, key: str, prefix: str = None, dst: str = "/tmp
     key : str
         S3 key object
     prefix : str, optional
-        Add prefix to filename, by default None
+        Add prefix to filename, by default ""
     dst : str, optional
         FQP to temporary directory, by default "/tmp"
 
@@ -101,7 +101,6 @@ def s3_download_file(bucket: str, key: str, prefix: str = None, dst: str = "/tmp
             Key=key,
             Filename=filename,
         )
-        logger.debug(f"{bucket=}\t{key=}\t{filename=}")
     except ClientError as ex:
         logger.error(ex)
         return False

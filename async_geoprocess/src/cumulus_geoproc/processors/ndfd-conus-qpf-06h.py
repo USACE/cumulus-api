@@ -58,9 +58,9 @@ def process(src: str, dst: str, acquirable: str = None):
 
         count = ds.RasterCount
         time_pattern = re.compile(r"\d+")
-        for b in range(1, count + 1):
+        for band_number in range(1, count + 1):
             try:
-                raster = ds.GetRasterBand(b)
+                raster = ds.GetRasterBand(band_number)
 
                 valid_time_match = time_pattern.match(
                     raster.GetMetadataItem("GRIB_VALID_TIME")
@@ -72,20 +72,27 @@ def process(src: str, dst: str, acquirable: str = None):
                 )
                 rtime = datetime.fromtimestamp(int(ref_time_match[0]), timezone.utc)
 
-                # Extract Band; Convert to COG
-                translate_options = cgdal.gdal_translate_options(bandList=[b])
-
                 _filename = filename_temp.substitute(
                     filename=filename_, ymd=vtime.strftime("%Y%m%d%H%M")
                 )
                 logger.debug(f"New Filename: {_filename}")
 
-                cgdal.gdal_translate_w_overviews(
+                gdal.Translate(
                     tif := os.path.join(dst, _filename),
-                    raster.GetDataset(),
-                    "average",
-                    **translate_options,
+                    ds,
+                    format="COG",
+                    bandList=[band_number],
+                    creationOptions=[
+                        "RESAMPLING=AVERAGE",
+                        "OVERVIEWS=IGNORE_EXISTING",
+                        "OVERVIEW_RESAMPLING=AVERAGE",
+                        "NUM_THREADS=ALL_CPUS",
+                    ],
                 )
+
+                # validate COG
+                if (validate := cgdal.validate_cog("-q", tif)) == 0:
+                    logger.info(f"Validate COG = {validate}\t{tif} is a COG")
 
                 outfile_list.append(
                     {

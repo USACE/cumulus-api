@@ -74,9 +74,6 @@ async def snodas_interp_task(
     """
     try:
         dst, filename = os.path.split(filepath)
-        ds = gdal.Open(filepath)
-        meta_data = ds.GetRasterBand(1).GetMetadata()
-        ds = None
 
         if lakefix:
             # get the no data masking raster
@@ -103,36 +100,35 @@ async def snodas_interp_task(
             )
             filepath = lakefix_tif
 
-        # the following creation options (-co) are defaulted if driver is COG
         # -of GTiff required here because COG has no Create(); therefore GTiff
         # driver used with creationOptions to be COG
-        dst_tif = os.path.join(
-            dst, file_extension(filename, suffix="-interpolated.tif")
+        fill_tif = os.path.join(
+            dst, file_extension(filename, suffix="-interpolated.tiff")
         )
         cgdal.gdal_fillnodataval(
             "-q",
             "-md",
             str(max_dist),
             filepath,
-            "-of",
-            "GTiff",
-            dst_tif,
-            "-co",
-            "COMPRESS=LZW",
-            "-co",
-            "COPY_SRC_OVERVIEWS=YES",
-            "-co",
-            "TILE=YES",
-            "-co",
-            "NUM_THREADS=ALL_CPUS",
+            fill_tif,
         )
 
-        ds = gdal.Open(dst_tif)
-        ds.GetRasterBand(1).SetMetadata(meta_data)
-        ds = None
+        # convert to COG
+        gdal.Translate(
+            tif := os.path.join(
+                dst, file_extension(filename, suffix="-interpolated.tif")
+            ),
+            fill_tif,
+            format="COG",
+            creationOptions=[
+                "RESAMPLING=AVERAGE",
+                "OVERVIEWS=IGNORE_EXISTING",
+                "OVERVIEW_RESAMPLING=AVERAGE",
+            ],
+        )
 
         return {
-            "file": dst_tif,
+            "file": tif,
             "filetype": product,
             "datetime": dt.isoformat(),
             "version": None,

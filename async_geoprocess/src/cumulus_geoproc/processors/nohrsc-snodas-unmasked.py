@@ -89,35 +89,45 @@ def process(src: str, dst: str, acquirable: str = None):
                 # translate to tif
                 if hdr_file is not None:
                     # set translate options
-                    translate_options = cgdal.gdal_translate_options(
-                        format="COG",
-                        bandList=[1],
-                        outputSRS=f"+proj=longlat +ellps={meta_ntuple.horizontal_datum} +datum={meta_ntuple.horizontal_datum} +no_defs",
-                        noData=int(meta_ntuple.no_data_value),
-                        outputBounds=[
-                            meta_ntuple.minimum_x_axis_coordinate,
-                            meta_ntuple.maximum_y_axis_coordinate,
-                            meta_ntuple.maximum_x_axis_coordinate,
-                            meta_ntuple.minimum_y_axis_coordinate,
-                        ],
-                    )
                     ds = gdal.Open(datafile_pathname)
+
                     cgdal.gdal_translate_w_overviews(
                         tif := file_extension(datafile_pathname, suffix=".tif"),
                         ds,
-                        "average",
-                        **translate_options,
+                        translate_options={
+                            "format": "COG",
+                            "bandList": [1],
+                            "outputSRS": f"+proj=longlat +ellps={meta_ntuple.horizontal_datum} +datum={meta_ntuple.horizontal_datum} +no_defs",
+                            "noData": int(meta_ntuple.no_data_value),
+                            "outputBounds": [
+                                meta_ntuple.minimum_x_axis_coordinate,
+                                meta_ntuple.maximum_y_axis_coordinate,
+                                meta_ntuple.maximum_x_axis_coordinate,
+                                meta_ntuple.minimum_y_axis_coordinate,
+                            ],
+                            "creationOptions": [
+                                "RESAMPLING=AVERAGE",
+                                "OVERVIEWS=IGNORE_EXISTING",
+                                "OVERVIEW_RESAMPLING=AVERAGE",
+                                "NUM_THREADS=ALL_CPUS",
+                            ],
+                        },
                     )
+
+                    # validate COG
+                    if (validate := cgdal.validate_cog("-q", tif)) == 0:
+                        logger.info(f"Validate COG = {validate}\t{tif} is a COG")
+
                     ds = None
 
                     # set metadata to band 1
-                    tif_ds = gdal.Open(datafile_pathname)
-                    metadata_options = [
-                        f"{field_.upper()}={str(getattr(meta_ntuple, field_))}"
-                        for field_ in meta_ntuple._fields
-                    ]
-                    tif_ds.GetRasterBand(1).SetMetadata(metadata_options)
-                    tif_ds = None
+                    # tif_ds = gdal.Open(tif)
+                    # metadata_options = [
+                    #     f"{field_.upper()}={str(getattr(meta_ntuple, field_))}"
+                    #     for field_ in meta_ntuple._fields
+                    # ]
+                    # tif_ds.GetRasterBand(1).SetMetadata(metadata_options)
+                    # tif_ds = None
 
                     # add tif dictionary to compute cold content
                     translate_to_tif[snodas_product_code] = {

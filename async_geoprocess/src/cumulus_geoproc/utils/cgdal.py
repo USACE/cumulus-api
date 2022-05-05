@@ -12,9 +12,10 @@
 import os
 from typing import List, Union
 
-from cumulus_geoproc import logger
+from cumulus_geoproc import logger, utils
 from osgeo import gdal
 from osgeo_utils import gdal_calc, gdal_fillnodata
+from osgeo_utils.samples import validate_cloud_optimized_geotiff
 
 gdal.UseExceptions()
 
@@ -46,13 +47,12 @@ def gdal_translate_options(**kwargs):
 
 def gdal_translate_w_overviews(
     dst: str,
-    src: Union[gdal.Dataset, str],
+    src: gdal.Dataset,
+    translate_options: dict,
     resampling: str = None,
     overviewlist: List[int] = [2, 4, 8, 16, 32, 64, 128, 256, 512, 1024, 2048],
-    /,
-    **creation_options,
 ):
-    """Build overviews for the gdal dataset with the resampling algorithm
+    """Build overviews for the gdal dataset with the resampling algorithm provided
 
     If no sampling algorithm is given, only gdal.Translate() executed
 
@@ -61,15 +61,18 @@ def gdal_translate_w_overviews(
 
     Parameters
     ----------
-    src : gdal.Dataset | str
-        Dataset object or a filename
     dst : str
         Output dataset name
+    src : gdal.Dataset
+        Dataset object or a filename
+    translate_options : dict
+        Dictionary of creation options
+    resampling : str, optional
+        resampling algorithm, by default None
     overviewlist : List[int], optional
         list of integers, by default [2, 4, 8, 16, 32, 64, 128, 256, 512, 1024, 2048]
-    resampling : str, optional
-        resampling algorithm, by default nearest
     """
+
     resampling_algo = (
         "nearest",
         "average",
@@ -83,18 +86,38 @@ def gdal_translate_w_overviews(
         "mode",
     )
     if resampling is not None and resampling not in resampling_algo:
-        raise Exception(f"Resampling algorithm {resampling} not available")
-
+        logger.debug(f"Resampling algorithm {resampling} not available")
+        return False
     try:
-        gdal.Translate(dst, src, **creation_options)
         if resampling:
-            _ds = gdal.Open(dst, gdal.GA_Update)
+            gdal.Translate(
+                f"/vsimem/{dst}",
+                src,
+                format="GTiff",
+                creationOptions=[
+                    "COMPRESS=LZW",
+                    "TILED=YES",
+                ],
+            )
+            _ds = gdal.Open(f"/vsimem/{dst}", gdal.GA_Update)
             _ds.BuildOverviews(resampling=resampling, overviewlist=overviewlist)
-
+            gdal.Translate(
+                dst,
+                _ds,
+                **translate_options,
+            )
+        else:
+            gdal.Translate(
+                dst,
+                src,
+                **translate_options,
+            )
+        return True
     except RuntimeError as ex:
         logger.error(f"{type(ex).__name__}: {this}: {ex}")
     finally:
         _ds = None
+    return False
 
 
 # get a band based on provided attributes in the metadata
@@ -158,12 +181,21 @@ def gdal_fillnodataval(*args):
 
     https://gdal.org/programs/gdal_fillnodata.html
     """
-    argv = [gdal_calc.__file__]
+    argv = [gdal_fillnodata.__file__]
     argv.extend(list(args))
 
     logger.debug(f"Argvs: {argv=}")
 
     gdal_fillnodata.main(argv)
+
+
+def validate_cog(*args):
+    argv = [validate_cloud_optimized_geotiff.__file__]
+    argv.extend(list(args))
+
+    logger.debug(f"Argvs: {argv=}")
+
+    return validate_cloud_optimized_geotiff.main(argv)
 
 
 # TODO: GridProcess class

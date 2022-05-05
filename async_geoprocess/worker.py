@@ -154,9 +154,9 @@ def start_worker():
                     f"{type(ex).__name__} - {this} - {ex} - {traceback.format_exc()}"
                 )
             finally:
-                if os.path.exists(dst.name):
-                    shutil.rmtree(dst.name, ignore_errors=True)
-                dst = None
+                # if os.path.exists(dst.name):
+                #     shutil.rmtree(dst.name, ignore_errors=True)
+                # dst = None
                 message.delete()
                 perf_queue.append(perf_time := time.perf_counter() - start_message)
                 logger.debug(f"Handle Message Time: {perf_time} (sec)")

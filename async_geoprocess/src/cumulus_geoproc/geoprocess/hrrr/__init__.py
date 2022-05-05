@@ -17,7 +17,7 @@ class HrrrIdx:
     """HRRR index (idx) files describe all elements in the grib2 file
 
     This class provides methods to parse lines from idx files and return a band
-    number.  Logic to determine if the resulting parse values is done outside this
+    number.  Logic to determine if the resulting parse values are done outside this
     class.
     """
 

@@ -71,13 +71,22 @@ def process(src: str, dst: str, acquirable: str = None):
         src_bil = os.path.join(file_, utils.file_extension(filename_, suffix=".bil"))
         ds = gdal.Open(src_bil)
 
-        translate_options = cgdal.gdal_translate_options()
-        cgdal.gdal_translate_w_overviews(
+        gdal.Translate(
             tif := os.path.join(dst, filename_),
             ds,
-            "average",
-            **translate_options,
+            format="COG",
+            bandList=[1],
+            creationOptions=[
+                "RESAMPLING=AVERAGE",
+                "OVERVIEWS=IGNORE_EXISTING",
+                "OVERVIEW_RESAMPLING=AVERAGE",
+                "NUM_THREADS=ALL_CPUS",
+            ],
         )
+
+        # validate COG
+        if (validate := cgdal.validate_cog("-q", tif)) == 0:
+            logger.info(f"Validate COG = {validate}\t{tif} is a COG")
 
         # closing the data source
         ds = None

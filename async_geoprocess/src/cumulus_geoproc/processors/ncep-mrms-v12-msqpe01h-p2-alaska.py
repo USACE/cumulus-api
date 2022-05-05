@@ -47,13 +47,12 @@ def process(src: str, dst: str, acquirable: str = None):
         attr = {"GRIB_ELEMENT": "MultiSensor_QPE_01H_Pass2"}
 
         filename = os.path.basename(src)
-        filename_ = utils.file_extension(filename, preffix="al")
+        filename_ = utils.file_extension(filename)
 
         bucket, key = src.split("/", maxsplit=1)
         logger.debug(f"s3_download_file({bucket=}, {key=})")
 
-        tmp_dir = TemporaryDirectory(dir=dst)
-        src_ = boto.s3_download_file(bucket=bucket, key=key, dst=tmp_dir.name)
+        src_ = boto.s3_download_file(bucket=bucket, key=key, dst=dst)
         logger.debug(f"S3 Downloaded File: {src_}")
 
         ds = gdal.Open("/vsigzip/" + src_)
@@ -70,14 +69,22 @@ def process(src: str, dst: str, acquirable: str = None):
         valid_time_match = time_pattern.match(raster.GetMetadataItem("GRIB_VALID_TIME"))
         dt_valid = datetime.fromtimestamp(int(valid_time_match[0]), timezone.utc)
 
-        # Extract Band; Convert to COG
-        translate_options = cgdal.gdal_translate_options()
-        cgdal.gdal_translate_w_overviews(
+        gdal.Translate(
             tif := os.path.join(dst, filename_),
-            raster.GetDataset(),
-            "average",
-            **translate_options,
+            ds,
+            format="COG",
+            bandList=[band_number],
+            creationOptions=[
+                "RESAMPLING=AVERAGE",
+                "OVERVIEWS=IGNORE_EXISTING",
+                "OVERVIEW_RESAMPLING=AVERAGE",
+                "NUM_THREADS=ALL_CPUS",
+            ],
         )
+
+        # validate COG
+        if (validate := cgdal.validate_cog("-q", tif)) == 0:
+            logger.info(f"Validate COG = {validate}\t{tif} is a COG")
 
         outfile_list = [
             {

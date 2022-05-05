@@ -79,14 +79,13 @@ def start_worker():
         )
 
         if len(messages) == 0:
-            logger.info("No messages")
             try:
                 average_sec = sum(perf_queue) / len(perf_queue)
                 logger.info(
                     f"Process Message: Avg {average_sec:0.4f} (sec); Deque Size {len(perf_queue)}"
                 )
             except ZeroDivisionError as ex:
-                logger.warning(f"{type(ex).__name__} - {this} - {ex}")
+                logger.info(f"{type(ex).__name__} - {this} - {ex}")
 
         for message in messages:
             try:
@@ -154,9 +153,9 @@ def start_worker():
                     f"{type(ex).__name__} - {this} - {ex} - {traceback.format_exc()}"
                 )
             finally:
-                # if os.path.exists(dst.name):
-                #     shutil.rmtree(dst.name, ignore_errors=True)
-                # dst = None
+                if os.path.exists(dst.name):
+                    shutil.rmtree(dst.name, ignore_errors=True)
+                dst = None
                 message.delete()
                 perf_queue.append(perf_time := time.perf_counter() - start_message)
                 logger.debug(f"Handle Message Time: {perf_time} (sec)")

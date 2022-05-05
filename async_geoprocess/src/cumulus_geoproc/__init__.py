@@ -1,12 +1,24 @@
 """Initialize package
 """
 
+
 import logging
+
+from cumulus_geoproc.configurations import LOGGER_LEVEL
+
 
 # ------------------------- #
 # setup the logging for the package
 # ------------------------- #
 class package_logger(logging.Logger):
+    """Package logger extending logging.Logger
+
+    Parameters
+    ----------
+    logging : Logger
+        Logger object
+    """
+
     def __init__(self):
         super().__init__(__package__)
 
@@ -33,4 +45,6 @@ class package_logger(logging.Logger):
         self.setLevel(level)
 
 
+# create a logger for the package and set the logging level from env vars
 logger = package_logger()
+logger.log_level = LOGGER_LEVEL

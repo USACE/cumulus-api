@@ -4,28 +4,30 @@
 
 import os
 import re
-from uuid import uuid4
-import numpy as np
-from osgeo import gdal
-from cumulus_geoproc.geoprocess.core.base import (
-    translate,
-    create_overviews,
-    write_array_to_raster,
-)
 from datetime import datetime, timedelta, timezone
+
 import pyplugs
+from cumulus_geoproc import logger, utils
+from cumulus_geoproc.utils import boto, cgdal
+from osgeo import gdal
+
+gdal.UseExceptions()
+
+this = os.path.basename(__file__)
 
 
 @pyplugs.register
-def process(infile: str, outdir: str):
+def process(src: str, dst: str, acquirable: str = None):
     """Grid processor
 
     Parameters
     ----------
-    infile : str
+    src : str
         path to input file for processing
-    outdir : str
-        path to processor result
+    dst : str
+        path to temporary directory created from worker thread
+    acquirable: str
+        acquirable slug
 
     Returns
     -------
@@ -37,65 +39,78 @@ def process(infile: str, outdir: str):
             "version": str           Reference Time (forecast), ISO format with timezone
         }
     """
-    outfile_list = list()
+    outfile_list = []
 
     # Variables and their product slug
-    nc_variables = {"SWE": "nsidc-ua-swe-v1", "DEPTH": "nsidc-ua-snowdepth-v1"}
+    nc_variables = {
+        "SWE": "nsidc-ua-swe-v1",
+        "DEPTH": "nsidc-ua-snowdepth-v1",
+    }
 
-    day_since_pattern = re.compile(r"\d+-\d+-\d+")
-    day2date = lambda m, t: timedelta(days=int(m)) + t
-    for nc_variable, nc_slug in nc_variables.items():
-        subdataset = gdal.Open(f"NETCDF:{infile}:{nc_variable}")
-        subset_meta_dict = subdataset.GetMetadata_Dict()
-        # Band last time, since time, and date created as last time
-        subset_times = subset_meta_dict["NETCDF_DIM_time_VALUES"]
-        subset_last_time = list(eval(subset_times))[-1]
-        subset_time_unit = subset_meta_dict["time#units"]
-        subset_since_str = re.search(day_since_pattern, subset_time_unit).group(0)
-        subset_since_time = datetime.fromisoformat(subset_since_str)
-        date_created = day2date(subset_last_time, subset_since_time)
-        # Define some geo
-        geo_transform = subdataset.GetGeoTransform()
-        src_projection = subdataset.GetProjection()
+    try:
+        filename = os.path.basename(src)
+        filename_ = utils.file_extension(filename)
 
-        for b in range(1, subdataset.RasterCount + 1):
-            band = subdataset.GetRasterBand(b)
-            # Band metadata
-            band_meta_dict = band.GetMetadata_Dict()
-            # Band time in minutes and compute the date for the band's filename
-            band_time_day = band_meta_dict["NETCDF_DIM_time"]
-            band_date = day2date(band_time_day, subset_since_time)
-            band_filename = nc_slug + "_" + band_date.strftime("%Y%m%d") + ".tif"
+        bucket, key = src.split("/", maxsplit=1)
+        logger.debug(f"s3_download_file({bucket=}, {key=})")
 
-            # Get the band and process to raster
-            xsize = band.XSize
-            ysize = band.YSize
-            datatype = band.DataType
-            nodata_value = band.GetNoDataValue()
-            b_array = band.ReadAsArray(0, 0, xsize, ysize).astype(np.dtype("float32"))
-            # Create the raster
-            tif = write_array_to_raster(
-                b_array,
-                os.path.join(outdir, f"temp-tif-{uuid4()}"),
-                xsize,
-                ysize,
-                geo_transform,
-                src_projection,
-                datatype,
-                nodata_value,
+        src_ = boto.s3_download_file(bucket=bucket, key=key, dst=dst)
+        logger.debug(f"S3 Downloaded File: {src_}")
+
+        for nc_variable, nc_slug in nc_variables.items():
+            ds = gdal.Open(f"NETCDF:{src_}:{nc_variable}")
+
+            # set the start time
+            time_pattern = re.compile(r"\w+ \w+ (\d{4}-\d{2}-\d{2})")
+            day_since_str = time_pattern.match(ds.GetMetadataItem("time#units"))
+            day_since = datetime.fromisoformat(day_since_str[1]).replace(
+                tzinfo=timezone.utc
             )
-            # Create the overviews
-            tif_with_overviews = create_overviews(tif)
-            # COG with name based on time
-            cog = translate(tif_with_overviews, os.path.join(outdir, band_filename))
 
-            outfile_list.append(
-                {
-                    "filetype": nc_slug,
-                    "file": cog,
-                    "datetime": band_date.replace(tzinfo=timezone.utc).isoformat(),
-                    "version": None,
-                }
-            )
+            for band_number in range(1, ds.RasterCount + 1):
+                # set the bands date
+                raster = ds.GetRasterBand(band_number)
+                delta_days = raster.GetMetadataItem("NETCDF_DIM_time")
+                band_date = day_since + timedelta(days=int(delta_days))
+
+                datetime_str = band_date.strftime("%Y%m%d")
+                filename_ = utils.file_extension(
+                    filename, suffix=f"_{datetime_str}_{nc_variable}.tif"
+                )
+
+                gdal.Translate(
+                    tif := os.path.join(dst, filename_),
+                    ds,
+                    format="COG",
+                    bandList=[band_number],
+                    creationOptions=[
+                        "RESAMPLING=AVERAGE",
+                        "OVERVIEWS=IGNORE_EXISTING",
+                        "OVERVIEW_RESAMPLING=AVERAGE",
+                        "NUM_THREADS=ALL_CPUS",
+                    ],
+                )
+
+                # validate COG
+                if (validate := cgdal.validate_cog("-q", tif)) == 0:
+                    logger.info(f"Validate COG = {validate}\t{tif} is a COG")
+
+                outfile_list.append(
+                    {
+                        "filetype": nc_slug,
+                        "file": tif,
+                        "datetime": band_date.isoformat(),
+                        "version": None,
+                    }
+                )
+
+    except RuntimeError as ex:
+        logger.error(f"{type(ex).__name__}: {this}: {ex}")
+    finally:
+        ds = None
 
     return outfile_list
+
+
+if __name__ == "__main__":
+    pass

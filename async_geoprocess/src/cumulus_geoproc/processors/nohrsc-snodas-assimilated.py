@@ -7,57 +7,32 @@ Need to uncompress that NetCDF file
 """
 
 
-from datetime import datetime, timedelta
 import os
 import re
 import tarfile
-import numpy as np
-from datetime import datetime, timezone
-from collections import namedtuple
-from osgeo import gdal
-from uuid import uuid4
-from cumulus_geoproc.geoprocess.core.base import (
-    info,
-    translate,
-    create_overviews,
-    translate_cog,
-    write_array_to_raster,
-)
-from cumulus_geoproc.handyutils.core import (
-    change_file_extension,
-    change_final_file_extension,
-    gunzip_file,
-)
-
-
-def get_stop_date(gridfile):
-    try:
-        dataset = gdal.Open(f"NETCDF:{gridfile}:Data")
-        meta = dataset.GetMetadata()
-        return meta["Data#stop_date"]
-
-    except Exception as e:
-        # logger.error(e)
-        return None
-
-    finally:
-        if dataset is not None:
-            dataset = None
-
+from datetime import datetime
 
 import pyplugs
+from cumulus_geoproc import logger, utils
+from cumulus_geoproc.utils import boto, cgdal
+from netCDF4 import Dataset
+from osgeo import gdal, osr
+
+this = os.path.basename(__file__)
 
 
 @pyplugs.register
-def process(infile: str, outdir: str):
+def process(src: str, dst: str, acquirable: str = None):
     """Grid processor
 
     Parameters
     ----------
-    infile : str
+    src : str
         path to input file for processing
-    outdir : str
-        path to processor result
+    dst : str
+        path to temporary directory created from worker thread
+    acquirable: str
+        acquirable slug
 
     Returns
     -------
@@ -71,61 +46,107 @@ def process(infile: str, outdir: str):
     """
 
     outfile_list = []
+    acquirable = "nohrsc-snodas-swe-corrections"
 
-    # logger.debug(infile)
+    try:
+        bucket, key = src.split("/", maxsplit=1)
+        logger.debug(f"s3_download_file({bucket=}, {key=})")
 
-    working_dir = os.path.dirname(infile)
-    r = re.compile("ssm1054_\d{10}.\d{14}/ssm1054_\d{10}.nc.gz")
-    tar = tarfile.open(infile)
+        src_ = boto.s3_download_file(bucket=bucket, key=key, dst=dst)
+        logger.debug(f"S3 Downloaded File: {src_}")
 
-    # Scan through the files in the tar file to find the compressed netcdf file.
-    # Example Result: <TarInfo 'ssm1054_2022013112.20220131181006/ssm1054_2022013112.nc.gz' at 0x7f2dbc1a9e80>
-    member_to_extract = [m for m in tar.getmembers() if r.match(m.name)][0]
+        # extract the member from the tar using this pattern
+        member_pattern = re.compile(r"ssm1054_\d+.\d+/ssm1054_\d+.nc.gz")
+        with tarfile.open(src_) as tar:
+            for member in tar.getmembers():
+                if member_pattern.match(member.name):
+                    tar.extract(member, path=dst)
 
-    # This will extract the file, but leave it in it's original folder
-    # You will reference the folder/filename to access the nc.gz file
-    # extract_filename = os.path.basename(member_to_extract.name)
-    tar.extract(member_to_extract, path=working_dir)
+                    filename = os.path.join(dst, member.name)
 
-    # ex: /tmp/xyz/ssm1054_2022013112.20220131181006/ssm1054_2022013112.nc.gz
-    compressed_file = os.path.join(working_dir, member_to_extract.name)
+                    # decompress the extracted member
+                    snodas_assim = utils.decompress(filename, dst)
+                    logger.debug(f"{snodas_assim=}")
 
-    # unzip the file and move it to the working_dir (instead of the member sub dir)
-    uncompressed_filename = change_file_extension(compressed_file, "nc")
-    uncompressed_file = os.path.join(working_dir, uncompressed_filename)
-    gunzip_file(compressed_file, uncompressed_file)
+                    filename_ = utils.file_extension(snodas_assim)
 
-    tar.close()
+                    with Dataset(snodas_assim, "r") as ncds:
+                        lon = ncds.variables["lon"][:]
+                        lat = ncds.variables["lat"][:]
+                        data = ncds.variables["Data"]
+                        crs = ncds.variables["crs"]
+                        data_vals = data[:]
 
-    stop_date = get_stop_date(uncompressed_file)
-    if stop_date is None:
-        return outfile_list
+                        valid_time = datetime.fromisoformat(data.stop_date)
 
-    # Compile regex to get times from timestamp
-    time_pattern = re.compile(r"\d{4}-\d{2}-\d{2}\s\d{2}:\d{2}:\d{2}")
-    valid_time_match = time_pattern.match(stop_date)
-    valid_time = (
-        datetime.strptime(stop_date + " +0000", "%Y-%m-%d %H:%M:%S %z").isoformat()
-        if valid_time_match
-        else None
-    )
+                        xmin, ymin, xmax, ymax = (
+                            lon.min(),
+                            lat.min(),
+                            lon.max(),
+                            lat.max(),
+                        )
+                        nrows, ncols = data.shape
+                        xres = (xmax - xmin) / float(ncols)
+                        yres = (ymax - ymin) / float(nrows)
 
-    if valid_time is None:
-        return outfile_list
+                        geotransform = (xmin, xres, 0, ymax, 0, -yres)
 
-    cog = translate_cog(
-        uncompressed_file,
-        os.path.join(outdir, change_final_file_extension(uncompressed_file, "tif")),
-    )
+                        raster = gdal.GetDriverByName("GTiff").Create(
+                            tmptif := os.path.join(dst, snodas_assim + ".tmp.tif"),
+                            xsize=ncols,
+                            ysize=nrows,
+                            bands=1,
+                            eType=gdal.GDT_Float32,
+                        )
 
-    # Append dictionary object to outfile list
-    outfile_list.append(
-        {
-            "filetype": "nohrsc-snodas-swe-corrections",
-            "file": cog,
-            "datetime": valid_time,
-            "version": None,
-        }
-    )
+                        raster.SetGeoTransform(geotransform)
+                        srs = osr.SpatialReference()
+
+                        # srs.ImportFromEPSG(4326)
+                        srs.SetWellKnownGeogCS(crs.horizontal_datum)
+
+                        raster.SetProjection(srs.ExportToWkt())
+                        band = raster.GetRasterBand(1)
+                        band.WriteArray(data_vals)
+                        raster.FlushCache()
+                        raster = None
+
+                        gdal.Translate(
+                            tif := os.path.join(dst, filename_),
+                            tmptif,
+                            format="COG",
+                            bandList=[1],
+                            noData=data.no_data_value,
+                            creationOptions=[
+                                "RESAMPLING=AVERAGE",
+                                "OVERVIEWS=IGNORE_EXISTING",
+                                "OVERVIEW_RESAMPLING=AVERAGE",
+                                "NUM_THREADS=ALL_CPUS",
+                            ],
+                        )
+
+                        # validate COG
+                        if (validate := cgdal.validate_cog("-q", tif)) == 0:
+                            logger.info(f"Validate COG = {validate}\t{tif} is a COG")
+
+                        # Append dictionary object to outfile list
+                        outfile_list.append(
+                            {
+                                "filetype": acquirable,
+                                "file": tif,
+                                "datetime": valid_time.isoformat(),
+                                "version": None,
+                            }
+                        )
+                    break
+
+    except (RuntimeError, KeyError, Exception) as ex:
+        logger.error(f"{type(ex).__name__}: {this}: {ex}")
+    finally:
+        ds = None
 
     return outfile_list
+
+
+if __name__ == "__main__":
+    pass

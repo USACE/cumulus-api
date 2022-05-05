@@ -1,26 +1,34 @@
-"""NCEP RTMA Airtemp
+"""NCEP RTMA RU ANL Airtemp
 """
 
 
-from datetime import datetime, timezone
 import os
-from uuid import uuid4
-from cumulus_geoproc.geoprocess.core.base import info, translate, create_overviews
-from cumulus_geoproc.handyutils.core import change_final_file_extension
+import re
+from datetime import datetime, timezone
 
 import pyplugs
+from cumulus_geoproc import logger, utils
+from cumulus_geoproc.utils import boto, cgdal
+from osgeo import gdal
+
+gdal.UseExceptions()
+
+
+this = os.path.basename(__file__)
 
 
 @pyplugs.register
-def process(infile: str, outdir: str):
+def process(src: str, dst: str, acquirable: str = None):
     """Grid processor
 
     Parameters
     ----------
-    infile : str
+    src : str
         path to input file for processing
-    outdir : str
-        path to processor result
+    dst : str
+        path to temporary directory created from worker thread
+    acquirable: str
+        acquirable slug
 
     Returns
     -------
@@ -32,35 +40,67 @@ def process(infile: str, outdir: str):
             "version": str           Reference Time (forecast), ISO format with timezone
         }
     """
+    outfile_list = []
 
-    # Only Get Air Temperature to Start; Band 3 (i.e. array position 2 because zero-based indexing)
-    dtStr = info(infile)["bands"][2]["metadata"][""]["GRIB_VALID_TIME"]
+    try:
+        attr = {"GRIB_ELEMENT": "TMP"}
 
-    # Get Datetime from String Like "1599008400 sec UTC"
-    dt = datetime.fromtimestamp(int(dtStr.split(" ")[0]))
+        filename = os.path.basename(src)
+        filename_ = utils.file_extension(filename)
 
-    # Extract Band 3 (Temperature); Convert to COG
-    tif = translate(
-        infile, os.path.join(outdir, f"temp-tif-{uuid4()}"), extra_args=["-b", "3"]
-    )
-    tif_with_overviews = create_overviews(tif)
-    cog = translate(
-        tif_with_overviews,
-        os.path.join(
-            outdir,
-            "{}_{}".format(
-                dt.strftime("%Y%m%d"), change_final_file_extension(infile, "tif")
-            ),
-        ),
-    )
+        bucket, key = src.split("/", maxsplit=1)
+        logger.debug(f"s3_download_file({bucket=}, {key=})")
 
-    outfile_list = [
-        {
-            "filetype": "ncep-rtma-ru-anl-airtemp",
-            "file": cog,
-            "datetime": dt.replace(tzinfo=timezone.utc).isoformat(),
-            "version": None,
-        },
-    ]
+        src_ = boto.s3_download_file(bucket=bucket, key=key, dst=dst)
+        logger.debug(f"S3 Downloaded File: {src_}")
+
+        ds = gdal.Open(src_)
+
+        if (band_number := cgdal.find_band(ds, attr)) is None:
+            raise Exception("Band number not found for attributes: {attr}")
+
+        logger.debug(f"Band number '{band_number}' found for attributes {attr}")
+
+        raster = ds.GetRasterBand(band_number)
+
+        # Get Datetime from String Like "1599008400 sec UTC"
+        time_pattern = re.compile(r"\d+")
+        valid_time_match = time_pattern.match(raster.GetMetadataItem("GRIB_VALID_TIME"))
+        dt_valid = datetime.fromtimestamp(int(valid_time_match[0]), timezone.utc)
+
+        gdal.Translate(
+            tif := os.path.join(dst, filename_),
+            ds,
+            format="COG",
+            bandList=[band_number],
+            creationOptions=[
+                "RESAMPLING=AVERAGE",
+                "OVERVIEWS=IGNORE_EXISTING",
+                "OVERVIEW_RESAMPLING=AVERAGE",
+                "NUM_THREADS=ALL_CPUS",
+            ],
+        )
+
+        # validate COG
+        if (validate := cgdal.validate_cog("-q", tif)) == 0:
+            logger.info(f"Validate COG = {validate}\t{tif} is a COG")
+
+        outfile_list = [
+            {
+                "filetype": acquirable,
+                "file": tif,
+                "datetime": dt_valid.isoformat(),
+                "version": None,
+            },
+        ]
+    except (RuntimeError, KeyError, Exception) as ex:
+        logger.error(f"{type(ex).__name__}: {this}: {ex}")
+    finally:
+        ds = None
+        raster = None
 
     return outfile_list
+
+
+if __name__ == "__main__":
+    pass

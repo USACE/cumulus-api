@@ -15,7 +15,8 @@ from datetime import datetime
 import pyplugs
 from cumulus_geoproc import logger, utils
 from cumulus_geoproc.utils import boto, cgdal
-from osgeo import gdal
+from netCDF4 import Dataset
+from osgeo import gdal, osr
 
 this = os.path.basename(__file__)
 
@@ -45,6 +46,7 @@ def process(src: str, dst: str, acquirable: str = None):
     """
 
     outfile_list = []
+    acquirable = "nohrsc-snodas-swe-corrections"
 
     try:
         bucket, key = src.split("/", maxsplit=1)
@@ -68,43 +70,75 @@ def process(src: str, dst: str, acquirable: str = None):
 
                     filename_ = utils.file_extension(snodas_assim)
 
-                    ds = gdal.Open(snodas_assim)
+                    with Dataset(snodas_assim, "r") as ncds:
+                        lon = ncds.variables["lon"][:]
+                        lat = ncds.variables["lat"][:]
+                        data = ncds.variables["Data"]
+                        crs = ncds.variables["crs"]
+                        data_vals = data[:]
 
-                    # raster = ds.GetRasterBand(1)
+                        valid_time = datetime.fromisoformat(data.stop_date)
 
-                    # valid_time = datetime.fromisoformat(
-                    #     raster.GetMetadataItem("stop_date")
-                    # )
-                    # no_data = raster.GetMetadataItem("_FillValue")
+                        xmin, ymin, xmax, ymax = (
+                            lon.min(),
+                            lat.min(),
+                            lon.max(),
+                            lat.max(),
+                        )
+                        nrows, ncols = data.shape
+                        xres = (xmax - xmin) / float(ncols)
+                        yres = (ymax - ymin) / float(nrows)
 
-                    # gdal.Translate(
-                    #     tif := os.path.join(dst, filename_),
-                    #     ds,
-                    #     format="COG",
-                    #     bandList=[1],
-                    #     noData=no_data,
-                    #     creationOptions=[
-                    #         "RESAMPLING=AVERAGE",
-                    #         "OVERVIEWS=IGNORE_EXISTING",
-                    #         "OVERVIEW_RESAMPLING=AVERAGE",
-                    #         "NUM_THREADS=ALL_CPUS",
-                    #     ],
-                    # )
+                        geotransform = (xmin, xres, 0, ymax, 0, -yres)
 
-                    # # validate COG
-                    # if (validate := cgdal.validate_cog("-q", tif)) == 0:
-                    #     logger.info(f"Validate COG = {validate}\t{tif} is a COG")
+                        raster = gdal.GetDriverByName("GTiff").Create(
+                            tmptif := os.path.join(dst, snodas_assim + ".tmp.tif"),
+                            xsize=ncols,
+                            ysize=nrows,
+                            bands=1,
+                            eType=gdal.GDT_Float32,
+                        )
 
-                    # # Append dictionary object to outfile list
-                    # outfile_list.append(
-                    #     {
-                    #         "filetype": acquirable,
-                    #         "file": tif,
-                    #         "datetime": valid_time,
-                    #         "version": None,
-                    #     }
-                    # )
-                    # break
+                        raster.SetGeoTransform(geotransform)
+                        srs = osr.SpatialReference()
+
+                        # srs.ImportFromEPSG(4326)
+                        srs.SetWellKnownGeogCS(crs.horizontal_datum)
+
+                        raster.SetProjection(srs.ExportToWkt())
+                        band = raster.GetRasterBand(1)
+                        band.WriteArray(data_vals)
+                        raster.FlushCache()
+                        raster = None
+
+                        gdal.Translate(
+                            tif := os.path.join(dst, filename_),
+                            tmptif,
+                            format="COG",
+                            bandList=[1],
+                            noData=data.no_data_value,
+                            creationOptions=[
+                                "RESAMPLING=AVERAGE",
+                                "OVERVIEWS=IGNORE_EXISTING",
+                                "OVERVIEW_RESAMPLING=AVERAGE",
+                                "NUM_THREADS=ALL_CPUS",
+                            ],
+                        )
+
+                        # validate COG
+                        if (validate := cgdal.validate_cog("-q", tif)) == 0:
+                            logger.info(f"Validate COG = {validate}\t{tif} is a COG")
+
+                        # Append dictionary object to outfile list
+                        outfile_list.append(
+                            {
+                                "filetype": acquirable,
+                                "file": tif,
+                                "datetime": valid_time.isoformat(),
+                                "version": None,
+                            }
+                        )
+                    break
 
     except (RuntimeError, KeyError, Exception) as ex:
         logger.error(f"{type(ex).__name__}: {this}: {ex}")

@@ -5,7 +5,6 @@
 import os
 import re
 from datetime import datetime, timezone
-from tempfile import TemporaryDirectory
 
 import pyplugs
 from cumulus_geoproc import logger, utils

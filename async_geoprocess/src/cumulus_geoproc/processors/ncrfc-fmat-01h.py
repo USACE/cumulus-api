@@ -10,7 +10,7 @@ from datetime import datetime, timezone
 
 import pyplugs
 from cumulus_geoproc import logger, utils
-from cumulus_geoproc.utils import boto, cgdal
+from cumulus_geoproc.utils import boto
 from osgeo import gdal
 
 gdal.UseExceptions()
@@ -81,13 +81,17 @@ def process(src: str, dst: str, acquirable: str = None):
                     else None
                 )
 
-                # Extract Band 0 (QPE); Convert to COG
-                translate_options = cgdal.gdal_translate_options()
-                cgdal.gdal_translate_w_overviews(
+                gdal.Translate(
                     tif := os.path.join(dst, filename_),
-                    raster.GetDataset(),
-                    "average",
-                    **translate_options,
+                    ds,
+                    format="COG",
+                    bandList=[1],
+                    creationOptions=[
+                        "RESAMPLING=AVERAGE",
+                        "OVERVIEWS=IGNORE_EXISTING",
+                        "OVERVIEW_RESAMPLING=AVERAGE",
+                        "NUM_THREADS=ALL_CPUS",
+                    ],
                 )
 
                 # Append dictionary object to outfile list

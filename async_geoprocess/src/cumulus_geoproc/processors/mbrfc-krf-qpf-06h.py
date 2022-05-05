@@ -70,13 +70,17 @@ def process(src: str, dst: str, acquirable: str = None):
         ref_time_match = time_pattern.match(raster.GetMetadataItem("GRIB_REF_TIME"))
         dt_ref = datetime.fromtimestamp(int(ref_time_match[0]), timezone.utc)
 
-        # Extract Band; Convert to COG
-        translate_options = cgdal.gdal_translate_options(bandList=[band_number])
-        cgdal.gdal_translate_w_overviews(
+        gdal.Translate(
             tif := os.path.join(dst, filename_),
-            raster.GetDataset(),
-            "average",
-            **translate_options,
+            ds,
+            format="COG",
+            bandList=[band_number],
+            creationOptions=[
+                "RESAMPLING=AVERAGE",
+                "OVERVIEWS=IGNORE_EXISTING",
+                "OVERVIEW_RESAMPLING=AVERAGE",
+                "NUM_THREADS=ALL_CPUS",
+            ],
         )
 
         outfile_list = [

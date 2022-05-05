@@ -6,13 +6,10 @@ import os
 import re
 from datetime import datetime, timedelta, timezone
 
-import numpy as np
 import pyplugs
-from cumulus_geoproc import logger
-from cumulus_geoproc import utils
-from cumulus_geoproc.utils import boto, cgdal
+from cumulus_geoproc import logger, utils
+from cumulus_geoproc.utils import boto
 from osgeo import gdal
-
 
 this = os.path.basename(__file__)
 
@@ -83,8 +80,8 @@ def process(src: str, dst: str, acquirable: str = None):
                 product_name = nc_variables[parameter_name]
 
                 # loop through each band
-                for b in range(1, subdataset.RasterCount + 1):
-                    raster = subdataset.GetRasterBand(b)
+                for band_number in range(1, subdataset.RasterCount + 1):
+                    raster = subdataset.GetRasterBand(band_number)
                     nodata = raster.GetNoDataValue()
                     dim_time = raster.GetMetadataItem("NETCDF_DIM_time")
                     ref_time = since_time + timedelta(minutes=int(dim_time))
@@ -94,13 +91,18 @@ def process(src: str, dst: str, acquirable: str = None):
                         suffix=f"_{product_name}_{ref_time.strftime('%Y%m%d%H%M')}.tif",
                     )
 
-                    # Extract Band; Convert to COG
-                    translate_options = cgdal.gdal_translate_options(noData=nodata)
-                    cgdal.gdal_translate_w_overviews(
+                    gdal.Translate(
                         tif := os.path.join(dst, filename_),
-                        raster.GetDataset(),
-                        "average",
-                        **translate_options,
+                        subdataset,
+                        format="COG",
+                        bandList=[band_number],
+                        noData=nodata,
+                        creationOptions=[
+                            "RESAMPLING=AVERAGE",
+                            "OVERVIEWS=IGNORE_EXISTING",
+                            "OVERVIEW_RESAMPLING=AVERAGE",
+                            "NUM_THREADS=ALL_CPUS",
+                        ],
                     )
 
                     outfile_list.append(

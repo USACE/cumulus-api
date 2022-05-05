@@ -142,7 +142,11 @@ for subdir, dirs, files in os.walk(products_dir):
         golden_file_dir = os.path.dirname(golden_file)
         if not os.path.isdir(golden_file_dir):
             os.makedirs(name=golden_file_dir, exist_ok=False)
-        golden_file = s3_download_file(BUCKET, key, None, golden_file_dir)
+        try:
+            golden_file = s3_download_file(BUCKET, key, golden_file_dir, None)
+        except:
+            print(traceback.format_exc())
+            print(f"Unable to download golden file from S3/Minio: {key}")
 
         # # sys.stdout = open(os.devnull, "w")
         # # sys.stderr = open(os.devnull, "w")
@@ -164,7 +168,7 @@ for subdir, dirs, files in os.walk(products_dir):
         # sys.stderr = sys.__stderr__
 
         print("Validating new COG...")
-        cog_validation_check = validate_cloud_optimized_geotiff.validate(golden_file)
+        cog_validation_check = validate_cloud_optimized_geotiff.validate(new_file)
         if len(cog_validation_check[0]) > 0:
             print(f"COG has ERRORS -> {cog_validation_check[0]}")
             for e in cog_validation_check[0]:

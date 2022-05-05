@@ -1,4 +1,4 @@
-FROM osgeo/gdal:ubuntu-small-latest
+FROM osgeo/gdal:ubuntu-small-3.4.2
 # ARG GIT_REPO_URL=GIT_REPO_URL
 # ARG GIT_BRANCH=GIT_BRANCH
 

@@ -86,6 +86,11 @@ def process(src: str, dst: str, acquirable: str = None):
                     int(valid_time_match[0]), timezone.utc
                 )
 
+                ref_time_match = time_pattern.match(
+                    raster.GetMetadataItem("GRIB_REF_TIME")
+                )
+                dt_ref = datetime.fromtimestamp(int(ref_time_match[0]), timezone.utc)
+
                 gdal.Translate(
                     tif := os.path.join(dst, filename_),
                     ds,
@@ -108,7 +113,7 @@ def process(src: str, dst: str, acquirable: str = None):
                         "filetype": filetype,
                         "file": tif,
                         "datetime": dt_valid.isoformat(),
-                        "version": None,
+                        "version": dt_ref.isoformat(),
                     },
                 )
                 logger.debug(f"Appended Payload: {outfile_list[-1]}")

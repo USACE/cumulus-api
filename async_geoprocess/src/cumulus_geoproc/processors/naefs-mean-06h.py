@@ -4,12 +4,13 @@
 
 import os
 import re
-from datetime import datetime, timedelta, timezone
+from datetime import datetime, timezone
 
 import pyplugs
-from cumulus_geoproc import logger, utils
-from cumulus_geoproc.utils import boto
-from osgeo import gdal
+from cumulus_geoproc import logger
+from cumulus_geoproc.utils import boto, cgdal
+from osgeo import gdal, osr
+from netCDF4 import Dataset, num2date, date2index
 
 this = os.path.basename(__file__)
 
@@ -41,61 +42,68 @@ def process(src: str, dst: str, acquirable: str = None):
 
     try:
         filename = os.path.basename(src)
-        #
-        # Variables and their product slug
-        #
-        nc_variables = {"QPF": "naefs-mean-qpf-06h", "QTF": "naefs-mean-qtf-06h"}
+
+        products = {"QPF": "naefs-mean-qpf-06h", "QTF": "naefs-mean-qtf-06h"}
 
         bucket, key = src.split("/", maxsplit=1)
-        logger.debug(f"s3_download_file({bucket=}, {key=})")
 
         src_ = boto.s3_download_file(bucket=bucket, key=key, dst=dst)
         logger.debug(f"S3 Downloaded File: {src_}")
 
-        since_pattern = re.compile(r"\w+ \w+ (?P<since>\d{4}-\d{2}-\d{2})")
-        create_pattern = re.compile(r"\d+-\d+-\d+ \d+:\d+:\d+")
+        with Dataset(src_, "r") as ncds:
+            time_str = re.match(r"\d{4}-\d{2}-\d{2} \d+:\d+:\d+", ncds.date_created)
+            date_created = datetime.fromisoformat(time_str[0]).replace(
+                tzinfo=timezone.utc
+            )
 
-        ds = gdal.Open(src_)
+            lat = ncds.variables["y"][:]
+            lon = ncds.variables["x"][:]
+            xmin, ymin, xmax, ymax = lon.min(), lat.min(), lon.max(), lat.max()
 
-        create_str = ds.GetMetadataItem("NC_GLOBAL#date_created")
-        m = create_pattern.match(create_str)
-        create_date = datetime.fromisoformat(m.group(0)).replace(tzinfo=timezone.utc)
+            wkt = ncds.variables["crs"].crs_wkt
 
-        for subset in ds.GetSubDatasets():
-            subset_name, _ = subset
-            if (parameter_name := subset_name.split(":")[-1]) in nc_variables:
-                # dataset in the nc file
-                subdataset = gdal.Open(subset_name)
+            nctime = ncds.variables["time"]
+            for k, acquirable_ in products.items():
+                ncvar = ncds.variables[k]
+                nodata = ncvar._FillValue
 
-                # get the since time each band will reference
-                # "time#units": "minutes since 1970-01-01 00:00:00.0 +0000",
-                # yyyy-mm-dd HH:MM:SS
-                since_time_str = subdataset.GetMetadataItem("analysis_time#units")
+                _, nrows, ncols = ncvar.shape
 
-                m = since_pattern.match(since_time_str)
-                since_time = datetime.fromisoformat(m.group("since")).replace(
-                    tzinfo=timezone.utc
-                )
+                xres = (xmax - xmin) / float(ncols)
+                yres = (ymax - ymin) / float(nrows)
+                geotransform = (xmin, xres, 0, ymax, 0, -yres)
 
-                product_name = nc_variables[parameter_name]
+                for dt in num2date(
+                    nctime[:], nctime.units, only_use_cftime_datetimes=False
+                ):
+                    dt_valid = dt.replace(tzinfo=timezone.utc)
+                    idx = date2index(dt, nctime)
+                    nctime_str = datetime.strftime(dt, "%Y%m%d%H%M")
 
-                # loop through each band
-                for band_number in range(1, subdataset.RasterCount + 1):
-                    raster = subdataset.GetRasterBand(band_number)
-                    nodata = raster.GetNoDataValue()
-                    dim_time = raster.GetMetadataItem("NETCDF_DIM_time")
-                    ref_time = since_time + timedelta(minutes=int(dim_time))
-
-                    filename_ = utils.file_extension(
-                        filename,
-                        suffix=f"_{product_name}_{ref_time.strftime('%Y%m%d%H%M')}.tif",
+                    raster = gdal.GetDriverByName("GTiff").Create(
+                        tmptif := os.path.join(
+                            dst, filename.replace(".nc", f"-{nctime_str}.tmp.tif")
+                        ),
+                        xsize=ncols,
+                        ysize=nrows,
+                        bands=1,
+                        eType=gdal.GDT_Float32,
                     )
+                    raster.SetGeoTransform(geotransform)
+                    srs = osr.SpatialReference()
+                    srs.ImportFromWkt(wkt)
+
+                    raster.SetProjection(wkt)
+                    band = raster.GetRasterBand(1)
+                    band.WriteArray(ncvar[idx])
+                    raster.FlushCache()
+                    raster = None
 
                     gdal.Translate(
-                        tif := os.path.join(dst, filename_),
-                        subdataset,
+                        tif := os.path.join(dst, tmptif.replace(".tmp.tif", ".tif")),
+                        tmptif,
                         format="COG",
-                        bandList=[band_number],
+                        bandList=[1],
                         noData=nodata,
                         creationOptions=[
                             "RESAMPLING=AVERAGE",
@@ -105,20 +113,22 @@ def process(src: str, dst: str, acquirable: str = None):
                         ],
                     )
 
+                    # validate COG
+                    if (validate := cgdal.validate_cog("-q", tif)) == 0:
+                        logger.info(f"Validate COG = {validate}\t{tif} is a COG")
+
                     outfile_list.append(
                         {
-                            "filetype": product_name,
+                            "filetype": acquirable_,
                             "file": tif,
-                            "datetime": ref_time.isoformat(),
-                            "version": create_date.isoformat(),
+                            "datetime": dt_valid.isoformat(),
+                            "version": date_created.isoformat(),
                         }
                     )
 
     except (RuntimeError, KeyError, Exception) as ex:
         logger.error(f"{type(ex).__name__}: {this}: {ex}")
     finally:
-        ds = None
-        subdataset = None
         raster = None
 
     return outfile_list

@@ -37,7 +37,8 @@ def is_lakefix(dt: datetime, code: str):
     """
     codes = ("1034", "1036")
     dt_after = datetime(2014, 10, 9, 0, 0, tzinfo=timezone.utc)
-    if dt >= dt_after and code in codes:
+    dt_before = datetime(2019, 10, 10, 0, 0, tzinfo=timezone.utc)
+    if (dt_after <= dt <= dt_before) and code in codes:
         return True
     else:
         return False
@@ -108,7 +109,7 @@ async def snodas_interp_task(
         )
 
         # fillnodata to GTiff
-        if (
+        if max_dist == 0 or (
             cgdal.gdal_fillnodataval(
                 filepath,
                 fill_tif,
@@ -118,7 +119,8 @@ async def snodas_interp_task(
             )
             != 0
         ):
-            raise Exception("gdal_fillnodata.py not executed")
+            logger.info("gdal_fillnodata.py not executed")
+            fill_tif = filepath
 
         # convert to COG
         gdal.Translate(
@@ -189,6 +191,8 @@ async def snodas(cfg: namedtuple, dst: str):
             code,
         )
 
+        max_dist = cfg.max_distance if code != "2072" else 0
+
         if download_file := boto.s3_download_file(cfg.bucket, key, dst=dst):
             tasks.append(
                 asyncio.create_task(
@@ -196,7 +200,7 @@ async def snodas(cfg: namedtuple, dst: str):
                         download_file,
                         product,
                         dt,
-                        cfg.max_distance,
+                        max_dist,
                         nodata_value,
                         lakefix,
                     )

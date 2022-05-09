@@ -3,7 +3,6 @@
 
 import asyncio
 import os
-import subprocess
 from collections import namedtuple
 from datetime import datetime, timezone
 from string import Template
@@ -146,7 +145,7 @@ async def snodas_interp_task(
             "version": None,
         }
 
-    except (RuntimeError, KeyError, subprocess.CalledProcessError, Exception) as ex:
+    except (RuntimeError, KeyError, Exception) as ex:
         logger.error(f"{type(ex).__name__}: {this}: {ex}")
     finally:
         ds = None

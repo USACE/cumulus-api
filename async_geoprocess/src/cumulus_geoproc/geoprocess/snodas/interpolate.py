@@ -3,6 +3,7 @@
 
 import asyncio
 import os
+import subprocess
 from collections import namedtuple
 from datetime import datetime, timezone
 from string import Template
@@ -105,13 +106,19 @@ async def snodas_interp_task(
         fill_tif = os.path.join(
             dst, file_extension(filename, suffix="-interpolated.tiff")
         )
-        cgdal.gdal_fillnodataval(
-            "-q",
-            "-md",
-            str(max_dist),
-            filepath,
-            fill_tif,
-        )
+
+        # fillnodata to GTiff
+        if (
+            cgdal.gdal_fillnodataval(
+                filepath,
+                fill_tif,
+                "-q",
+                "-md",
+                str(max_dist),
+            )
+            != 0
+        ):
+            raise Exception("gdal_fillnodata.py not executed")
 
         # convert to COG
         gdal.Translate(
@@ -126,6 +133,9 @@ async def snodas_interp_task(
                 "OVERVIEW_RESAMPLING=AVERAGE",
             ],
         )
+        # validate COG
+        if (validate := cgdal.validate_cog("-q", tif)) == 0:
+            logger.info(f"Validate COG = {validate}\t{tif} is a COG")
 
         return {
             "file": tif,
@@ -134,7 +144,7 @@ async def snodas_interp_task(
             "version": None,
         }
 
-    except (RuntimeError, KeyError, Exception) as ex:
+    except (RuntimeError, KeyError, subprocess.CalledProcessError, Exception) as ex:
         logger.error(f"{type(ex).__name__}: {this}: {ex}")
     finally:
         ds = None

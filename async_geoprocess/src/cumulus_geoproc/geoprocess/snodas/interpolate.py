@@ -166,6 +166,12 @@ async def snodas(cfg: namedtuple, dst: str):
     List[dict[str, str]]
         List of dictionary objects with attributes needed to upload to S3
     """
+    # products that don't actually get interpolated but don't know why
+    no_interp = (
+        "2072",
+        "3333",
+        "1038",
+    )
     tasks = []
     dt = (
         datetime.strptime(cfg.datetime, "%Y%m%d")
@@ -190,7 +196,7 @@ async def snodas(cfg: namedtuple, dst: str):
             code,
         )
 
-        max_dist = cfg.max_distance if code != "2072" else 0
+        max_dist = 0 if code in no_interp else cfg.max_distance
 
         if download_file := boto.s3_download_file(cfg.bucket, key, dst=dst):
             tasks.append(

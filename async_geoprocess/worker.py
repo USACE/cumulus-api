@@ -8,9 +8,9 @@ import json
 import os
 import shutil
 import time
-from collections import namedtuple, deque
-from tempfile import TemporaryDirectory
 import traceback
+from collections import deque, namedtuple
+from tempfile import TemporaryDirectory
 
 import boto3
 

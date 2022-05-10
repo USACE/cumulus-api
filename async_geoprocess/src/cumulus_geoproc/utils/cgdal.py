@@ -10,11 +10,13 @@
 """
 
 import os
-from typing import List, Union
+import pathlib
+import subprocess
+from typing import List
 
-from cumulus_geoproc import logger, utils
+from cumulus_geoproc import logger
 from osgeo import gdal
-from osgeo_utils import gdal_calc, gdal_fillnodata
+from osgeo_utils import gdal_calc
 from osgeo_utils.samples import validate_cloud_optimized_geotiff
 
 gdal.UseExceptions()
@@ -174,19 +176,26 @@ def gdal_calculate(*args):
     gdal_calc.main(argv)
 
 
-def gdal_fillnodataval(*args):
-    """Implement gdal-utils gdal_fillnodata CLI utility
+def gdal_fillnodataval(src: str, dst: str, /, *args):
+    """Implement gdal-utils gdal_fillnodata CLI utility as a subprocess
 
     gdal_fillnodata documentation:
 
     https://gdal.org/programs/gdal_fillnodata.html
     """
-    argv = [gdal_fillnodata.__file__]
+    argv = ["gdal_fillnodata.py"]
     argv.extend(list(args))
+    argv.append(src)
+    argv.append(dst)
 
     logger.debug(f"Argvs: {argv=}")
 
-    gdal_fillnodata.main(argv)
+    try:
+        result = subprocess.check_call(argv, cwd=pathlib.PurePath(src).parent)
+        return result
+    except subprocess.CalledProcessError as ex:
+        logger.error(f"{type(ex).__name__}: {this}: {ex}")
+        return result
 
 
 def validate_cog(*args):

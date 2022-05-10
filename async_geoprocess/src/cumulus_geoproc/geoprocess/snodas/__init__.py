@@ -118,6 +118,7 @@ def snow_melt_mm(translated_tif: dict):
     snowmelt_dt = translated_tif[snowmelt_code]["datetime"]
 
     snowmelt_mm = snowmelt.replace(snowmelt_code, snowmelt_code_mm)
+    temp_snowmelt_mm = snowmelt.replace(snowmelt_code, "9999")
 
     # convert snow melt runoff as meters / 100_000 to mm
     # 100_000 is the scale factor getting values to meters
@@ -126,11 +127,25 @@ def snow_melt_mm(translated_tif: dict):
             "-A",
             snowmelt,
             "--outfile",
-            tif := snowmelt_mm,
+            temp_snowmelt_mm,
             "--calc",
             "A.astype(numpy.float32) / 100_000 * 1000",
             "--quiet",
+            "--overwrite",
         )
+        gdal.Translate(
+            tif := snowmelt_mm,
+            temp_snowmelt_mm,
+            format="COG",
+            creationOptions=[
+                "RESAMPLING=AVERAGE",
+                "OVERVIEWS=IGNORE_EXISTING",
+                "OVERVIEW_RESAMPLING=AVERAGE",
+            ],
+        )
+        # validate COG
+        if (validate := cgdal.validate_cog("-q", tif)) == 0:
+            logger.info(f"Validate COG = {validate}\t{tif} is a COG")
     except RuntimeError as ex:
         logger.debug(f"{type(ex).__name__}: {this}: {ex}")
         return None
@@ -178,6 +193,8 @@ def cold_content(translated_tif):
     avg_temp = translated_tif[avg_temp_sp]["file"]
 
     cold_content_filename = swe.replace(swe_code, coldcontent_code)
+    temp_cold_content = swe.replace(swe_code, "9999")
+
     try:
         cgdal.gdal_calculate(
             "-A",
@@ -185,11 +202,24 @@ def cold_content(translated_tif):
             "-B",
             avg_temp,
             "--outfile",
-            tif := cold_content_filename,
+            temp_cold_content,
             "--calc",
             "A.astype(numpy.float32) * 2114 * (B.astype(numpy.float32) - 273) / 333000",
             "--quiet",
         )
+        gdal.Translate(
+            tif := cold_content_filename,
+            temp_cold_content,
+            format="COG",
+            creationOptions=[
+                "RESAMPLING=AVERAGE",
+                "OVERVIEWS=IGNORE_EXISTING",
+                "OVERVIEW_RESAMPLING=AVERAGE",
+            ],
+        )
+        # validate COG
+        if (validate := cgdal.validate_cog("-q", tif)) == 0:
+            logger.info(f"Validate COG = {validate}\t{tif} is a COG")
     except RuntimeError as ex:
         logger.debug(f"{type(ex).__name__}: {this}: {ex}")
         return None

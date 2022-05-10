@@ -36,7 +36,8 @@ def is_lakefix(dt: datetime, code: str):
     """
     codes = ("1034", "1036")
     dt_after = datetime(2014, 10, 9, 0, 0, tzinfo=timezone.utc)
-    if dt >= dt_after and code in codes:
+    dt_before = datetime(2019, 10, 10, 0, 0, tzinfo=timezone.utc)
+    if (dt_after <= dt <= dt_before) and code in codes:
         return True
     else:
         return False
@@ -105,13 +106,20 @@ async def snodas_interp_task(
         fill_tif = os.path.join(
             dst, file_extension(filename, suffix="-interpolated.tiff")
         )
-        cgdal.gdal_fillnodataval(
-            "-q",
-            "-md",
-            str(max_dist),
-            filepath,
-            fill_tif,
-        )
+
+        # fillnodata to GTiff
+        if max_dist == 0 or (
+            cgdal.gdal_fillnodataval(
+                filepath,
+                fill_tif,
+                "-q",
+                "-md",
+                str(max_dist),
+            )
+            != 0
+        ):
+            logger.info("gdal_fillnodata.py not executed")
+            fill_tif = filepath
 
         # convert to COG
         gdal.Translate(
@@ -126,6 +134,9 @@ async def snodas_interp_task(
                 "OVERVIEW_RESAMPLING=AVERAGE",
             ],
         )
+        # validate COG
+        if (validate := cgdal.validate_cog("-q", tif)) == 0:
+            logger.info(f"Validate COG = {validate}\t{tif} is a COG")
 
         return {
             "file": tif,
@@ -155,6 +166,12 @@ async def snodas(cfg: namedtuple, dst: str):
     List[dict[str, str]]
         List of dictionary objects with attributes needed to upload to S3
     """
+    # products that don't actually get interpolated but don't know why
+    no_interp = (
+        "2072",
+        "3333",
+        "1038",
+    )
     tasks = []
     dt = (
         datetime.strptime(cfg.datetime, "%Y%m%d")
@@ -179,6 +196,8 @@ async def snodas(cfg: namedtuple, dst: str):
             code,
         )
 
+        max_dist = 0 if code in no_interp else cfg.max_distance
+
         if download_file := boto.s3_download_file(cfg.bucket, key, dst=dst):
             tasks.append(
                 asyncio.create_task(
@@ -186,7 +205,7 @@ async def snodas(cfg: namedtuple, dst: str):
                         download_file,
                         product,
                         dt,
-                        cfg.max_distance,
+                        max_dist,
                         nodata_value,
                         lakefix,
                     )

@@ -114,7 +114,7 @@ def process(src: str, dst: str, acquirable: str = None):
 
                     # validate COG
                     if (validate := cgdal.validate_cog("-q", tif)) == 0:
-                        logger.info(f"Validate COG = {validate}\t{tif} is a COG")
+                        logger.debug(f"Validate COG = {validate}\t{tif} is a COG")
 
                     outfile_list.append(
                         {

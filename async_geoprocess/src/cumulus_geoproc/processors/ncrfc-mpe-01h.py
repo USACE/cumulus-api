@@ -81,7 +81,6 @@ def process(src: str, dst: str, acquirable: str = None):
                 "RESAMPLING=AVERAGE",
                 "OVERVIEWS=IGNORE_EXISTING",
                 "OVERVIEW_RESAMPLING=AVERAGE",
-                "NUM_THREADS=ALL_CPUS",
             ],
         )
 

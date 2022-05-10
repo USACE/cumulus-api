@@ -46,12 +46,11 @@ def process(src: str, dst: str, acquirable: str = None):
 
     try:
         filename = os.path.basename(src)
-        filename_ = utils.file_extension(filename)
 
         filetype_elements = {
             "nbm-co-airtemp": {
                 "GRIB_ELEMENT": "T",
-                "GRIB_SHORT_NAME": "0-SFC",
+                "GRIB_SHORT_NAME": "2-HTGL",
                 "GRIB_UNIT": "[C]",
             },
             "nbm-co-qpf": {
@@ -91,6 +90,11 @@ def process(src: str, dst: str, acquirable: str = None):
                 )
                 dt_ref = datetime.fromtimestamp(int(ref_time_match[0]), timezone.utc)
 
+                dt_valid_str = dt_valid.strftime("%Y%m%d")
+                filename_ = utils.file_extension(
+                    filename, suffix=f"-{dt_valid_str}-{filetype}.tif"
+                )
+
                 gdal.Translate(
                     tif := os.path.join(dst, filename_),
                     ds,
@@ -100,7 +104,6 @@ def process(src: str, dst: str, acquirable: str = None):
                         "RESAMPLING=AVERAGE",
                         "OVERVIEWS=IGNORE_EXISTING",
                         "OVERVIEW_RESAMPLING=AVERAGE",
-                        "NUM_THREADS=ALL_CPUS",
                     ],
                 )
 

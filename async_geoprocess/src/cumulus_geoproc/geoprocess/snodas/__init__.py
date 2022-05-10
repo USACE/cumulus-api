@@ -145,7 +145,7 @@ def snow_melt_mm(translated_tif: dict):
         )
         # validate COG
         if (validate := cgdal.validate_cog("-q", tif)) == 0:
-            logger.info(f"Validate COG = {validate}\t{tif} is a COG")
+            logger.debug(f"Validate COG = {validate}\t{tif} is a COG")
     except RuntimeError as ex:
         logger.debug(f"{type(ex).__name__}: {this}: {ex}")
         return None
@@ -219,7 +219,7 @@ def cold_content(translated_tif):
         )
         # validate COG
         if (validate := cgdal.validate_cog("-q", tif)) == 0:
-            logger.info(f"Validate COG = {validate}\t{tif} is a COG")
+            logger.debug(f"Validate COG = {validate}\t{tif} is a COG")
     except RuntimeError as ex:
         logger.debug(f"{type(ex).__name__}: {this}: {ex}")
         return None

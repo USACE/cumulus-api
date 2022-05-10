@@ -40,7 +40,7 @@ func ListAcquirablefiles(db *pgxpool.Pool, ID uuid.UUID, after string, before st
 	ff := make([]Acquirablefile, 0)
 	if err := pgxscan.Select(
 		context.Background(), db, &ff,
-		`SELECT id, datetime, 'https://api.rsgis.dev/' || file AS file, create_date, process_date, acquirable_id
+		`SELECT id, datetime, file, create_date, process_date, acquirable_id
 		 FROM v_acquirablefile
 	     WHERE acquirable_id = $1 AND datetime >= $2 AND datetime <= $3`, ID, after, before,
 	); err != nil {

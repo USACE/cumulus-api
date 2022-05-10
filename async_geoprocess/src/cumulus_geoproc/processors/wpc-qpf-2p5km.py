@@ -2,23 +2,33 @@
 """
 
 
-from datetime import datetime, timezone
 import os
-from uuid import uuid4
-from cumulus_geoproc.geoprocess.core.base import info, translate, create_overviews
+import re
+from datetime import datetime, timezone
+
 import pyplugs
+from cumulus_geoproc import logger, utils
+from cumulus_geoproc.utils import boto, cgdal
+from osgeo import gdal
+
+gdal.UseExceptions()
+
+
+this = os.path.basename(__file__)
 
 
 @pyplugs.register
-def process(infile: str, outdir: str):
+def process(src: str, dst: str, acquirable: str = None):
     """Grid processor
 
     Parameters
     ----------
-    infile : str
+    src : str
         path to input file for processing
-    outdir : str
-        path to processor result
+    dst : str
+        path to temporary directory created from worker thread
+    acquirable: str
+        acquirable slug
 
     Returns
     -------
@@ -30,34 +40,69 @@ def process(infile: str, outdir: str):
             "version": str           Reference Time (forecast), ISO format with timezone
         }
     """
+    outfile_list = []
 
-    # Date String
-    dtStr = info(infile)["bands"][0]["metadata"][""]["GRIB_VALID_TIME"]
-    # Get Datetime from String Like "1599008400 sec UTC"
-    dt = datetime.fromtimestamp(int(dtStr.split(" ")[0]))
+    try:
+        attr = {"GRIB_ELEMENT": "APCP06"}
 
-    # Version (Forecast Issue Time)
-    verStr = info(infile)["bands"][0]["metadata"][""]["GRIB_REF_TIME"]
-    # Get Datetime from String Like "1599008400 sec UTC"
-    vt = datetime.fromtimestamp(int(verStr.split(" ")[0]))
+        filename = os.path.basename(src)
+        filename_ = utils.file_extension(filename)
 
-    # Extract Band
-    tif = translate(infile, os.path.join(outdir, f"temp-tif-{uuid4()}"))
-    tif_with_overviews = create_overviews(tif)
-    cog = translate(
-        tif_with_overviews,
-        os.path.join(
-            outdir, "{}.tif".format(os.path.basename(infile).split(".grb")[0])
-        ),
-    )
+        bucket, key = src.split("/", maxsplit=1)
+        logger.debug(f"s3_download_file({bucket=}, {key=})")
 
-    outfile_list = [
-        {
-            "filetype": "wpc-qpf-2p5km",
-            "file": cog,
-            "datetime": dt.replace(tzinfo=timezone.utc).isoformat(),
-            "version": vt.replace(tzinfo=timezone.utc).isoformat(),
-        },
-    ]
+        src_ = boto.s3_download_file(bucket=bucket, key=key, dst=dst)
+        logger.debug(f"S3 Downloaded File: {src_}")
+
+        ds = gdal.Open(src_)
+
+        if (band_number := cgdal.find_band(ds, attr)) is None:
+            raise Exception("Band number not found for attributes: {attr}")
+
+        logger.debug(f"Band number '{band_number}' found for attributes {attr}")
+
+        raster = ds.GetRasterBand(band_number)
+
+        # Get Datetime from String Like "1599008400 sec UTC"
+        time_pattern = re.compile(r"\d+")
+        valid_time_match = time_pattern.match(raster.GetMetadataItem("GRIB_VALID_TIME"))
+        dt_valid = datetime.fromtimestamp(int(valid_time_match[0]), timezone.utc)
+        ref_time_match = time_pattern.match(raster.GetMetadataItem("GRIB_REF_TIME"))
+        dt_ref = datetime.fromtimestamp(int(ref_time_match[0]), timezone.utc)
+
+        gdal.Translate(
+            tif := os.path.join(dst, filename_),
+            ds,
+            format="COG",
+            bandList=[1],
+            creationOptions=[
+                "RESAMPLING=AVERAGE",
+                "OVERVIEWS=IGNORE_EXISTING",
+                "OVERVIEW_RESAMPLING=AVERAGE",
+                "NUM_THREADS=ALL_CPUS",
+            ],
+        )
+
+        # validate COG
+        if (validate := cgdal.validate_cog("-q", tif)) == 0:
+            logger.info(f"Validate COG = {validate}\t{tif} is a COG")
+
+        outfile_list = [
+            {
+                "filetype": acquirable,
+                "file": tif,
+                "datetime": dt_valid.isoformat(),
+                "version": dt_ref.isoformat(),
+            },
+        ]
+    except (RuntimeError, KeyError, Exception) as ex:
+        logger.error(f"{type(ex).__name__}: {this}: {ex}")
+    finally:
+        ds = None
+        raster = None
 
     return outfile_list
+
+
+if __name__ == "__main__":
+    pass

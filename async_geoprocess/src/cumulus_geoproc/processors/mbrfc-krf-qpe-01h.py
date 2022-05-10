@@ -3,65 +3,32 @@
 
 
 import os
-from dataclasses import dataclass
+import re
 from datetime import datetime, timezone
-from typing import List, OrderedDict
-from uuid import uuid4
 
-from cumulus_geoproc.geoprocess.core.base import create_overviews, info, translate, warp
-from cumulus_geoproc.handyutils.core import change_final_file_extension, gunzip_file
 import pyplugs
+from cumulus_geoproc import logger, utils
+from cumulus_geoproc.utils import boto, cgdal
+from osgeo import gdal
+
+gdal.UseExceptions()
 
 
-@dataclass
-class Band:
-    band: int
-    block: List[int]
-    type: str
-    colorInterpretation: str
-    description: str
-    noDataValue: float
-    metadata: OrderedDict[str, OrderedDict[str, str]]
-
-
-@dataclass
-class Metadata:
-    GRIB_COMMENT: str
-    # GRIB_DISCIPLINE: str
-    GRIB_ELEMENT: str
-    GRIB_FORECAST_SECONDS: str
-    # GRIB_IDS: str
-    # GRIB_PDS_PDTN: str
-    # GRIB_PDS_TEMPLATE_ASSEMBLED_VALUES: str
-    # GRIB_PDS_TEMPLATE_NUMBERS: str
-    GRIB_REF_TIME: str
-    GRIB_SHORT_NAME: str
-    GRIB_UNIT: str
-    GRIB_VALID_TIME: str
-
-
-# @dataclass
-# class GribIds():
-#     CENTER: str
-#     SUBCENTER: int
-#     MASTER_TABLE: int
-#     LOCAL_TABLE: int
-#     SIGNF_REF_TIME: str
-#     REF_TIME: datetime
-#     PROD_STATUS: str
-#     TYPE: str
+this = os.path.basename(__file__)
 
 
 @pyplugs.register
-def process(infile: str, outdir: str):
+def process(src: str, dst: str, acquirable: str = None):
     """Grid processor
 
     Parameters
     ----------
-    infile : str
+    src : str
         path to input file for processing
-    outdir : str
-        path to processor result
+    dst : str
+        path to temporary directory created from worker thread
+    acquirable: str
+        acquirable slug
 
     Returns
     -------
@@ -73,46 +40,65 @@ def process(infile: str, outdir: str):
             "version": str           Reference Time (forecast), ISO format with timezone
         }
     """
-    band_number = 1
-    ftype = "mbrfc-krf-qpe-01h"
+    outfile_list = []
 
-    outfile_list = list()
+    try:
+        attr = {"GRIB_ELEMENT": "APCP"}
 
-    # Process the gdal information
-    new_infile = os.path.splitext(infile)[0]
-    gunzip_file(infile, new_infile)
-    fileinfo: dict = info(new_infile)
+        filename = os.path.basename(src)
+        filename_ = utils.file_extension(filename)
 
-    all_bands: List = fileinfo["bands"]
-    band = Band(**all_bands[band_number - 1])
-    meta_dict = band.metadata[""]
-    meta = Metadata(**meta_dict)
+        bucket, key = src.split("/", maxsplit=1)
+        logger.debug(f"s3_download_file({bucket=}, {key=})")
 
-    # ref_time = datetime.fromtimestamp(int(meta.GRIB_REF_TIME))
-    valid_time = datetime.fromtimestamp(int(meta.GRIB_VALID_TIME), timezone.utc)
+        src_ = boto.s3_download_file(bucket=bucket, key=key, dst=dst)
+        logger.debug(f"S3 Downloaded File: {src_}")
 
-    # Extract Band; Convert to COG
+        ds = gdal.Open("/vsigzip/" + src_)
 
-    tif_trans = translate(
-        new_infile,
-        os.path.join(outdir, f"temp-tif-{uuid4()}"),
-        extra_args=["-b", str(band_number)],
-    )
-    tif_with_overviews = create_overviews(tif_trans)
-    cog = translate(
-        tif_with_overviews,
-        os.path.join(
-            outdir, change_final_file_extension(os.path.basename(new_infile), "tif")
-        ),
-    )
+        if (band_number := cgdal.find_band(ds, attr)) is None:
+            raise Exception("Band number not found for attributes: {attr}")
 
-    outfile_list.append(
-        {
-            "filetype": ftype,
-            "file": cog,
-            "datetime": valid_time.isoformat(),
-            "version": None,
-        }
-    )
+        logger.debug(f"Band number '{band_number}' found for attributes {attr}")
+
+        raster = ds.GetRasterBand(band_number)
+
+        # Get Datetime from String Like "1599008400 sec UTC"
+        time_pattern = re.compile(r"\d+")
+        time_str = raster.GetMetadataItem("GRIB_VALID_TIME")
+        valid_time_match = time_pattern.match(time_str)
+
+        dt_valid = datetime.fromtimestamp(int(valid_time_match[0]), timezone.utc)
+
+        gdal.Translate(
+            tif := os.path.join(dst, filename_),
+            ds,
+            format="COG",
+            bandList=[band_number],
+            creationOptions=[
+                "RESAMPLING=AVERAGE",
+                "OVERVIEWS=IGNORE_EXISTING",
+                "OVERVIEW_RESAMPLING=AVERAGE",
+                "NUM_THREADS=ALL_CPUS",
+            ],
+        )
+
+        outfile_list = [
+            {
+                "filetype": acquirable,
+                "file": tif,
+                "datetime": dt_valid.isoformat(),
+                "version": None,
+            },
+        ]
+    except (RuntimeError, KeyError, Exception) as ex:
+        logger.error(f"{type(ex).__name__}: {this}: {ex}")
+    finally:
+        ds = None
+        raster = None
 
     return outfile_list
+
+
+if __name__ == "__main__":
+    pass

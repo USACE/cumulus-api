@@ -3,188 +3,63 @@
 infinit while loop receives SQS messages and process them
 """
 
+import asyncio
 import json
 import os
 import shutil
 import time
-from collections import namedtuple
+import traceback
+from collections import deque, namedtuple
 from tempfile import TemporaryDirectory
 
 import boto3
 
-import geoprocess_worker.helpers as helpers
-import geoprocess_worker.incoming_file_to_cogs as incoming_file_to_cogs
-import geoprocess_worker.snodas_interpolate as snodas_interpolate
-from geoprocess_worker import (
+from cumulus_geoproc import logger, utils
+from cumulus_geoproc.configurations import (
     AWS_ACCESS_KEY_ID,
-    AWS_REGION_SQS,
+    AWS_DEFAULT_REGION,
     AWS_SECRET_ACCESS_KEY,
-    CUMULUS_MOCK_S3_UPLOAD,
+    CUMULUS_API_URL,
     ENDPOINT_URL_SQS,
+    HTTP2,
     MAX_Q_MESSAGES,
+    PRODUCT_FILE_VERSION,
     QUEUE_NAME,
-    USE_SSL,
     WAIT_TIME_SECONDS,
-    WRITE_TO_BUCKET,
-    logger,
 )
+from cumulus_geoproc.geoprocess import handler
+from cumulus_geoproc.utils.capi import CumulusAPI
 
-PRODUCT_MAP = helpers.get_product_slugs()
-logger.debug("Initialize Product Slug -> UUID mapping'%s'" % PRODUCT_MAP)
-
-
-def update_product_map():
-    if PRODUCT_MAP == helpers.get_product_slugs():
-        return False
-    else:
-        PRODUCT_MAP = helpers.get_product_slugs()
-        return True
-
-
-def processed_files(file_list: list, acq_file_id: str):
-    """Send processed files to their respective S3 bucket and record
-    its payload information for the cumulus database
-
-    Parameters
-    ----------
-    file_list : List[dict]
-        list of dictionaries produced by the processor
-    acq_file_id : str
-        acquirable file id
-
-    Returns
-    -------
-    List[dict]
-        list of dictionaries describing successful grid transforms
-    """
-
-    uploads = list()
-    for file in file_list:
-        ProcessorPayload = namedtuple("ProcessorPayload", file)(**file)
-        # See that we have a valid
-        if ProcessorPayload.filetype in PRODUCT_MAP.keys():
-            logger.info(f"found acquirable: {ProcessorPayload.filetype}")
-            # Write output files to different bucket
-            write_key = "cumulus/products/{}/{}".format(
-                ProcessorPayload.filetype, os.path.basename(ProcessorPayload.file)
-            )
-            if CUMULUS_MOCK_S3_UPLOAD:
-                # Mock good upload to S3
-                upload_success = True
-                # Copy file to tmp directory on host
-                # shutil.copy2 will overwrite a file if it already exists.
-                shutil.copy2(ProcessorPayload.file, "/tmp")
-            else:
-                upload_success = helpers.upload_file(
-                    ProcessorPayload.file, WRITE_TO_BUCKET, write_key
-                )
-
-            # Assign the acquirablefile_id to the productfile if
-            # available in the georprocess_config message
-            if upload_success:
-                file_version = (
-                    file["version"] if not None else "1111-11-11T11:11:11.11Z"
-                )
-                uploads.append(
-                    {
-                        "datetime": file["datetime"],
-                        "file": write_key,
-                        "product_id": PRODUCT_MAP[ProcessorPayload.filetype],
-                        "version": file_version,
-                        "acquirablefile_id": acq_file_id,
-                    }
-                )
-                logger.debug(f"file uploaded; payload appended; {uploads[-1]}")
-
-    return uploads
-
-
-def handle_message(msg):
-    """Handle the message from SQS determining what to do with it
-
-    Geo processing is either 'snodas-interpolate' or 'incoming-file-to-cogs'
-
-    Send payload to database for successful uploaded and processed file(s)
-
-    Parameters
-    ----------
-    msg : sqs.Message
-        SQS message from the Queue
-
-    Returns
-    -------
-    dict
-        dictionary with messages
-    """
-    payload = json.loads(msg.body)
-    geoprocess = payload["geoprocess"]
-
-    logger.info(f"Geo Process: {geoprocess}")
-
-    with TemporaryDirectory() as temporary_directory:
-        if geoprocess == "snodas-interpolate":
-            GeoCfg = namedtuple("GeoCfg", payload["geoprocess_config"])(
-                **payload["geoprocess_config"]
-            )
-            logger.debug(f"{GeoCfg=}")
-            logger.debug(f"{temporary_directory=}")
-            outfiles = snodas_interpolate.process(
-                bucket=GeoCfg.bucket,
-                date_time=GeoCfg.datetime,
-                max_distance=int(GeoCfg.max_distance),
-                outdir=temporary_directory,
-            )
-        elif geoprocess == "incoming-file-to-cogs":
-            GeoCfg = namedtuple("GeoCfg", payload["geoprocess_config"])(
-                **payload["geoprocess_config"]
-            )
-
-            logger.debug(f"{GeoCfg=}")
-            logger.debug(f"{temporary_directory=}")
-            logger.info(f"Geo Processor Plugin: {GeoCfg.acquirable_slug}")
-
-            outfiles = incoming_file_to_cogs.process(
-                bucket=GeoCfg.bucket,
-                key=GeoCfg.key,
-                plugin=GeoCfg.acquirable_slug,
-                outdir=temporary_directory,
-            )
-
-        acquirablefile_id = (
-            GeoCfg.acquirablefile_id if hasattr(GeoCfg, "acquirablefile_id") else None
-        )
-
-        successes = processed_files(file_list=outfiles, acq_file_id=acquirablefile_id)
-        logger.debug(f"Successfully Processed Files: {successes}")
-
-        count = helpers.write_database(successes)
-
-        return {"count": count, "productfiles": successes}
+this = os.path.basename(__file__)
 
 
 def start_worker():
-    start = time.time()
     """starting the worker thread"""
-    if AWS_ACCESS_KEY_ID is None:
-        # Running in AWS Using IAM Role for Credentials
-        if ENDPOINT_URL_SQS:
-            CLIENT = boto3.resource("sqs", endpoint_url=ENDPOINT_URL_SQS)
-        else:
-            CLIENT = boto3.resource("sqs")
-    else:
-        # Local Testing
-        # ElasticMQ with Credentials via AWS_ environment variables
-        CLIENT = boto3.resource(
-            "sqs",
-            endpoint_url=ENDPOINT_URL_SQS,
-            region_name=AWS_REGION_SQS,
-            aws_secret_access_key=AWS_SECRET_ACCESS_KEY,
-            aws_access_key_id=AWS_ACCESS_KEY_ID,
-            use_ssl=USE_SSL,
-        )
+    start = time.time()
+    perf_queue = deque(maxlen=1000)
+    # initialize product slug list
+    try:
+        cumulus_api = CumulusAPI(CUMULUS_API_URL, HTTP2)
+        cumulus_api.endpoint = "product_slugs"
+        resp = asyncio.run(cumulus_api.get_(cumulus_api.url))
+        PRODUCT_MAP = resp.json()
+        logger.debug("Initialize Product Slug -> UUID mapping'%s'" % PRODUCT_MAP)
+    except Exception as ex:
+        return ex
+
+    # aws_access_key_id, aws_secret_access_key, aws_default_region, etc
+    # set as env vars for local dev.  IAM role used for implementation
+
+    sqs = boto3.resource(
+        service_name="sqs",
+        endpoint_url=ENDPOINT_URL_SQS,
+        region_name=AWS_DEFAULT_REGION,
+        aws_secret_access_key=AWS_SECRET_ACCESS_KEY,
+        aws_access_key_id=AWS_ACCESS_KEY_ID,
+    )
 
     # Incoming Requests
-    queue = CLIENT.get_queue_by_name(QueueName=QUEUE_NAME)
+    queue = sqs.get_queue_by_name(QueueName=QUEUE_NAME)
 
     logger.info(
         "%(spacer)s Starting the worker thread %(spacer)s" % {"spacer": "*" * 20}
@@ -194,25 +69,98 @@ def start_worker():
     while True:
         # check for updated product mapping each hour
         if (time.time() - start) > 3600:
-            PRODUCT_MAP = helpers.get_product_slugs()
+            cumulus_api.endpoint = "product_slugs"
+            resp = asyncio.run(cumulus_api.get_(cumulus_api.url))
+            PRODUCT_MAP = resp.json()
             start = time.time()
-            logger.info("Product mapping updated")
 
         messages = queue.receive_messages(
             MaxNumberOfMessages=MAX_Q_MESSAGES, WaitTimeSeconds=WAIT_TIME_SECONDS
         )
+
         if len(messages) == 0:
-            logger.info("No messages")
+            try:
+                average_sec = sum(perf_queue) / len(perf_queue)
+                logger.info(
+                    f"Process Message: Avg {average_sec:0.4f} (sec); Deque Size {len(perf_queue)}"
+                )
+            except ZeroDivisionError as ex:
+                logger.info(f"{type(ex).__name__} - {this} - {ex}")
 
         for message in messages:
             try:
+                start_message = time.perf_counter()
+
                 logger.info("%(spacer)s new message %(spacer)s" % {"spacer": "*" * 20})
-                logger.debug(handle_message(message))
+                # parse message to payload as json object
+                payload = json.loads(message.body)
+
+                # get processor and its configurations from the message
+                geoprocess = payload["geoprocess"]
+                GeoCfg = namedtuple("GeoCfg", payload["geoprocess_config"])(
+                    **payload["geoprocess_config"]
+                )
+                # setting acquirablefile id for later processing
+                acquirablefile_id = (
+                    GeoCfg.acquirablefile_id
+                    if hasattr(GeoCfg, "acquirablefile_id")
+                    else None
+                )
+
+                if hasattr(GeoCfg, "acquirable_slug"):
+                    logger.info(
+                        f"Geo Process:{geoprocess}; Plugin: {GeoCfg.acquirable_slug}"
+                    )
+
+                logger.debug(f"Message Payload: {payload}")
+
+                # create a temporary directory and release in final exception
+                dst = TemporaryDirectory()
+                logger.debug(f"Temporary Directory: {dst.name}")
+
+                # handle the message getting a list of json objects
+                processed = handler.handle_message(geoprocess, GeoCfg, dst.name)
+
+                # update processed messages with additional attributes
+                # set product version is set to None from processor
+                # KeyError for slug id not available allows for the loop to continue
+                product_versioning = lambda p: PRODUCT_FILE_VERSION if p is None else p
+                processed_ = []
+                for item in processed:
+                    try:
+                        item_ = {
+                            **item,
+                            **{
+                                "acquirablefile_id": acquirablefile_id,
+                                "product_id": PRODUCT_MAP[item["filetype"]],
+                                "version": product_versioning(item["version"]),
+                            },
+                        }
+                        processed_.append(item_)
+                        logger.debug(f"New processed dict item: {processed_[-1]}")
+                    except KeyError as ex:
+                        logger.warning(f"{type(ex).__name__} - {this} - {ex}")
+                        continue
+
+                # notify cumulus of the processed files
+                logger.debug(
+                    f"Attempt to notify {len(processed_)} processed product(s)"
+                )
+                resp = handler.upload_notify(notices=processed_, bucket=GeoCfg.bucket)
+                logger.debug(resp)
             except Exception as ex:
-                logger.warning(ex)
+                logger.warning(
+                    f"{type(ex).__name__} - {this} - {ex} - {traceback.format_exc()}"
+                )
             finally:
+                if os.path.exists(dst.name):
+                    shutil.rmtree(dst.name, ignore_errors=True)
+                dst = None
                 message.delete()
+                perf_queue.append(perf_time := time.perf_counter() - start_message)
+                logger.debug(f"Handle Message Time: {perf_time} (sec)")
 
 
 if __name__ == "__main__":
-    start_worker()
+    msg = start_worker()
+    logger.critical(msg)

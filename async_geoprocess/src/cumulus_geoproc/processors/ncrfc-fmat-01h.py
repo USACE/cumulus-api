@@ -6,26 +6,30 @@ Forecast Mesoscale Analysis Surface Temperature 01Hr
 
 import os
 import re
-from osgeo import gdal
 from datetime import datetime, timezone
-from collections import namedtuple
-from uuid import uuid4
-from cumulus_geoproc.geoprocess.core.base import translate, create_overviews
-from cumulus_geoproc.handyutils.core import change_final_file_extension
 
 import pyplugs
+from cumulus_geoproc import logger, utils
+from cumulus_geoproc.utils import boto
+from osgeo import gdal
+
+gdal.UseExceptions()
+
+this = os.path.basename(__file__)
 
 
 @pyplugs.register
-def process(infile: str, outdir: str):
+def process(src: str, dst: str, acquirable: str = None):
     """Grid processor
 
     Parameters
     ----------
-    infile : str
+    src : str
         path to input file for processing
-    outdir : str
-        path to processor result
+    dst : str
+        path to temporary directory created from worker thread
+    acquirable: str
+        acquirable slug
 
     Returns
     -------
@@ -37,62 +41,80 @@ def process(infile: str, outdir: str):
             "version": str           Reference Time (forecast), ISO format with timezone
         }
     """
+    outfile_list = []
 
-    ftype = "ncrfc-fmat-01h"
-
-    outfile_list = list()
-
-    gdal.UseExceptions()
     try:
-        gribs = gdal.ReadDir(f"/vsitar/{infile}")
-    except RuntimeError as err:
-        print(f"Error ReadDir: {err}")
-        return list()
+        bucket, key = src.split("/", maxsplit=1)
+        logger.debug(f"s3_download_file({bucket=}, {key=})")
 
-    for grib in gribs:
-        try:
-            ds = gdal.Open(f"/vsitar/{infile}/{grib}")
-            fileinfo = gdal.Info(ds, format="json")
-        except RuntimeError as err:
-            print(f"Error: {err}")
-            continue
-        finally:
-            ds = None
+        src_ = boto.s3_download_file(bucket=bucket, key=key, dst=dst)
+        logger.debug(f"S3 Downloaded File: {src_}")
 
-        band = fileinfo["bands"][0]
-        meta = band["metadata"][""]
-        Meta = namedtuple("Meta", meta.keys())(**meta)
-        # Compile regex to get times from timestamp
-        time_pattern = re.compile(r"\d+")
-        valid_time_match = time_pattern.match(Meta.GRIB_VALID_TIME)
-        ref_time_match = time_pattern.match(Meta.GRIB_REF_TIME)
-        valid_time = (
-            datetime.fromtimestamp(int(valid_time_match[0]), timezone.utc).isoformat()
-            if valid_time_match
-            else None
-        )
-        ref_time = (
-            datetime.fromtimestamp(int(ref_time_match[0]), timezone.utc).isoformat()
-            if ref_time_match
-            else None
-        )
+        for grib in gdal.ReadDir(f"/vsitar/{src_}"):
+            try:
+                filename_ = utils.file_extension(grib, suffix=".tif")
+                ds = gdal.Open(f"/vsitar/{src_}/{grib}")
+                raster = ds.GetRasterBand(1)
 
-        # Extract Band 0 (QPE); Convert to COG
-        root, _ = os.path.splitext(grib)
+                # Compile regex to get times from timestamp
+                time_pattern = re.compile(r"\d+")
 
-        tif = translate(
-            f"/vsitar/{infile}/{grib}", os.path.join(outdir, f"temp-tif-{uuid4()}")
-        )
-        tif_with_overviews = create_overviews(tif)
-        cog = translate(tif_with_overviews, os.path.join(outdir, "{}.tif".format(root)))
-        # Append dictionary object to outfile list
-        outfile_list.append(
-            {
-                "filetype": ftype,
-                "file": cog,
-                "datetime": valid_time,
-                "version": ref_time,
-            }
-        )
+                valid_time_match = time_pattern.match(
+                    raster.GetMetadataItem("GRIB_VALID_TIME")
+                )
+                valid_time = (
+                    datetime.fromtimestamp(
+                        int(valid_time_match[0]), timezone.utc
+                    ).isoformat()
+                    if valid_time_match
+                    else None
+                )
+
+                ref_time_match = time_pattern.match(
+                    raster.GetMetadataItem("GRIB_REF_TIME")
+                )
+                ref_time = (
+                    datetime.fromtimestamp(
+                        int(ref_time_match[0]), timezone.utc
+                    ).isoformat()
+                    if ref_time_match
+                    else None
+                )
+
+                gdal.Translate(
+                    tif := os.path.join(dst, filename_),
+                    ds,
+                    format="COG",
+                    bandList=[1],
+                    creationOptions=[
+                        "RESAMPLING=AVERAGE",
+                        "OVERVIEWS=IGNORE_EXISTING",
+                        "OVERVIEW_RESAMPLING=AVERAGE",
+                        "NUM_THREADS=ALL_CPUS",
+                    ],
+                )
+
+                # Append dictionary object to outfile list
+                outfile_list.append(
+                    {
+                        "filetype": acquirable,
+                        "file": tif,
+                        "datetime": valid_time,
+                        "version": ref_time,
+                    }
+                )
+            except RuntimeError as ex:
+                logger.error(f"{type(ex).__name__}: {this}: {ex}")
+                continue
+
+    except (RuntimeError, KeyError, Exception) as ex:
+        logger.error(f"{type(ex).__name__}: {this}: {ex}")
+    finally:
+        ds = None
+        raster = None
 
     return outfile_list
+
+
+if __name__ == "__main__":
+    pass

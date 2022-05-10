@@ -1,65 +1,43 @@
-"""High Resolution Rapid Refresh (HRRR) total precipitation
+"""High Resolution Rapid Refresh (HRRR) Total Precipitation
+
+HRRR file source:
+    https://nomads.ncep.noaa.gov/pub/data/nccf/com/hrrr/prod/
+
+2022-04-29 Update:
+    HRRR index files (hrrr_filename.grib2.idx) are used to determine the
+    ever changing '01 hr Total Precipitation' raster band number.  Archived
+    HRRR products do not have idx files saved in S3, so this processor
+    tries to account for that.
 """
 
-
-from datetime import datetime, timezone
 import os
-from uuid import uuid4
-from cumulus_geoproc.geoprocess.core.base import info, translate, create_overviews
-from cumulus_geoproc.handyutils.core import change_final_file_extension
-from dataclasses import dataclass
-from typing import List, OrderedDict
+import re
+from datetime import datetime, timezone
+
 import pyplugs
+from cumulus_geoproc import logger, utils
+from cumulus_geoproc.geoprocess import hrrr
+from cumulus_geoproc.utils import boto, cgdal
+from osgeo import gdal
+
+gdal.UseExceptions()
 
 
-@dataclass
-class Band:
-    band: int
-    block: List[int]
-    type: str
-    colorInterpretation: str
-    description: str
-    metadata: OrderedDict[str, OrderedDict[str, str]]
-
-
-@dataclass
-class Metadata:
-    GRIB_COMMENT: str
-    GRIB_DISCIPLINE: str
-    GRIB_ELEMENT: str
-    GRIB_FORECAST_SECONDS: str
-    GRIB_IDS: str
-    GRIB_PDS_PDTN: str
-    GRIB_PDS_TEMPLATE_ASSEMBLED_VALUES: str
-    GRIB_PDS_TEMPLATE_NUMBERS: str
-    GRIB_REF_TIME: str
-    GRIB_SHORT_NAME: str
-    GRIB_UNIT: str
-    GRIB_VALID_TIME: str
-
-
-@dataclass
-class GribIds:
-    CENTER: str
-    SUBCENTER: int
-    MASTER_TABLE: int
-    LOCAL_TABLE: int
-    SIGNF_REF_TIME: str
-    REF_TIME: datetime
-    PROD_STATUS: str
-    TYPE: str
+this = os.path.basename(__file__)
 
 
 @pyplugs.register
-def process(infile: str, outdir: str):
+def process(src: str, dst: str, acquirable: str = None):
     """Grid processor
 
     Parameters
     ----------
-    infile : str
+    src : str
         path to input file for processing
-    outdir : str
-        path to processor result
+    dst : str
+        path to temporary directory created from worker thread
+    acquirable: str
+        acquirable slug
 
     Returns
     -------
@@ -71,42 +49,86 @@ def process(infile: str, outdir: str):
             "version": str           Reference Time (forecast), ISO format with timezone
         }
     """
-    band_number = 84
-    outfile_list = list()
+    outfile_list = []
 
-    # Process the gdal information
-    fileinfo: dict = info(infile)
-    all_bands: List = fileinfo["bands"]
-    band84 = Band(**all_bands[band_number - 1])
-    meta84_dict = band84.metadata[""]
-    meta84 = Metadata(**meta84_dict)
-    grib_ids_dict = dict(item.split("=") for item in meta84.GRIB_IDS.split(" "))
-    grib_ids = GribIds(**grib_ids_dict)
-
-    ref_time = datetime.fromisoformat(grib_ids.REF_TIME.replace("Z", "+00:00"))
-    valid_time = datetime.fromtimestamp(int(meta84.GRIB_VALID_TIME.split(" ")[0]))
-
-    # Extract Band; Convert to COG
-    tif = translate(
-        infile,
-        os.path.join(outdir, f"temp-tif-{uuid4()}"),
-        extra_args=["-b", str(band_number)],
-    )
-    tif_with_overviews = create_overviews(tif)
-    cog = translate(
-        tif_with_overviews,
-        os.path.join(
-            outdir, change_final_file_extension(os.path.basename(infile), "tif")
-        ),
-    )
-
-    outfile_list.append(
-        {
-            "filetype": "hrrr-total-precip",
-            "file": cog,
-            "datetime": valid_time.replace(tzinfo=timezone.utc).isoformat(),
-            "version": ref_time.replace(tzinfo=timezone.utc).isoformat(),
+    try:
+        attr = {
+            "GRIB_ELEMENT": "APCP",
+            "GRIB_COMMENT": "01 hr Total precipitation [kg/(m^2)]",
         }
-    )
+
+        filename = os.path.basename(src)
+        filename_ = utils.file_extension(filename)
+
+        bucket, key = src.split("/", maxsplit=1)
+        logger.debug(f"s3_download_file({bucket=}, {key=})")
+
+        src_ = boto.s3_download_file(bucket=bucket, key=key, dst=dst)
+        logger.debug(f"S3 Downloaded File: {src_}")
+
+        # open the hrrr.grib2 file
+        ds = gdal.Open(src_)
+
+        # Successful download means we have the idx we need
+        idx_file = key + ".idx"
+
+        if hrrridx := boto.s3_download_file(bucket=bucket, key=idx_file, dst=dst):
+            idx = hrrr.HrrrIdx()
+            with open(hrrridx, "r") as fh:
+                for line in fh.readlines():
+                    idx.linex(line)
+                    # This if statement means Total Precip for 01 hr forecast
+                    if idx.element == "APCP" and (
+                        idx.forecast_hour == 0 or idx.forecast_hour == -1
+                    ):
+                        band_number = idx.raster_band
+            if band_number is None:
+                raise Exception("Band number not found in idx: {hrrridx}")
+            logger.debug(f"Band number '{band_number}' found in {hrrridx}")
+        else:
+            if (band_number := cgdal.find_band(ds, attr)) is None:
+                raise Exception(f"Band number not found for attributes: {attr}")
+            print(f"Band number '{band_number}' found for attributes {attr}")
+
+        raster = ds.GetRasterBand(band_number)
+
+        # Get Datetime from String Like "1599008400 sec UTC"
+        time_pattern = re.compile(r"\d+")
+        valid_time_match = time_pattern.match(raster.GetMetadataItem("GRIB_VALID_TIME"))
+        dt_valid = datetime.fromtimestamp(int(valid_time_match[0]), timezone.utc)
+        ref_time_match = time_pattern.match(raster.GetMetadataItem("GRIB_REF_TIME"))
+        dt_ref = datetime.fromtimestamp(int(ref_time_match[0]), timezone.utc)
+
+        gdal.Translate(
+            tif := os.path.join(dst, filename_),
+            ds,
+            format="COG",
+            bandList=[band_number],
+            creationOptions=[
+                "NUM_THREADS=ALL_CPUS",
+            ],
+        )
+
+        # validate COG
+        if (validate := cgdal.validate_cog("-q", tif)) == 0:
+            logger.info(f"Validate COG = {validate}\t{tif} is a COG")
+
+        outfile_list = [
+            {
+                "filetype": acquirable,
+                "file": tif,
+                "datetime": dt_valid.isoformat(),
+                "version": dt_ref.isoformat(),
+            },
+        ]
+    except (RuntimeError, KeyError, Exception) as ex:
+        logger.error(f"{type(ex).__name__}: {this}: {ex}")
+    finally:
+        ds = None
+        raster = None
 
     return outfile_list
+
+
+if __name__ == "__main__":
+    pass

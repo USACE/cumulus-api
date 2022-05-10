@@ -26,7 +26,7 @@ func ListProductfiles(db *pgxpool.Pool, ID uuid.UUID, after string, before strin
 	ff := make([]Productfile, 0)
 	if err := pgxscan.Select(
 		context.Background(), db, &ff,
-		`SELECT product_id, id, datetime, file, version
+		`SELECT product_id, id, datetime, file, version, acquirablefile_id
 	     FROM productfile
 		 WHERE product_id = $1 AND datetime >= $2 AND datetime <= $3`,
 		ID, after, before,

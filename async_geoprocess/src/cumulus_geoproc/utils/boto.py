@@ -13,6 +13,8 @@ from cumulus_geoproc.configurations import (
     ENDPOINT_URL_S3,
 )
 
+this = os.path.basename(__file__)
+
 
 def s3_upload_file(file_name: str, bucket: str, key: str = None):
     """Wrapper supporting S3 uploading a file
@@ -52,7 +54,7 @@ def s3_upload_file(file_name: str, bucket: str, key: str = None):
         s3.meta.client.upload_file(Filename=file_name, Bucket=bucket, Key=key)
         logger.debug(f"{file_name}\t{bucket=}\t{key=}")
     except ClientError as ex:
-        logger.error(ex)
+        logger.error(f"{type(ex).__name__}: {this}: {ex} - key: {key}")
         return False
     return True
 
@@ -102,7 +104,7 @@ def s3_download_file(bucket: str, key: str, dst: str = "/tmp", prefix: str = Non
             Filename=filename,
         )
     except ClientError as ex:
-        logger.error(ex)
+        logger.error(f"{type(ex).__name__}: {this}: {ex} - key: {key}")
         return False
     return filename
 

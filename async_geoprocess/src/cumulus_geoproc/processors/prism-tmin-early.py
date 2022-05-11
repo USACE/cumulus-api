@@ -65,7 +65,7 @@ def process(src: str, dst: str, acquirable: str = None):
         time_pattern = re.compile(r"\w+_(?P<ymd>\d+)_\w+")
         m = time_pattern.match(filename)
         dt_valid = datetime.strptime(m.group("ymd"), "%Y%m%d").replace(
-            hour=12, minute=0, second=0, tzinfo=timezone.utc
+            tzinfo=timezone.utc
         )
 
         src_bil = os.path.join(file_, utils.file_extension(filename_, suffix=".bil"))

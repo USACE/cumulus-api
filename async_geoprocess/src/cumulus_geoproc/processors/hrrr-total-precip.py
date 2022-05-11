@@ -54,7 +54,8 @@ def process(src: str, dst: str, acquirable: str = None):
     try:
         attr = {
             "GRIB_ELEMENT": "APCP",
-            "GRIB_COMMENT": "01 hr Total precipitation [kg/(m^2)]",
+            "GRIB_COMMENT": "precipitation",
+            "GRIB_UNIT": "[kg/(m^2)]",
         }
 
         filename = os.path.basename(src)

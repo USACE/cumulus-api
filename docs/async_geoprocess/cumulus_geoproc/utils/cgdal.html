@@ -1,0 +1,326 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta http-equiv="content-type" content="text/html;charset=utf-8">
+  <title>cgdal.py</title>
+  <link rel="stylesheet" href="../../pycco.css">
+</head>
+<body>
+<div id='container'>
+  <div id="background"></div>
+  <div class='section'>
+    <div class='docs'><h1>cgdal.py</h1></div>
+  </div>
+  <div class='clearall'>
+  <div class='section' id='section-0'>
+    <div class='docs'>
+      <div class='octowrap'>
+        <a class='octothorpe' href='#section-0'>#</a>
+      </div>
+      <p>Cumulus specific gdal utilities</p>
+<pre><code>GTiff Creation Options to be a COG:
+    "-co",
+    "COMPRESS=LZW",
+    "-co",
+    "COPY_SRC_OVERVIEWS=YES",
+    "-co",
+    "TILE=YES",
+</code></pre>
+    </div>
+    <div class='code'>
+      <div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">os</span>
+<span class="kn">import</span> <span class="nn">pathlib</span>
+<span class="kn">import</span> <span class="nn">subprocess</span>
+<span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">List</span>
+
+<span class="kn">from</span> <span class="nn">cumulus_geoproc</span> <span class="kn">import</span> <span class="n">logger</span>
+<span class="kn">from</span> <span class="nn">osgeo</span> <span class="kn">import</span> <span class="n">gdal</span>
+<span class="kn">from</span> <span class="nn">osgeo_utils</span> <span class="kn">import</span> <span class="n">gdal_calc</span>
+<span class="kn">from</span> <span class="nn">osgeo_utils.samples</span> <span class="kn">import</span> <span class="n">validate_cloud_optimized_geotiff</span>
+
+<span class="n">gdal</span><span class="o">.</span><span class="n">UseExceptions</span><span class="p">()</span>
+
+<span class="n">this</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">basename</span><span class="p">(</span><span class="vm">__file__</span><span class="p">)</span></pre></div>
+    </div>
+  </div>
+  <div class='clearall'></div>
+  <div class='section' id='section-1'>
+    <div class='docs'>
+      <div class='octowrap'>
+        <a class='octothorpe' href='#section-1'>#</a>
+      </div>
+      <p>Return gdal translate options</p>
+    </div>
+    <div class='code'>
+      <div class="highlight"><pre><span class="k">def</span> <span class="nf">gdal_translate_options</span><span class="p">(</span><span class="o">**</span><span class="n">kwargs</span><span class="p">):</span></pre></div>
+    </div>
+  </div>
+  <div class='clearall'></div>
+  <div class='section' id='section-2'>
+    <div class='docs'>
+      <div class='octowrap'>
+        <a class='octothorpe' href='#section-2'>#</a>
+      </div>
+      <p>Add dictionary attributes to use those options for translate</p>
+<p>Adding an existing attribute in &lsquo;base&rsquo; will overwright that option</p>
+<h2>Returns</h2>
+<p>dict
+    dictionary of gdal translate options with base option(s)</p>
+<p>base = {
+    &ldquo;format&rdquo;: &ldquo;COG&rdquo;,
+}</p>
+<p>COG driver generates overviews while GTiff uses seperate step to build them</p>
+    </div>
+    <div class='code'>
+      <div class="highlight"><pre>    <span class="n">base</span> <span class="o">=</span> <span class="p">{</span>
+        <span class="s2">&quot;format&quot;</span><span class="p">:</span> <span class="s2">&quot;COG&quot;</span><span class="p">,</span>
+    <span class="p">}</span>
+    <span class="k">return</span> <span class="p">{</span><span class="o">**</span><span class="n">base</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">}</span></pre></div>
+    </div>
+  </div>
+  <div class='clearall'></div>
+  <div class='section' id='section-3'>
+    <div class='docs'>
+      <div class='octowrap'>
+        <a class='octothorpe' href='#section-3'>#</a>
+      </div>
+      <p>Build overviews for the gdal dataset with the resampling algorithm provided</p>
+    </div>
+    <div class='code'>
+      <div class="highlight"><pre><span class="k">def</span> <span class="nf">gdal_translate_w_overviews</span><span class="p">(</span>
+    <span class="n">dst</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+    <span class="n">src</span><span class="p">:</span> <span class="n">gdal</span><span class="o">.</span><span class="n">Dataset</span><span class="p">,</span>
+    <span class="n">translate_options</span><span class="p">:</span> <span class="nb">dict</span><span class="p">,</span>
+    <span class="n">resampling</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="n">overviewlist</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">int</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span><span class="mi">2</span><span class="p">,</span> <span class="mi">4</span><span class="p">,</span> <span class="mi">8</span><span class="p">,</span> <span class="mi">16</span><span class="p">,</span> <span class="mi">32</span><span class="p">,</span> <span class="mi">64</span><span class="p">,</span> <span class="mi">128</span><span class="p">,</span> <span class="mi">256</span><span class="p">,</span> <span class="mi">512</span><span class="p">,</span> <span class="mi">1024</span><span class="p">,</span> <span class="mi">2048</span><span class="p">],</span>
+<span class="p">):</span></pre></div>
+    </div>
+  </div>
+  <div class='clearall'></div>
+  <div class='section' id='section-4'>
+    <div class='docs'>
+      <div class='octowrap'>
+        <a class='octothorpe' href='#section-4'>#</a>
+      </div>
+      <p>If no sampling algorithm is given, only gdal.Translate() executed</p>
+<p>allowable resampling algorithms:
+    nearest,average,rms,bilinear,gauss,cubic,cubicspline,lanczos,average_magphase,mode</p>
+<h2>Parameters</h2>
+<p>dst : str
+    Output dataset name
+src : gdal.Dataset
+    Dataset object or a filename
+translate_options : dict
+    Dictionary of creation options
+resampling : str, optional
+    resampling algorithm, by default None
+overviewlist : List[int], optional
+    list of integers, by default [2, 4, 8, 16, 32, 64, 128, 256, 512, 1024, 2048]</p>
+    </div>
+    <div class='code'>
+      <div class="highlight"><pre>    <span class="n">resampling_algo</span> <span class="o">=</span> <span class="p">(</span>
+        <span class="s2">&quot;nearest&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;average&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;rms&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;bilinear&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;gauss&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;cubic&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;cubicspline&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;lanczos&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;average_magphase&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;mode&quot;</span><span class="p">,</span>
+    <span class="p">)</span>
+    <span class="k">if</span> <span class="n">resampling</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">resampling</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">resampling_algo</span><span class="p">:</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Resampling algorithm </span><span class="si">{</span><span class="n">resampling</span><span class="si">}</span><span class="s2"> not available&quot;</span><span class="p">)</span>
+        <span class="k">return</span> <span class="kc">False</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">resampling</span><span class="p">:</span>
+            <span class="n">gdal</span><span class="o">.</span><span class="n">Translate</span><span class="p">(</span>
+                <span class="sa">f</span><span class="s2">&quot;/vsimem/</span><span class="si">{</span><span class="n">dst</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">,</span>
+                <span class="n">src</span><span class="p">,</span>
+                <span class="nb">format</span><span class="o">=</span><span class="s2">&quot;GTiff&quot;</span><span class="p">,</span>
+                <span class="n">creationOptions</span><span class="o">=</span><span class="p">[</span>
+                    <span class="s2">&quot;COMPRESS=LZW&quot;</span><span class="p">,</span>
+                    <span class="s2">&quot;TILED=YES&quot;</span><span class="p">,</span>
+                <span class="p">],</span>
+            <span class="p">)</span>
+            <span class="n">_ds</span> <span class="o">=</span> <span class="n">gdal</span><span class="o">.</span><span class="n">Open</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;/vsimem/</span><span class="si">{</span><span class="n">dst</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">,</span> <span class="n">gdal</span><span class="o">.</span><span class="n">GA_Update</span><span class="p">)</span>
+            <span class="n">_ds</span><span class="o">.</span><span class="n">BuildOverviews</span><span class="p">(</span><span class="n">resampling</span><span class="o">=</span><span class="n">resampling</span><span class="p">,</span> <span class="n">overviewlist</span><span class="o">=</span><span class="n">overviewlist</span><span class="p">)</span>
+            <span class="n">gdal</span><span class="o">.</span><span class="n">Translate</span><span class="p">(</span>
+                <span class="n">dst</span><span class="p">,</span>
+                <span class="n">_ds</span><span class="p">,</span>
+                <span class="o">**</span><span class="n">translate_options</span><span class="p">,</span>
+            <span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">gdal</span><span class="o">.</span><span class="n">Translate</span><span class="p">(</span>
+                <span class="n">dst</span><span class="p">,</span>
+                <span class="n">src</span><span class="p">,</span>
+                <span class="o">**</span><span class="n">translate_options</span><span class="p">,</span>
+            <span class="p">)</span>
+        <span class="k">return</span> <span class="kc">True</span>
+    <span class="k">except</span> <span class="ne">RuntimeError</span> <span class="k">as</span> <span class="n">ex</span><span class="p">:</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="nb">type</span><span class="p">(</span><span class="n">ex</span><span class="p">)</span><span class="o">.</span><span class="vm">__name__</span><span class="si">}</span><span class="s2">: </span><span class="si">{</span><span class="n">this</span><span class="si">}</span><span class="s2">: </span><span class="si">{</span><span class="n">ex</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+    <span class="k">finally</span><span class="p">:</span>
+        <span class="n">_ds</span> <span class="o">=</span> <span class="kc">None</span>
+    <span class="k">return</span> <span class="kc">False</span></pre></div>
+    </div>
+  </div>
+  <div class='clearall'></div>
+  <div class='section' id='section-5'>
+    <div class='docs'>
+      <div class='octowrap'>
+        <a class='octothorpe' href='#section-5'>#</a>
+      </div>
+      <p>get a band based on provided attributes in the metadata
+Return the band number</p>
+    </div>
+    <div class='code'>
+      <div class="highlight"><pre><span class="k">def</span> <span class="nf">find_band</span><span class="p">(</span><span class="n">data_set</span><span class="p">:</span> <span class="s2">&quot;gdal.Dataset&quot;</span><span class="p">,</span> <span class="n">attr</span><span class="p">:</span> <span class="nb">dict</span> <span class="o">=</span> <span class="p">{}):</span></pre></div>
+    </div>
+  </div>
+  <div class='clearall'></div>
+  <div class='section' id='section-6'>
+    <div class='docs'>
+      <div class='octowrap'>
+        <a class='octothorpe' href='#section-6'>#</a>
+      </div>
+      <h2>Parameters</h2>
+<p>data_set : gdal.Dataset
+    gdal dataset
+attr : dict, optional
+    attributes matching those in the metadata, by default {}</p>
+<h2>Returns</h2>
+<p>int
+    band number</p>
+    </div>
+    <div class='code'>
+      <div class="highlight"><pre>    <span class="n">count</span> <span class="o">=</span> <span class="n">data_set</span><span class="o">.</span><span class="n">RasterCount</span>
+    <span class="k">for</span> <span class="n">b</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="n">count</span> <span class="o">+</span> <span class="mi">1</span><span class="p">):</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">raster</span> <span class="o">=</span> <span class="n">data_set</span><span class="o">.</span><span class="n">GetRasterBand</span><span class="p">(</span><span class="n">b</span><span class="p">)</span>
+            <span class="n">meta</span> <span class="o">=</span> <span class="n">raster</span><span class="o">.</span><span class="n">GetMetadata_Dict</span><span class="p">()</span>
+            <span class="n">has_attr</span> <span class="o">=</span> <span class="p">[</span>
+                <span class="kc">True</span>
+                <span class="k">for</span> <span class="n">key</span><span class="p">,</span> <span class="n">val</span> <span class="ow">in</span> <span class="n">attr</span><span class="o">.</span><span class="n">items</span><span class="p">()</span>
+                <span class="k">if</span> <span class="p">(</span><span class="n">key</span> <span class="ow">in</span> <span class="n">meta</span> <span class="ow">and</span> <span class="n">val</span> <span class="ow">in</span> <span class="n">raster</span><span class="o">.</span><span class="n">GetMetadataItem</span><span class="p">(</span><span class="n">key</span><span class="p">))</span>
+            <span class="p">]</span>
+            <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">has_attr</span><span class="p">)</span> <span class="o">==</span> <span class="nb">len</span><span class="p">(</span><span class="n">attr</span><span class="p">):</span>
+                <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">has_attr</span><span class="si">=}</span><span class="s2">&quot;</span><span class="p">)</span>
+                <span class="k">return</span> <span class="n">b</span>
+
+        <span class="k">except</span> <span class="ne">RuntimeError</span> <span class="k">as</span> <span class="n">ex</span><span class="p">:</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="nb">type</span><span class="p">(</span><span class="n">ex</span><span class="p">)</span><span class="o">.</span><span class="vm">__name__</span><span class="si">}</span><span class="s2">: </span><span class="si">{</span><span class="n">this</span><span class="si">}</span><span class="s2">: </span><span class="si">{</span><span class="n">ex</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+            <span class="k">continue</span>
+        <span class="k">finally</span><span class="p">:</span>
+            <span class="n">raster</span> <span class="o">=</span> <span class="kc">None</span>
+
+    <span class="k">return</span> <span class="kc">None</span></pre></div>
+    </div>
+  </div>
+  <div class='clearall'></div>
+  <div class='section' id='section-7'>
+    <div class='docs'>
+      <div class='octowrap'>
+        <a class='octothorpe' href='#section-7'>#</a>
+      </div>
+      <p>Implement gdal-utils gdal_calc CLI utility</p>
+    </div>
+    <div class='code'>
+      <div class="highlight"><pre><span class="k">def</span> <span class="nf">gdal_calculate</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">):</span></pre></div>
+    </div>
+  </div>
+  <div class='clearall'></div>
+  <div class='section' id='section-8'>
+    <div class='docs'>
+      <div class='octowrap'>
+        <a class='octothorpe' href='#section-8'>#</a>
+      </div>
+      <p>gdal_translate documentation:</p>
+<p>https://gdal.org/programs/gdal_translate.html</p>
+    </div>
+    <div class='code'>
+      <div class="highlight"><pre>    <span class="n">argv</span> <span class="o">=</span> <span class="p">[</span><span class="n">gdal_calc</span><span class="o">.</span><span class="vm">__file__</span><span class="p">]</span>
+    <span class="n">argv</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span><span class="nb">list</span><span class="p">(</span><span class="n">args</span><span class="p">))</span>
+
+    <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Argvs: </span><span class="si">{</span><span class="n">argv</span><span class="si">=}</span><span class="s2">&quot;</span><span class="p">)</span>
+
+    <span class="n">gdal_calc</span><span class="o">.</span><span class="n">main</span><span class="p">(</span><span class="n">argv</span><span class="p">)</span></pre></div>
+    </div>
+  </div>
+  <div class='clearall'></div>
+  <div class='section' id='section-9'>
+    <div class='docs'>
+      <div class='octowrap'>
+        <a class='octothorpe' href='#section-9'>#</a>
+      </div>
+      <p>Implement gdal-utils gdal_fillnodata CLI utility as a subprocess</p>
+    </div>
+    <div class='code'>
+      <div class="highlight"><pre><span class="k">def</span> <span class="nf">gdal_fillnodataval</span><span class="p">(</span><span class="n">src</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">dst</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="o">/</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">):</span></pre></div>
+    </div>
+  </div>
+  <div class='clearall'></div>
+  <div class='section' id='section-10'>
+    <div class='docs'>
+      <div class='octowrap'>
+        <a class='octothorpe' href='#section-10'>#</a>
+      </div>
+      <p>gdal_fillnodata documentation:</p>
+<p>https://gdal.org/programs/gdal_fillnodata.html</p>
+    </div>
+    <div class='code'>
+      <div class="highlight"><pre>    <span class="n">argv</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;gdal_fillnodata.py&quot;</span><span class="p">]</span>
+    <span class="n">argv</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span><span class="nb">list</span><span class="p">(</span><span class="n">args</span><span class="p">))</span>
+    <span class="n">argv</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">src</span><span class="p">)</span>
+    <span class="n">argv</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">dst</span><span class="p">)</span>
+
+    <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Argvs: </span><span class="si">{</span><span class="n">argv</span><span class="si">=}</span><span class="s2">&quot;</span><span class="p">)</span>
+
+    <span class="k">try</span><span class="p">:</span>
+        <span class="n">result</span> <span class="o">=</span> <span class="n">subprocess</span><span class="o">.</span><span class="n">check_call</span><span class="p">(</span><span class="n">argv</span><span class="p">,</span> <span class="n">cwd</span><span class="o">=</span><span class="n">pathlib</span><span class="o">.</span><span class="n">PurePath</span><span class="p">(</span><span class="n">src</span><span class="p">)</span><span class="o">.</span><span class="n">parent</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">result</span>
+    <span class="k">except</span> <span class="n">subprocess</span><span class="o">.</span><span class="n">CalledProcessError</span> <span class="k">as</span> <span class="n">ex</span><span class="p">:</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="nb">type</span><span class="p">(</span><span class="n">ex</span><span class="p">)</span><span class="o">.</span><span class="vm">__name__</span><span class="si">}</span><span class="s2">: </span><span class="si">{</span><span class="n">this</span><span class="si">}</span><span class="s2">: </span><span class="si">{</span><span class="n">ex</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">result</span></pre></div>
+    </div>
+  </div>
+  <div class='clearall'></div>
+  <div class='section' id='section-11'>
+    <div class='docs'>
+      <div class='octowrap'>
+        <a class='octothorpe' href='#section-11'>#</a>
+      </div>
+      
+    </div>
+    <div class='code'>
+      <div class="highlight"><pre><span class="k">def</span> <span class="nf">validate_cog</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">):</span>
+    <span class="n">argv</span> <span class="o">=</span> <span class="p">[</span><span class="n">validate_cloud_optimized_geotiff</span><span class="o">.</span><span class="vm">__file__</span><span class="p">]</span>
+    <span class="n">argv</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span><span class="nb">list</span><span class="p">(</span><span class="n">args</span><span class="p">))</span>
+
+    <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Argvs: </span><span class="si">{</span><span class="n">argv</span><span class="si">=}</span><span class="s2">&quot;</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">validate_cloud_optimized_geotiff</span><span class="o">.</span><span class="n">main</span><span class="p">(</span><span class="n">argv</span><span class="p">)</span></pre></div>
+    </div>
+  </div>
+  <div class='clearall'></div>
+  <div class='section' id='section-12'>
+    <div class='docs'>
+      <div class='octowrap'>
+        <a class='octothorpe' href='#section-12'>#</a>
+      </div>
+      <p>TODO: GridProcess class</p>
+    </div>
+    <div class='code'>
+      <div class="highlight"><pre><span class="k">class</span> <span class="nc">GridProcess</span><span class="p">:</span>
+    <span class="k">pass</span>
+
+
+<span class="k">if</span> <span class="vm">__name__</span> <span class="o">==</span> <span class="s2">&quot;__main__&quot;</span><span class="p">:</span>
+    <span class="k">pass</span>
+
+</pre></div>
+    </div>
+  </div>
+  <div class='clearall'></div>
+</div>
+</body>

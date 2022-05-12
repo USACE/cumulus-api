@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta http-equiv="content-type" content="text/html;charset=utf-8">
+  <title>mbrfc-krf-qpe-01h.py</title>
+  <link rel="stylesheet" href="../../../pycco.css">
+</head>
+<body>
+<div id='container'>
+  <div id="background"></div>
+  <div class='section'>
+    <div class='docs'><h1>mbrfc-krf-qpe-01h.py</h1></div>
+  </div>
+  <div class='clearall'>
+  <div class='section' id='section-0'>
+    <div class='docs'>
+      <div class='octowrap'>
+        <a class='octothorpe' href='#section-0'>#</a>
+      </div>
+      <p>Missouri Basin River Forecast Center</p>
+    </div>
+    <div class='code'>
+      <div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">os</span>
+<span class="kn">import</span> <span class="nn">re</span>
+<span class="kn">from</span> <span class="nn">datetime</span> <span class="kn">import</span> <span class="n">datetime</span><span class="p">,</span> <span class="n">timezone</span>
+
+<span class="kn">import</span> <span class="nn">pyplugs</span>
+<span class="kn">from</span> <span class="nn">cumulus_geoproc</span> <span class="kn">import</span> <span class="n">logger</span><span class="p">,</span> <span class="n">utils</span>
+<span class="kn">from</span> <span class="nn">cumulus_geoproc.utils</span> <span class="kn">import</span> <span class="n">boto</span><span class="p">,</span> <span class="n">cgdal</span>
+<span class="kn">from</span> <span class="nn">osgeo</span> <span class="kn">import</span> <span class="n">gdal</span>
+
+<span class="n">gdal</span><span class="o">.</span><span class="n">UseExceptions</span><span class="p">()</span>
+
+
+<span class="n">this</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">basename</span><span class="p">(</span><span class="vm">__file__</span><span class="p">)</span></pre></div>
+    </div>
+  </div>
+  <div class='clearall'></div>
+  <div class='section' id='section-1'>
+    <div class='docs'>
+      <div class='octowrap'>
+        <a class='octothorpe' href='#section-1'>#</a>
+      </div>
+      <p>Grid processor</p>
+    </div>
+    <div class='code'>
+      <div class="highlight"><pre><span class="nd">@pyplugs</span><span class="o">.</span><span class="n">register</span>
+<span class="k">def</span> <span class="nf">process</span><span class="p">(</span><span class="n">src</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">dst</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">acquirable</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="kc">None</span><span class="p">):</span></pre></div>
+    </div>
+  </div>
+  <div class='clearall'></div>
+  <div class='section' id='section-2'>
+    <div class='docs'>
+      <div class='octowrap'>
+        <a class='octothorpe' href='#section-2'>#</a>
+      </div>
+      <h2>Parameters</h2>
+<p>src : str
+    path to input file for processing
+dst : str
+    path to temporary directory created from worker thread
+acquirable: str
+    acquirable slug</p>
+<h2>Returns</h2>
+<p>List[dict]
+    {
+        &ldquo;filetype&rdquo;: str,         Matching database acquirable
+        &ldquo;file&rdquo;: str,             Converted file
+        &ldquo;datetime&rdquo;: str,         Valid Time, ISO format with timezone
+        &ldquo;version&rdquo;: str           Reference Time (forecast), ISO format with timezone
+    }</p>
+    </div>
+    <div class='code'>
+      <div class="highlight"><pre>    <span class="n">outfile_list</span> <span class="o">=</span> <span class="p">[]</span>
+
+    <span class="k">try</span><span class="p">:</span>
+        <span class="n">attr</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;GRIB_ELEMENT&quot;</span><span class="p">:</span> <span class="s2">&quot;APCP&quot;</span><span class="p">}</span>
+
+        <span class="n">filename</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">basename</span><span class="p">(</span><span class="n">src</span><span class="p">)</span>
+        <span class="n">filename_</span> <span class="o">=</span> <span class="n">utils</span><span class="o">.</span><span class="n">file_extension</span><span class="p">(</span><span class="n">filename</span><span class="p">)</span>
+
+        <span class="n">bucket</span><span class="p">,</span> <span class="n">key</span> <span class="o">=</span> <span class="n">src</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">&quot;/&quot;</span><span class="p">,</span> <span class="n">maxsplit</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;s3_download_file(</span><span class="si">{</span><span class="n">bucket</span><span class="si">=}</span><span class="s2">, </span><span class="si">{</span><span class="n">key</span><span class="si">=}</span><span class="s2">)&quot;</span><span class="p">)</span>
+
+        <span class="n">src_</span> <span class="o">=</span> <span class="n">boto</span><span class="o">.</span><span class="n">s3_download_file</span><span class="p">(</span><span class="n">bucket</span><span class="o">=</span><span class="n">bucket</span><span class="p">,</span> <span class="n">key</span><span class="o">=</span><span class="n">key</span><span class="p">,</span> <span class="n">dst</span><span class="o">=</span><span class="n">dst</span><span class="p">)</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;S3 Downloaded File: </span><span class="si">{</span><span class="n">src_</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+
+        <span class="n">ds</span> <span class="o">=</span> <span class="n">gdal</span><span class="o">.</span><span class="n">Open</span><span class="p">(</span><span class="s2">&quot;/vsigzip/&quot;</span> <span class="o">+</span> <span class="n">src_</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="p">(</span><span class="n">band_number</span> <span class="o">:=</span> <span class="n">cgdal</span><span class="o">.</span><span class="n">find_band</span><span class="p">(</span><span class="n">ds</span><span class="p">,</span> <span class="n">attr</span><span class="p">))</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">Exception</span><span class="p">(</span><span class="s2">&quot;Band number not found for attributes: </span><span class="si">{attr}</span><span class="s2">&quot;</span><span class="p">)</span>
+
+        <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Band number &#39;</span><span class="si">{</span><span class="n">band_number</span><span class="si">}</span><span class="s2">&#39; found for attributes </span><span class="si">{</span><span class="n">attr</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+
+        <span class="n">raster</span> <span class="o">=</span> <span class="n">ds</span><span class="o">.</span><span class="n">GetRasterBand</span><span class="p">(</span><span class="n">band_number</span><span class="p">)</span></pre></div>
+    </div>
+  </div>
+  <div class='clearall'></div>
+  <div class='section' id='section-3'>
+    <div class='docs'>
+      <div class='octowrap'>
+        <a class='octothorpe' href='#section-3'>#</a>
+      </div>
+      <p>Get Datetime from String Like &ldquo;1599008400 sec UTC&rdquo;</p>
+    </div>
+    <div class='code'>
+      <div class="highlight"><pre>        <span class="n">time_pattern</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">compile</span><span class="p">(</span><span class="sa">r</span><span class="s2">&quot;\d+&quot;</span><span class="p">)</span>
+        <span class="n">time_str</span> <span class="o">=</span> <span class="n">raster</span><span class="o">.</span><span class="n">GetMetadataItem</span><span class="p">(</span><span class="s2">&quot;GRIB_VALID_TIME&quot;</span><span class="p">)</span>
+        <span class="n">valid_time_match</span> <span class="o">=</span> <span class="n">time_pattern</span><span class="o">.</span><span class="n">match</span><span class="p">(</span><span class="n">time_str</span><span class="p">)</span>
+
+        <span class="n">dt_valid</span> <span class="o">=</span> <span class="n">datetime</span><span class="o">.</span><span class="n">fromtimestamp</span><span class="p">(</span><span class="nb">int</span><span class="p">(</span><span class="n">valid_time_match</span><span class="p">[</span><span class="mi">0</span><span class="p">]),</span> <span class="n">timezone</span><span class="o">.</span><span class="n">utc</span><span class="p">)</span>
+
+        <span class="n">gdal</span><span class="o">.</span><span class="n">Translate</span><span class="p">(</span>
+            <span class="n">tif</span> <span class="o">:=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">dst</span><span class="p">,</span> <span class="n">filename_</span><span class="p">),</span>
+            <span class="n">ds</span><span class="p">,</span>
+            <span class="nb">format</span><span class="o">=</span><span class="s2">&quot;COG&quot;</span><span class="p">,</span>
+            <span class="n">bandList</span><span class="o">=</span><span class="p">[</span><span class="n">band_number</span><span class="p">],</span>
+            <span class="n">creationOptions</span><span class="o">=</span><span class="p">[</span>
+                <span class="s2">&quot;RESAMPLING=AVERAGE&quot;</span><span class="p">,</span>
+                <span class="s2">&quot;OVERVIEWS=IGNORE_EXISTING&quot;</span><span class="p">,</span>
+                <span class="s2">&quot;OVERVIEW_RESAMPLING=AVERAGE&quot;</span><span class="p">,</span>
+            <span class="p">],</span>
+        <span class="p">)</span>
+
+        <span class="n">outfile_list</span> <span class="o">=</span> <span class="p">[</span>
+            <span class="p">{</span>
+                <span class="s2">&quot;filetype&quot;</span><span class="p">:</span> <span class="n">acquirable</span><span class="p">,</span>
+                <span class="s2">&quot;file&quot;</span><span class="p">:</span> <span class="n">tif</span><span class="p">,</span>
+                <span class="s2">&quot;datetime&quot;</span><span class="p">:</span> <span class="n">dt_valid</span><span class="o">.</span><span class="n">isoformat</span><span class="p">(),</span>
+                <span class="s2">&quot;version&quot;</span><span class="p">:</span> <span class="kc">None</span><span class="p">,</span>
+            <span class="p">},</span>
+        <span class="p">]</span>
+    <span class="k">except</span> <span class="p">(</span><span class="ne">RuntimeError</span><span class="p">,</span> <span class="ne">KeyError</span><span class="p">,</span> <span class="ne">Exception</span><span class="p">)</span> <span class="k">as</span> <span class="n">ex</span><span class="p">:</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="nb">type</span><span class="p">(</span><span class="n">ex</span><span class="p">)</span><span class="o">.</span><span class="vm">__name__</span><span class="si">}</span><span class="s2">: </span><span class="si">{</span><span class="n">this</span><span class="si">}</span><span class="s2">: </span><span class="si">{</span><span class="n">ex</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+    <span class="k">finally</span><span class="p">:</span>
+        <span class="n">ds</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="n">raster</span> <span class="o">=</span> <span class="kc">None</span>
+
+    <span class="k">return</span> <span class="n">outfile_list</span>
+
+
+<span class="k">if</span> <span class="vm">__name__</span> <span class="o">==</span> <span class="s2">&quot;__main__&quot;</span><span class="p">:</span>
+    <span class="k">pass</span>
+
+</pre></div>
+    </div>
+  </div>
+  <div class='clearall'></div>
+</div>
+</body>

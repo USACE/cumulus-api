@@ -1,0 +1,312 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta http-equiv="content-type" content="text/html;charset=utf-8">
+  <title>worker.py</title>
+  <link rel="stylesheet" href="pycco.css">
+</head>
+<body>
+<div id='container'>
+  <div id="background"></div>
+  <div class='section'>
+    <div class='docs'><h1>worker.py</h1></div>
+  </div>
+  <div class='clearall'>
+  <div class='section' id='section-0'>
+    <div class='docs'>
+      <div class='octowrap'>
+        <a class='octothorpe' href='#section-0'>#</a>
+      </div>
+      <p>main geoprocess worker thread</p>
+<p>infinit while loop receives SQS messages and process them</p>
+    </div>
+    <div class='code'>
+      <div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">asyncio</span>
+<span class="kn">import</span> <span class="nn">json</span>
+<span class="kn">import</span> <span class="nn">os</span>
+<span class="kn">import</span> <span class="nn">shutil</span>
+<span class="kn">import</span> <span class="nn">time</span>
+<span class="kn">import</span> <span class="nn">traceback</span>
+<span class="kn">from</span> <span class="nn">collections</span> <span class="kn">import</span> <span class="n">deque</span><span class="p">,</span> <span class="n">namedtuple</span>
+<span class="kn">from</span> <span class="nn">tempfile</span> <span class="kn">import</span> <span class="n">TemporaryDirectory</span>
+
+<span class="kn">import</span> <span class="nn">boto3</span>
+
+<span class="kn">from</span> <span class="nn">cumulus_geoproc</span> <span class="kn">import</span> <span class="n">logger</span><span class="p">,</span> <span class="n">utils</span>
+<span class="kn">from</span> <span class="nn">cumulus_geoproc.configurations</span> <span class="kn">import</span> <span class="p">(</span>
+    <span class="n">AWS_ACCESS_KEY_ID</span><span class="p">,</span>
+    <span class="n">AWS_DEFAULT_REGION</span><span class="p">,</span>
+    <span class="n">AWS_SECRET_ACCESS_KEY</span><span class="p">,</span>
+    <span class="n">CUMULUS_API_URL</span><span class="p">,</span>
+    <span class="n">ENDPOINT_URL_SQS</span><span class="p">,</span>
+    <span class="n">HTTP2</span><span class="p">,</span>
+    <span class="n">MAX_Q_MESSAGES</span><span class="p">,</span>
+    <span class="n">PRODUCT_FILE_VERSION</span><span class="p">,</span>
+    <span class="n">QUEUE_NAME</span><span class="p">,</span>
+    <span class="n">WAIT_TIME_SECONDS</span><span class="p">,</span>
+<span class="p">)</span>
+<span class="kn">from</span> <span class="nn">cumulus_geoproc.geoprocess</span> <span class="kn">import</span> <span class="n">handler</span>
+<span class="kn">from</span> <span class="nn">cumulus_geoproc.utils.capi</span> <span class="kn">import</span> <span class="n">CumulusAPI</span>
+
+<span class="n">this</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">basename</span><span class="p">(</span><span class="vm">__file__</span><span class="p">)</span></pre></div>
+    </div>
+  </div>
+  <div class='clearall'></div>
+  <div class='section' id='section-1'>
+    <div class='docs'>
+      <div class='octowrap'>
+        <a class='octothorpe' href='#section-1'>#</a>
+      </div>
+      <p>starting the worker thread</p>
+    </div>
+    <div class='code'>
+      <div class="highlight"><pre><span class="k">def</span> <span class="nf">start_worker</span><span class="p">():</span></pre></div>
+    </div>
+  </div>
+  <div class='clearall'></div>
+  <div class='section' id='section-2'>
+    <div class='docs'>
+      <div class='octowrap'>
+        <a class='octothorpe' href='#section-2'>#</a>
+      </div>
+      
+    </div>
+    <div class='code'>
+      <div class="highlight"><pre>    <span class="n">start</span> <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">()</span>
+    <span class="n">perf_queue</span> <span class="o">=</span> <span class="n">deque</span><span class="p">(</span><span class="n">maxlen</span><span class="o">=</span><span class="mi">1000</span><span class="p">)</span></pre></div>
+    </div>
+  </div>
+  <div class='clearall'></div>
+  <div class='section' id='section-3'>
+    <div class='docs'>
+      <div class='octowrap'>
+        <a class='octothorpe' href='#section-3'>#</a>
+      </div>
+      <p>initialize product slug list</p>
+    </div>
+    <div class='code'>
+      <div class="highlight"><pre>    <span class="k">try</span><span class="p">:</span>
+        <span class="n">cumulus_api</span> <span class="o">=</span> <span class="n">CumulusAPI</span><span class="p">(</span><span class="n">CUMULUS_API_URL</span><span class="p">,</span> <span class="n">HTTP2</span><span class="p">)</span>
+        <span class="n">cumulus_api</span><span class="o">.</span><span class="n">endpoint</span> <span class="o">=</span> <span class="s2">&quot;product_slugs&quot;</span>
+        <span class="n">resp</span> <span class="o">=</span> <span class="n">asyncio</span><span class="o">.</span><span class="n">run</span><span class="p">(</span><span class="n">cumulus_api</span><span class="o">.</span><span class="n">get_</span><span class="p">(</span><span class="n">cumulus_api</span><span class="o">.</span><span class="n">url</span><span class="p">))</span>
+        <span class="n">PRODUCT_MAP</span> <span class="o">=</span> <span class="n">resp</span><span class="o">.</span><span class="n">json</span><span class="p">()</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">&quot;Initialize Product Slug -&gt; UUID mapping&#39;</span><span class="si">%s</span><span class="s2">&#39;&quot;</span> <span class="o">%</span> <span class="n">PRODUCT_MAP</span><span class="p">)</span>
+    <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">ex</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">ex</span></pre></div>
+    </div>
+  </div>
+  <div class='clearall'></div>
+  <div class='section' id='section-4'>
+    <div class='docs'>
+      <div class='octowrap'>
+        <a class='octothorpe' href='#section-4'>#</a>
+      </div>
+      <p>aws_access_key_id, aws_secret_access_key, aws_default_region, etc
+set as env vars for local dev.  IAM role used for implementation</p>
+    </div>
+    <div class='code'>
+      <div class="highlight"><pre>    <span class="n">sqs</span> <span class="o">=</span> <span class="n">boto3</span><span class="o">.</span><span class="n">resource</span><span class="p">(</span>
+        <span class="n">service_name</span><span class="o">=</span><span class="s2">&quot;sqs&quot;</span><span class="p">,</span>
+        <span class="n">endpoint_url</span><span class="o">=</span><span class="n">ENDPOINT_URL_SQS</span><span class="p">,</span>
+        <span class="n">region_name</span><span class="o">=</span><span class="n">AWS_DEFAULT_REGION</span><span class="p">,</span>
+        <span class="n">aws_secret_access_key</span><span class="o">=</span><span class="n">AWS_SECRET_ACCESS_KEY</span><span class="p">,</span>
+        <span class="n">aws_access_key_id</span><span class="o">=</span><span class="n">AWS_ACCESS_KEY_ID</span><span class="p">,</span>
+    <span class="p">)</span></pre></div>
+    </div>
+  </div>
+  <div class='clearall'></div>
+  <div class='section' id='section-5'>
+    <div class='docs'>
+      <div class='octowrap'>
+        <a class='octothorpe' href='#section-5'>#</a>
+      </div>
+      <p>Incoming Requests</p>
+    </div>
+    <div class='code'>
+      <div class="highlight"><pre>    <span class="n">queue</span> <span class="o">=</span> <span class="n">sqs</span><span class="o">.</span><span class="n">get_queue_by_name</span><span class="p">(</span><span class="n">QueueName</span><span class="o">=</span><span class="n">QUEUE_NAME</span><span class="p">)</span>
+
+    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span>
+        <span class="s2">&quot;</span><span class="si">%(spacer)s</span><span class="s2"> Starting the worker thread </span><span class="si">%(spacer)s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">{</span><span class="s2">&quot;spacer&quot;</span><span class="p">:</span> <span class="s2">&quot;*&quot;</span> <span class="o">*</span> <span class="mi">20</span><span class="p">}</span>
+    <span class="p">)</span>
+    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Queue: </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="n">queue</span><span class="p">)</span>
+
+    <span class="k">while</span> <span class="kc">True</span><span class="p">:</span></pre></div>
+    </div>
+  </div>
+  <div class='clearall'></div>
+  <div class='section' id='section-6'>
+    <div class='docs'>
+      <div class='octowrap'>
+        <a class='octothorpe' href='#section-6'>#</a>
+      </div>
+      <p>check for updated product mapping each hour</p>
+    </div>
+    <div class='code'>
+      <div class="highlight"><pre>        <span class="k">if</span> <span class="p">(</span><span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">()</span> <span class="o">-</span> <span class="n">start</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">3600</span><span class="p">:</span>
+            <span class="n">cumulus_api</span><span class="o">.</span><span class="n">endpoint</span> <span class="o">=</span> <span class="s2">&quot;product_slugs&quot;</span>
+            <span class="n">resp</span> <span class="o">=</span> <span class="n">asyncio</span><span class="o">.</span><span class="n">run</span><span class="p">(</span><span class="n">cumulus_api</span><span class="o">.</span><span class="n">get_</span><span class="p">(</span><span class="n">cumulus_api</span><span class="o">.</span><span class="n">url</span><span class="p">))</span>
+            <span class="n">PRODUCT_MAP</span> <span class="o">=</span> <span class="n">resp</span><span class="o">.</span><span class="n">json</span><span class="p">()</span>
+            <span class="n">start</span> <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">()</span>
+
+        <span class="n">messages</span> <span class="o">=</span> <span class="n">queue</span><span class="o">.</span><span class="n">receive_messages</span><span class="p">(</span>
+            <span class="n">MaxNumberOfMessages</span><span class="o">=</span><span class="n">MAX_Q_MESSAGES</span><span class="p">,</span> <span class="n">WaitTimeSeconds</span><span class="o">=</span><span class="n">WAIT_TIME_SECONDS</span>
+        <span class="p">)</span>
+
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">messages</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="k">try</span><span class="p">:</span>
+                <span class="n">average_sec</span> <span class="o">=</span> <span class="nb">sum</span><span class="p">(</span><span class="n">perf_queue</span><span class="p">)</span> <span class="o">/</span> <span class="nb">len</span><span class="p">(</span><span class="n">perf_queue</span><span class="p">)</span>
+                <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span>
+                    <span class="sa">f</span><span class="s2">&quot;Process Message: Avg </span><span class="si">{</span><span class="n">average_sec</span><span class="si">:</span><span class="s2">0.4f</span><span class="si">}</span><span class="s2"> (sec); Deque Size </span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">perf_queue</span><span class="p">)</span><span class="si">}</span><span class="s2">&quot;</span>
+                <span class="p">)</span>
+            <span class="k">except</span> <span class="ne">ZeroDivisionError</span> <span class="k">as</span> <span class="n">ex</span><span class="p">:</span>
+                <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="nb">type</span><span class="p">(</span><span class="n">ex</span><span class="p">)</span><span class="o">.</span><span class="vm">__name__</span><span class="si">}</span><span class="s2"> - </span><span class="si">{</span><span class="n">this</span><span class="si">}</span><span class="s2"> - </span><span class="si">{</span><span class="n">ex</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+
+        <span class="k">for</span> <span class="n">message</span> <span class="ow">in</span> <span class="n">messages</span><span class="p">:</span>
+            <span class="k">try</span><span class="p">:</span>
+                <span class="n">start_message</span> <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">perf_counter</span><span class="p">()</span>
+
+                <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;</span><span class="si">%(spacer)s</span><span class="s2"> new message </span><span class="si">%(spacer)s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">{</span><span class="s2">&quot;spacer&quot;</span><span class="p">:</span> <span class="s2">&quot;*&quot;</span> <span class="o">*</span> <span class="mi">20</span><span class="p">})</span></pre></div>
+    </div>
+  </div>
+  <div class='clearall'></div>
+  <div class='section' id='section-7'>
+    <div class='docs'>
+      <div class='octowrap'>
+        <a class='octothorpe' href='#section-7'>#</a>
+      </div>
+      <p>parse message to payload as json object</p>
+    </div>
+    <div class='code'>
+      <div class="highlight"><pre>                <span class="n">payload</span> <span class="o">=</span> <span class="n">json</span><span class="o">.</span><span class="n">loads</span><span class="p">(</span><span class="n">message</span><span class="o">.</span><span class="n">body</span><span class="p">)</span></pre></div>
+    </div>
+  </div>
+  <div class='clearall'></div>
+  <div class='section' id='section-8'>
+    <div class='docs'>
+      <div class='octowrap'>
+        <a class='octothorpe' href='#section-8'>#</a>
+      </div>
+      <p>get processor and its configurations from the message</p>
+    </div>
+    <div class='code'>
+      <div class="highlight"><pre>                <span class="n">geoprocess</span> <span class="o">=</span> <span class="n">payload</span><span class="p">[</span><span class="s2">&quot;geoprocess&quot;</span><span class="p">]</span>
+                <span class="n">GeoCfg</span> <span class="o">=</span> <span class="n">namedtuple</span><span class="p">(</span><span class="s2">&quot;GeoCfg&quot;</span><span class="p">,</span> <span class="n">payload</span><span class="p">[</span><span class="s2">&quot;geoprocess_config&quot;</span><span class="p">])(</span>
+                    <span class="o">**</span><span class="n">payload</span><span class="p">[</span><span class="s2">&quot;geoprocess_config&quot;</span><span class="p">]</span>
+                <span class="p">)</span></pre></div>
+    </div>
+  </div>
+  <div class='clearall'></div>
+  <div class='section' id='section-9'>
+    <div class='docs'>
+      <div class='octowrap'>
+        <a class='octothorpe' href='#section-9'>#</a>
+      </div>
+      <p>setting acquirablefile id for later processing</p>
+    </div>
+    <div class='code'>
+      <div class="highlight"><pre>                <span class="n">acquirablefile_id</span> <span class="o">=</span> <span class="p">(</span>
+                    <span class="n">GeoCfg</span><span class="o">.</span><span class="n">acquirablefile_id</span>
+                    <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">GeoCfg</span><span class="p">,</span> <span class="s2">&quot;acquirablefile_id&quot;</span><span class="p">)</span>
+                    <span class="k">else</span> <span class="kc">None</span>
+                <span class="p">)</span>
+
+                <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">GeoCfg</span><span class="p">,</span> <span class="s2">&quot;acquirable_slug&quot;</span><span class="p">):</span>
+                    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span>
+                        <span class="sa">f</span><span class="s2">&quot;Geo Process:</span><span class="si">{</span><span class="n">geoprocess</span><span class="si">}</span><span class="s2">; Plugin: </span><span class="si">{</span><span class="n">GeoCfg</span><span class="o">.</span><span class="n">acquirable_slug</span><span class="si">}</span><span class="s2">&quot;</span>
+                    <span class="p">)</span>
+
+                <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Message Payload: </span><span class="si">{</span><span class="n">payload</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span></pre></div>
+    </div>
+  </div>
+  <div class='clearall'></div>
+  <div class='section' id='section-10'>
+    <div class='docs'>
+      <div class='octowrap'>
+        <a class='octothorpe' href='#section-10'>#</a>
+      </div>
+      <p>create a temporary directory and release in final exception</p>
+    </div>
+    <div class='code'>
+      <div class="highlight"><pre>                <span class="n">dst</span> <span class="o">=</span> <span class="n">TemporaryDirectory</span><span class="p">()</span>
+                <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Temporary Directory: </span><span class="si">{</span><span class="n">dst</span><span class="o">.</span><span class="n">name</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span></pre></div>
+    </div>
+  </div>
+  <div class='clearall'></div>
+  <div class='section' id='section-11'>
+    <div class='docs'>
+      <div class='octowrap'>
+        <a class='octothorpe' href='#section-11'>#</a>
+      </div>
+      <p>handle the message getting a list of json objects</p>
+    </div>
+    <div class='code'>
+      <div class="highlight"><pre>                <span class="n">processed</span> <span class="o">=</span> <span class="n">handler</span><span class="o">.</span><span class="n">handle_message</span><span class="p">(</span><span class="n">geoprocess</span><span class="p">,</span> <span class="n">GeoCfg</span><span class="p">,</span> <span class="n">dst</span><span class="o">.</span><span class="n">name</span><span class="p">)</span></pre></div>
+    </div>
+  </div>
+  <div class='clearall'></div>
+  <div class='section' id='section-12'>
+    <div class='docs'>
+      <div class='octowrap'>
+        <a class='octothorpe' href='#section-12'>#</a>
+      </div>
+      <p>update processed messages with additional attributes
+set product version is set to None from processor
+KeyError for slug id not available allows for the loop to continue</p>
+    </div>
+    <div class='code'>
+      <div class="highlight"><pre>                <span class="n">product_versioning</span> <span class="o">=</span> <span class="k">lambda</span> <span class="n">p</span><span class="p">:</span> <span class="n">PRODUCT_FILE_VERSION</span> <span class="k">if</span> <span class="n">p</span> <span class="ow">is</span> <span class="kc">None</span> <span class="k">else</span> <span class="n">p</span>
+                <span class="n">processed_</span> <span class="o">=</span> <span class="p">[]</span>
+                <span class="k">for</span> <span class="n">item</span> <span class="ow">in</span> <span class="n">processed</span><span class="p">:</span>
+                    <span class="k">try</span><span class="p">:</span>
+                        <span class="n">item_</span> <span class="o">=</span> <span class="p">{</span>
+                            <span class="o">**</span><span class="n">item</span><span class="p">,</span>
+                            <span class="o">**</span><span class="p">{</span>
+                                <span class="s2">&quot;acquirablefile_id&quot;</span><span class="p">:</span> <span class="n">acquirablefile_id</span><span class="p">,</span>
+                                <span class="s2">&quot;product_id&quot;</span><span class="p">:</span> <span class="n">PRODUCT_MAP</span><span class="p">[</span><span class="n">item</span><span class="p">[</span><span class="s2">&quot;filetype&quot;</span><span class="p">]],</span>
+                                <span class="s2">&quot;version&quot;</span><span class="p">:</span> <span class="n">product_versioning</span><span class="p">(</span><span class="n">item</span><span class="p">[</span><span class="s2">&quot;version&quot;</span><span class="p">]),</span>
+                            <span class="p">},</span>
+                        <span class="p">}</span>
+                        <span class="n">processed_</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">item_</span><span class="p">)</span>
+                        <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;New processed dict item: </span><span class="si">{</span><span class="n">processed_</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+                    <span class="k">except</span> <span class="ne">KeyError</span> <span class="k">as</span> <span class="n">ex</span><span class="p">:</span>
+                        <span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="nb">type</span><span class="p">(</span><span class="n">ex</span><span class="p">)</span><span class="o">.</span><span class="vm">__name__</span><span class="si">}</span><span class="s2"> - </span><span class="si">{</span><span class="n">this</span><span class="si">}</span><span class="s2"> - </span><span class="si">{</span><span class="n">ex</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+                        <span class="k">continue</span></pre></div>
+    </div>
+  </div>
+  <div class='clearall'></div>
+  <div class='section' id='section-13'>
+    <div class='docs'>
+      <div class='octowrap'>
+        <a class='octothorpe' href='#section-13'>#</a>
+      </div>
+      <p>notify cumulus of the processed files</p>
+    </div>
+    <div class='code'>
+      <div class="highlight"><pre>                <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span>
+                    <span class="sa">f</span><span class="s2">&quot;Attempt to notify </span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">processed_</span><span class="p">)</span><span class="si">}</span><span class="s2"> processed product(s)&quot;</span>
+                <span class="p">)</span>
+                <span class="n">resp</span> <span class="o">=</span> <span class="n">handler</span><span class="o">.</span><span class="n">upload_notify</span><span class="p">(</span><span class="n">notices</span><span class="o">=</span><span class="n">processed_</span><span class="p">,</span> <span class="n">bucket</span><span class="o">=</span><span class="n">GeoCfg</span><span class="o">.</span><span class="n">bucket</span><span class="p">)</span>
+                <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="n">resp</span><span class="p">)</span>
+            <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">ex</span><span class="p">:</span>
+                <span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span>
+                    <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="nb">type</span><span class="p">(</span><span class="n">ex</span><span class="p">)</span><span class="o">.</span><span class="vm">__name__</span><span class="si">}</span><span class="s2"> - </span><span class="si">{</span><span class="n">this</span><span class="si">}</span><span class="s2"> - </span><span class="si">{</span><span class="n">ex</span><span class="si">}</span><span class="s2"> - </span><span class="si">{</span><span class="n">traceback</span><span class="o">.</span><span class="n">format_exc</span><span class="p">()</span><span class="si">}</span><span class="s2">&quot;</span>
+                <span class="p">)</span>
+            <span class="k">finally</span><span class="p">:</span>
+                <span class="k">if</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">dst</span><span class="o">.</span><span class="n">name</span><span class="p">):</span>
+                    <span class="n">shutil</span><span class="o">.</span><span class="n">rmtree</span><span class="p">(</span><span class="n">dst</span><span class="o">.</span><span class="n">name</span><span class="p">,</span> <span class="n">ignore_errors</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+                <span class="n">dst</span> <span class="o">=</span> <span class="kc">None</span>
+                <span class="n">message</span><span class="o">.</span><span class="n">delete</span><span class="p">()</span>
+                <span class="n">perf_queue</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">perf_time</span> <span class="o">:=</span> <span class="n">time</span><span class="o">.</span><span class="n">perf_counter</span><span class="p">()</span> <span class="o">-</span> <span class="n">start_message</span><span class="p">)</span>
+                <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Handle Message Time: </span><span class="si">{</span><span class="n">perf_time</span><span class="si">}</span><span class="s2"> (sec)&quot;</span><span class="p">)</span>
+
+
+<span class="k">if</span> <span class="vm">__name__</span> <span class="o">==</span> <span class="s2">&quot;__main__&quot;</span><span class="p">:</span>
+    <span class="n">msg</span> <span class="o">=</span> <span class="n">start_worker</span><span class="p">()</span>
+    <span class="n">logger</span><span class="o">.</span><span class="n">critical</span><span class="p">(</span><span class="n">msg</span><span class="p">)</span>
+
+</pre></div>
+    </div>
+  </div>
+  <div class='clearall'></div>
+</div>
+</body>

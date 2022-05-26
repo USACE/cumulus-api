@@ -3,7 +3,7 @@
 # ^ Note: hec-dss dependencies work on ubuntu linux
 # Fortunately, docker image osgeo/gdal is built on Ubuntu base image
 # so everything works without us having to build gdal from source ourselves 
-FROM osgeo/gdal:ubuntu-small-latest
+FROM osgeo/gdal:ubuntu-small-3.4.3
 
 ENV PYTHONUNBUFFERED=1 GDAL_DISABLE_READDIR_ON_OPEN=EMPTY_DIR
 

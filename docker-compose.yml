@@ -45,9 +45,9 @@ services:
       - ENDPOINT_URL_SQS=http://elasticmq:9324
       - ENDPOINT_URL_S3=http://minio:9000
       - AWS_DEFAULT_REGION=us-east-1
+      - AWS_VIRTUAL_HOSTING=FALSE
       - AWS_ACCESS_KEY_ID=AKIAIOSFODNN7EXAMPLE
       - AWS_SECRET_ACCESS_KEY=wJalrXUtnFEMI/K7MDENG/bPxRfiCYEXAMPLEKEY
-      - AWS_VIRTUAL_HOSTING=FALSE
       - AWS_HTTPS=NO
       - APPLICATION_KEY=appkey
       - USE_SSL=False
@@ -66,27 +66,28 @@ services:
     build:
       context: async_packager
     environment:
-      - APPLICATION_KEY=appkey
-      - AWS_REGION=us-east-1
+      - AWS_SQS_ENDPOINT=elasticmq:9324
       - AWS_S3_ENDPOINT=minio:9000
+      - ENDPOINT_URL_SQS=http://elasticmq:9324
+      - ENDPOINT_URL_S3=http://minio:9000
+      - AWS_DEFAULT_REGION=us-east-1
       - AWS_VIRTUAL_HOSTING=FALSE
-      - AWS_HTTPS=NO
       - AWS_ACCESS_KEY_ID=AKIAIOSFODNN7EXAMPLE
       - AWS_SECRET_ACCESS_KEY=wJalrXUtnFEMI/K7MDENG/bPxRfiCYEXAMPLEKEY
-      - AWS_REGION_SQS=elasticmq
-      - CUMULUS_MOCK_S3_UPLOAD=FALSE
-      - QUEUE_NAME_PACKAGER=cumulus-packager
-      - CUMULUS_API_URL=http://api
-      - ENDPOINT_URL_SQS=http://elasticmq:9324
-      - PACKAGER_UPDATE_INTERVAL=5
-      - PACKAGER_LOG_LEVEL=INFO
-      - CPL_DEBUG=YES
-      - CPL_CURL_VERBOSE=NO
+      - AWS_HTTPS=NO
+      - APPLICATION_KEY=appkey
       - USE_SSL=False
-      - WRITE_TO_BUCKET=castle-data-develop
+      - QUEUE_NAME=cumulus-packager
+      - CUMULUS_MOCK_S3_UPLOAD=FALSE
+      - CUMULUS_API_URL=http://api
+      - HTTP2=False
+      - GDAL_DISABLE_READDIR_ON_OPEN=YES
+      - LOGGER_LEVEL=DEBUG
+      - PACKAGER_UPDATE_INTERVAL=5
     # Volume to persist packager created file
     volumes:
-      - ./_volumes/async_packager/output:/output
+      - ./_volumes/async_packager/output:/output:rw
+      - ./async_packager/packager:/app/packager:rw
     restart: always
   # statistics:
   #   build:

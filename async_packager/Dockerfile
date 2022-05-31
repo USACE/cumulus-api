@@ -5,22 +5,40 @@
 # so everything works without us having to build gdal from source ourselves 
 FROM osgeo/gdal:ubuntu-small-3.4.3
 
-ENV PYTHONUNBUFFERED=1 GDAL_DISABLE_READDIR_ON_OPEN=EMPTY_DIR
+# force stdout and stderr to be unbuffered setting to non-empty
+ENV PYTHONUNBUFFERED=1
 
-RUN apt-get update \
-  && apt-get install -y gfortran python3-pip git
+ENV PACKAGE=async_packager
 
-RUN mkdir /app /output
+# update, install and clean up
+RUN apt-get -y update && \
+    apt-get -y upgrade && \
+    apt-get install -y gcc-10 gfortran zlib1g-dev make python-pip3 && \
+    rm -rf /var/lib/apt/lists/*
 
-WORKDIR /
-COPY packager/requirements.txt ./
-RUN pip3 install --no-cache-dir -r requirements.txt --upgrade
-RUN rm requirements.txt
+RUN mkdir -p /app/${PACKAGE}
 
-COPY packager /app/packager
-WORKDIR /app/packager
+WORKDIR /app/${PACKAGE}
+
+COPY . .
+
+# pip install/upgrade requirements before the cumulus package
+RUN python3 -m pip install --upgrade pip wheel setuptools && \
+    python3 -m pip install /app/${PACKAGE}/
+
+
+# RUN mkdir /app /output
+
+# WORKDIR /
+# COPY packager/requirements.txt ./
+# RUN pip3 install --no-cache-dir -r requirements.txt --upgrade
+# RUN rm requirements.txt
+
+# COPY packager /app/packager
+# WORKDIR /app/packager
 
 RUN useradd appuser
 USER appuser
 
-CMD python3 packager.py
+# CMD python3 packager.py
+CMD [ "tail", "-f" , "/dev/null" ]

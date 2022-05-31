@@ -22,9 +22,16 @@ WORKDIR /app/${PACKAGE}
 
 COPY . .
 
+COPY ../hec-dss/ /app/hec-dss/
+
+# build dss
+
+# build tiffdss
+
 # pip install/upgrade requirements before the cumulus package
 RUN python3 -m pip install --upgrade pip wheel setuptools && \
     python3 -m pip install /app/${PACKAGE}/
+
 
 
 # RUN mkdir /app /output

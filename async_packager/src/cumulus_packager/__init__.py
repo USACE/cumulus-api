@@ -4,7 +4,7 @@
 
 import logging
 
-from cumulus_geoproc.configurations import LOGGER_LEVEL
+from cumulus_packager.configurations import LOGGER_LEVEL
 
 
 # ------------------------- #

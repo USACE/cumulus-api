@@ -14,7 +14,7 @@ import pathlib
 import subprocess
 from typing import List
 
-from cumulus_geoproc import logger
+from cumulus_packager import logger
 from osgeo import gdal
 from osgeo_utils import gdal_calc
 from osgeo_utils.samples import validate_cloud_optimized_geotiff

@@ -5,8 +5,8 @@ import os
 
 import boto3
 from botocore.exceptions import ClientError
-from cumulus_geoproc import logger
-from cumulus_geoproc.configurations import (
+from cumulus_packager import logger
+from cumulus_packager.configurations import (
     AWS_ACCESS_KEY_ID,
     AWS_DEFAULT_REGION,
     AWS_SECRET_ACCESS_KEY,

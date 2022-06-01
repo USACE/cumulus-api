@@ -13,7 +13,7 @@ ENV PACKAGE=async_packager
 # update, install and clean up
 RUN apt-get -y update && \
     apt-get -y upgrade && \
-    apt-get install -y gcc-10 gfortran zlib1g-dev make python-pip3 && \
+    apt-get install -y python3-pip && \
     rm -rf /var/lib/apt/lists/*
 
 RUN mkdir -p /app/${PACKAGE}
@@ -21,12 +21,6 @@ RUN mkdir -p /app/${PACKAGE}
 WORKDIR /app/${PACKAGE}
 
 COPY . .
-
-COPY ../hec-dss/ /app/hec-dss/
-
-# build dss
-
-# build tiffdss
 
 # pip install/upgrade requirements before the cumulus package
 RUN python3 -m pip install --upgrade pip wheel setuptools && \
@@ -44,8 +38,8 @@ RUN python3 -m pip install --upgrade pip wheel setuptools && \
 # COPY packager /app/packager
 # WORKDIR /app/packager
 
-RUN useradd appuser
-USER appuser
+# RUN useradd appuser
+# USER appuser
 
-# CMD python3 packager.py
-CMD [ "tail", "-f" , "/dev/null" ]
+CMD python3 packager.py
+# CMD [ "tail", "-f" , "/dev/null" ]

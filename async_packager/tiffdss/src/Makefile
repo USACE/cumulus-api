@@ -1,3 +1,5 @@
+HECDSS := /hec-dss
+
 LIB := tiffdss
 BUILD_DIR := ./Output
 SRC_DIRS := ./src
@@ -13,20 +15,35 @@ CWARNING = -Werror -Wno-unused-result
 HEADERS = -I/hec-dss/heclib/heclib_c/src/headers
 
 
-tiffdss: tiffdss.o utils.o
-	$(CC) $^ $(HLIB) $(HLIB) $(LDFLAGS) -o $@
+# Build DSS C
+# SRCS := $(shell find /hec-dss/heclib/heclib_c/src -name '*.c' )
 
-libtiffdss.so: tiffdss.o utils.o
-	$(CC) tiffdss.o utils.o $(HLIB) $(HLIB) $(LDFLAGS) -shared -o $@
+# OBJS := $(SRCS:%=/hec-dss/heclib/heclib_c/Output/%.o)
 
-main.o: main.c
-	$(CC) $(CFLAGS) -o $@ -c $<
+# /hec-dss/heclib/heclib_c/Output/libhec_c.a: $(OBJS)
+# 	$(AR) -r $@  $(OBJS)  
 
-tiffdss.o utils.o: %.o: %.c
-	$(CC) $(CFLAGS) $(HEADERS) $(CWARNING) -o $@ -c $<
+# /hec-dss/heclib/heclib_c/Output/%.c.o: %.c
+# 	mkdir -p $(dir $@)
+# 	$(CC) $(CFLAGS) -c $< -o $@
 
-.PHONY: clean
-clean:
-	$(RM) *.o
+
+
+
+# tiffdss: tiffdss.o utils.o
+# 	$(CC) $^ $(HLIB) $(HLIB) $(LDFLAGS) -o $@
+
+# libtiffdss.so: tiffdss.o utils.o
+# 	$(CC) tiffdss.o utils.o $(HLIB) $(HLIB) $(LDFLAGS) -shared -o $@
+
+# main.o: main.c
+# 	$(CC) $(CFLAGS) -o $@ -c $<
+
+# tiffdss.o utils.o: %.o: %.c
+# 	$(CC) $(CFLAGS) $(HEADERS) $(CWARNING) -o $@ -c $<
+
+# .PHONY: clean
+# clean:
+# 	$(RM) *.o
 
 

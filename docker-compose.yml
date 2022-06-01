@@ -87,7 +87,7 @@ services:
     # Volume to persist packager created file
     volumes:
       - ./_volumes/async_packager/output:/output:rw
-      - ./async_packager/packager:/app/packager:rw
+      - ./async_packager:/app/async_packager:rw
     restart: always
   # statistics:
   #   build:

@@ -91,9 +91,9 @@ func CreateDownload(db *pgxpool.Pool, cfg *config.Config) echo.HandlerFunc {
 		}
 		dr.Sub = sub
 
-		// limit to 6 month (4383 hours) window, return client error if exceeded
+		// limit to 183 days, just over 6 months (4392 hours) window, return client error if exceeded
 		diff := dr.DatetimeEnd.Sub(dr.DatetimeStart)
-		if diff.Hours() > 4383 {
+		if diff.Hours() > 4392 {
 			return c.JSON(
 				http.StatusBadRequest,
 				messages.NewMessage("Time window too large.  Must be less than 6 months"),

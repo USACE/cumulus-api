@@ -1,49 +1,23 @@
-HECDSS := /hec-dss
-
-LIB := tiffdss
-BUILD_DIR := ./Output
-SRC_DIRS := ./src
-RM = rm -fr
-HLIBC = /hec-dss/heclib/heclib_c/Output/libhec_c.a
-HLIBF = /hec-dss/heclib/heclib_f/Output/libhec_f.a
-HLIB := $(HLIBC) $(HLIBF)
-
 CC = gcc
+RM = rm -fr
 CFLAGS = -m64 -c -fPIC -g -std=gnu99 -D__linux__
+HECFLAG = -lhec_c -lhec_f
 LDFLAGS = -lgdal -lgfortran -lm -lz
 CWARNING = -Werror -Wno-unused-result
-HEADERS = -I/hec-dss/heclib/heclib_c/src/headers
 
+# define header paths to search in
+export CPATH := /hec-dss/heclib/heclib_c/src/headers
 
-# Build DSS C
-# SRCS := $(shell find /hec-dss/heclib/heclib_c/src -name '*.c' )
+TIFFDSS = ../../src/cumulus_packager/bin/tiffdss
+$(TIFFDSS): tiffdss.o utils.o
+	$(CC) $^ $(HECFLAG) $(HECFLAG) $(LDFLAGS) -o $@
 
-# OBJS := $(SRCS:%=/hec-dss/heclib/heclib_c/Output/%.o)
+libtiffdss.so: tiffdss.o utils.o
+	$(CC) tiffdss.o utils.o $(HECFLAG) $(HECFLAG) $(LDFLAGS) -shared -o $@
 
-# /hec-dss/heclib/heclib_c/Output/libhec_c.a: $(OBJS)
-# 	$(AR) -r $@  $(OBJS)  
+%.o: %.c
+	$(CC) $(CFLAGS) $(CWARNING) -o $@ -c $<
 
-# /hec-dss/heclib/heclib_c/Output/%.c.o: %.c
-# 	mkdir -p $(dir $@)
-# 	$(CC) $(CFLAGS) -c $< -o $@
-
-
-
-
-# tiffdss: tiffdss.o utils.o
-# 	$(CC) $^ $(HLIB) $(HLIB) $(LDFLAGS) -o $@
-
-# libtiffdss.so: tiffdss.o utils.o
-# 	$(CC) tiffdss.o utils.o $(HLIB) $(HLIB) $(LDFLAGS) -shared -o $@
-
-# main.o: main.c
-# 	$(CC) $(CFLAGS) -o $@ -c $<
-
-# tiffdss.o utils.o: %.o: %.c
-# 	$(CC) $(CFLAGS) $(HEADERS) $(CWARNING) -o $@ -c $<
-
-# .PHONY: clean
-# clean:
-# 	$(RM) *.o
-
-
+.PHONY: clean
+clean:
+	$(RM) *.o

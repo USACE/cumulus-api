@@ -4,6 +4,7 @@ import (
 	"net/http"
 
 	"github.com/USACE/cumulus-api/api/config"
+	"github.com/USACE/cumulus-api/api/messages"
 	"github.com/USACE/cumulus-api/api/models"
 	"github.com/google/uuid"
 	"github.com/jackc/pgx/v4/pgxpool"
@@ -90,12 +91,14 @@ func CreateDownload(db *pgxpool.Pool, cfg *config.Config) echo.HandlerFunc {
 		}
 		dr.Sub = sub
 
-		// @TODO: This is ready, need limitation in UI
-		// limit to 6 month (4383 hours) window, return client error if exceeded
-		// diff := dr.DatetimeEnd.Sub(dr.DatetimeStart)
-		// if diff.Hours() > 4383 {
-		// 	return c.String(http.StatusBadRequest, "Time window too large.")
-		// }
+		// limit to 183 days, just over 6 months (4392 hours) window, return client error if exceeded
+		diff := dr.DatetimeEnd.Sub(dr.DatetimeStart)
+		if diff.Hours() > 4392 {
+			return c.JSON(
+				http.StatusBadRequest,
+				messages.NewMessage("Time window too large.  Must be less than 6 months"),
+			)
+		}
 
 		d, err := models.CreateDownload(db, &dr)
 		if err != nil {

@@ -8,8 +8,7 @@ CWARNING = -Werror -Wno-unused-result
 # define header paths to search in
 export CPATH := /hec-dss/heclib/heclib_c/src/headers
 
-TIFFDSS = ../../src/cumulus_packager/bin/tiffdss
-$(TIFFDSS): tiffdss.o utils.o
+tiffdss : tiffdss.o utils.o
 	$(CC) $^ $(HECFLAG) $(HECFLAG) $(LDFLAGS) -o $@
 
 libtiffdss.so: tiffdss.o utils.o

@@ -51,7 +51,7 @@ def start_packager():
     queue = sqs.get_queue_by_name(QueueName=QUEUE_NAME)
 
     logger.info(
-        "%(spacer)s Starting the worker thread %(spacer)s" % {"spacer": "*" * 20}
+        "%(spacer)s Starting the packager thread %(spacer)s" % {"spacer": "*" * 20}
     )
     logger.info("Queue: %s" % queue)
 
@@ -121,9 +121,9 @@ def start_packager():
                     f"{type(ex).__name__} - {this} - {ex} - {traceback.format_exc()}"
                 )
             finally:
-                # if os.path.exists(dst.name):
-                #     shutil.rmtree(dst.name, ignore_errors=True)
-                # dst = None
+                if os.path.exists(dst.name):
+                    shutil.rmtree(dst.name, ignore_errors=True)
+                dst = None
                 message.delete()
                 perf_queue.append(perf_time := time.perf_counter() - start_message)
                 logger.debug(f"Handle Message Time: {perf_time} (sec)")

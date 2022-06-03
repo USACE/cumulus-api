@@ -1,31 +1,25 @@
 #!/bin/bash
 
-if [ "$1" == "make" ]
-then
-    clear
-    make clean
-    make
-fi
+#
+pushd $(dirname $0)
 
+SRCTIFF=/dss-test-data/tiff/MRMS_MultiSensor_QPE_01H_Pass1_00.00_20220216-170000.tif
 
-SRCTIFF=/newfile.tif
-# SRCTIFF=/blend.20210524.t16z.core.f033.co.tif
-# SRCTIFF=/MRMS_MultiSensor_QPE_01H_Pass1_00.00_20201110-020000.tif
-# SRCTIFF=/zz_ssmv11036tS__T0001TTNATS2019012705HP001_cloud_optimized.tif
-
-DSSFILE=/tiffdss/newfile.dss
-DSSPATH=/a/b/snowdepth/27jan2019:0600/28jan2019:0600/f/
+DSSFILE=DSSFILE.dss
+DSSPATH=/a/b/precip/16FEB2022:1600/16FEB2022:1700/f/
 GRIDTYPE=ALBERS
 DATATYPE=inst-val
-UNITS=degc
+UNITS=mm
 TZID=gmt
 COMPRESSION=zlib
+
+CELLSIZE=2000
 
 
 # Warp the tif to Tenn and Cumberland
 if [ "$1" == "warp" ]
 then
-    DSTTIFF=/newfile.tif
+    DSTTIFF=/dss-test-data/tiff/newfile.tif
 
     gdalwarp -t_srs "EPSG:5070" -te 642000 1258000 1300000 1682000 \
         -tr ${CELLSIZE} ${CELLSIZE} -r bilinear -overwrite \
@@ -38,3 +32,5 @@ fi
 # write to dss
 ./tiffdss ${SRCTIFF} ${DSSFILE} ${DSSPATH} ${GRIDTYPE} \
     ${DATATYPE} ${UNITS} ${TZID} ${COMPRESSION}
+
+popd

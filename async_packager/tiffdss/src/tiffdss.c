@@ -6,6 +6,7 @@
 #include <cpl_conv.h> /* for CPLMalloc() */
 
 #include "heclib.h"
+#include "zdssMessages.h"
 
 #include "utils.h"
 
@@ -38,9 +39,11 @@ int writeRecord(char *filetiff, char *dssfile, char *dsspath,
                 char *gridtype, char *datatype, char *units,
                 char *tzid, char *compression)
 {
+
     StructGridTypes gridTypes = findGridTypes(to_lower(gridtype));
     int _datatype = findDataType(to_upper(datatype));
     char *_tzid = to_upper(tzid);
+
     int tzoffset = findTzOffset(_tzid);
     int _compression = findCompressionMethod(compression);
 
@@ -56,6 +59,8 @@ int writeRecord(char *filetiff, char *dssfile, char *dsspath,
     long long ifltab[250];
     memset(ifltab, 0, 250 * sizeof(long long));
     int status = zopen(ifltab, dssfile);
+    // zsetMessageLevel(MESS_METHOD_GLOBAL_ID, 0);
+
     if (status != STATUS_OKAY)
     {
         // printf("Error opeing file: %d\n", status);
@@ -73,7 +78,7 @@ int writeRecord(char *filetiff, char *dssfile, char *dsspath,
     double adfGeoTransform[6];
     if (GDALGetGeoTransform(hDataset, adfGeoTransform) == CE_None)
     {
-        printf("Origin = (%.6f,%.6f)\n",
+        printf("Origin = (%.6f,%.6f); ",
                adfGeoTransform[0], adfGeoTransform[3]);
         printf("Pixel Size = (%.6f,%.6f)\n",
                adfGeoTransform[1], adfGeoTransform[5]);
@@ -95,25 +100,16 @@ int writeRecord(char *filetiff, char *dssfile, char *dsspath,
     // printf("Lower Left Y: %i\n", lly);
 
     // get the tiff data array
-    // float *data;
     float *data = (float *)CPLMalloc(sizeof(float) * dataSize);
-    // float *data = (float *)CPLMalloc(sizeof(float) * dataSize);
     GDALRasterIO(raster, GF_Read, 0, 0, xsize, ysize, data, xsize, ysize, GDT_Float32, 0, 0);
-    // reverse array
-    int start = 0;
-    int end = dataSize - 1;
-    float temp;
-    while (start < end)
-    {
-        temp = data[start];
-        data[start] = data[end];
-        data[end] = temp;
-        start++;
-        end--;
-    }
 
-    // invert the data
-    float *data_ = (float *)CPLMalloc(sizeof(float) * dataSize);
+    // reversing the array values rotates it 180
+    reverse_array(data, dataSize);
+    // reverse each row to flip <--> 180
+    reverse_rows(data, xsize, dataSize);
+    // if cpart is PRECIP then filter zeros
+    zpathnameGetPart(dsspath, 3, pathPart, sizeof(pathPart));
+    filter_zeros(data, dataSize, pathPart);
 
     // get raster statistics
     double pdfMin, pdfMax, pdfMean, pdfStdDev;
@@ -262,6 +258,7 @@ int main(int argc, char *argv[])
             printUsage(argv[0]);
         }
     }
+    zsetMessageLevel(MESS_METHOD_GLOBAL_ID, 0);
 
     int status = writeRecord(filetiff, dssfile, dsspath, gridtype,
                              datatype, units, tzid, compression);

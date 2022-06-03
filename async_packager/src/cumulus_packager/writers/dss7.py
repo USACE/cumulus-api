@@ -1,12 +1,9 @@
 """_summary_
 """
 
-from math import floor
-from operator import mod
 import os
 import subprocess
 from collections import namedtuple
-from tempfile import TemporaryDirectory
 
 import cumulus_packager
 import pyplugs
@@ -41,7 +38,6 @@ def writer(
     _extent_name = extent["name"]
     _bbox = extent["bbox"]
     _progress = 0
-    _filename = os.path.basename(outkey)
 
     try:
         for idx, tif in enumerate(src):
@@ -51,8 +47,6 @@ def writer(
             dsspathname = f"/SHG/{_extent_name}/{TifCfg.dss_cpart}/{TifCfg.dss_dpart}/{TifCfg.dss_epart}/{TifCfg.dss_fpart}/"
 
             ds = gdal.Open(f"/vsis3_streaming/{TifCfg.bucket}/{TifCfg.key}")
-            print(f"XSize: {ds.RasterXSize}")
-            print(f"YSize: {ds.RasterYSize}")
 
             # GDAL Warp the Tiff to what we need for DSS
             gdal.Warp(
@@ -82,8 +76,21 @@ def writer(
             cmd += " gmt"
             cmd += " zlib"
 
-            logger.debug(f"CMD: {cmd}")
-            subprocess.check_call(cmd, cwd=_cumulus_packager, shell=True)
+            sp = subprocess.Popen(
+                cmd,
+                cwd=_cumulus_packager,
+                shell=True,
+                stdout=subprocess.PIPE,
+                stderr=subprocess.PIPE,
+            )
+            try:
+                outs, errs = sp.communicate(timeout=15)
+            except subprocess.TimeoutExpired:
+                sp.kill()
+                outs, errs = sp.communicate()
+
+            logger.debug(f"STDOUT: {outs}")
+            logger.debug(f"STDERR: {errs}")
 
             # callback
             _progress = round(idx / len(src), 2)

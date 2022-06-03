@@ -17,6 +17,8 @@ import (
 	"github.com/USACE/cumulus-api/api/config"
 	"github.com/USACE/cumulus-api/api/handlers"
 	"github.com/USACE/cumulus-api/api/middleware"
+
+	"github.com/labstack/echo-contrib/prometheus"
 )
 
 // Connection returns a database connection from configuration parameters
@@ -228,7 +230,19 @@ func main() {
 	// private.POST("/watersheds/:watershed_id/area_groups/:area_group_id/products/:product_id/statistics/enable", handlers.EnableAreaGroupProductStatistics(db))
 	// private.POST("/watersheds/:watershed_id/area_groups/:area_group_id/products/:product_id/statistics/disable", handlers.DisableAreaGroupProductStatistics(db))
 
-	// Start server
+	// Create Prometheus server and Middleware
+	eProm := echo.New()
+	eProm.HideBanner = true
+	prom := prometheus.NewPrometheus("cumulus_api", nil)
+
+	// Scrape metrics from Main Server
+	e.Use(prom.HandlerFunc)
+	// Setup metrics endpoint at another server
+	prom.SetMetricsPath(eProm)
+
+	go func() { eProm.Logger.Fatal(eProm.Start(":9090")) }()
+
+	// Start main API server
 	s := &http2.Server{
 		MaxConcurrentStreams: 250,     // http2 default 250
 		MaxReadFrameSize:     1048576, // http2 default 1048576

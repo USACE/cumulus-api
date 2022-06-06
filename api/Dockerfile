@@ -17,5 +17,6 @@ FROM scratch
 COPY --from=builder /go/bin/cumulus-api /go/bin/cumulus-api
 COPY --from=builder /etc/ssl/certs/ca-certificates.crt \
                     /etc/ssl/certs/ca-certificates.crt
+
 VOLUME [ "/sql" ]
 ENTRYPOINT ["/go/bin/cumulus-api"]

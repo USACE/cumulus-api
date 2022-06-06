@@ -1,4 +1,6 @@
-"""_summary_
+"""Packager writer plugin
+
+    COG --> DSS7
 """
 
 import os
@@ -21,7 +23,6 @@ _status = lambda x: PACKAGE_STATUS[int(x)]
 @pyplugs.register
 def writer(
     id: str,
-    outkey: str,
     extent: dict,
     src: list,
     dst: str,
@@ -29,6 +30,30 @@ def writer(
     dst_srs: str = "EPSG:5070",
     callback=None,
 ):
+    """Packager writer plugin
+
+    Parameters
+    ----------
+    id : str
+        Download ID
+    extent : dict
+        Object with watershed name and bounding box
+    src : list
+        List of objects describing the GeoTiff (COG)
+    dst : str
+        Temporary directory
+    cellsize : float
+        Grid resolution
+    dst_srs : str, optional
+        Destination Spacial Reference, by default "EPSG:5070"
+    callback : callable, optional
+        callback function sending message to the DB, by default None, by default None
+
+    Returns
+    -------
+    str
+        FQPN to dss file
+    """
     # return None if no items in the 'contents'
     if len(src) < 1:
         callback(id, _status(-1))
@@ -39,6 +64,8 @@ def writer(
     _bbox = extent["bbox"]
     _progress = 0
 
+    # this can go away when the payload has the resolution
+    cellsize = 2000 if cellsize is None else None
     try:
         for idx, tif in enumerate(src):
             TifCfg = namedtuple("TifCfg", tif)(**tif)

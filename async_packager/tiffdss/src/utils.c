@@ -122,6 +122,15 @@ int findTzOffset(const char *tz)
     }
 }
 
+void filter_nodata(float *arr, int datasize, float nodata)
+{
+    for (int i = 0; i < datasize; i++)
+    {
+        if (arr[i] == nodata)
+            arr[i] = UNDEFINED_FLOAT;
+    }
+}
+
 void filter_zeros(float *arr, int datasize, const char *cpart)
 {
     char *found = strstr(cpart, "PRECIP");

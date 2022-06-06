@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta http-equiv="content-type" content="text/html;charset=utf-8">
+  <title>__init__.py</title>
+  <link rel="stylesheet" href="../../pycco.css">
+</head>
+<body>
+<div id='container'>
+  <div id="background"></div>
+  <div class='section'>
+    <div class='docs'><h1>__init__.py</h1></div>
+  </div>
+  <div class='clearall'>
+  <div class='section' id='section-0'>
+    <div class='docs'>
+      <div class='octowrap'>
+        <a class='octothorpe' href='#section-0'>#</a>
+      </div>
+      <p>packager module init</p>
+    </div>
+    <div class='code'>
+      <div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">asyncio</span>
+<span class="kn">import</span> <span class="nn">json</span>
+<span class="kn">import</span> <span class="nn">os</span>
+<span class="kn">from</span> <span class="nn">collections</span> <span class="kn">import</span> <span class="n">namedtuple</span>
+
+<span class="kn">from</span> <span class="nn">cumulus_packager</span> <span class="kn">import</span> <span class="n">logger</span>
+<span class="kn">from</span> <span class="nn">cumulus_packager.configurations</span> <span class="kn">import</span> <span class="n">APPLICATION_KEY</span><span class="p">,</span> <span class="n">CUMULUS_API_URL</span><span class="p">,</span> <span class="n">HTTP2</span>
+<span class="kn">from</span> <span class="nn">cumulus_packager.utils</span> <span class="kn">import</span> <span class="n">capi</span>
+<span class="kn">from</span> <span class="nn">cumulus_packager.writers</span> <span class="kn">import</span> <span class="n">pkg_writer</span>
+
+<span class="n">this</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">basename</span><span class="p">(</span><span class="vm">__file__</span><span class="p">)</span>
+
+<span class="n">PACKAGE_STATUS</span> <span class="o">=</span> <span class="p">{</span>
+    <span class="o">-</span><span class="mi">1</span><span class="p">:</span> <span class="s2">&quot;a553101e-8c51-4ddd-ac2e-b011ed54389b&quot;</span><span class="p">,</span>  <span class="c1"># FAILED</span>
+    <span class="mi">0</span><span class="p">:</span> <span class="s2">&quot;94727878-7a50-41f8-99eb-a80eb82f737a&quot;</span><span class="p">,</span>  <span class="c1"># INITIATED</span>
+    <span class="mi">1</span><span class="p">:</span> <span class="s2">&quot;3914f0bd-2290-42b1-bc24-41479b3a846f&quot;</span><span class="p">,</span>  <span class="c1"># SUCCESS</span>
+<span class="p">}</span></pre></div>
+    </div>
+  </div>
+  <div class='clearall'></div>
+  <div class='section' id='section-1'>
+    <div class='docs'>
+      <div class='octowrap'>
+        <a class='octothorpe' href='#section-1'>#</a>
+      </div>
+      <p>Update packager status to DB</p>
+    </div>
+    <div class='code'>
+      <div class="highlight"><pre><span class="k">def</span> <span class="nf">package_status</span><span class="p">(</span>
+    <span class="nb">id</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">status_id</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">progress</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mi">0</span><span class="p">,</span> <span class="n">file</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="kc">None</span>
+<span class="p">):</span></pre></div>
+    </div>
+  </div>
+  <div class='clearall'></div>
+  <div class='section' id='section-2'>
+    <div class='docs'>
+      <div class='octowrap'>
+        <a class='octothorpe' href='#section-2'>#</a>
+      </div>
+      <h2>Parameters</h2>
+<p>id : str, optional
+    Download ID, by default None
+status_id : str, optional
+    Package Status ID, by default None
+progress : float, optional
+    progress percentage as a decimal, by default 0
+file : str, optional
+    S3 key to dss file, by default None</p>
+    </div>
+    <div class='code'>
+      <div class="highlight"><pre>    <span class="n">_progress</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">progress</span> <span class="o">*</span> <span class="mi">100</span><span class="p">)</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="n">_json</span> <span class="o">=</span> <span class="p">{</span>
+            <span class="s2">&quot;id&quot;</span><span class="p">:</span> <span class="nb">id</span><span class="p">,</span>
+            <span class="s2">&quot;status_id&quot;</span><span class="p">:</span> <span class="n">status_id</span><span class="p">,</span>
+            <span class="s2">&quot;progress&quot;</span><span class="p">:</span> <span class="n">_progress</span><span class="p">,</span>
+            <span class="s2">&quot;file&quot;</span><span class="p">:</span> <span class="n">file</span><span class="p">,</span>
+        <span class="p">}</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Payload: </span><span class="si">{</span><span class="n">json</span><span class="o">.</span><span class="n">dumps</span><span class="p">(</span><span class="n">_json</span><span class="p">,</span> <span class="n">indent</span><span class="o">=</span><span class="mi">4</span><span class="p">)</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+
+        <span class="n">cumulus_api</span> <span class="o">=</span> <span class="n">capi</span><span class="o">.</span><span class="n">CumulusAPI</span><span class="p">(</span><span class="n">CUMULUS_API_URL</span><span class="p">,</span> <span class="n">HTTP2</span><span class="p">)</span>
+        <span class="n">cumulus_api</span><span class="o">.</span><span class="n">endpoint</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;downloads/</span><span class="si">{</span><span class="nb">id</span><span class="si">}</span><span class="s2">&quot;</span>
+        <span class="n">cumulus_api</span><span class="o">.</span><span class="n">query</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;key&quot;</span><span class="p">:</span> <span class="n">APPLICATION_KEY</span><span class="p">}</span>
+
+        <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;API endpoint URL: </span><span class="si">{</span><span class="n">cumulus_api</span><span class="o">.</span><span class="n">url</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+
+        <span class="n">resp</span> <span class="o">=</span> <span class="n">asyncio</span><span class="o">.</span><span class="n">run</span><span class="p">(</span><span class="n">cumulus_api</span><span class="o">.</span><span class="n">put_</span><span class="p">(</span><span class="n">cumulus_api</span><span class="o">.</span><span class="n">url</span><span class="p">,</span> <span class="n">payload</span><span class="o">=</span><span class="n">_json</span><span class="p">))</span>
+
+        <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Response: </span><span class="si">{</span><span class="n">resp</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+
+    <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">ex</span><span class="p">:</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="nb">type</span><span class="p">(</span><span class="n">ex</span><span class="p">)</span><span class="o">.</span><span class="vm">__name__</span><span class="si">}</span><span class="s2">: </span><span class="si">{</span><span class="n">this</span><span class="si">}</span><span class="s2">: </span><span class="si">{</span><span class="n">ex</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span></pre></div>
+    </div>
+  </div>
+  <div class='clearall'></div>
+  <div class='section' id='section-3'>
+    <div class='docs'>
+      <div class='octowrap'>
+        <a class='octothorpe' href='#section-3'>#</a>
+      </div>
+      <p>Converts JSON-Formatted message string to dictionary and calls package()</p>
+    </div>
+    <div class='code'>
+      <div class="highlight"><pre><span class="k">def</span> <span class="nf">handle_message</span><span class="p">(</span><span class="n">payload_resp</span><span class="p">:</span> <span class="n">namedtuple</span><span class="p">,</span> <span class="n">dst</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">callback</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span></pre></div>
+    </div>
+  </div>
+  <div class='clearall'></div>
+  <div class='section' id='section-4'>
+    <div class='docs'>
+      <div class='octowrap'>
+        <a class='octothorpe' href='#section-4'>#</a>
+      </div>
+      <h2>Parameters</h2>
+<p>payload_resp : namedtuple
+    Packager request payload as namedtuple
+dst : str
+    Temporary directory name
+callback : callable, optional
+    callback function sending message to the DB, by default None</p>
+<h2>Returns</h2>
+<p><em>type</em>
+    <em>description</em></p>
+    </div>
+    <div class='code'>
+      <div class="highlight"><pre>    <span class="n">result</span> <span class="o">=</span> <span class="n">pkg_writer</span><span class="p">(</span>
+        <span class="n">plugin</span><span class="o">=</span><span class="n">payload_resp</span><span class="o">.</span><span class="n">format</span><span class="p">,</span>
+        <span class="nb">id</span><span class="o">=</span><span class="n">payload_resp</span><span class="o">.</span><span class="n">download_id</span><span class="p">,</span>
+        <span class="n">extent</span><span class="o">=</span><span class="n">payload_resp</span><span class="o">.</span><span class="n">extent</span><span class="p">,</span>
+        <span class="n">src</span><span class="o">=</span><span class="n">payload_resp</span><span class="o">.</span><span class="n">contents</span><span class="p">,</span>
+        <span class="n">dst</span><span class="o">=</span><span class="n">dst</span><span class="p">,</span>
+        <span class="n">cellsize</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+        <span class="n">dst_srs</span><span class="o">=</span><span class="s2">&quot;EPSG:5070&quot;</span><span class="p">,</span>
+        <span class="n">callback</span><span class="o">=</span><span class="n">callback</span><span class="p">,</span>
+    <span class="p">)</span>
+    <span class="k">return</span> <span class="n">result</span>
+
+</pre></div>
+    </div>
+  </div>
+  <div class='clearall'></div>
+</div>
+</body>

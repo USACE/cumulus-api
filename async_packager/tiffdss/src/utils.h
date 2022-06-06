@@ -36,3 +36,4 @@ int findTzOffset(const char *tz);
 void reverse_array(float *arr, int zsize);
 void reverse_rows(float *arr, int cols, int datasize);
 void filter_zeros(float *arr, int datasize, const char *cpart);
+void filter_nodata(float *arr, int datasize, float nodata);

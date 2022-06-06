@@ -71,5 +71,16 @@ flowchart LR
             2102000
         ]
     }
-}```
+}
+```
+___
 
+## Create documentation from the Python docstring
+
+_Requires Pycco_
+
+`Example:`
+
+```python
+pycco cumulus_packager/**/*.py -p -i -d ~/projects/cumulus-api/docs/async_packager/
+```

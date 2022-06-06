@@ -99,20 +99,22 @@ def start_packager():
                 logger.debug(f"JSON Message: {PayloadResp}")
 
                 # log if the id was processed
-                if dssfile := handle_message(PayloadResp, dst.name, package_status):
+                if package_file := handle_message(
+                    PayloadResp, dst.name, package_status
+                ):
                     logger.debug(f"ID '{download_id}' processed")
                     if s3_upload_file(
-                        dssfile,
+                        package_file,
                         WRITE_TO_BUCKET,
                         PayloadResp.output_key,
                     ):
                         package_status(
                             download_id, PACKAGE_STATUS[1], 1, PayloadResp.output_key
                         )
-                        logger.debug(f"'{dssfile}' uploaded")
+                        logger.debug(f"'{package_file}' uploaded")
                     else:
                         package_status(download_id, PACKAGE_STATUS[-1], 0)
-                        logger.debug(f"'{dssfile}' failed to upload")
+                        logger.debug(f"'{package_file}' failed to upload")
                 else:
                     logger.debug(f"ID '{download_id} not processed")
 

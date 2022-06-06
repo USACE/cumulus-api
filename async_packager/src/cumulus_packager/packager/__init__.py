@@ -1,6 +1,11 @@
+"""packager module init
+    
+"""
+
 import asyncio
 import json
 import os
+from collections import namedtuple
 
 from cumulus_packager import logger
 from cumulus_packager.configurations import APPLICATION_KEY, CUMULUS_API_URL, HTTP2
@@ -16,7 +21,22 @@ PACKAGE_STATUS = {
 }
 
 
-def package_status(id=None, status_id=None, progress=0, file=None):
+def package_status(
+    id: str = None, status_id: str = None, progress: float = 0, file: str = None
+):
+    """Update packager status to DB
+
+    Parameters
+    ----------
+    id : str, optional
+        Download ID, by default None
+    status_id : str, optional
+        Package Status ID, by default None
+    progress : float, optional
+        progress percentage as a decimal, by default 0
+    file : str, optional
+        S3 key to dss file, by default None
+    """
     _progress = int(progress * 100)
     try:
         _json = {
@@ -41,16 +61,30 @@ def package_status(id=None, status_id=None, progress=0, file=None):
         logger.error(f"{type(ex).__name__}: {this}: {ex}")
 
 
-def handle_message(payload_resp, dst, callback=None):
-    """Converts JSON-Formatted message string to dictionary and calls package()"""
+def handle_message(payload_resp: namedtuple, dst: str, callback=None):
+    """Converts JSON-Formatted message string to dictionary and calls package()
+
+    Parameters
+    ----------
+    payload_resp : namedtuple
+        Packager request payload as namedtuple
+    dst : str
+        Temporary directory name
+    callback : callable, optional
+        callback function sending message to the DB, by default None
+
+    Returns
+    -------
+    _type_
+        _description_
+    """
     result = pkg_writer(
         plugin=payload_resp.format,
         id=payload_resp.download_id,
-        outkey=payload_resp.output_key,
         extent=payload_resp.extent,
         src=payload_resp.contents,
         dst=dst,
-        cellsize=2000,
+        cellsize=None,
         dst_srs="EPSG:5070",
         callback=callback,
     )

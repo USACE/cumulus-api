@@ -40,10 +40,15 @@ int writeRecord(char *filetiff, char *dssfile, char *dsspath,
                 char *tzid, char *compression)
 {
 
-    StructGridTypes gridTypes = findGridTypes(to_lower(gridtype));
-    int _datatype = findDataType(to_upper(datatype));
-    char *_tzid = to_upper(tzid);
+    char *gridtype_ = to_lower(gridtype);
+    StructGridTypes gridTypes = findGridTypes(gridtype_);
+    free(gridtype_);
 
+    char *datatype_ = to_upper(datatype);
+    int _datatype = findDataType(datatype_);
+    free(datatype_);
+
+    char *_tzid = to_upper(tzid);
     int tzoffset = findTzOffset(_tzid);
     int _compression = findCompressionMethod(compression);
 
@@ -52,14 +57,11 @@ int writeRecord(char *filetiff, char *dssfile, char *dsspath,
     int _interval = zpathnameGetPart(dsspath, 5, pathPart, sizeof(pathPart));
     if (_interval == 14)
         interval = 1;
-    // printf("Epart(len): %s(%d)\n", pathPart, _interval);
-    // printf("Is Interval: %i\n", interval);
 
     // open the dss file
     long long ifltab[250];
     memset(ifltab, 0, 250 * sizeof(long long));
     int status = zopen(ifltab, dssfile);
-    // zsetMessageLevel(MESS_METHOD_GLOBAL_ID, 0);
 
     if (status != STATUS_OKAY)
     {
@@ -109,6 +111,15 @@ int writeRecord(char *filetiff, char *dssfile, char *dsspath,
     reverse_rows(data, xsize, dataSize);
     // if cpart is PRECIP then filter zeros
     zpathnameGetPart(dsspath, 3, pathPart, sizeof(pathPart));
+
+    // get no data value
+    int valid;
+    float noData;
+    double _noData = GDALGetRasterNoDataValue(raster, &valid);
+    if (valid)
+        noData = (float)_noData;
+
+    filter_nodata(data, dataSize, _noData);
     filter_zeros(data, dataSize, pathPart);
 
     // get raster statistics
@@ -116,7 +127,11 @@ int writeRecord(char *filetiff, char *dssfile, char *dsspath,
     float _min = 0;
     float _max = 0;
     float _mean = 0;
-    GDALComputeRasterStatistics(raster, false, &pdfMin, &pdfMax, &pdfMean, &pdfStdDev, NULL, NULL);
+     if (GDALComputeRasterStatistics(raster, false, &pdfMin, &pdfMax, &pdfMean, &pdfStdDev, NULL, NULL) != CE_None)
+     {
+         GDALComputeRasterStatistics(raster, true, &pdfMin, &pdfMax, &pdfMean, &pdfStdDev, NULL, NULL);
+     };
+
     // printf("Raster Stat: min = %f max = %f mean = %f stddev = %f\n", pdfMin, pdfMax, pdfMean, pdfStdDev);
     if (pdfMin != 0.0f)
     {
@@ -133,13 +148,6 @@ int writeRecord(char *filetiff, char *dssfile, char *dsspath,
         // printf("Mean Value Not 0, setting to %f\n", pdfMean);
         _mean = (float)pdfMean;
     }
-
-    // get no data value
-    int valid;
-    float noData = 0.0f;
-    double _noData = GDALGetRasterNoDataValue(raster, &valid);
-    if (valid)
-        noData = (float)_noData;
 
     // printf("No data = %f\n", noData);
 
@@ -171,9 +179,6 @@ int writeRecord(char *filetiff, char *dssfile, char *dsspath,
     // historgram
     for (int idx = 0; idx < dataSize; idx++)
     {
-        // TODO: zero values get no data for precip but what about temperatures
-        if (data[idx] == noData)
-            data[idx] = UNDEFINED_FLOAT;
         for (int jdx = 0; jdx < bins; jdx++)
         {
             if (data[idx] >= rangelimit[jdx])
@@ -224,6 +229,8 @@ int writeRecord(char *filetiff, char *dssfile, char *dsspath,
     GDALClose(hDataset);
     CPLFree(data);
 
+
+    free(_tzid);
     free(rangelimit);
     free(histo);
     zstructFree(gridStructStore);

@@ -109,9 +109,6 @@ int writeRecord(char *filetiff, char *dssfile, char *dsspath,
     reverse_array(data, dataSize);
     // reverse each row to flip <--> 180
     reverse_rows(data, xsize, dataSize);
-    // if cpart is PRECIP then filter zeros
-    zpathnameGetPart(dsspath, 3, pathPart, sizeof(pathPart));
-
     // get no data value
     int valid;
     float noData;
@@ -120,6 +117,9 @@ int writeRecord(char *filetiff, char *dssfile, char *dsspath,
         noData = (float)_noData;
 
     filter_nodata(data, dataSize, _noData);
+
+    // if cpart is PRECIP then filter zeros
+    zpathnameGetPart(dsspath, 3, pathPart, sizeof(pathPart));
     filter_zeros(data, dataSize, pathPart);
 
     // get raster statistics

@@ -94,46 +94,37 @@ def writer(
             # as a subprocess
             tmpdss = os.path.join(dst, id + ".dss")
             cmd = os.path.join(_cumulus_packager, "bin/tiffdss")
-            cmd += " " + tmptiff
-            cmd += " " + tmpdss
+            cmd += f' "{tmptiff}"'
+            cmd += f' "{tmpdss}"'
             cmd += f' "{dsspathname}"'
             cmd += " shg-time"
-            cmd += " " + TifCfg.dss_datatype
-            cmd += " " + TifCfg.dss_unit
+            cmd += f' "{TifCfg.dss_datatype}"'
+            cmd += f' "{TifCfg.dss_unit}"'
             cmd += " gmt"
             cmd += " zlib"
 
-            sp = subprocess.Popen(
-                cmd,
-                cwd=_cumulus_packager,
-                shell=True,
-                stdout=subprocess.PIPE,
-                stderr=subprocess.PIPE,
-            )
             try:
-                outs, errs = sp.communicate(timeout=15)
-            except subprocess.TimeoutExpired:
-                sp.kill()
-                outs, errs = sp.communicate()
+                subprocess.check_call(
+                    cmd,
+                    cwd=_cumulus_packager,
+                    shell=True,
+                )
+                # callback
+                _progress = round(idx / len(src), 2)
+                logger.debug(f"Progress: {_progress}")
 
-            logger.debug(f"STDOUT: {outs}")
-            logger.debug(f"STDERR: {errs}")
-
-            # callback
-            _progress = round(idx / len(src), 2)
-            logger.debug(f"Progress: {_progress}")
-
-            if callback is not None:
-                callback(id, _status(_progress), _progress)
+                if callback is not None:
+                    callback(id, _status(_progress), _progress)
+            except subprocess.CalledProcessError as ex:
+                logger.warning(f"{type(ex).__name__}: {this}: {ex}")
+                callback(id, _status(-1), _progress)
+                return None
 
     except (RuntimeError, Exception) as ex:
         logger.error(f"{type(ex).__name__}: {this}: {ex}")
         callback(id, _status(-1), _progress)
+        return None
     finally:
         ds = None
 
     return tmpdss
-
-
-if __name__ == "__main__":
-    pass

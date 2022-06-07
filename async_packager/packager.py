@@ -25,7 +25,7 @@ from cumulus_packager.configurations import (
     WAIT_TIME_SECONDS,
     WRITE_TO_BUCKET,
 )
-from cumulus_packager.packager import PACKAGE_STATUS, handle_message, package_status
+import cumulus_packager.packager as packager
 from cumulus_packager.utils import capi
 from cumulus_packager.utils.boto import s3_upload_file
 
@@ -85,7 +85,7 @@ def start_packager():
                 cumulus_api.query = {"key": APPLICATION_KEY}
                 resp = asyncio.run(cumulus_api.get_(cumulus_api.url))
 
-                logger.debug(f"Request Response: {resp.json()}")
+                # logger.debug(f"Request Response: {resp.json()}")
 
                 if resp.status_code != 200:
                     raise Exception(resp)
@@ -96,11 +96,11 @@ def start_packager():
 
                 # response json to namedtuple
                 PayloadResp = namedtuple("PayloadResp", resp.json())(**resp.json())
-                logger.debug(f"JSON Message: {PayloadResp}")
+                # logger.debug(f"JSON Message: {PayloadResp}")
 
                 # log if the id was processed
-                if package_file := handle_message(
-                    PayloadResp, dst.name, package_status
+                if package_file := packager.handle_message(
+                    PayloadResp, dst.name, packager.package_status
                 ):
                     logger.debug(f"ID '{download_id}' processed")
                     if s3_upload_file(
@@ -108,17 +108,20 @@ def start_packager():
                         WRITE_TO_BUCKET,
                         PayloadResp.output_key,
                     ):
-                        package_status(
-                            download_id, PACKAGE_STATUS[1], 1, PayloadResp.output_key
+                        packager.package_status(
+                            download_id,
+                            packager.PACKAGE_STATUS[1],
+                            1,
+                            PayloadResp.output_key,
                         )
                         logger.debug(f"'{package_file}' uploaded")
                     else:
-                        package_status(download_id, PACKAGE_STATUS[-1], 0)
-                        logger.debug(f"'{package_file}' failed to upload")
+                        raise Exception(f"'{package_file}' failed to upload")
                 else:
-                    logger.debug(f"ID '{download_id} not processed")
+                    raise Exception(f"ID '{download_id} NOT processed")
 
             except Exception as ex:
+                packager.package_status(download_id, packager.PACKAGE_STATUS[-1], 0)
                 logger.warning(
                     f"{type(ex).__name__} - {this} - {ex} - {traceback.format_exc()}"
                 )

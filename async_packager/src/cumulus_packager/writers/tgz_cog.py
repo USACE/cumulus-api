@@ -102,6 +102,7 @@ def writer(
     except (RuntimeError, Exception) as ex:
         logger.error(f"{type(ex).__name__}: {this}: {ex}")
         callback(id, _status(-1), _progress)
+        return None
     finally:
         ds = None
         tar.close()

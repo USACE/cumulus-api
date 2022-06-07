@@ -3,13 +3,13 @@
 #
 pushd $(dirname $0)
 
-SRCTIFF=/dss-test-data/tiff/MRMS_MultiSensor_QPE_01H_Pass1_00.00_20220216-170000.tif
+SRCTIFF=/app/async_packager/tiffdss/test/rtma2p5_ru.tif
 
 DSSFILE=DSSFILE.dss
-DSSPATH=/a/b/precip/16FEB2022:1600/16FEB2022:1700/f/
-GRIDTYPE=ALBERS
+DSSPATH=/SHG/WATERSHED/AIRTEMP/07JUN2022:0015//NCEP-RTMA-RU-ANL/
+GRIDTYPE=shg-time
 DATATYPE=inst-val
-UNITS=mm
+UNITS="DEG C"
 TZID=gmt
 COMPRESSION=zlib
 
@@ -19,7 +19,7 @@ CELLSIZE=2000
 # Warp the tif to Tenn and Cumberland
 if [ "$1" == "warp" ]
 then
-    DSTTIFF=/dss-test-data/tiff/newfile.tif
+    DSTTIFF=/app/async_packager/tiffdss/test/rtma2p5_ru.tif
 
     gdalwarp -t_srs "EPSG:5070" -te 642000 1258000 1300000 1682000 \
         -tr ${CELLSIZE} ${CELLSIZE} -r bilinear -overwrite \

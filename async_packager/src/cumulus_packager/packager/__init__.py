@@ -14,6 +14,9 @@ from cumulus_packager.writers import pkg_writer
 
 this = os.path.basename(__file__)
 
+__all__ = ["PACKAGE_STATUS", "package_status", "handle_message"]
+
+
 PACKAGE_STATUS = {
     -1: "a553101e-8c51-4ddd-ac2e-b011ed54389b",  # FAILED
     0: "94727878-7a50-41f8-99eb-a80eb82f737a",  # INITIATED
@@ -75,8 +78,8 @@ def handle_message(payload_resp: namedtuple, dst: str, callback=None):
 
     Returns
     -------
-    _type_
-        _description_
+    str
+        FQPN to file
     """
     result = pkg_writer(
         plugin=payload_resp.format,

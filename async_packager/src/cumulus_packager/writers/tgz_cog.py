@@ -93,7 +93,7 @@ def writer(
             tar.add(tarfile, arcname=filename_, recursive=False)
 
             # callback
-            _progress = round(idx / len(src), 2)
+            _progress = idx / len(src)
             logger.debug(f"Progress: {_progress}")
 
             if callback is not None:

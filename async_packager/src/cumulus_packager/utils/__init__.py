@@ -5,6 +5,7 @@ import gzip
 import os
 import tarfile
 import zipfile
+
 from cumulus_packager import logger
 
 this = os.path.basename(__file__)

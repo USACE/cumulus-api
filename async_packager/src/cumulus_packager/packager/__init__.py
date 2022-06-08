@@ -25,7 +25,11 @@ PACKAGE_STATUS = {
 
 
 def package_status(
-    id: str = None, status_id: str = None, progress: float = 0, file: str = None
+    id: str = None,
+    status_id: str = None,
+    progress: float = 0,
+    file: str = None,
+    precision: float = 0.5,
 ):
     """Update packager status to DB
 
@@ -40,28 +44,29 @@ def package_status(
     file : str, optional
         S3 key to dss file, by default None
     """
-    _progress = int(progress * 100)
-    try:
-        _json = {
-            "id": id,
-            "status_id": status_id,
-            "progress": _progress,
-            "file": file,
-        }
-        logger.debug(f"Payload: {json.dumps(_json, indent=4)}")
+    _progress = round(progress * 100, 2)
+    if _progress % precision == 0:
+        try:
+            _json = {
+                "id": id,
+                "status_id": status_id,
+                "progress": _progress,
+                "file": file,
+            }
+            logger.debug(f"Payload: {json.dumps(_json, indent=4)}")
 
-        cumulus_api = capi.CumulusAPI(CUMULUS_API_URL, HTTP2)
-        cumulus_api.endpoint = f"downloads/{id}"
-        cumulus_api.query = {"key": APPLICATION_KEY}
+            cumulus_api = capi.CumulusAPI(CUMULUS_API_URL, HTTP2)
+            cumulus_api.endpoint = f"downloads/{id}"
+            cumulus_api.query = {"key": APPLICATION_KEY}
 
-        logger.debug(f"API endpoint URL: {cumulus_api.url}")
+            logger.debug(f"API endpoint URL: {cumulus_api.url}")
 
-        resp = asyncio.run(cumulus_api.put_(cumulus_api.url, payload=_json))
+            resp = asyncio.run(cumulus_api.put_(cumulus_api.url, payload=_json))
 
-        logger.debug(f"Response: {resp}")
+            logger.debug(f"Response: {resp}")
 
-    except Exception as ex:
-        logger.error(f"{type(ex).__name__}: {this}: {ex}")
+        except Exception as ex:
+            logger.error(f"{type(ex).__name__}: {this}: {ex}")
 
 
 def handle_message(payload_resp: namedtuple, dst: str, callback=None):

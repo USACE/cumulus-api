@@ -78,13 +78,14 @@ int writeRecord(char *filetiff, char *dssfile, char *dsspath,
 
     // get the raster geotransform
     double adfGeoTransform[6];
-    if (GDALGetGeoTransform(hDataset, adfGeoTransform) == CE_None)
-    {
-        printf("Origin = (%.6f,%.6f); ",
-               adfGeoTransform[0], adfGeoTransform[3]);
-        printf("Pixel Size = (%.6f,%.6f)\n",
-               adfGeoTransform[1], adfGeoTransform[5]);
-    }
+    GDALGetGeoTransform(hDataset, adfGeoTransform);
+    // if (GDALGetGeoTransform(hDataset, adfGeoTransform) == CE_None)
+    // {
+    //     printf("Origin = (%.6f,%.6f); ",
+    //            adfGeoTransform[0], adfGeoTransform[3]);
+    //     printf("Pixel Size = (%.6f,%.6f)\n",
+    //            adfGeoTransform[1], adfGeoTransform[5]);
+    // }
 
     // get the tiff shape
     int xsize = GDALGetRasterXSize(hDataset);
@@ -274,6 +275,4 @@ int main(int argc, char *argv[])
     {
         printf("Error storing record: %d\n", status);
     }
-    else
-        printf("Stored record: %s\n", dsspath);
 }

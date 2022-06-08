@@ -233,7 +233,7 @@ func main() {
 	// Create Prometheus server and Middleware
 	eProm := echo.New()
 	eProm.HideBanner = true
-	prom := prometheus.NewPrometheus("cumulus_api", nil)
+	prom := prometheus.NewPrometheus("cumulus_api", middleware.MetricsUrlSkipper)
 
 	// Scrape metrics from Main Server
 	e.Use(prom.HandlerFunc)

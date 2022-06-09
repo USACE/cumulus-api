@@ -30,7 +30,7 @@ USE_SSL: bool = eval(os.getenv("USE_SSL", default="True").title())
 # ------------------------- #
 # SQS Configuration
 # ------------------------- #
-QUEUE_NAME: str = os.getenv("QUEUE_NAME", "packager")
+QUEUE_NAME_PACKAGER: str = os.getenv("QUEUE_NAME_PACKAGER", "cumulus-packager")
 WAIT_TIME_SECONDS: int = os.getenv("WAIT_TIME_SECONDS", default=20)
 MAX_Q_MESSAGES: int = os.getenv("MAX_Q_MESSAGES", default=10)
 

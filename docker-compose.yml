@@ -77,7 +77,7 @@ services:
       - AWS_HTTPS=NO
       - APPLICATION_KEY=appkey
       - USE_SSL=False
-      - QUEUE_NAME=cumulus-packager
+      - QUEUE_NAME_PACKAGER=cumulus-packager
       - CUMULUS_MOCK_S3_UPLOAD=FALSE
       - CUMULUS_API_URL=http://api
       - HTTP2=False

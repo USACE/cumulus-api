@@ -6,6 +6,7 @@
 import os
 import subprocess
 from collections import namedtuple
+import time
 
 import cumulus_packager
 import pyplugs
@@ -54,6 +55,7 @@ def writer(
     str
         FQPN to dss file
     """
+    start = time.perf_counter()
     # return None if no items in the 'contents'
     if len(src) < 1:
         callback(id, _status(-1))
@@ -104,10 +106,14 @@ def writer(
             cmd += " zlib"
 
             try:
+                substart = time.perf_counter()
                 subprocess.check_call(
                     cmd,
                     cwd=_cumulus_packager,
                     shell=True,
+                )
+                logger.debug(
+                    f"Subprocessor Perfomance Counter: {time.perf_counter() - substart}"
                 )
                 # callback
                 _progress = idx / len(src)
@@ -126,5 +132,6 @@ def writer(
         return None
     finally:
         ds = None
+        logger.debug(f"Total Perfomance Counter: {time.perf_counter() - start}")
 
     return tmpdss

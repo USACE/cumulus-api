@@ -29,7 +29,7 @@ def package_status(
     status_id: str = None,
     progress: float = 0,
     file: str = None,
-    precision: float = 0.5,
+    precision: int = 10,
 ):
     """Update packager status to DB
 

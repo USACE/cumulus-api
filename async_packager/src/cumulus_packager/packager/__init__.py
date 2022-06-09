@@ -61,9 +61,10 @@ def package_status(
 
             logger.debug(f"API endpoint URL: {cumulus_api.url}")
 
-            resp = asyncio.run(cumulus_api.put_(cumulus_api.url, payload=_json))
+            resp = asyncio.run(cumulus_api.put_(cumulus_api.url, _json))
 
             logger.debug(f"Response: {resp}")
+            logger.debug(f"Response: {resp.http_version}")
 
         except Exception as ex:
             logger.error(f"{type(ex).__name__}: {this}: {ex}")

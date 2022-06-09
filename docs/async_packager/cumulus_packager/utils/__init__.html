@@ -1,0 +1,224 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta http-equiv="content-type" content="text/html;charset=utf-8">
+  <title>__init__.py</title>
+  <link rel="stylesheet" href="../../pycco.css">
+</head>
+<body>
+<div id='container'>
+  <div id="background"></div>
+  <div class='section'>
+    <div class='docs'><h1>__init__.py</h1></div>
+  </div>
+  <div class='clearall'>
+  <div class='section' id='section-0'>
+    <div class='docs'>
+      <div class='octowrap'>
+        <a class='octothorpe' href='#section-0'>#</a>
+      </div>
+      <p>utilities for the cumulus geoprocessor package</p>
+    </div>
+    <div class='code'>
+      <div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">gzip</span>
+<span class="kn">import</span> <span class="nn">os</span>
+<span class="kn">import</span> <span class="nn">tarfile</span>
+<span class="kn">import</span> <span class="nn">zipfile</span>
+<span class="kn">from</span> <span class="nn">cumulus_packager</span> <span class="kn">import</span> <span class="n">logger</span>
+
+<span class="n">this</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">basename</span><span class="p">(</span><span class="vm">__file__</span><span class="p">)</span></pre></div>
+    </div>
+  </div>
+  <div class='clearall'></div>
+  <div class='section' id='section-1'>
+    <div class='docs'>
+      <div class='octowrap'>
+        <a class='octothorpe' href='#section-1'>#</a>
+      </div>
+      <p>Replace file extension with suffix with allowable extensions</p>
+    </div>
+    <div class='code'>
+      <div class="highlight"><pre><span class="k">def</span> <span class="nf">file_extension</span><span class="p">(</span><span class="n">file</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">preffix</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;&quot;</span><span class="p">,</span> <span class="n">suffix</span><span class="o">=</span><span class="s2">&quot;.tif&quot;</span><span class="p">,</span> <span class="n">maxsplit</span><span class="o">=-</span><span class="mi">1</span><span class="p">):</span></pre></div>
+    </div>
+  </div>
+  <div class='clearall'></div>
+  <div class='section' id='section-2'>
+    <div class='docs'>
+      <div class='octowrap'>
+        <a class='octothorpe' href='#section-2'>#</a>
+      </div>
+      <h2>Parameters</h2>
+<p>file : str
+    input file name or FQPN; don&rsquo;t use preffix with FQPN
+preffix : str, optional
+    add preffix to input string, by default &ldquo;&rdquo;
+suffix : str, optional
+    replace extension with suffix, by default &ldquo;.tif&rdquo;
+maxsplit : int, optional
+    for multiple &ldquo;.ext&rdquo;; e.g. .tar.gz, by default -1</p>
+<h2>Returns</h2>
+<p>str
+    filename or FQPN with new extension, preffix, or both</p>
+    </div>
+    <div class='code'>
+      <div class="highlight"><pre>    <span class="n">file</span> <span class="o">=</span> <span class="n">preffix</span> <span class="o">+</span> <span class="n">file</span>
+
+    <span class="n">exts</span> <span class="o">=</span> <span class="p">(</span>
+        <span class="s2">&quot;.gz&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;.nc&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;.tar&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;.bin&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;.grb&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;.zip&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;.bil&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;.dat&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;.txt&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;.tif&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;.tiff&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;.grib&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;.grib2&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;.tar.gz&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;.grib.gz&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;.grib2.gz&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;.grb.gz&quot;</span><span class="p">,</span>
+    <span class="p">)</span>
+    <span class="k">if</span> <span class="n">file</span><span class="o">.</span><span class="n">endswith</span><span class="p">(</span><span class="n">exts</span><span class="p">):</span>
+        <span class="n">file_</span> <span class="o">=</span> <span class="p">[</span>
+            <span class="n">file</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="n">file</span><span class="p">[</span><span class="o">-</span><span class="nb">len</span><span class="p">(</span><span class="n">e</span><span class="p">)</span> <span class="p">:],</span> <span class="n">suffix</span><span class="p">)</span> <span class="k">for</span> <span class="n">e</span> <span class="ow">in</span> <span class="n">exts</span> <span class="k">if</span> <span class="n">file</span><span class="p">[</span><span class="o">-</span><span class="nb">len</span><span class="p">(</span><span class="n">e</span><span class="p">)</span> <span class="p">:]</span> <span class="o">==</span> <span class="n">e</span>
+        <span class="p">]</span></pre></div>
+    </div>
+  </div>
+  <div class='clearall'></div>
+  <div class='section' id='section-3'>
+    <div class='docs'>
+      <div class='octowrap'>
+        <a class='octothorpe' href='#section-3'>#</a>
+      </div>
+      <p>maxsure not to go out of range</p>
+    </div>
+    <div class='code'>
+      <div class="highlight"><pre>        <span class="n">maxsplit</span> <span class="o">=</span> <span class="n">maxsplit</span> <span class="o">-</span> <span class="mi">1</span> <span class="k">if</span> <span class="n">maxsplit</span> <span class="o">&gt;</span> <span class="mi">0</span> <span class="k">else</span> <span class="n">maxsplit</span>
+        <span class="n">maxsplit</span> <span class="o">=</span> <span class="nb">min</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">file_</span><span class="p">)</span> <span class="o">-</span> <span class="mi">1</span><span class="p">,</span> <span class="n">maxsplit</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">file_</span><span class="p">[</span><span class="n">maxsplit</span><span class="p">]</span>
+
+    <span class="k">return</span> <span class="n">file</span> <span class="o">+</span> <span class="n">suffix</span></pre></div>
+    </div>
+  </div>
+  <div class='clearall'></div>
+  <div class='section' id='section-4'>
+    <div class='docs'>
+      <div class='octowrap'>
+        <a class='octothorpe' href='#section-4'>#</a>
+      </div>
+      <p>Decompress gzip, tar, tar gzip, or zip file</p>
+    </div>
+    <div class='code'>
+      <div class="highlight"><pre><span class="k">def</span> <span class="nf">decompress</span><span class="p">(</span><span class="n">src</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">dst</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;/tmp&quot;</span><span class="p">,</span> <span class="n">recursive</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">):</span></pre></div>
+    </div>
+  </div>
+  <div class='clearall'></div>
+  <div class='section' id='section-5'>
+    <div class='docs'>
+      <div class='octowrap'>
+        <a class='octothorpe' href='#section-5'>#</a>
+      </div>
+      <p>Destination as a temporary directory best used because this methods
+does not clean files/directories</p>
+<h2>Parameters</h2>
+<p>src : str
+    input FQPN to compressed file
+dst : str, optional
+    FQP to output directory, by default &ldquo;/tmp&rdquo;
+recursive : bool, optional
+    recursive decompress is gzip, tar, tar gzip, or zip file, by default False</p>
+<h2>Returns</h2>
+<p>str
+    FQP as a directory or single file if not a tar</p>
+<p>allowed extensions</p>
+    </div>
+    <div class='code'>
+      <div class="highlight"><pre>    <span class="n">exts</span> <span class="o">=</span> <span class="p">(</span>
+        <span class="s2">&quot;.gz&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;.tar&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;.zip&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;.tar.gz&quot;</span><span class="p">,</span>
+    <span class="p">)</span>
+
+    <span class="n">filename</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">basename</span><span class="p">(</span><span class="n">src</span><span class="p">)</span></pre></div>
+    </div>
+  </div>
+  <div class='clearall'></div>
+  <div class='section' id='section-6'>
+    <div class='docs'>
+      <div class='octowrap'>
+        <a class='octothorpe' href='#section-6'>#</a>
+      </div>
+      <p>directory name all gets decompressed too</p>
+    </div>
+    <div class='code'>
+      <div class="highlight"><pre>    <span class="k">if</span> <span class="ow">not</span> <span class="n">src</span><span class="o">.</span><span class="n">endswith</span><span class="p">(</span><span class="n">exts</span><span class="p">):</span>
+        <span class="k">return</span> <span class="kc">False</span></pre></div>
+    </div>
+  </div>
+  <div class='clearall'></div>
+  <div class='section' id='section-7'>
+    <div class='docs'>
+      <div class='octowrap'>
+        <a class='octothorpe' href='#section-7'>#</a>
+      </div>
+      <p>try to decompress if compressed</p>
+    </div>
+    <div class='code'>
+      <div class="highlight"><pre>    <span class="k">try</span><span class="p">:</span>
+        <span class="k">with</span> <span class="n">gzip</span><span class="o">.</span><span class="n">open</span><span class="p">(</span><span class="n">src</span><span class="p">,</span> <span class="s2">&quot;rb&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">fh</span><span class="p">:</span>
+            <span class="n">content</span> <span class="o">=</span> <span class="n">fh</span><span class="o">.</span><span class="n">read</span><span class="p">()</span>
+
+            <span class="n">fname</span> <span class="o">=</span> <span class="n">file_extension</span><span class="p">(</span><span class="n">filename</span><span class="p">,</span> <span class="n">suffix</span><span class="o">=</span><span class="s2">&quot;&quot;</span><span class="p">,</span> <span class="n">maxsplit</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+            <span class="n">src</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">dst</span><span class="p">,</span> <span class="n">fname</span><span class="p">)</span>
+
+            <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">src</span><span class="p">,</span> <span class="s2">&quot;wb&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">fp</span><span class="p">:</span>
+                <span class="n">fp</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">content</span><span class="p">)</span>
+    <span class="k">except</span> <span class="ne">OSError</span> <span class="k">as</span> <span class="n">ex</span><span class="p">:</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Not gzip: </span><span class="si">{</span><span class="n">src</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="nb">type</span><span class="p">(</span><span class="n">ex</span><span class="p">)</span><span class="o">.</span><span class="vm">__name__</span><span class="si">}</span><span class="s2">: </span><span class="si">{</span><span class="n">this</span><span class="si">}</span><span class="s2">: </span><span class="si">{</span><span class="n">ex</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+
+    <span class="k">try</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">zipfile</span><span class="o">.</span><span class="n">is_zipfile</span><span class="p">(</span><span class="n">src</span><span class="p">):</span>
+            <span class="k">with</span> <span class="n">zipfile</span><span class="o">.</span><span class="n">ZipFile</span><span class="p">(</span><span class="n">src</span><span class="p">)</span> <span class="k">as</span> <span class="nb">zip</span><span class="p">:</span>
+                <span class="n">fname</span> <span class="o">=</span> <span class="n">file_extension</span><span class="p">(</span><span class="n">filename</span><span class="p">,</span> <span class="n">suffix</span><span class="o">=</span><span class="s2">&quot;&quot;</span><span class="p">)</span>
+                <span class="n">dst_</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">dst</span><span class="p">,</span> <span class="n">fname</span><span class="p">)</span>
+                <span class="nb">zip</span><span class="o">.</span><span class="n">extractall</span><span class="p">(</span><span class="n">dst_</span><span class="p">)</span>
+            <span class="k">return</span> <span class="n">dst_</span>
+        <span class="k">elif</span> <span class="n">tarfile</span><span class="o">.</span><span class="n">is_tarfile</span><span class="p">(</span><span class="n">src</span><span class="p">):</span>
+            <span class="k">with</span> <span class="n">tarfile</span><span class="o">.</span><span class="n">open</span><span class="p">(</span><span class="n">src</span><span class="p">)</span> <span class="k">as</span> <span class="n">tar</span><span class="p">:</span>
+                <span class="n">fname</span> <span class="o">=</span> <span class="n">file_extension</span><span class="p">(</span><span class="n">filename</span><span class="p">,</span> <span class="n">suffix</span><span class="o">=</span><span class="s2">&quot;&quot;</span><span class="p">)</span>
+
+                <span class="n">dst_</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">dst</span><span class="p">,</span> <span class="n">fname</span><span class="p">)</span>
+
+                <span class="n">tar</span><span class="o">.</span><span class="n">extractall</span><span class="p">(</span><span class="n">dst_</span><span class="p">)</span>
+                <span class="k">if</span> <span class="n">recursive</span><span class="p">:</span>
+                    <span class="k">for</span> <span class="n">member</span> <span class="ow">in</span> <span class="n">tar</span><span class="o">.</span><span class="n">getmembers</span><span class="p">():</span>
+                        <span class="k">if</span> <span class="n">member</span><span class="o">.</span><span class="n">isfile</span><span class="p">():</span>
+                            <span class="n">decompress</span><span class="p">(</span>
+                                <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">dst_</span><span class="p">,</span> <span class="n">member</span><span class="o">.</span><span class="n">name</span><span class="p">),</span>
+                                <span class="n">dst</span><span class="o">=</span><span class="n">dst_</span><span class="p">,</span>
+                                <span class="n">recursive</span><span class="o">=</span><span class="n">recursive</span><span class="p">,</span>
+                            <span class="p">)</span>
+            <span class="k">return</span> <span class="n">dst_</span>
+    <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">ex</span><span class="p">:</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="nb">type</span><span class="p">(</span><span class="n">ex</span><span class="p">)</span><span class="o">.</span><span class="vm">__name__</span><span class="si">}</span><span class="s2">: </span><span class="si">{</span><span class="n">this</span><span class="si">}</span><span class="s2">: </span><span class="si">{</span><span class="n">ex</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="k">return</span> <span class="kc">False</span>
+
+    <span class="k">return</span> <span class="n">src</span>
+
+
+<span class="k">if</span> <span class="vm">__name__</span> <span class="o">==</span> <span class="s2">&quot;__main__&quot;</span><span class="p">:</span>
+    <span class="k">pass</span>
+
+</pre></div>
+    </div>
+  </div>
+  <div class='clearall'></div>
+</div>
+</body>

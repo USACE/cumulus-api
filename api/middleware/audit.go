@@ -19,6 +19,18 @@ type UserInfo struct {
 	IsAdmin bool       `json:"is_admin"`
 }
 
+func AttachAnonymousUserInfo(next echo.HandlerFunc) echo.HandlerFunc {
+	return func(c echo.Context) error {
+		anonUUID := uuid.MustParse("11111111-1111-1111-1111-111111111111")
+		c.Set("userInfo", UserInfo{
+			Sub: &anonUUID,
+			Roles: []string{},
+			IsAdmin: false,
+		})
+		return next(c)
+	}
+}
+
 func AttachUserInfo(next echo.HandlerFunc) echo.HandlerFunc {
 	return func(c echo.Context) error {
 		keyAuthSuccess, ok := c.Get("ApplicationKeyAuthSuccess").(bool)

@@ -186,6 +186,7 @@ func main() {
 	// List Downloads
 	private.GET("/downloads", handlers.ListAdminDownloads(db), middleware.IsAdmin)
 	// Create Download (Anonymous)
+	public.POST("/deprecated/anonymous_downloads", handlers.CreateDownload(db, cfg), middleware.AttachAnonymousUserInfo) // deprecated
 	private.POST("/downloads", handlers.CreateDownload(db, cfg))
 	public.GET("/downloads/:download_id", handlers.GetDownload(db))
 	// Create Download (Authenticated)

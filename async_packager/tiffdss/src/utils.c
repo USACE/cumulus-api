@@ -1,8 +1,48 @@
-#include <stdio.h>
 #include <string.h>
 
 #include "heclib.h"
 #include "utils.h"
+
+int opendss(long long *ifltab, const char *dssfile)
+{
+    return zopen(ifltab, dssfile);
+}
+
+int closedss(long long *ifltab)
+{
+    return zcloseInternal(ifltab, 0);
+}
+
+float maximum(float *arr, int n)
+{
+    float max = arr[0];
+
+    for (int i = 0; i < n; i++){
+        if(arr[i] > max)
+            max = arr[i];
+    }
+    return max;
+}
+
+float minimum(float *arr, int n)
+{
+    float min = arr[0];
+
+    for (int i = 0; i < n; i++){
+        if(arr[i] < min)
+            min = arr[i];
+    }
+    return min;
+}
+
+float meanvalue(float *arr, int n)
+{
+    float sum = 0;
+    for (int i = 0; i < n; i++)
+        sum += arr[i];
+
+    return sum / n;
+}
 
 StructGridTypes findGridTypes(const char *gridType)
 {

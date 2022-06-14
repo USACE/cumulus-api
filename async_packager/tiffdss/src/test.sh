@@ -3,7 +3,7 @@
 #
 pushd $(dirname $0)
 
-SRCTIFF=/app/async_packager/tiffdss/test/rtma2p5_ru.tif
+SRCTIFF=/dss-test-data/tiff/MRMS_MultiSensor.tif
 
 DSSFILE=DSSFILE.dss
 DSSPATH=/SHG/WATERSHED/AIRTEMP/07JUN2022:0015//NCEP-RTMA-RU-ANL/

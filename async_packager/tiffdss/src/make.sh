@@ -5,10 +5,14 @@ cd $(dirname $0)
 
 # clean and build tiffdss
 make clean
-make tiffdss
-make libtiffdss.so
+make tiffdss libtiffdss.so
 
-# copy the binary over to the cumulus packager package
+# Move objects
 mv -f tiffdss ../../src/cumulus_packager/bin/
-mv -f libtiffdss.so ../../src/cumulus_packager/bin/
-printf "\nMoved tiffdss and libtiffdss.so to ../../src/cumulus_packager/bin\n"
+printf "\nMoved tiffdss ../../src/cumulus_packager/bin\n"
+
+mv -f libtiffdss.so /usr/lib
+printf "\nMoved libtiffdss.so to /usr/lib\n"
+
+# mv -f libhec.so /usr/lib
+# printf "\nMoved libhec.so to /usr/lib\n"

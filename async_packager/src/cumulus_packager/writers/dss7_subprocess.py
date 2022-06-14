@@ -2,53 +2,16 @@
 
     COG --> DSS7
 """
+
 import os
 import subprocess
-import time
 from collections import namedtuple
-from ctypes import (
-    CDLL,
-    LibraryLoader,
-    addressof,
-    c_char_p,
-    c_int,
-    c_long,
-    c_longlong,
-    memset,
-    sizeof,
-)
 
 import cumulus_packager
 import pyplugs
 from cumulus_packager import logger
 from cumulus_packager.packager import PACKAGE_STATUS
 from osgeo import gdal
-
-# _cumulus_packager = os.path.dirname(cumulus_packager.__file__)
-c_tiffdss = LibraryLoader(CDLL).LoadLibrary("libtiffdss.so")
-
-write_record = c_tiffdss.writeRecord
-zopen = c_tiffdss.open
-zclose = c_tiffdss.close
-
-write_record.argtypes = (
-    c_longlong,
-    c_char_p,
-    c_char_p,
-    c_char_p,
-    c_char_p,
-    c_char_p,
-    c_char_p,
-    c_char_p,
-    c_char_p,
-)
-write_record.restype = c_int
-
-zopen.argtypes = [c_longlong, c_char_p]
-zopen.restype = c_int
-zclose.argtypes = [c_longlong]
-zclose.restype = c_int
-
 
 gdal.UseExceptions()
 
@@ -91,25 +54,19 @@ def writer(
     str
         FQPN to dss file
     """
-    start = time.perf_counter()
     # return None if no items in the 'contents'
     if len(src) < 1:
         callback(id, _status(-1))
         return
 
+    _cumulus_packager = os.path.dirname(cumulus_packager.__file__)
     _extent_name = extent["name"]
     _bbox = extent["bbox"]
     _progress = 0
 
     # this can go away when the payload has the resolution
     cellsize = 2000 if cellsize is None else None
-    ifltab = c_longlong(250)
-    memset(addressof(ifltab), 0, 250 * sizeof(c_long))
-
     try:
-        tmpdss = os.path.join(dst, id + ".dss")
-        ret = zopen(addressof(ifltab), c_char_p(str.encode(tmpdss)))
-        logger.debug(f"zopen returned: {ret}")
         for idx, tif in enumerate(src):
             TifCfg = namedtuple("TifCfg", tif)(**tif)
 
@@ -135,32 +92,22 @@ def writer(
             )
 
             # as a subprocess
-            # tmpdss = os.path.join(dst, id + ".dss")
-            # cmd = os.path.join(_cumulus_packager, "bin/tiffdss")
-            # cmd += f' "{tmptiff}"'
-            # cmd += f' "{tmpdss}"'
-            # cmd += f' "{dsspathname}"'
-            # cmd += " shg-time"
-            # cmd += f' "{TifCfg.dss_datatype}"'
-            # cmd += f' "{TifCfg.dss_unit}"'
-            # cmd += " gmt"
-            # cmd += " zlib"
+            tmpdss = os.path.join(dst, id + ".dss")
+            cmd = os.path.join(_cumulus_packager, "bin/tiffdss")
+            cmd += f' "{tmptiff}"'
+            cmd += f' "{tmpdss}"'
+            cmd += f' "{dsspathname}"'
+            cmd += " shg-time"
+            cmd += f' "{TifCfg.dss_datatype}"'
+            cmd += f' "{TifCfg.dss_unit}"'
+            cmd += " gmt"
+            cmd += " zlib"
 
             try:
-                substart = time.perf_counter()
-                ret = write_record(
-                    addressof(ifltab),
-                    tmptiff.encode(),
-                    tmpdss.encode(),
-                    dsspathname.encode(),
-                    b"shg-time",
-                    str.encode(TifCfg.dss_datatype),
-                    str.encode(TifCfg.dss_unit),
-                    b"gmt",
-                    b"zlib",
-                )
-                logger.debug(
-                    f"Subprocessor Perfomance Counter: {time.perf_counter() - substart}"
+                subprocess.check_call(
+                    cmd,
+                    cwd=_cumulus_packager,
+                    shell=True,
                 )
                 # callback
                 _progress = idx / len(src)
@@ -179,7 +126,5 @@ def writer(
         return None
     finally:
         ds = None
-        logger.debug(f"Total Perfomance Counter: {time.perf_counter() - start}")
-        zclose(addressof(ifltab))
 
     return tmpdss

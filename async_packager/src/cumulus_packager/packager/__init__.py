@@ -44,7 +44,7 @@ def package_status(
     file : str, optional
         S3 key to dss file, by default None
     """
-    _progress = round(progress * 100, 2)
+    _progress = int(progress * 100)
     if _progress % precision == 0:
         try:
             _json = {
@@ -61,7 +61,7 @@ def package_status(
 
             logger.debug(f"API endpoint URL: {cumulus_api.url}")
 
-            resp = asyncio.run(cumulus_api.put_(cumulus_api.url, payload=_json))
+            resp = asyncio.run(cumulus_api.put_(cumulus_api.url, _json))
 
             logger.debug(f"Response: {resp}")
 

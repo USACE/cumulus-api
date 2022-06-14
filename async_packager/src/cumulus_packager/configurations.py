@@ -30,7 +30,11 @@ USE_SSL: bool = eval(os.getenv("USE_SSL", default="True").title())
 # ------------------------- #
 # SQS Configuration
 # ------------------------- #
+<<<<<<< HEAD
 QUEUE_NAME: str = os.getenv("QUEUE_NAME", "packager")
+=======
+QUEUE_NAME_PACKAGER: str = os.getenv("QUEUE_NAME_PACKAGER", "cumulus-packager")
+>>>>>>> develop
 WAIT_TIME_SECONDS: int = os.getenv("WAIT_TIME_SECONDS", default=20)
 MAX_Q_MESSAGES: int = os.getenv("MAX_Q_MESSAGES", default=10)
 
@@ -79,4 +83,8 @@ PRODUCT_FILE_VERSION: str = os.getenv(
     "PRODUCT_FILE_VERSION", default="1111-11-11T11:11:11.11Z"
 )
 
+<<<<<<< HEAD
 LOGGER_LEVEL: str = os.getenv("LOGGER_LEVEL", default="INFO")
+=======
+LOGGER_LEVEL: str = os.getenv("LOGGER_LEVEL", default="DEBUG")
+>>>>>>> develop

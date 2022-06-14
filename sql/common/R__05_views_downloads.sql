@@ -69,6 +69,7 @@ CREATE OR REPLACE VIEW v_download_request AS (
                (SELECT config.config_value FROM config WHERE config.config_name::text = 'write_to_bucket'::text) AS bucket,
                CASE
                    WHEN p.temporal_duration = 0 THEN 'INST-VAL'::text
+                   WHEN a.name in ('AIRTEMP-MIN', 'AIRTEMP-MAX') THEN 'PER-AVER'
                    ELSE 'PER-CUM'::text
                END AS dss_datatype,
                CASE

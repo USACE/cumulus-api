@@ -21,7 +21,7 @@ from cumulus_packager.configurations import (
     ENDPOINT_URL_SQS,
     HTTP2,
     MAX_Q_MESSAGES,
-    QUEUE_NAME,
+    QUEUE_NAME_PACKAGER,
     WAIT_TIME_SECONDS,
     WRITE_TO_BUCKET,
 )
@@ -48,7 +48,7 @@ def start_packager():
     )
 
     # Incoming Requests
-    queue = sqs.get_queue_by_name(QueueName=QUEUE_NAME)
+    queue = sqs.get_queue_by_name(QueueName=QUEUE_NAME_PACKAGER)
 
     logger.info(
         "%(spacer)s Starting the packager thread %(spacer)s" % {"spacer": "*" * 20}

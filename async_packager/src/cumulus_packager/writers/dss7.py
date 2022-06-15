@@ -2,53 +2,17 @@
 
     COG --> DSS7
 """
+import json
 import os
-import subprocess
-import time
 from collections import namedtuple
-from ctypes import (
-    CDLL,
-    LibraryLoader,
-    addressof,
-    c_char_p,
-    c_int,
-    c_long,
-    c_longlong,
-    memset,
-    sizeof,
-)
+from ctypes import c_char_p, c_float, c_int
 
-import cumulus_packager
+import numpy
 import pyplugs
 from cumulus_packager import logger
-from cumulus_packager.packager import PACKAGE_STATUS
+from cumulus_packager import heclib
+from cumulus_packager.packager.handler import PACKAGE_STATUS, package_status
 from osgeo import gdal
-
-# _cumulus_packager = os.path.dirname(cumulus_packager.__file__)
-c_tiffdss = LibraryLoader(CDLL).LoadLibrary("libtiffdss.so")
-
-write_record = c_tiffdss.writeRecord
-zopen = c_tiffdss.open
-zclose = c_tiffdss.close
-
-write_record.argtypes = (
-    c_longlong,
-    c_char_p,
-    c_char_p,
-    c_char_p,
-    c_char_p,
-    c_char_p,
-    c_char_p,
-    c_char_p,
-    c_char_p,
-)
-write_record.restype = c_int
-
-zopen.argtypes = [c_longlong, c_char_p]
-zopen.restype = c_int
-zclose.argtypes = [c_longlong]
-zclose.restype = c_int
-
 
 gdal.UseExceptions()
 
@@ -60,12 +24,11 @@ _status = lambda x: PACKAGE_STATUS[int(x)]
 @pyplugs.register
 def writer(
     id: str,
-    extent: dict,
-    src: list,
+    src: str,
+    extent: str,
     dst: str,
     cellsize: float,
     dst_srs: str = "EPSG:5070",
-    callback=None,
 ):
     """Packager writer plugin
 
@@ -83,35 +46,45 @@ def writer(
         Grid resolution
     dst_srs : str, optional
         Destination Spacial Reference, by default "EPSG:5070"
-    callback : callable, optional
+    callback : str, optional
         callback function sending message to the DB, by default None, by default None
+        implemented as pyplugs plugin
 
     Returns
     -------
     str
         FQPN to dss file
     """
-    start = time.perf_counter()
+    # convert the strings back to json objects; needed for pyplugs
+    src = json.loads(src)
+    extent = json.loads(extent)
+
     # return None if no items in the 'contents'
     if len(src) < 1:
-        callback(id, _status(-1))
+        package_status(id=id, status_id=_status(-1))
         return
 
     _extent_name = extent["name"]
     _bbox = extent["bbox"]
     _progress = 0
+    _nodata = -9999
 
-    # this can go away when the payload has the resolution
+    ###### this can go away when the payload has the resolution ######
     cellsize = 2000 if cellsize is None else None
-    ifltab = c_longlong(250)
-    memset(addressof(ifltab), 0, 250 * sizeof(c_long))
+    grid_type = heclib.dss_grid_type["SHG"]
+    zcompression = heclib.compression_method["ZLIB_COMPRESSION"]
+    grid_type_name = heclib.dss_grid_type_name["SHG"]
+    srs_definition = heclib.spatial_reference_definition["SHG"]
+    tz_name = "GMT"
+    tz_offset = heclib.time_zone[tz_name]
 
     try:
-        tmpdss = os.path.join(dst, id + ".dss")
-        ret = zopen(addressof(ifltab), c_char_p(str.encode(tmpdss)))
-        logger.debug(f"zopen returned: {ret}")
+        dssfilename = os.path.join(dst, id + ".dss")
+
         for idx, tif in enumerate(src):
             TifCfg = namedtuple("TifCfg", tif)(**tif)
+
+            data_type = heclib.data_type[TifCfg.dss_datatype]
 
             filename_ = os.path.basename(TifCfg.key)
             dsspathname = f"/SHG/{_extent_name}/{TifCfg.dss_cpart}/{TifCfg.dss_dpart}/{TifCfg.dss_epart}/{TifCfg.dss_fpart}/"
@@ -120,7 +93,7 @@ def writer(
 
             # GDAL Warp the Tiff to what we need for DSS
             gdal.Warp(
-                tmptiff := os.path.join(dst, filename_),
+                tmptiff := f"/vsimem/{filename_}",
                 ds,
                 format="GTiff",
                 outputBounds=_bbox,
@@ -128,58 +101,94 @@ def writer(
                 yRes=cellsize,
                 targetAlignedPixels=True,
                 dstSRS=dst_srs,
-                outputType=gdal.GDT_Float64,
+                outputType=gdal.GDT_Float32,
                 resampleAlg="bilinear",
-                dstNodata=-9999,
+                dstNodata=_nodata,
                 copyMetadata=False,
             )
+            logger.debug(f"{tmptiff=}")
 
-            # as a subprocess
-            # tmpdss = os.path.join(dst, id + ".dss")
-            # cmd = os.path.join(_cumulus_packager, "bin/tiffdss")
-            # cmd += f' "{tmptiff}"'
-            # cmd += f' "{tmpdss}"'
-            # cmd += f' "{dsspathname}"'
-            # cmd += " shg-time"
-            # cmd += f' "{TifCfg.dss_datatype}"'
-            # cmd += f' "{TifCfg.dss_unit}"'
-            # cmd += " gmt"
-            # cmd += " zlib"
+            ds = gdal.Open(tmptiff)
+            xsize, ysize = ds.RasterXSize, ds.RasterYSize
+            adfGeoTransform = ds.GetGeoTransform()
+            llx = int(adfGeoTransform[0] / adfGeoTransform[1])
+            lly = int(
+                (adfGeoTransform[5] * ysize + adfGeoTransform[3]) / adfGeoTransform[1]
+            )
+
+            logger.debug(f"{xsize=}, {ysize=}, {llx=}, {lly=}")
 
             try:
-                substart = time.perf_counter()
-                ret = write_record(
-                    addressof(ifltab),
-                    tmptiff.encode(),
-                    tmpdss.encode(),
-                    dsspathname.encode(),
-                    b"shg-time",
-                    str.encode(TifCfg.dss_datatype),
-                    str.encode(TifCfg.dss_unit),
-                    b"gmt",
-                    b"zlib",
+                _min, _max, _mean, _ = ds.GetRasterBand(1).GetStatistics()
+            except:
+                _min = _max = _mean = _nodata
+
+            gridStats = heclib.GridStats()
+            gridStats.minimum = c_float(_min)
+            gridStats.maximum = c_float(_max)
+            gridStats.meanval = c_float(_mean)
+            logger.debug(
+                f"GridStats: {gridStats.minimum=} {gridStats.maximum=} {gridStats.meanval=}"
+            )
+
+            # get stats from the array
+            _data = numpy.float32(ds.GetRasterBand(1).ReadAsArray())
+            data = _data.flatten()
+            logger.debug(f"{data=}")
+
+            try:
+                spatialGridStruct = heclib.zStructSpatialGrid()
+                spatialGridStruct.pathname = c_char_p(dsspathname.encode())
+                spatialGridStruct._structVersion = c_int(-100)
+                spatialGridStruct._type = c_int(grid_type)
+                spatialGridStruct._version = c_int(1)
+                spatialGridStruct._dataUnits = c_char_p(str.encode(TifCfg.dss_unit))
+                spatialGridStruct._dataType = c_int(data_type)
+                spatialGridStruct._dataSource = c_char_p("INTERNAL".encode())
+                spatialGridStruct._lowerLeftCellX = c_int(llx)
+                spatialGridStruct._lowerLeftCellY = c_int(lly)
+                spatialGridStruct._numberOfCellsX = c_int(xsize)
+                spatialGridStruct._numberOfCellsY = c_int(ysize)
+                spatialGridStruct._cellSize = c_float(cellsize)
+                spatialGridStruct._compressionMethod = c_int(zcompression)
+                spatialGridStruct._srsName = c_char_p(grid_type_name.encode())
+                spatialGridStruct._srsDefinitionType = c_int(1)
+                spatialGridStruct._srsDefinition = c_char_p(srs_definition.encode())
+                spatialGridStruct._xCoordOfGridCellZero = c_float(0)
+                spatialGridStruct._yCoordOfGridCellZero = c_float(0)
+                spatialGridStruct._nullValue = c_float(_nodata)
+                spatialGridStruct._timeZoneID = c_char_p(tz_name.encode())
+                spatialGridStruct._timeZoneRawOffset = c_int(tz_offset)
+                spatialGridStruct._isInterval = c_int(1)
+                spatialGridStruct._isTimeStamped = c_int(1)
+
+                ret = heclib.zwrite_record(
+                    dssfilename=dssfilename,
+                    gridStructStore=spatialGridStruct,
+                    data_flat=data,
+                    gridStats=gridStats,
                 )
-                logger.debug(
-                    f"Subprocessor Perfomance Counter: {time.perf_counter() - substart}"
-                )
+                logger.debug("Zwrite: f{ret}")
+
                 # callback
                 _progress = idx / len(src)
                 logger.debug(f"Progress: {_progress}")
 
-                if callback is not None:
-                    callback(id, _status(_progress), _progress)
-            except subprocess.CalledProcessError as ex:
+                package_status(
+                    id=id,
+                    status_id=_status(_progress),
+                    progress=_progress,
+                )
+            except Exception as ex:
                 logger.warning(f"{type(ex).__name__}: {this}: {ex}")
-                callback(id, _status(-1), _progress)
+                package_status(id=id, status_id=_status(-1), progress=_progress)
                 return None
 
     except (RuntimeError, Exception) as ex:
         logger.error(f"{type(ex).__name__}: {this}: {ex}")
-        callback(id, _status(-1), _progress)
+        package_status(id=id, status_id=_status(-1), progress=_progress)
         return None
     finally:
         ds = None
-        logger.debug(f"Total Perfomance Counter: {time.perf_counter() - start}")
-        zclose(addressof(ifltab))
 
-    return tmpdss
+    return dssfilename

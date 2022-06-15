@@ -23,9 +23,9 @@ ENV PYTHONUNBUFFERED=1
 ENV PACKAGE=async_packager
 
 # update, install and clean up
+    # apt-get -y upgrade && \
 RUN apt-get -y update && \
-    apt-get -y upgrade && \
-    apt-get install -y gcc gfortran python3-pip && \
+    apt-get install -y gcc gfortran python3-pip libffi-dev gdb && \
     rm -rf /var/lib/apt/lists/*
 
 RUN mkdir -p /app/${PACKAGE}

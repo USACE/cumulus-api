@@ -25,7 +25,7 @@ from cumulus_packager.configurations import (
     WAIT_TIME_SECONDS,
     WRITE_TO_BUCKET,
 )
-import cumulus_packager.packager as packager
+from cumulus_packager.packager import handler
 from cumulus_packager.utils import capi
 from cumulus_packager.utils.boto import s3_upload_file
 
@@ -96,21 +96,18 @@ def start_packager():
 
                 # response json to namedtuple
                 PayloadResp = namedtuple("PayloadResp", resp.json())(**resp.json())
-                # logger.debug(f"JSON Message: {PayloadResp}")
 
                 # log if the id was processed
-                if package_file := packager.handle_message(
-                    PayloadResp, dst.name, packager.package_status
-                ):
+                if package_file := handler.handle_message(PayloadResp, dst.name):
                     logger.debug(f"ID '{download_id}' processed")
                     if s3_upload_file(
                         package_file,
                         WRITE_TO_BUCKET,
                         PayloadResp.output_key,
                     ):
-                        packager.package_status(
+                        handler.package_status(
                             download_id,
-                            packager.PACKAGE_STATUS[1],
+                            handler.PACKAGE_STATUS[1],
                             1,
                             PayloadResp.output_key,
                         )
@@ -121,7 +118,7 @@ def start_packager():
                     raise Exception(f"ID '{download_id} NOT processed")
 
             except Exception as ex:
-                packager.package_status(download_id, packager.PACKAGE_STATUS[-1], 0)
+                handler.package_status(download_id, handler.PACKAGE_STATUS[-1], 0)
                 logger.warning(
                     f"{type(ex).__name__} - {this} - {ex} - {traceback.format_exc()}"
                 )

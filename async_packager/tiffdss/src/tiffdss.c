@@ -14,9 +14,17 @@
 // int writeRecord(long long *ifltab, float *data, size_t n)
 // int writeRecord(long long *ifltab)
 // int writeRecord()
-int writeRecord(long long *ifltab, zStructSpatialGrid *gridStructStore, float *data, int n, GridStats *gridStats)
+int writeRecord(char *dssfilename, zStructSpatialGrid *gridStructStore, float *data, GridStats *gridStats)
 {
-    int i, status;
+    int i, n, status;
+    float min, max, mean;
+
+    zsetMessageLevel(MESS_METHOD_GLOBAL_ID, MESS_LEVEL_INTERNAL_DIAG_1);
+
+    long long ifltab[250];
+    memset(ifltab, 0 , 250 * sizeof(long long));
+
+    n = gridStructStore->_numberOfCellsX * gridStructStore->_numberOfCellsY;
 
     // determine the number of bins for the histogram
     int bins = (int)(1 + 3.322 * log((double)n)) * 0.25f;
@@ -27,12 +35,16 @@ int writeRecord(long long *ifltab, zStructSpatialGrid *gridStructStore, float *d
     rangelimit = calloc(bins, sizeof(float));
     histo = calloc(bins, sizeof(float));
 
-    // min = minimum(data, n);
-    // max = maximum(data, n);
-    // mean = meanvalue(data, n);
-    float min = gridStats->minimum;
-    float max = gridStats->maximum;
-    float mean = gridStats->meanval;
+    if(gridStats->minimum == gridStructStore->_nullValue)
+        gridStats->minimum = 0;
+    if(gridStats->maximum == gridStructStore->_nullValue)
+        gridStats->maximum = 0;
+    if(gridStats->meanval == gridStructStore->_nullValue)
+        gridStats->meanval = 0;
+
+    min = gridStats->minimum;
+    max = gridStats->maximum;
+    mean = gridStats->meanval;
 
     printf("Min, Max, Mean: %f, %f, %f\n", min, max, mean);
     
@@ -66,6 +78,9 @@ int writeRecord(long long *ifltab, zStructSpatialGrid *gridStructStore, float *d
     reverse_array(data, n);
     // reverse each row to flip <--> 180
     reverse_rows(data, gridStructStore->_numberOfCellsX, n);
+    // filter no data
+    filter_nodata(data, n, gridStructStore->_nullValue);
+
 
     zStructSpatialGrid *spatialGridStruct = zstructSpatialGridNew(gridStructStore->pathname);
 
@@ -101,11 +116,12 @@ int writeRecord(long long *ifltab, zStructSpatialGrid *gridStructStore, float *d
     spatialGridStruct->_meanDataValue = &mean;
     spatialGridStruct->_data = data;
 
+    status = zopen7(ifltab, dssfilename);
     status = zspatialGridStore(ifltab, spatialGridStruct);
+    status = zclose(ifltab);
 
     free(rangelimit);
     free(histo);
-    free(data);
 
     zstructFree(spatialGridStruct);
     zstructFree(gridStructStore);

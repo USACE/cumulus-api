@@ -9,7 +9,7 @@ from tarfile import TarFile
 
 import pyplugs
 from cumulus_packager import logger
-from cumulus_packager.packager import PACKAGE_STATUS
+from cumulus_packager.packager.handler import PACKAGE_STATUS
 from osgeo import gdal
 
 gdal.UseExceptions()

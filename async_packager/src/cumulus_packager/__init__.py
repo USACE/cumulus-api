@@ -2,6 +2,7 @@
 """
 
 
+from ctypes import CDLL, LibraryLoader
 import logging
 
 from cumulus_packager.configurations import LOGGER_LEVEL

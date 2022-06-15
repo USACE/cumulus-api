@@ -53,7 +53,7 @@ def s3_upload_file(file_name: str, bucket: str, key: str = None):
             raise Exception(ClientError)
         s3.meta.client.upload_file(Filename=file_name, Bucket=bucket, Key=key)
         logger.debug(f"{file_name}\t{bucket=}\t{key=}")
-    except ClientError as ex:
+    except (ClientError, Exception) as ex:
         logger.error(f"{type(ex).__name__}: {this}: {ex} - key: {key}")
         return False
     return True

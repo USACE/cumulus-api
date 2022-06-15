@@ -1,15 +1,26 @@
 """enumerations for heclib
 """
 
-from enum import Enum
 from ctypes import (
+    CDLL,
+    POINTER,
+    LibraryLoader,
     Structure,
     c_char_p,
     c_float,
     c_int,
     c_void_p,
+    pointer,
 )
+from enum import Enum, auto
 
+import numpy
+
+# libtiffdss.so is compiled and put in /usr/lib during image creation
+tiffdss = LibraryLoader(CDLL).LoadLibrary("libtiffdss.so")
+
+FLOAT_MAX = 3.40282347e38
+UNDEFINED = -FLOAT_MAX
 
 HRAP_SRC_DEFINITION = 'PROJCS["Stereographic_CONUS_HRAP",\
 GEOGCS["GCS_Sphere_LFM",DATUM["D_Sphere_LFM",\
@@ -44,76 +55,94 @@ AXIS["Easting",EAST],AXIS["Northing",NORTH]]'
 
 # ProjectionDatum
 class ProjectionDatum(Enum):
-    UNDEFINED_PROJECTION_DATUM, NAD_27, NAD_83 = 0, 1, 2
+    UNDEFINED_PROJECTION_DATUM = 0
+    NAD_27 = auto()
+    NAD_83 = auto()
 
 
-UNDEFINED_PROJECTION_DATUM, NAD_27, NAD_83 = 0, 1, 2
+projection_datum = {i.name: i.value for i in ProjectionDatum}
+
 
 # CompressionMethod
 class CompressionMethod(Enum):
-    UNDEFINED_COMPRESSION_METHOD, NO_COMPRESSION, ZLIB_COMPRESSION = 0, 1, 26
+    UNDEFINED_COMPRESSION_METHOD = 0
+    NO_COMPRESSION = auto()
+    ZLIB_COMPRESSION = 26
 
 
-UNDEFINED_COMPRESSION_METHOD, NO_COMPRESSION, ZLIB_COMPRESSION = 0, 1, 26
-
+compression_method = {i.name: i.value for i in CompressionMethod}
 
 # StorageDataType
 class StorageDataType(Enum):
-    GRID_FLOAT, GRID_INT, GRID_DOUBLE, GRID_LONG = 0, 1, 2, 3
+    GRID_FLOAT = 0
+    GRID_INT = auto()
+    GRID_DOUBLE = auto()
+    GRID_LONG = auto()
 
 
-GRID_FLOAT, GRID_INT, GRID_DOUBLE, GRID_LONG = 0, 1, 2, 3
-
+storage_data_type = {i.name: i.value for i in StorageDataType}
 
 # DataType
 class DataType(Enum):
-    PER_AVER, PER_CUM, INST_VAL, INST_CUM, FREQ, INVALID = 0, 1, 2, 3, 4, 5
+    PER_AVER = 0
+    PER_CUM = auto()
+    INST_VAL = auto()
+    INST_CUM = auto()
+    FREQ = auto()
+    INVALID = auto()
 
 
-PER_AVER, PER_CUM, INST_VAL, INST_CUM, FREQ, INVALID = 0, 1, 2, 3, 4, 5
-
+data_type = {i.name.replace("_", "-"): i.value for i in DataType}
 
 # GridStructVersion
 class GridStructVersion(Enum):
     VERSION_100 = -100
 
 
-VERSION_100 = -100
+grid_struct_version = {i.name: i.value for i in GridStructVersion}
 
 # DssGridType
 class DssGridType(Enum):
     UNDEFINED_GRID_TYPE = 400
     HRAP = 410
-    ALBERS = 420
+    SHG = ALBERS = 420
     SPECIFIED_GRID_TYPE = 430
 
 
-UNDEFINED_GRID_TYPE = 400
-HRAP = 410
-ALBERS = 420
-SPECIFIED_GRID_TYPE = 430
+dss_grid_type = {i.name: i.value for i in DssGridType}
 
+# DssGridTypeName
+class DssGridTypeName(Enum):
+    HRAP = "HRAP"
+    SHG = "ALBERS"
+    UTM = "UMT%s%s"
+
+
+dss_grid_type_name = {i.name: i.value for i in DssGridTypeName}
+
+# SpatialRefereceDefinition
+class SpatialReferenceDefinition(Enum):
+    UNDEFINED_GRID_TYPE = None
+    HRAP = HRAP_SRC_DEFINITION
+    SHG = ALBERS = SHG_SRC_DEFINITION
+    SPECIFIED_GRID_TYPE = None
+
+
+spatial_reference_definition = {i.name: i.value for i in SpatialReferenceDefinition}
 
 # TimeZones
 class TimeZone(Enum):
     GMT = UTC = 0
     AST = 4
-    EST = 5
-    CST = 6
-    MST = 7
-    PST = 8
-    AKST = 9
-    HST = 10
+    EST = auto()
+    CST = auto()
+    MST = auto()
+    PST = auto()
+    AKST = auto()
+    HST = auto()
 
 
-GMT = UTC = 0
-AST = 4
-EST = 5
-CST = 6
-MST = 7
-PST = 8
-AKST = 9
-HST = 10
+time_zone = {i.name: i.value for i in TimeZone}
 
 
 class GridStats(Structure):
@@ -161,3 +190,30 @@ class zStructSpatialGrid(Structure):
         ("_numberEqualOrExceedingRangeLimit", c_int),
         ("_data", c_void_p),
     ]
+
+
+def zwrite_record(
+    dssfilename: str,
+    gridStructStore: zStructSpatialGrid,
+    data_flat: numpy,
+    gridStats: GridStats,
+):
+
+    ND_POINTER_1 = numpy.ctypeslib.ndpointer(dtype=numpy.float32, ndim=1, flags="C")
+
+    tiffdss.writeRecord.argtypes = (
+        c_char_p,
+        POINTER(zStructSpatialGrid),
+        ND_POINTER_1,
+        POINTER(GridStats),
+    )
+    tiffdss.writeRecord.restype = c_int
+
+    res = tiffdss.writeRecord(
+        c_char_p(dssfilename.encode()),
+        pointer(gridStructStore),
+        data_flat,
+        pointer(gridStats),
+    )
+
+    return res

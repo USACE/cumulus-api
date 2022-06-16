@@ -8,7 +8,7 @@ RUN apt-get -y update && \
 
 RUN git clone --branch 7-IJ --single-branch https://github.com/HydrologicEngineeringCenter/hec-dss.git
 # run only for local testing
-RUN git clone --branch master --single-branch https://github.com/HydrologicEngineeringCenter/dss-test-data.git
+# RUN git clone --branch master --single-branch https://github.com/HydrologicEngineeringCenter/dss-test-data.git
 
 COPY Makefile /
 
@@ -39,7 +39,7 @@ COPY --from=cbuilder --chown=root:root /hec-dss/heclib/heclib_c/Output/libhec_c.
 COPY --from=cbuilder --chown=root:root /hec-dss/heclib/heclib_f/Output/libhec_f.a /usr/lib
 COPY --from=cbuilder --chown=root:root /hec-dss/heclib/heclib_c/src/headers /hec-dss/heclib/heclib_c/src/headers
 # copy only for local testing
-COPY --from=cbuilder --chown=root:root /dss-test-data/tiff/*.tif /dss-test-data/tiff/
+# COPY --from=cbuilder --chown=root:root /dss-test-data/tiff/*.tif /dss-test-data/tiff/
 
 RUN bash ./tiffdss/src/make.sh
 

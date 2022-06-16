@@ -67,16 +67,17 @@ def writer(
     _extent_name = extent["name"]
     _bbox = extent["bbox"]
     _progress = 0
-    _nodata = -9999
+    _nodata = numpy.nan
 
     ###### this can go away when the payload has the resolution ######
     cellsize = 2000 if cellsize is None else None
-    grid_type = heclib.dss_grid_type["SHG"]
+    grid_type_name = "SHG"
+    grid_type = heclib.dss_grid_type[grid_type_name]
     zcompression = heclib.compression_method["ZLIB_COMPRESSION"]
-    grid_type_name = heclib.dss_grid_type_name["SHG"]
-    srs_definition = heclib.spatial_reference_definition["SHG"]
+    srs_definition = heclib.spatial_reference_definition[grid_type_name]
     tz_name = "GMT"
     tz_offset = heclib.time_zone[tz_name]
+    is_interval = 1
 
     try:
         dssfilename = os.path.join(dst, id + ".dss")
@@ -87,7 +88,10 @@ def writer(
             data_type = heclib.data_type[TifCfg.dss_datatype]
 
             filename_ = os.path.basename(TifCfg.key)
-            dsspathname = f"/SHG/{_extent_name}/{TifCfg.dss_cpart}/{TifCfg.dss_dpart}/{TifCfg.dss_epart}/{TifCfg.dss_fpart}/"
+            dsspathname = f"/{grid_type_name}/{_extent_name}/{TifCfg.dss_cpart}/{TifCfg.dss_dpart}/{TifCfg.dss_epart}/{TifCfg.dss_fpart}/"
+
+            if len(TifCfg.dss_epart) < 14:
+                is_interval = 0
 
             ds = gdal.Open(f"/vsis3_streaming/{TifCfg.bucket}/{TifCfg.key}")
 
@@ -118,23 +122,18 @@ def writer(
 
             logger.debug(f"{xsize=}, {ysize=}, {llx=}, {lly=}")
 
-            try:
-                _min, _max, _mean, _ = ds.GetRasterBand(1).GetStatistics()
-            except:
-                _min = _max = _mean = _nodata
-
-            gridStats = heclib.GridStats()
-            gridStats.minimum = c_float(_min)
-            gridStats.maximum = c_float(_max)
-            gridStats.meanval = c_float(_mean)
-            logger.debug(
-                f"GridStats: {gridStats.minimum=} {gridStats.maximum=} {gridStats.meanval=}"
-            )
-
             # get stats from the array
             _data = numpy.float32(ds.GetRasterBand(1).ReadAsArray())
             data = _data.flatten()
             logger.debug(f"{data=}")
+
+            gridStats = heclib.GridStats()
+            gridStats.minimum = c_float(numpy.nanmin(data))
+            gridStats.maximum = c_float(numpy.nanmax(data))
+            gridStats.meanval = c_float(numpy.nanmean(data))
+            logger.debug(
+                f"GridStats: {gridStats.minimum=} {gridStats.maximum=} {gridStats.meanval=}"
+            )
 
             try:
                 spatialGridStruct = heclib.zStructSpatialGrid()
@@ -159,16 +158,15 @@ def writer(
                 spatialGridStruct._nullValue = c_float(_nodata)
                 spatialGridStruct._timeZoneID = c_char_p(tz_name.encode())
                 spatialGridStruct._timeZoneRawOffset = c_int(tz_offset)
-                spatialGridStruct._isInterval = c_int(1)
+                spatialGridStruct._isInterval = c_int(is_interval)
                 spatialGridStruct._isTimeStamped = c_int(1)
 
-                ret = heclib.zwrite_record(
+                _ = heclib.zwrite_record(
                     dssfilename=dssfilename,
                     gridStructStore=spatialGridStruct,
                     data_flat=data,
                     gridStats=gridStats,
                 )
-                logger.debug("Zwrite: f{ret}")
 
                 # callback
                 _progress = idx / len(src)

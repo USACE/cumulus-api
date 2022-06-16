@@ -17,54 +17,54 @@
 int writeRecord(char *dssfilename, zStructSpatialGrid *gridStructStore, float *data, GridStats *gridStats)
 {
     int i, n, status;
-    float min, max, mean;
 
-    zsetMessageLevel(MESS_METHOD_GLOBAL_ID, MESS_LEVEL_INTERNAL_DIAG_1);
+    zsetMessageLevel(MESS_METHOD_GLOBAL_ID, MESS_LEVEL_NONE);
 
-    long long ifltab[250];
-    memset(ifltab, 0 , 250 * sizeof(long long));
+    // long long ifltab[250];
+    // memset(ifltab, 0 , 250 * sizeof(long long));
+    long long *ifltab = calloc(250, sizeof(long long) * 250);
 
     n = gridStructStore->_numberOfCellsX * gridStructStore->_numberOfCellsY;
 
-    // determine the number of bins for the histogram
-    int bins = (int)(1 + 3.322 * log((double)n)) * 0.25f;
-    printf("Histogram bins: %i\n", bins);
+
+    // filter no data
+    filter_nodata(data, n, gridStructStore->_nullValue);
+    // reversing the array values rotates it 180
+    reverse_array(data, n);
+    // reverse each row to flip <--> 180
+    reverse_rows(data, gridStructStore->_numberOfCellsX, n);
+
+
+    // range limits
+    float min = gridStats->minimum;
+    float max = gridStats->maximum;
+    float mean = gridStats->meanval;
+
+    // printf("Min, Max, Mean: %f, %f, %f\n", min, max, mean);
+
+    float range = max - min;
+    // printf("Data range: %f\n", range);
+
+    int bins = 5;
+    if (range == 0)
+        bins = 1;
 
     static float *rangelimit;
     static int *histo;
     rangelimit = calloc(bins, sizeof(float));
     histo = calloc(bins, sizeof(float));
 
-    if(gridStats->minimum == gridStructStore->_nullValue)
-        gridStats->minimum = 0;
-    if(gridStats->maximum == gridStructStore->_nullValue)
-        gridStats->maximum = 0;
-    if(gridStats->meanval == gridStructStore->_nullValue)
-        gridStats->meanval = 0;
+    float step = (float)range / bins;
+    // printf("Data step: %f\n", step);
 
-    min = gridStats->minimum;
-    max = gridStats->maximum;
-    mean = gridStats->meanval;
-
-    printf("Min, Max, Mean: %f, %f, %f\n", min, max, mean);
-    
-    float range = roundf(max) - floorf(min);
-    printf("Data range: %f\n", range);
-
-    float step = range / bins;
-    printf("Data step: %f\n", step);
-
-    // range limits
-    rangelimit[0] = min;
-    rangelimit[bins - 1] = max;
-
-    float nextstep;
-    for (i = 1; i < bins - 1; i++)
+    rangelimit[0] = UNDEFINED_FLOAT;
+    rangelimit[1] = min;
+    if (step != 0)
     {
-        nextstep = (float)rangelimit[i - 1] + step;
-        rangelimit[i] = floor(pow(10, 2) * nextstep) / pow(10, 2);
+        rangelimit[2] = min + step * 2;
+        rangelimit[3] = min + step * 3;
+        rangelimit[4] = max;
     }
-    // historgram
     for (int idx = 0; idx < n; idx++)
     {
         for (int jdx = 0; jdx < bins; jdx++)
@@ -73,13 +73,6 @@ int writeRecord(char *dssfilename, zStructSpatialGrid *gridStructStore, float *d
                 histo[jdx]++;
         }
     }
-
-    // reversing the array values rotates it 180
-    reverse_array(data, n);
-    // reverse each row to flip <--> 180
-    reverse_rows(data, gridStructStore->_numberOfCellsX, n);
-    // filter no data
-    filter_nodata(data, n, gridStructStore->_nullValue);
 
 
     zStructSpatialGrid *spatialGridStruct = zstructSpatialGridNew(gridStructStore->pathname);
@@ -122,6 +115,8 @@ int writeRecord(char *dssfilename, zStructSpatialGrid *gridStructStore, float *d
 
     free(rangelimit);
     free(histo);
+
+    free(ifltab);
 
     zstructFree(spatialGridStruct);
     zstructFree(gridStructStore);

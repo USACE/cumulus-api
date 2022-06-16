@@ -1,4 +1,4 @@
-FROM osgeo/gdal:ubuntu-small-3.4.2
+FROM osgeo/gdal:ubuntu-small-3.5.0
 
 ENV PYTHONUNBUFFERED=1
 

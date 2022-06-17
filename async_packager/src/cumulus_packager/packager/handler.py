@@ -68,11 +68,13 @@ def package_status(
         logger.error(f"{type(ex).__name__}: {this}: {ex}")
 
 
-def handle_message(payload_resp: namedtuple, dst: str):
+def handle_message(q, payload_resp: namedtuple, dst: str):
     """Converts JSON-Formatted message string to dictionary and calls package()
 
     Parameters
     ----------
+    q : multiprocessing.Queue
+        queue used to return pkg_writer result to the handler
     payload_resp : namedtuple
         Packager request payload as namedtuple
     dst : str
@@ -84,9 +86,8 @@ def handle_message(payload_resp: namedtuple, dst: str):
     Returns
     -------
     str
-        FQPN to file
+        FQPN to file | None
     """
-
     result = pkg_writer(
         plugin=payload_resp.format,
         id=payload_resp.download_id,
@@ -96,4 +97,8 @@ def handle_message(payload_resp: namedtuple, dst: str):
         cellsize=None,
         dst_srs=None,
     )
-    return result
+    # return result
+    # get the q, mod the dict and put it back
+    ret = q.get()
+    ret["return"] = result
+    q.put(ret)

@@ -47,8 +47,8 @@ RUN bash ./tiffdss/src/make.sh
 RUN python3 -m pip install --upgrade pip wheel setuptools && \
     python3 -m pip install /app/${PACKAGE}/
 
-# RUN useradd appuser
-# USER appuser
+RUN useradd appuser
+USER appuser
 
 CMD python3 packager.py
 # local testing only

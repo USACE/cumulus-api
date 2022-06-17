@@ -50,6 +50,6 @@ RUN python3 -m pip install --upgrade pip wheel setuptools && \
 # RUN useradd appuser
 # USER appuser
 
-# CMD python3 packager.py
+CMD python3 packager.py
 # local testing only
-CMD [ "tail", "-f" , "/dev/null" ]
+# CMD [ "tail", "-f" , "/dev/null" ]

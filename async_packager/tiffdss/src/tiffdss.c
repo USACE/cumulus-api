@@ -9,11 +9,6 @@
 
 #include "utils.h"
 
-
-
-// int writeRecord(long long *ifltab, float *data, size_t n)
-// int writeRecord(long long *ifltab)
-// int writeRecord()
 int writeRecord(char *dssfilename, zStructSpatialGrid *gridStructStore, float *data, GridStats *gridStats)
 {
     int i, n, status;

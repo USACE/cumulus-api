@@ -67,7 +67,7 @@ def writer(
     _extent_name = extent["name"]
     _bbox = extent["bbox"]
     _progress = 0
-    _nodata = numpy.nan
+    _nodata = 9999
 
     ###### this can go away when the payload has the resolution ######
     cellsize = 2000 if cellsize is None else None

@@ -1,7 +1,9 @@
 #!/usr/bin/python3
 
 import asyncio
+from email.mime import multipart
 import json
+import multiprocessing
 import os
 import shutil
 import time
@@ -98,7 +100,20 @@ def start_packager():
                 PayloadResp = namedtuple("PayloadResp", resp.json())(**resp.json())
 
                 # log if the id was processed
-                if package_file := handler.handle_message(PayloadResp, dst.name):
+                _queue = multiprocessing.Queue()
+                _queue.put({"return": None})
+                p = multiprocessing.Process(
+                    target=handler.handle_message,
+                    args=(
+                        _queue,
+                        PayloadResp,
+                        dst.name,
+                    ),
+                )
+                p.start()
+                p.join()
+                package_file_return = _queue.get()
+                if package_file := package_file_return["return"]:
                     logger.debug(f"ID '{download_id}' processed")
                     if s3_upload_file(
                         package_file,

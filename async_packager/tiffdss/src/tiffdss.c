@@ -33,7 +33,13 @@ int writeRecord(char *dssfilename, zStructSpatialGrid *gridStructStore, float *d
     // range limits
     float min = gridStats->minimum;
     float max = gridStats->maximum;
-    float mean = gridStats->meanval;
+    float mean =gridStats->meanval;
+    if(gridStats->minimum == gridStructStore->_nullValue)
+        min = 0;
+    if(gridStats->maximum == gridStructStore->_nullValue)
+        max = 0;
+    if(gridStats->meanval == gridStructStore->_nullValue)
+        mean = 0;
 
     // printf("Min, Max, Mean: %f, %f, %f\n", min, max, mean);
 

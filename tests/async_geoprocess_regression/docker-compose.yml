@@ -10,7 +10,7 @@ services:
       context: .
       args:
         GIT_REPO_URL: https://github.com/USACE/cumulus-api.git
-        GIT_BRANCH: refactor/complete-overhaul-snodas
+        GIT_BRANCH: stable
     container_name: geoprocess_regression
     environment:
       - AWS_SQS_ENDPOINT=elasticmq:9324
@@ -31,7 +31,7 @@ services:
       - GDAL_DISABLE_READDIR_ON_OPEN=YES
       - LOGGER_LEVEL=INFO
       - GIT_REPO_URL=https://github.com/USACE/cumulus-api.git
-      - GIT_BRANCH=refactor/complete-overhaul-snodas
+      - GIT_BRANCH=stable
 
     volumes:
       # only mounted for live editing of tester script

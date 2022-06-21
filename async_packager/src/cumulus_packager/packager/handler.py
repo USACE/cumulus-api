@@ -68,6 +68,7 @@ def package_status(
 
 
 def handle_message(payload_resp: namedtuple, dst: str):
+
     """Converts JSON-Formatted message string to dictionary and calls package()
 
     Parameters
@@ -97,3 +98,4 @@ def handle_message(payload_resp: namedtuple, dst: str):
         dst_srs=None,
     )
     return result
+

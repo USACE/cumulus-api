@@ -2,6 +2,7 @@
 
 import asyncio
 import json
+import multiprocessing
 import os
 import shutil
 import time
@@ -97,7 +98,17 @@ def start_packager():
                 # response json to namedtuple
                 PayloadResp = namedtuple("PayloadResp", resp.json())(**resp.json())
 
-                if package_file := handler.handle_message(PayloadResp, dst.name):
+                mpq = multiprocessing.Queue()
+                mpq.put({"return": None})
+                mp = multiprocessing.Process(
+                    target=handler.handle_message, args=(mpq, PayloadResp, dst.name)
+                )
+                mp.start()
+                mp.join()
+                package_file = mpq.get()["return"]
+
+                # if package_file := handler.handle_message(PayloadResp, dst.name):
+                if package_file:
                     logger.debug(f"ID '{download_id}' processed")
                     if s3_upload_file(
                         package_file,

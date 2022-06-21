@@ -20,6 +20,8 @@ FROM osgeo/gdal:ubuntu-small-3.5.0 as packager
 # force stdout and stderr to be unbuffered setting to non-empty
 ENV PYTHONUNBUFFERED=1
 
+ENV GDAL_DISABLE_READDIR_ON_OPEN=EMPTY_DIR
+
 ENV PACKAGE=async_packager
 
 # update, install and clean up

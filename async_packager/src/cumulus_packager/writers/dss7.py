@@ -96,7 +96,7 @@ def writer(
             ds = gdal.Open(f"/vsis3_streaming/{TifCfg.bucket}/{TifCfg.key}")
 
             # GDAL Warp the Tiff to what we need for DSS
-            gdal.Warp(
+            warp_ds = gdal.Warp(
                 tmptiff := f"/vsimem/{filename_}",
                 ds,
                 format="GTiff",
@@ -110,11 +110,11 @@ def writer(
                 dstNodata=_nodata,
                 copyMetadata=False,
             )
+            ds = None
             logger.debug(f"{tmptiff=}")
 
-            ds = gdal.Open(tmptiff)
-            xsize, ysize = ds.RasterXSize, ds.RasterYSize
-            adfGeoTransform = ds.GetGeoTransform()
+            xsize, ysize = warp_ds.RasterXSize, warp_ds.RasterYSize
+            adfGeoTransform = warp_ds.GetGeoTransform()
             llx = int(adfGeoTransform[0] / adfGeoTransform[1])
             lly = int(
                 (adfGeoTransform[5] * ysize + adfGeoTransform[3]) / adfGeoTransform[1]
@@ -123,7 +123,7 @@ def writer(
             logger.debug(f"{xsize=}, {ysize=}, {llx=}, {lly=}")
 
             # get stats from the array
-            _data = numpy.float32(ds.GetRasterBand(1).ReadAsArray())
+            _data = numpy.float32(warp_ds.GetRasterBand(1).ReadAsArray())
             data = _data.flatten()
             logger.debug(f"{data=}")
 
@@ -187,6 +187,8 @@ def writer(
         package_status(id=id, status_id=_status(-1), progress=_progress)
         return None
     finally:
-        ds = None
+        warp_ds = None
+        data = None
+        _data = None
 
     return dssfilename

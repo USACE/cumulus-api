@@ -7,7 +7,6 @@ import json
 import os
 from collections import namedtuple
 
-import pyplugs
 from cumulus_packager import logger
 from cumulus_packager.configurations import APPLICATION_KEY, CUMULUS_API_URL, HTTP2
 from cumulus_packager.utils import capi
@@ -68,7 +67,7 @@ def package_status(
         logger.error(f"{type(ex).__name__}: {this}: {ex}")
 
 
-def handle_message(q, payload_resp: namedtuple, dst: str):
+def handle_message(payload_resp: namedtuple, dst: str):
     """Converts JSON-Formatted message string to dictionary and calls package()
 
     Parameters
@@ -97,8 +96,4 @@ def handle_message(q, payload_resp: namedtuple, dst: str):
         cellsize=None,
         dst_srs=None,
     )
-    # return result
-    # get the q, mod the dict and put it back
-    ret = q.get()
-    ret["return"] = result
-    q.put(ret)
+    return result

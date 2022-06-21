@@ -9,8 +9,8 @@ from ctypes import c_char_p, c_float, c_int
 
 import numpy
 import pyplugs
-from cumulus_packager import logger
-from cumulus_packager import heclib
+from cumulus_packager import heclib, logger
+
 from cumulus_packager.packager.handler import PACKAGE_STATUS, package_status
 from osgeo import gdal
 

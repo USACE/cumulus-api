@@ -9,6 +9,7 @@ vendor
 *.exe~
 *.dll
 *.so
+*.o
 *.dylib
 *.zip
 
@@ -17,6 +18,7 @@ vendor
 
 # Test binary, build with `go test -c`
 *.test
+*.dss
 
 # Output of the go coverage tool, specifically when used with LiteIDE
 *.out

@@ -79,4 +79,4 @@ PRODUCT_FILE_VERSION: str = os.getenv(
     "PRODUCT_FILE_VERSION", default="1111-11-11T11:11:11.11Z"
 )
 
-LOGGER_LEVEL: str = os.getenv("LOGGER_LEVEL", default="DEBUG")
+LOGGER_LEVEL: str = os.getenv("LOGGER_LEVEL", default="INFO")

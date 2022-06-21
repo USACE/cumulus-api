@@ -15,7 +15,7 @@ COPY Makefile /
 RUN make
 
 # Packager
-FROM osgeo/gdal:ubuntu-small-3.4.3 as packager
+FROM osgeo/gdal:ubuntu-small-3.5.0 as packager
 
 # force stdout and stderr to be unbuffered setting to non-empty
 ENV PYTHONUNBUFFERED=1

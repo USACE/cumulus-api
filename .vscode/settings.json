@@ -7,6 +7,10 @@
     
     },
     "python.analysis.extraPaths": [
-        "./async_geoprocess/src"
-    ]
+        "./async_geoprocess/src",
+        "./async_packager/src",
+    ],
+    "[jsonc]": {
+        "editor.defaultFormatter": "vscode.json-language-features"
+    }
 }

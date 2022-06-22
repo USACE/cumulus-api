@@ -1,5 +1,0 @@
-boto3
-requests
-pandas
-numpy
-https://github.com/usace/pydsstools/zipball/1.6

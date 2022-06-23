@@ -67,7 +67,7 @@ def package_status(
         logger.error(f"{type(ex).__name__}: {this}: {ex}")
 
 
-def handle_message(payload_resp: namedtuple, dst: str):
+def handle_message(que, payload_resp: namedtuple, dst: str):
 
     """Converts JSON-Formatted message string to dictionary and calls package()
 
@@ -97,5 +97,7 @@ def handle_message(payload_resp: namedtuple, dst: str):
         cellsize=None,
         dst_srs=None,
     )
-    return result
-
+    # return result
+    que_get = que.get()
+    que_get["return"] = result
+    que.put(que_get)

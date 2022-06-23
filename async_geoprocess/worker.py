@@ -147,7 +147,7 @@ def start_worker():
                     f"Attempt to notify {len(processed_)} processed product(s)"
                 )
                 resp = handler.upload_notify(notices=processed_, bucket=GeoCfg.bucket)
-                logger.debug(resp)
+                logger.debug(f"Upload notification response: {resp}")
             except Exception as ex:
                 logger.warning(
                     f"{type(ex).__name__} - {this} - {ex} - {traceback.format_exc()}"

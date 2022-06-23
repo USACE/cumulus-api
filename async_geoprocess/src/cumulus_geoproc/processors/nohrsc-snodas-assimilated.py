@@ -10,7 +10,7 @@ Need to uncompress that NetCDF file
 import os
 import re
 import tarfile
-from datetime import datetime
+from datetime import datetime, timezone
 
 import pyplugs
 from cumulus_geoproc import logger, utils
@@ -77,7 +77,7 @@ def process(src: str, dst: str, acquirable: str = None):
                         crs = ncds.variables["crs"]
                         data_vals = data[:]
 
-                        valid_time = datetime.fromisoformat(data.stop_date)
+                        valid_time = datetime.fromisoformat(data.stop_date).replace(tzinfo=timezone.utc)
 
                         xmin, ymin, xmax, ymax = (
                             lon.min(),
@@ -132,12 +132,13 @@ def process(src: str, dst: str, acquirable: str = None):
                         # Append dictionary object to outfile list
                         outfile_list.append(
                             {
-                                "filetype": acquirable,
+                                "filetype": "nohrsc-snodas-swe-corrections",
                                 "file": tif,
                                 "datetime": valid_time.isoformat(),
                                 "version": None,
                             }
                         )
+                        logger.debug(f"Outfile Append: {outfile_list[-1]}")
                     break
 
     except (RuntimeError, KeyError, Exception) as ex:

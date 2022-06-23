@@ -90,6 +90,7 @@ def upload_notify(notices: list, bucket: str):
     for notice in notices:
         # try to upload and continue if it doesn't returning only
         # what was successfully uploaded
+        logger.debug(f"Upload Notice from Notices: {notice=}")
         try:
             # try to upload to S3
             file = notice["file"]
@@ -118,6 +119,7 @@ def upload_notify(notices: list, bucket: str):
         cumulus_api.endpoint = "productfiles"
         cumulus_api.query = {"key": APPLICATION_KEY}
 
+        logger.debug(f"Payload to POST: {payload}")
         resp = asyncio.run(cumulus_api.post_(cumulus_api.url, payload=payload))
 
         responses.append({"upload": resp})

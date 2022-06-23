@@ -2,7 +2,6 @@
 """
 
 from collections import namedtuple
-from email.mime import base
 from urllib.parse import urlencode, urlsplit, urlunsplit
 
 import httpx
@@ -62,6 +61,16 @@ class CumulusAPI:
             client = httpx.AsyncClient(http2=self.http2)
             headers = [(b"content-type", b"application/json")]
             resp = await client.post(url, headers=headers, json=payload)
+            if resp.status_code in (200, 201):
+                return resp.json()
+        except ConnectionError as ex:
+            logger.warning(ex)
+
+    async def put_(self, url, payload):
+        try:
+            client = httpx.AsyncClient(http2=self.http2)
+            headers = [(b"content-type", b"application/json")]
+            resp = await client.put(url, headers=headers, json=payload)
             if resp.status_code in (200, 201):
                 return resp.json()
         except ConnectionError as ex:

@@ -1,0 +1,56 @@
+cumulus\_geoproc.processors package
+===================================
+
+.. automodule:: cumulus_geoproc.processors
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+Submodules
+----------
+
+.. toctree::
+   :maxdepth: 6
+
+   cumulus_geoproc.processors.cbrfc-mpe
+   cumulus_geoproc.processors.hrrr-total-precip
+   cumulus_geoproc.processors.lmrfc-qpe-01h
+   cumulus_geoproc.processors.lmrfc-qpf-06h
+   cumulus_geoproc.processors.marfc-fmat-06h
+   cumulus_geoproc.processors.marfc-nbmt-01h
+   cumulus_geoproc.processors.marfc-nbmt-03h
+   cumulus_geoproc.processors.marfc-rtmat-01h
+   cumulus_geoproc.processors.mbrfc-krf-fct-airtemp-01h
+   cumulus_geoproc.processors.mbrfc-krf-qpe-01h
+   cumulus_geoproc.processors.mbrfc-krf-qpf-06h
+   cumulus_geoproc.processors.naefs-mean-06h
+   cumulus_geoproc.processors.nbm-co-01h
+   cumulus_geoproc.processors.ncep-mrms-gaugecorr-qpe-01h
+   cumulus_geoproc.processors.ncep-mrms-v12-msqpe01h-p1-alaska
+   cumulus_geoproc.processors.ncep-mrms-v12-msqpe01h-p1-carib
+   cumulus_geoproc.processors.ncep-mrms-v12-msqpe01h-p2-alaska
+   cumulus_geoproc.processors.ncep-mrms-v12-msqpe01h-p2-carib
+   cumulus_geoproc.processors.ncep-mrms-v12-multisensor-qpe-01h-pass1
+   cumulus_geoproc.processors.ncep-mrms-v12-multisensor-qpe-01h-pass2
+   cumulus_geoproc.processors.ncep-rtma-ru-anl-airtemp
+   cumulus_geoproc.processors.ncrfc-fmat-01h
+   cumulus_geoproc.processors.ncrfc-mpe-01h
+   cumulus_geoproc.processors.ncrfc-rtmat-01h
+   cumulus_geoproc.processors.ndfd-conus-airtemp
+   cumulus_geoproc.processors.ndfd-conus-qpf-06h
+   cumulus_geoproc.processors.ndgd-leia98-precip
+   cumulus_geoproc.processors.ndgd-ltia98-airtemp
+   cumulus_geoproc.processors.nohrsc-snodas-assimilated
+   cumulus_geoproc.processors.nohrsc-snodas-unmasked
+   cumulus_geoproc.processors.nsidc-ua-swe-sd-v1
+   cumulus_geoproc.processors.prism-ppt-early
+   cumulus_geoproc.processors.prism-ppt-stable
+   cumulus_geoproc.processors.prism-tmax-early
+   cumulus_geoproc.processors.prism-tmax-stable
+   cumulus_geoproc.processors.prism-tmin-early
+   cumulus_geoproc.processors.prism-tmin-stable
+   cumulus_geoproc.processors.serfc-qpe-01h
+   cumulus_geoproc.processors.serfc-qpf-06h
+   cumulus_geoproc.processors.wpc-qpf-2p5km
+   cumulus_geoproc.processors.wrf-columbia-airtemp
+   cumulus_geoproc.processors.wrf-columbia-precip

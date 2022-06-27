@@ -1,0 +1,198 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>cumulus_packager.packager.handler &mdash; Cumulus Packager 0.1.0 documentation</title>
+      <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+      <link rel="stylesheet" href="../../../_static/css/theme.css" type="text/css" />
+  <!--[if lt IE 9]>
+    <script src="../../../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script data-url_root="../../../" id="documentation_options" src="../../../_static/documentation_options.js"></script>
+        <script src="../../../_static/jquery.js"></script>
+        <script src="../../../_static/underscore.js"></script>
+        <script src="../../../_static/_sphinx_javascript_frameworks_compat.js"></script>
+        <script src="../../../_static/doctools.js"></script>
+    <script src="../../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+            <a href="../../../index.html" class="icon icon-home"> Cumulus Packager
+          </a>
+              <div class="version">
+                0.1.0
+              </div>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../cumulus_packager.html">cumulus_packager package</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../index.html">Cumulus Packager</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../../index.html" class="icon icon-home"></a> &raquo;</li>
+          <li><a href="../../index.html">Module code</a> &raquo;</li>
+          <li><a href="../../cumulus_packager.html">cumulus_packager</a> &raquo;</li>
+      <li>cumulus_packager.packager.handler</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <h1>Source code for cumulus_packager.packager.handler</h1><div class="highlight"><pre>
+<span></span><span class="sd">&quot;&quot;&quot;packager module init</span>
+<span class="sd">    </span>
+<span class="sd">&quot;&quot;&quot;</span>
+
+<span class="kn">import</span> <span class="nn">json</span>
+<span class="kn">import</span> <span class="nn">os</span>
+<span class="kn">from</span> <span class="nn">collections</span> <span class="kn">import</span> <span class="n">namedtuple</span>
+
+<span class="kn">import</span> <span class="nn">requests</span>
+
+<span class="kn">from</span> <span class="nn">cumulus_packager</span> <span class="kn">import</span> <span class="n">logger</span>
+<span class="kn">from</span> <span class="nn">cumulus_packager.configurations</span> <span class="kn">import</span> <span class="n">APPLICATION_KEY</span><span class="p">,</span> <span class="n">CUMULUS_API_URL</span><span class="p">,</span> <span class="n">HTTP2</span>
+<span class="kn">from</span> <span class="nn">cumulus_packager.utils</span> <span class="kn">import</span> <span class="n">capi</span>
+<span class="kn">from</span> <span class="nn">cumulus_packager.writers</span> <span class="kn">import</span> <span class="n">pkg_writer</span>
+
+<span class="n">this</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">basename</span><span class="p">(</span><span class="vm">__file__</span><span class="p">)</span>
+<span class="sd">&quot;&quot;&quot;str: Path to the module&quot;&quot;&quot;</span>
+
+<span class="n">__all__</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;PACKAGE_STATUS&quot;</span><span class="p">,</span> <span class="s2">&quot;package_status&quot;</span><span class="p">,</span> <span class="s2">&quot;handle_message&quot;</span><span class="p">]</span>
+
+
+<span class="n">PACKAGE_STATUS</span> <span class="o">=</span> <span class="p">{</span>
+    <span class="o">-</span><span class="mi">1</span><span class="p">:</span> <span class="s2">&quot;a553101e-8c51-4ddd-ac2e-b011ed54389b&quot;</span><span class="p">,</span>  <span class="c1"># FAILED</span>
+    <span class="mi">0</span><span class="p">:</span> <span class="s2">&quot;94727878-7a50-41f8-99eb-a80eb82f737a&quot;</span><span class="p">,</span>  <span class="c1"># INITIATED</span>
+    <span class="mi">1</span><span class="p">:</span> <span class="s2">&quot;3914f0bd-2290-42b1-bc24-41479b3a846f&quot;</span><span class="p">,</span>  <span class="c1"># SUCCESS</span>
+<span class="p">}</span>
+<span class="sd">&quot;&quot;&quot;dict[int, str]: Package status UUIDs for FAILED (0), INITIATED(1), and SUCCESS(-1)&quot;&quot;&quot;</span>
+
+
+<div class="viewcode-block" id="package_status"><a class="viewcode-back" href="../../../cumulus_packager.packager.handler.html#cumulus_packager.packager.handler.package_status">[docs]</a><span class="k">def</span> <span class="nf">package_status</span><span class="p">(</span>
+    <span class="nb">id</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="n">status_id</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="n">progress</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mi">0</span><span class="p">,</span>
+    <span class="n">file</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+<span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Update packager status to DB</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    id : str, optional</span>
+<span class="sd">        Download ID, by default None</span>
+<span class="sd">    status_id : str, optional</span>
+<span class="sd">        Package Status ID, by default None</span>
+<span class="sd">    progress : float, optional</span>
+<span class="sd">        progress percentage as a decimal, by default 0</span>
+<span class="sd">    file : str, optional</span>
+<span class="sd">        S3 key to dss file, by default None</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">_progress</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">progress</span> <span class="o">*</span> <span class="mi">100</span><span class="p">)</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="n">_json</span> <span class="o">=</span> <span class="p">{</span>
+            <span class="s2">&quot;id&quot;</span><span class="p">:</span> <span class="nb">id</span><span class="p">,</span>
+            <span class="s2">&quot;status_id&quot;</span><span class="p">:</span> <span class="n">status_id</span><span class="p">,</span>
+            <span class="s2">&quot;progress&quot;</span><span class="p">:</span> <span class="n">_progress</span><span class="p">,</span>
+            <span class="s2">&quot;file&quot;</span><span class="p">:</span> <span class="n">file</span><span class="p">,</span>
+        <span class="p">}</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Payload: </span><span class="si">{</span><span class="n">json</span><span class="o">.</span><span class="n">dumps</span><span class="p">(</span><span class="n">_json</span><span class="p">,</span> <span class="n">indent</span><span class="o">=</span><span class="mi">4</span><span class="p">)</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+
+        <span class="n">resp</span> <span class="o">=</span> <span class="n">requests</span><span class="o">.</span><span class="n">request</span><span class="p">(</span>
+            <span class="s2">&quot;PUT&quot;</span><span class="p">,</span>
+            <span class="n">url</span><span class="o">=</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">CUMULUS_API_URL</span><span class="si">}</span><span class="s2">/downloads/</span><span class="si">{</span><span class="nb">id</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">,</span>
+            <span class="n">params</span><span class="o">=</span><span class="p">{</span><span class="s2">&quot;key&quot;</span><span class="p">:</span> <span class="n">APPLICATION_KEY</span><span class="p">},</span>
+            <span class="n">json</span><span class="o">=</span><span class="n">_json</span><span class="p">,</span>
+        <span class="p">)</span>
+
+        <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Response: </span><span class="si">{</span><span class="n">resp</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+
+    <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">ex</span><span class="p">:</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="nb">type</span><span class="p">(</span><span class="n">ex</span><span class="p">)</span><span class="o">.</span><span class="vm">__name__</span><span class="si">}</span><span class="s2">: </span><span class="si">{</span><span class="n">this</span><span class="si">}</span><span class="s2">: </span><span class="si">{</span><span class="n">ex</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="handle_message"><a class="viewcode-back" href="../../../cumulus_packager.packager.handler.html#cumulus_packager.packager.handler.handle_message">[docs]</a><span class="k">def</span> <span class="nf">handle_message</span><span class="p">(</span><span class="n">que</span><span class="p">,</span> <span class="n">payload_resp</span><span class="p">:</span> <span class="n">namedtuple</span><span class="p">,</span> <span class="n">dst</span><span class="p">:</span> <span class="nb">str</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Converts JSON-Formatted message string to dictionary and calls package()</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    que : multiprocessing.Queue</span>
+<span class="sd">        queue used to return pkg_writer result to the handler</span>
+<span class="sd">    payload_resp : namedtuple</span>
+<span class="sd">        Packager request payload as namedtuple</span>
+<span class="sd">    dst : str</span>
+<span class="sd">        Temporary directory name</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">result</span> <span class="o">=</span> <span class="n">pkg_writer</span><span class="p">(</span>
+        <span class="n">plugin</span><span class="o">=</span><span class="n">payload_resp</span><span class="o">.</span><span class="n">format</span><span class="p">,</span>
+        <span class="nb">id</span><span class="o">=</span><span class="n">payload_resp</span><span class="o">.</span><span class="n">download_id</span><span class="p">,</span>
+        <span class="n">src</span><span class="o">=</span><span class="n">json</span><span class="o">.</span><span class="n">dumps</span><span class="p">(</span><span class="n">payload_resp</span><span class="o">.</span><span class="n">contents</span><span class="p">),</span>
+        <span class="n">extent</span><span class="o">=</span><span class="n">json</span><span class="o">.</span><span class="n">dumps</span><span class="p">(</span><span class="n">payload_resp</span><span class="o">.</span><span class="n">extent</span><span class="p">),</span>
+        <span class="n">dst</span><span class="o">=</span><span class="n">dst</span><span class="p">,</span>
+        <span class="n">cellsize</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+        <span class="n">dst_srs</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+    <span class="p">)</span>
+
+    <span class="n">que_get</span> <span class="o">=</span> <span class="n">que</span><span class="o">.</span><span class="n">get</span><span class="p">()</span>
+    <span class="n">que_get</span><span class="p">[</span><span class="s2">&quot;return&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">result</span>
+    <span class="n">que</span><span class="o">.</span><span class="n">put</span><span class="p">(</span><span class="n">que_get</span><span class="p">)</span></div>
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2022, CRREL.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

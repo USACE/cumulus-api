@@ -1,0 +1,221 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>cumulus_packager.utils.cgdal module &mdash; Cumulus Packager 0.1.0 documentation</title>
+      <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+      <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  <!--[if lt IE 9]>
+    <script src="_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js"></script>
+        <script src="_static/jquery.js"></script>
+        <script src="_static/underscore.js"></script>
+        <script src="_static/_sphinx_javascript_frameworks_compat.js"></script>
+        <script src="_static/doctools.js"></script>
+    <script src="_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="cumulus_packager.writers package" href="cumulus_packager.writers.html" />
+    <link rel="prev" title="cumulus_packager.utils.capi module" href="cumulus_packager.utils.capi.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+            <a href="index.html" class="icon icon-home"> Cumulus Packager
+          </a>
+              <div class="version">
+                0.1.0
+              </div>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul class="current">
+<li class="toctree-l1 current"><a class="reference internal" href="cumulus_packager.html">cumulus_packager package</a><ul class="current">
+<li class="toctree-l2 current"><a class="reference internal" href="cumulus_packager.html#subpackages">Subpackages</a><ul class="current">
+<li class="toctree-l3"><a class="reference internal" href="cumulus_packager.bin.html">cumulus_packager.bin package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="cumulus_packager.heclib.html">cumulus_packager.heclib package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="cumulus_packager.packager.html">cumulus_packager.packager package</a></li>
+<li class="toctree-l3 current"><a class="reference internal" href="cumulus_packager.utils.html">cumulus_packager.utils package</a><ul class="current">
+<li class="toctree-l4 current"><a class="reference internal" href="cumulus_packager.utils.html#submodules">Submodules</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="cumulus_packager.writers.html">cumulus_packager.writers package</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="cumulus_packager.html#submodules">Submodules</a></li>
+</ul>
+</li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">Cumulus Packager</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="index.html" class="icon icon-home"></a> &raquo;</li>
+          <li><a href="cumulus_packager.html">cumulus_packager package</a> &raquo;</li>
+          <li><a href="cumulus_packager.utils.html">cumulus_packager.utils package</a> &raquo;</li>
+      <li>cumulus_packager.utils.cgdal module</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="_sources/cumulus_packager.utils.cgdal.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="module-cumulus_packager.utils.cgdal">
+<span id="cumulus-packager-utils-cgdal-module"></span><h1>cumulus_packager.utils.cgdal module<a class="headerlink" href="#module-cumulus_packager.utils.cgdal" title="Permalink to this heading"></a></h1>
+<p>Cumulus specific gdal utilities</p>
+<dl class="simple">
+<dt>GTiff Creation Options to be a COG:</dt><dd><p>“-co”,
+“COMPRESS=LZW”,
+“-co”,
+“COPY_SRC_OVERVIEWS=YES”,
+“-co”,
+“TILE=YES”,</p>
+</dd>
+</dl>
+<dl class="py class">
+<dt class="sig sig-object py" id="cumulus_packager.utils.cgdal.GridProcess">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">cumulus_packager.utils.cgdal.</span></span><span class="sig-name descname"><span class="pre">GridProcess</span></span><a class="reference internal" href="_modules/cumulus_packager/utils/cgdal.html#GridProcess"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#cumulus_packager.utils.cgdal.GridProcess" title="Permalink to this definition"></a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="cumulus_packager.utils.cgdal.find_band">
+<span class="sig-prename descclassname"><span class="pre">cumulus_packager.utils.cgdal.</span></span><span class="sig-name descname"><span class="pre">find_band</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">data_set</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Dataset</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">attr</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">dict</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">{}</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/cumulus_packager/utils/cgdal.html#find_band"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#cumulus_packager.utils.cgdal.find_band" title="Permalink to this definition"></a></dt>
+<dd><p>Return the band number</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>data_set</strong> (<em>gdal.Dataset</em>) – gdal dataset</p></li>
+<li><p><strong>attr</strong> (<em>dict</em><em>, </em><em>optional</em>) – attributes matching those in the metadata, by default {}</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>band number</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>int</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="cumulus_packager.utils.cgdal.gdal_calculate">
+<span class="sig-prename descclassname"><span class="pre">cumulus_packager.utils.cgdal.</span></span><span class="sig-name descname"><span class="pre">gdal_calculate</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/cumulus_packager/utils/cgdal.html#gdal_calculate"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#cumulus_packager.utils.cgdal.gdal_calculate" title="Permalink to this definition"></a></dt>
+<dd><p>Implement gdal-utils gdal_calc CLI utility</p>
+<p>gdal_translate documentation:</p>
+<p><a class="reference external" href="https://gdal.org/programs/gdal_translate.html">https://gdal.org/programs/gdal_translate.html</a></p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="cumulus_packager.utils.cgdal.gdal_fillnodataval">
+<span class="sig-prename descclassname"><span class="pre">cumulus_packager.utils.cgdal.</span></span><span class="sig-name descname"><span class="pre">gdal_fillnodataval</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">src</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dst</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">/</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/cumulus_packager/utils/cgdal.html#gdal_fillnodataval"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#cumulus_packager.utils.cgdal.gdal_fillnodataval" title="Permalink to this definition"></a></dt>
+<dd><p>Implement gdal-utils gdal_fillnodata CLI utility as a subprocess</p>
+<p>gdal_fillnodata documentation:</p>
+<p><a class="reference external" href="https://gdal.org/programs/gdal_fillnodata.html">https://gdal.org/programs/gdal_fillnodata.html</a></p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="cumulus_packager.utils.cgdal.gdal_translate_options">
+<span class="sig-prename descclassname"><span class="pre">cumulus_packager.utils.cgdal.</span></span><span class="sig-name descname"><span class="pre">gdal_translate_options</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/cumulus_packager/utils/cgdal.html#gdal_translate_options"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#cumulus_packager.utils.cgdal.gdal_translate_options" title="Permalink to this definition"></a></dt>
+<dd><p>Return gdal translate options</p>
+<p>Add dictionary attributes to use those options for translate</p>
+<p>Adding an existing attribute in ‘base’ will overwright that option</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p><ul class="simple">
+<li><p><em>dict</em> – dictionary of gdal translate options with base option(s)</p></li>
+<li><p><em>base = {</em> – “format”: “COG”,</p></li>
+<li><p><em>}</em></p></li>
+</ul>
+</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="cumulus_packager.utils.cgdal.gdal_translate_w_overviews">
+<span class="sig-prename descclassname"><span class="pre">cumulus_packager.utils.cgdal.</span></span><span class="sig-name descname"><span class="pre">gdal_translate_w_overviews</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">dst</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">src</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Dataset</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">translate_options</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">dict</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">resampling</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">overviewlist</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">List</span><span class="p"><span class="pre">[</span></span><span class="pre">int</span><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">[2,</span> <span class="pre">4,</span> <span class="pre">8,</span> <span class="pre">16,</span> <span class="pre">32,</span> <span class="pre">64,</span> <span class="pre">128,</span> <span class="pre">256,</span> <span class="pre">512,</span> <span class="pre">1024,</span> <span class="pre">2048]</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/cumulus_packager/utils/cgdal.html#gdal_translate_w_overviews"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#cumulus_packager.utils.cgdal.gdal_translate_w_overviews" title="Permalink to this definition"></a></dt>
+<dd><p>Build overviews for the gdal dataset with the resampling algorithm provided</p>
+<p>If no sampling algorithm is given, only gdal.Translate() executed</p>
+<dl class="simple">
+<dt>allowable resampling algorithms:</dt><dd><p>nearest,average,rms,bilinear,gauss,cubic,cubicspline,lanczos,average_magphase,mode</p>
+</dd>
+</dl>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>dst</strong> (<em>str</em>) – Output dataset name</p></li>
+<li><p><strong>src</strong> (<em>gdal.Dataset</em>) – Dataset object or a filename</p></li>
+<li><p><strong>translate_options</strong> (<em>dict</em>) – Dictionary of creation options</p></li>
+<li><p><strong>resampling</strong> (<em>str</em><em>, </em><em>optional</em>) – resampling algorithm, by default None</p></li>
+<li><p><strong>overviewlist</strong> (<em>List</em><em>[</em><em>int</em><em>]</em><em>, </em><em>optional</em>) – list of integers, by default [2, 4, 8, 16, 32, 64, 128, 256, 512, 1024, 2048]</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="cumulus_packager.utils.cgdal.validate_cog">
+<span class="sig-prename descclassname"><span class="pre">cumulus_packager.utils.cgdal.</span></span><span class="sig-name descname"><span class="pre">validate_cog</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/cumulus_packager/utils/cgdal.html#validate_cog"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#cumulus_packager.utils.cgdal.validate_cog" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="cumulus_packager.utils.capi.html" class="btn btn-neutral float-left" title="cumulus_packager.utils.capi module" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="cumulus_packager.writers.html" class="btn btn-neutral float-right" title="cumulus_packager.writers package" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2022, CRREL.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

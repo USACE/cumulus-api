@@ -1,0 +1,426 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>cumulus_packager.heclib package &mdash; Cumulus Packager 0.1.0 documentation</title>
+      <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+      <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  <!--[if lt IE 9]>
+    <script src="_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js"></script>
+        <script src="_static/jquery.js"></script>
+        <script src="_static/underscore.js"></script>
+        <script src="_static/_sphinx_javascript_frameworks_compat.js"></script>
+        <script src="_static/doctools.js"></script>
+    <script src="_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="cumulus_packager.packager package" href="cumulus_packager.packager.html" />
+    <link rel="prev" title="cumulus_packager.bin package" href="cumulus_packager.bin.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+            <a href="index.html" class="icon icon-home"> Cumulus Packager
+          </a>
+              <div class="version">
+                0.1.0
+              </div>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul class="current">
+<li class="toctree-l1 current"><a class="reference internal" href="cumulus_packager.html">cumulus_packager package</a><ul class="current">
+<li class="toctree-l2 current"><a class="reference internal" href="cumulus_packager.html#subpackages">Subpackages</a><ul class="current">
+<li class="toctree-l3"><a class="reference internal" href="cumulus_packager.bin.html">cumulus_packager.bin package</a></li>
+<li class="toctree-l3 current"><a class="current reference internal" href="#">cumulus_packager.heclib package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="cumulus_packager.packager.html">cumulus_packager.packager package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="cumulus_packager.utils.html">cumulus_packager.utils package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="cumulus_packager.writers.html">cumulus_packager.writers package</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="cumulus_packager.html#submodules">Submodules</a></li>
+</ul>
+</li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">Cumulus Packager</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="index.html" class="icon icon-home"></a> &raquo;</li>
+          <li><a href="cumulus_packager.html">cumulus_packager package</a> &raquo;</li>
+      <li>cumulus_packager.heclib package</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="_sources/cumulus_packager.heclib.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="module-cumulus_packager.heclib">
+<span id="cumulus-packager-heclib-package"></span><h1>cumulus_packager.heclib package<a class="headerlink" href="#module-cumulus_packager.heclib" title="Permalink to this heading"></a></h1>
+<p>enumerations for heclib</p>
+<dl class="py class">
+<dt class="sig sig-object py" id="cumulus_packager.heclib.CompressionMethod">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">cumulus_packager.heclib.</span></span><span class="sig-name descname"><span class="pre">CompressionMethod</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">value</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/cumulus_packager/heclib.html#CompressionMethod"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#cumulus_packager.heclib.CompressionMethod" title="Permalink to this definition"></a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">Enum</span></code></p>
+<p>An enumeration.</p>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="cumulus_packager.heclib.CompressionMethod.NO_COMPRESSION">
+<span class="sig-name descname"><span class="pre">NO_COMPRESSION</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">1</span></em><a class="headerlink" href="#cumulus_packager.heclib.CompressionMethod.NO_COMPRESSION" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="cumulus_packager.heclib.CompressionMethod.UNDEFINED_COMPRESSION_METHOD">
+<span class="sig-name descname"><span class="pre">UNDEFINED_COMPRESSION_METHOD</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">0</span></em><a class="headerlink" href="#cumulus_packager.heclib.CompressionMethod.UNDEFINED_COMPRESSION_METHOD" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="cumulus_packager.heclib.CompressionMethod.ZLIB_COMPRESSION">
+<span class="sig-name descname"><span class="pre">ZLIB_COMPRESSION</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">26</span></em><a class="headerlink" href="#cumulus_packager.heclib.CompressionMethod.ZLIB_COMPRESSION" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="cumulus_packager.heclib.DataType">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">cumulus_packager.heclib.</span></span><span class="sig-name descname"><span class="pre">DataType</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">value</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/cumulus_packager/heclib.html#DataType"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#cumulus_packager.heclib.DataType" title="Permalink to this definition"></a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">Enum</span></code></p>
+<p>An enumeration.</p>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="cumulus_packager.heclib.DataType.FREQ">
+<span class="sig-name descname"><span class="pre">FREQ</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">4</span></em><a class="headerlink" href="#cumulus_packager.heclib.DataType.FREQ" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="cumulus_packager.heclib.DataType.INST_CUM">
+<span class="sig-name descname"><span class="pre">INST_CUM</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">3</span></em><a class="headerlink" href="#cumulus_packager.heclib.DataType.INST_CUM" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="cumulus_packager.heclib.DataType.INST_VAL">
+<span class="sig-name descname"><span class="pre">INST_VAL</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">2</span></em><a class="headerlink" href="#cumulus_packager.heclib.DataType.INST_VAL" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="cumulus_packager.heclib.DataType.INVALID">
+<span class="sig-name descname"><span class="pre">INVALID</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">5</span></em><a class="headerlink" href="#cumulus_packager.heclib.DataType.INVALID" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="cumulus_packager.heclib.DataType.PER_AVER">
+<span class="sig-name descname"><span class="pre">PER_AVER</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">0</span></em><a class="headerlink" href="#cumulus_packager.heclib.DataType.PER_AVER" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="cumulus_packager.heclib.DataType.PER_CUM">
+<span class="sig-name descname"><span class="pre">PER_CUM</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">1</span></em><a class="headerlink" href="#cumulus_packager.heclib.DataType.PER_CUM" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="cumulus_packager.heclib.DssGridType">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">cumulus_packager.heclib.</span></span><span class="sig-name descname"><span class="pre">DssGridType</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">value</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/cumulus_packager/heclib.html#DssGridType"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#cumulus_packager.heclib.DssGridType" title="Permalink to this definition"></a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">Enum</span></code></p>
+<p>An enumeration.</p>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="cumulus_packager.heclib.DssGridType.ALBERS">
+<span class="sig-name descname"><span class="pre">ALBERS</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">420</span></em><a class="headerlink" href="#cumulus_packager.heclib.DssGridType.ALBERS" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="cumulus_packager.heclib.DssGridType.HRAP">
+<span class="sig-name descname"><span class="pre">HRAP</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">410</span></em><a class="headerlink" href="#cumulus_packager.heclib.DssGridType.HRAP" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="cumulus_packager.heclib.DssGridType.SHG">
+<span class="sig-name descname"><span class="pre">SHG</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">420</span></em><a class="headerlink" href="#cumulus_packager.heclib.DssGridType.SHG" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="cumulus_packager.heclib.DssGridType.SPECIFIED_GRID_TYPE">
+<span class="sig-name descname"><span class="pre">SPECIFIED_GRID_TYPE</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">430</span></em><a class="headerlink" href="#cumulus_packager.heclib.DssGridType.SPECIFIED_GRID_TYPE" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="cumulus_packager.heclib.DssGridType.UNDEFINED_GRID_TYPE">
+<span class="sig-name descname"><span class="pre">UNDEFINED_GRID_TYPE</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">400</span></em><a class="headerlink" href="#cumulus_packager.heclib.DssGridType.UNDEFINED_GRID_TYPE" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="cumulus_packager.heclib.DssGridTypeName">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">cumulus_packager.heclib.</span></span><span class="sig-name descname"><span class="pre">DssGridTypeName</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">value</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/cumulus_packager/heclib.html#DssGridTypeName"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#cumulus_packager.heclib.DssGridTypeName" title="Permalink to this definition"></a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">Enum</span></code></p>
+<p>An enumeration.</p>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="cumulus_packager.heclib.DssGridTypeName.HRAP">
+<span class="sig-name descname"><span class="pre">HRAP</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'HRAP'</span></em><a class="headerlink" href="#cumulus_packager.heclib.DssGridTypeName.HRAP" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="cumulus_packager.heclib.DssGridTypeName.SHG">
+<span class="sig-name descname"><span class="pre">SHG</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'ALBERS'</span></em><a class="headerlink" href="#cumulus_packager.heclib.DssGridTypeName.SHG" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="cumulus_packager.heclib.DssGridTypeName.UTM">
+<span class="sig-name descname"><span class="pre">UTM</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'UMT%s%s'</span></em><a class="headerlink" href="#cumulus_packager.heclib.DssGridTypeName.UTM" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="cumulus_packager.heclib.GridStats">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">cumulus_packager.heclib.</span></span><span class="sig-name descname"><span class="pre">GridStats</span></span><a class="reference internal" href="_modules/cumulus_packager/heclib.html#GridStats"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#cumulus_packager.heclib.GridStats" title="Permalink to this definition"></a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">Structure</span></code></p>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="cumulus_packager.heclib.GridStats.maximum">
+<span class="sig-name descname"><span class="pre">maximum</span></span><a class="headerlink" href="#cumulus_packager.heclib.GridStats.maximum" title="Permalink to this definition"></a></dt>
+<dd><p>Structure/Union member</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="cumulus_packager.heclib.GridStats.meanval">
+<span class="sig-name descname"><span class="pre">meanval</span></span><a class="headerlink" href="#cumulus_packager.heclib.GridStats.meanval" title="Permalink to this definition"></a></dt>
+<dd><p>Structure/Union member</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="cumulus_packager.heclib.GridStats.minimum">
+<span class="sig-name descname"><span class="pre">minimum</span></span><a class="headerlink" href="#cumulus_packager.heclib.GridStats.minimum" title="Permalink to this definition"></a></dt>
+<dd><p>Structure/Union member</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="cumulus_packager.heclib.GridStructVersion">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">cumulus_packager.heclib.</span></span><span class="sig-name descname"><span class="pre">GridStructVersion</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">value</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/cumulus_packager/heclib.html#GridStructVersion"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#cumulus_packager.heclib.GridStructVersion" title="Permalink to this definition"></a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">Enum</span></code></p>
+<p>An enumeration.</p>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="cumulus_packager.heclib.GridStructVersion.VERSION_100">
+<span class="sig-name descname"><span class="pre">VERSION_100</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">-100</span></em><a class="headerlink" href="#cumulus_packager.heclib.GridStructVersion.VERSION_100" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="cumulus_packager.heclib.ProjectionDatum">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">cumulus_packager.heclib.</span></span><span class="sig-name descname"><span class="pre">ProjectionDatum</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">value</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/cumulus_packager/heclib.html#ProjectionDatum"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#cumulus_packager.heclib.ProjectionDatum" title="Permalink to this definition"></a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">Enum</span></code></p>
+<p>An enumeration.</p>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="cumulus_packager.heclib.ProjectionDatum.NAD_27">
+<span class="sig-name descname"><span class="pre">NAD_27</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">1</span></em><a class="headerlink" href="#cumulus_packager.heclib.ProjectionDatum.NAD_27" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="cumulus_packager.heclib.ProjectionDatum.NAD_83">
+<span class="sig-name descname"><span class="pre">NAD_83</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">2</span></em><a class="headerlink" href="#cumulus_packager.heclib.ProjectionDatum.NAD_83" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="cumulus_packager.heclib.ProjectionDatum.UNDEFINED_PROJECTION_DATUM">
+<span class="sig-name descname"><span class="pre">UNDEFINED_PROJECTION_DATUM</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">0</span></em><a class="headerlink" href="#cumulus_packager.heclib.ProjectionDatum.UNDEFINED_PROJECTION_DATUM" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="cumulus_packager.heclib.SpatialReferenceDefinition">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">cumulus_packager.heclib.</span></span><span class="sig-name descname"><span class="pre">SpatialReferenceDefinition</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">value</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/cumulus_packager/heclib.html#SpatialReferenceDefinition"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#cumulus_packager.heclib.SpatialReferenceDefinition" title="Permalink to this definition"></a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">Enum</span></code></p>
+<p>An enumeration.</p>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="cumulus_packager.heclib.SpatialReferenceDefinition.ALBERS">
+<span class="sig-name descname"><span class="pre">ALBERS</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'PROJCS[&quot;USA_Contiguous_Albers_Equal_Area_Conic_USGS_version&quot;,GEOGCS[&quot;GCS_North_American_1983&quot;,DATUM[&quot;D_North_American_1983&quot;,SPHEROID[&quot;GRS_1980&quot;,6378137.0,298.257222101]],PRIMEM[&quot;Greenwich&quot;,0.0],UNIT[&quot;Degree&quot;,0.0174532925199433]],PROJECTION[&quot;Albers&quot;],PARAMETER[&quot;False_Easting&quot;,0.0],PARAMETER[&quot;False_Northing&quot;,0.0],PARAMETER[&quot;Central_Meridian&quot;,-96.0],PARAMETER[&quot;Standard_Parallel_1&quot;,29.5],PARAMETER[&quot;Standard_Parallel_2&quot;,45.5],PARAMETER[&quot;Latitude_Of_Origin&quot;,23.0],UNIT[&quot;Meter&quot;,1.0]]'</span></em><a class="headerlink" href="#cumulus_packager.heclib.SpatialReferenceDefinition.ALBERS" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="cumulus_packager.heclib.SpatialReferenceDefinition.HRAP">
+<span class="sig-name descname"><span class="pre">HRAP</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'PROJCS[&quot;Stereographic_CONUS_HRAP&quot;,GEOGCS[&quot;GCS_Sphere_LFM&quot;,DATUM[&quot;D_Sphere_LFM&quot;,SPHEROID[&quot;Shpere_LFM&quot;,6371200.0,0.0]],PRIMEM[&quot;Greenwich&quot;,0.0],UNIT[&quot;Degree&quot;,0.0174532925199433]],PROJECTION[&quot;Stereographic_North_Pole&quot;],PARAMETER[&quot;False_Easting&quot;,1909762.5],PARAMETER[&quot;False_Northing&quot;,7624762.5],PARAMETER[&quot;Central_Meridian&quot;,-105.0],PARAMETER[&quot;Standard_Parallel_1&quot;,60.0],UNIT[&quot;Meter&quot;,1.0]]'</span></em><a class="headerlink" href="#cumulus_packager.heclib.SpatialReferenceDefinition.HRAP" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="cumulus_packager.heclib.SpatialReferenceDefinition.SHG">
+<span class="sig-name descname"><span class="pre">SHG</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'PROJCS[&quot;USA_Contiguous_Albers_Equal_Area_Conic_USGS_version&quot;,GEOGCS[&quot;GCS_North_American_1983&quot;,DATUM[&quot;D_North_American_1983&quot;,SPHEROID[&quot;GRS_1980&quot;,6378137.0,298.257222101]],PRIMEM[&quot;Greenwich&quot;,0.0],UNIT[&quot;Degree&quot;,0.0174532925199433]],PROJECTION[&quot;Albers&quot;],PARAMETER[&quot;False_Easting&quot;,0.0],PARAMETER[&quot;False_Northing&quot;,0.0],PARAMETER[&quot;Central_Meridian&quot;,-96.0],PARAMETER[&quot;Standard_Parallel_1&quot;,29.5],PARAMETER[&quot;Standard_Parallel_2&quot;,45.5],PARAMETER[&quot;Latitude_Of_Origin&quot;,23.0],UNIT[&quot;Meter&quot;,1.0]]'</span></em><a class="headerlink" href="#cumulus_packager.heclib.SpatialReferenceDefinition.SHG" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="cumulus_packager.heclib.SpatialReferenceDefinition.SPECIFIED_GRID_TYPE">
+<span class="sig-name descname"><span class="pre">SPECIFIED_GRID_TYPE</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">None</span></em><a class="headerlink" href="#cumulus_packager.heclib.SpatialReferenceDefinition.SPECIFIED_GRID_TYPE" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="cumulus_packager.heclib.SpatialReferenceDefinition.UNDEFINED_GRID_TYPE">
+<span class="sig-name descname"><span class="pre">UNDEFINED_GRID_TYPE</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">None</span></em><a class="headerlink" href="#cumulus_packager.heclib.SpatialReferenceDefinition.UNDEFINED_GRID_TYPE" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="cumulus_packager.heclib.StorageDataType">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">cumulus_packager.heclib.</span></span><span class="sig-name descname"><span class="pre">StorageDataType</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">value</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/cumulus_packager/heclib.html#StorageDataType"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#cumulus_packager.heclib.StorageDataType" title="Permalink to this definition"></a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">Enum</span></code></p>
+<p>An enumeration.</p>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="cumulus_packager.heclib.StorageDataType.GRID_DOUBLE">
+<span class="sig-name descname"><span class="pre">GRID_DOUBLE</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">2</span></em><a class="headerlink" href="#cumulus_packager.heclib.StorageDataType.GRID_DOUBLE" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="cumulus_packager.heclib.StorageDataType.GRID_FLOAT">
+<span class="sig-name descname"><span class="pre">GRID_FLOAT</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">0</span></em><a class="headerlink" href="#cumulus_packager.heclib.StorageDataType.GRID_FLOAT" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="cumulus_packager.heclib.StorageDataType.GRID_INT">
+<span class="sig-name descname"><span class="pre">GRID_INT</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">1</span></em><a class="headerlink" href="#cumulus_packager.heclib.StorageDataType.GRID_INT" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="cumulus_packager.heclib.StorageDataType.GRID_LONG">
+<span class="sig-name descname"><span class="pre">GRID_LONG</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">3</span></em><a class="headerlink" href="#cumulus_packager.heclib.StorageDataType.GRID_LONG" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="cumulus_packager.heclib.TimeZone">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">cumulus_packager.heclib.</span></span><span class="sig-name descname"><span class="pre">TimeZone</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">value</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/cumulus_packager/heclib.html#TimeZone"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#cumulus_packager.heclib.TimeZone" title="Permalink to this definition"></a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">Enum</span></code></p>
+<p>An enumeration.</p>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="cumulus_packager.heclib.TimeZone.AKST">
+<span class="sig-name descname"><span class="pre">AKST</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">9</span></em><a class="headerlink" href="#cumulus_packager.heclib.TimeZone.AKST" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="cumulus_packager.heclib.TimeZone.AST">
+<span class="sig-name descname"><span class="pre">AST</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">4</span></em><a class="headerlink" href="#cumulus_packager.heclib.TimeZone.AST" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="cumulus_packager.heclib.TimeZone.CST">
+<span class="sig-name descname"><span class="pre">CST</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">6</span></em><a class="headerlink" href="#cumulus_packager.heclib.TimeZone.CST" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="cumulus_packager.heclib.TimeZone.EST">
+<span class="sig-name descname"><span class="pre">EST</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">5</span></em><a class="headerlink" href="#cumulus_packager.heclib.TimeZone.EST" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="cumulus_packager.heclib.TimeZone.GMT">
+<span class="sig-name descname"><span class="pre">GMT</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">0</span></em><a class="headerlink" href="#cumulus_packager.heclib.TimeZone.GMT" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="cumulus_packager.heclib.TimeZone.HST">
+<span class="sig-name descname"><span class="pre">HST</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">10</span></em><a class="headerlink" href="#cumulus_packager.heclib.TimeZone.HST" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="cumulus_packager.heclib.TimeZone.MST">
+<span class="sig-name descname"><span class="pre">MST</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">7</span></em><a class="headerlink" href="#cumulus_packager.heclib.TimeZone.MST" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="cumulus_packager.heclib.TimeZone.PST">
+<span class="sig-name descname"><span class="pre">PST</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">8</span></em><a class="headerlink" href="#cumulus_packager.heclib.TimeZone.PST" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="cumulus_packager.heclib.TimeZone.UTC">
+<span class="sig-name descname"><span class="pre">UTC</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">0</span></em><a class="headerlink" href="#cumulus_packager.heclib.TimeZone.UTC" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="cumulus_packager.heclib.zStructSpatialGrid">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">cumulus_packager.heclib.</span></span><span class="sig-name descname"><span class="pre">zStructSpatialGrid</span></span><a class="reference internal" href="_modules/cumulus_packager/heclib.html#zStructSpatialGrid"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#cumulus_packager.heclib.zStructSpatialGrid" title="Permalink to this definition"></a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">Structure</span></code></p>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="cumulus_packager.heclib.zStructSpatialGrid.pathname">
+<span class="sig-name descname"><span class="pre">pathname</span></span><a class="headerlink" href="#cumulus_packager.heclib.zStructSpatialGrid.pathname" title="Permalink to this definition"></a></dt>
+<dd><p>Structure/Union member</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="cumulus_packager.heclib.zStructSpatialGrid.structType">
+<span class="sig-name descname"><span class="pre">structType</span></span><a class="headerlink" href="#cumulus_packager.heclib.zStructSpatialGrid.structType" title="Permalink to this definition"></a></dt>
+<dd><p>Structure/Union member</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="cumulus_packager.heclib.zwrite_record">
+<span class="sig-prename descclassname"><span class="pre">cumulus_packager.heclib.</span></span><span class="sig-name descname"><span class="pre">zwrite_record</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">dssfilename:</span> <span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">gridStructStore:</span> <span class="pre">~cumulus_packager.heclib.zStructSpatialGrid</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">data_flat:</span> <span class="pre">&lt;module</span> <span class="pre">'numpy'</span> <span class="pre">from</span> <span class="pre">'/usr/lib/python3/dist-packages/numpy/__init__.py'&gt;</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">gridStats:</span> <span class="pre">~cumulus_packager.heclib.GridStats</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/cumulus_packager/heclib.html#zwrite_record"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#cumulus_packager.heclib.zwrite_record" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="cumulus_packager.bin.html" class="btn btn-neutral float-left" title="cumulus_packager.bin package" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="cumulus_packager.packager.html" class="btn btn-neutral float-right" title="cumulus_packager.packager package" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2022, CRREL.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

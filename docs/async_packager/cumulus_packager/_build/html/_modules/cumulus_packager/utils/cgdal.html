@@ -1,0 +1,318 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>cumulus_packager.utils.cgdal &mdash; Cumulus Packager 0.1.0 documentation</title>
+      <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+      <link rel="stylesheet" href="../../../_static/css/theme.css" type="text/css" />
+  <!--[if lt IE 9]>
+    <script src="../../../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script data-url_root="../../../" id="documentation_options" src="../../../_static/documentation_options.js"></script>
+        <script src="../../../_static/jquery.js"></script>
+        <script src="../../../_static/underscore.js"></script>
+        <script src="../../../_static/_sphinx_javascript_frameworks_compat.js"></script>
+        <script src="../../../_static/doctools.js"></script>
+    <script src="../../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+            <a href="../../../index.html" class="icon icon-home"> Cumulus Packager
+          </a>
+              <div class="version">
+                0.1.0
+              </div>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../cumulus_packager.html">cumulus_packager package</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../index.html">Cumulus Packager</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../../index.html" class="icon icon-home"></a> &raquo;</li>
+          <li><a href="../../index.html">Module code</a> &raquo;</li>
+          <li><a href="../../cumulus_packager.html">cumulus_packager</a> &raquo;</li>
+          <li><a href="../utils.html">cumulus_packager.utils</a> &raquo;</li>
+      <li>cumulus_packager.utils.cgdal</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <h1>Source code for cumulus_packager.utils.cgdal</h1><div class="highlight"><pre>
+<span></span><span class="sd">&quot;&quot;&quot;Cumulus specific gdal utilities</span>
+
+<span class="sd">    GTiff Creation Options to be a COG:</span>
+<span class="sd">        &quot;-co&quot;,</span>
+<span class="sd">        &quot;COMPRESS=LZW&quot;,</span>
+<span class="sd">        &quot;-co&quot;,</span>
+<span class="sd">        &quot;COPY_SRC_OVERVIEWS=YES&quot;,</span>
+<span class="sd">        &quot;-co&quot;,</span>
+<span class="sd">        &quot;TILE=YES&quot;,</span>
+<span class="sd">&quot;&quot;&quot;</span>
+
+<span class="kn">import</span> <span class="nn">os</span>
+<span class="kn">import</span> <span class="nn">pathlib</span>
+<span class="kn">import</span> <span class="nn">subprocess</span>
+<span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">List</span>
+
+<span class="kn">from</span> <span class="nn">cumulus_packager</span> <span class="kn">import</span> <span class="n">logger</span>
+<span class="kn">from</span> <span class="nn">osgeo</span> <span class="kn">import</span> <span class="n">gdal</span>
+<span class="kn">from</span> <span class="nn">osgeo_utils</span> <span class="kn">import</span> <span class="n">gdal_calc</span>
+<span class="kn">from</span> <span class="nn">osgeo_utils.samples</span> <span class="kn">import</span> <span class="n">validate_cloud_optimized_geotiff</span>
+
+<span class="n">gdal</span><span class="o">.</span><span class="n">UseExceptions</span><span class="p">()</span>
+
+<span class="n">this</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">basename</span><span class="p">(</span><span class="vm">__file__</span><span class="p">)</span>
+
+
+<div class="viewcode-block" id="gdal_translate_options"><a class="viewcode-back" href="../../../cumulus_packager.utils.cgdal.html#cumulus_packager.utils.cgdal.gdal_translate_options">[docs]</a><span class="k">def</span> <span class="nf">gdal_translate_options</span><span class="p">(</span><span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Return gdal translate options</span>
+
+<span class="sd">    Add dictionary attributes to use those options for translate</span>
+
+<span class="sd">    Adding an existing attribute in &#39;base&#39; will overwright that option</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    dict</span>
+<span class="sd">        dictionary of gdal translate options with base option(s)</span>
+
+<span class="sd">    base = {</span>
+<span class="sd">        &quot;format&quot;: &quot;COG&quot;,</span>
+<span class="sd">    }</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="c1"># COG driver generates overviews while GTiff uses seperate step to build them</span>
+    <span class="n">base</span> <span class="o">=</span> <span class="p">{</span>
+        <span class="s2">&quot;format&quot;</span><span class="p">:</span> <span class="s2">&quot;COG&quot;</span><span class="p">,</span>
+    <span class="p">}</span>
+    <span class="k">return</span> <span class="p">{</span><span class="o">**</span><span class="n">base</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">}</span></div>
+
+
+<div class="viewcode-block" id="gdal_translate_w_overviews"><a class="viewcode-back" href="../../../cumulus_packager.utils.cgdal.html#cumulus_packager.utils.cgdal.gdal_translate_w_overviews">[docs]</a><span class="k">def</span> <span class="nf">gdal_translate_w_overviews</span><span class="p">(</span>
+    <span class="n">dst</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+    <span class="n">src</span><span class="p">:</span> <span class="n">gdal</span><span class="o">.</span><span class="n">Dataset</span><span class="p">,</span>
+    <span class="n">translate_options</span><span class="p">:</span> <span class="nb">dict</span><span class="p">,</span>
+    <span class="n">resampling</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="n">overviewlist</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">int</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span><span class="mi">2</span><span class="p">,</span> <span class="mi">4</span><span class="p">,</span> <span class="mi">8</span><span class="p">,</span> <span class="mi">16</span><span class="p">,</span> <span class="mi">32</span><span class="p">,</span> <span class="mi">64</span><span class="p">,</span> <span class="mi">128</span><span class="p">,</span> <span class="mi">256</span><span class="p">,</span> <span class="mi">512</span><span class="p">,</span> <span class="mi">1024</span><span class="p">,</span> <span class="mi">2048</span><span class="p">],</span>
+<span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Build overviews for the gdal dataset with the resampling algorithm provided</span>
+
+<span class="sd">    If no sampling algorithm is given, only gdal.Translate() executed</span>
+
+<span class="sd">    allowable resampling algorithms:</span>
+<span class="sd">        nearest,average,rms,bilinear,gauss,cubic,cubicspline,lanczos,average_magphase,mode</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    dst : str</span>
+<span class="sd">        Output dataset name</span>
+<span class="sd">    src : gdal.Dataset</span>
+<span class="sd">        Dataset object or a filename</span>
+<span class="sd">    translate_options : dict</span>
+<span class="sd">        Dictionary of creation options</span>
+<span class="sd">    resampling : str, optional</span>
+<span class="sd">        resampling algorithm, by default None</span>
+<span class="sd">    overviewlist : List[int], optional</span>
+<span class="sd">        list of integers, by default [2, 4, 8, 16, 32, 64, 128, 256, 512, 1024, 2048]</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">resampling_algo</span> <span class="o">=</span> <span class="p">(</span>
+        <span class="s2">&quot;nearest&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;average&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;rms&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;bilinear&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;gauss&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;cubic&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;cubicspline&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;lanczos&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;average_magphase&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;mode&quot;</span><span class="p">,</span>
+    <span class="p">)</span>
+    <span class="k">if</span> <span class="n">resampling</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">resampling</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">resampling_algo</span><span class="p">:</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Resampling algorithm </span><span class="si">{</span><span class="n">resampling</span><span class="si">}</span><span class="s2"> not available&quot;</span><span class="p">)</span>
+        <span class="k">return</span> <span class="kc">False</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">resampling</span><span class="p">:</span>
+            <span class="n">gdal</span><span class="o">.</span><span class="n">Translate</span><span class="p">(</span>
+                <span class="sa">f</span><span class="s2">&quot;/vsimem/</span><span class="si">{</span><span class="n">dst</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">,</span>
+                <span class="n">src</span><span class="p">,</span>
+                <span class="nb">format</span><span class="o">=</span><span class="s2">&quot;GTiff&quot;</span><span class="p">,</span>
+                <span class="n">creationOptions</span><span class="o">=</span><span class="p">[</span>
+                    <span class="s2">&quot;COMPRESS=LZW&quot;</span><span class="p">,</span>
+                    <span class="s2">&quot;TILED=YES&quot;</span><span class="p">,</span>
+                <span class="p">],</span>
+            <span class="p">)</span>
+            <span class="n">_ds</span> <span class="o">=</span> <span class="n">gdal</span><span class="o">.</span><span class="n">Open</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;/vsimem/</span><span class="si">{</span><span class="n">dst</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">,</span> <span class="n">gdal</span><span class="o">.</span><span class="n">GA_Update</span><span class="p">)</span>
+            <span class="n">_ds</span><span class="o">.</span><span class="n">BuildOverviews</span><span class="p">(</span><span class="n">resampling</span><span class="o">=</span><span class="n">resampling</span><span class="p">,</span> <span class="n">overviewlist</span><span class="o">=</span><span class="n">overviewlist</span><span class="p">)</span>
+            <span class="n">gdal</span><span class="o">.</span><span class="n">Translate</span><span class="p">(</span>
+                <span class="n">dst</span><span class="p">,</span>
+                <span class="n">_ds</span><span class="p">,</span>
+                <span class="o">**</span><span class="n">translate_options</span><span class="p">,</span>
+            <span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">gdal</span><span class="o">.</span><span class="n">Translate</span><span class="p">(</span>
+                <span class="n">dst</span><span class="p">,</span>
+                <span class="n">src</span><span class="p">,</span>
+                <span class="o">**</span><span class="n">translate_options</span><span class="p">,</span>
+            <span class="p">)</span>
+        <span class="k">return</span> <span class="kc">True</span>
+    <span class="k">except</span> <span class="ne">RuntimeError</span> <span class="k">as</span> <span class="n">ex</span><span class="p">:</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="nb">type</span><span class="p">(</span><span class="n">ex</span><span class="p">)</span><span class="o">.</span><span class="vm">__name__</span><span class="si">}</span><span class="s2">: </span><span class="si">{</span><span class="n">this</span><span class="si">}</span><span class="s2">: </span><span class="si">{</span><span class="n">ex</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+    <span class="k">finally</span><span class="p">:</span>
+        <span class="n">_ds</span> <span class="o">=</span> <span class="kc">None</span>
+    <span class="k">return</span> <span class="kc">False</span></div>
+
+
+<span class="c1"># get a band based on provided attributes in the metadata</span>
+<div class="viewcode-block" id="find_band"><a class="viewcode-back" href="../../../cumulus_packager.utils.cgdal.html#cumulus_packager.utils.cgdal.find_band">[docs]</a><span class="k">def</span> <span class="nf">find_band</span><span class="p">(</span><span class="n">data_set</span><span class="p">:</span> <span class="s2">&quot;gdal.Dataset&quot;</span><span class="p">,</span> <span class="n">attr</span><span class="p">:</span> <span class="nb">dict</span> <span class="o">=</span> <span class="p">{}):</span>
+    <span class="sd">&quot;&quot;&quot;Return the band number</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    data_set : gdal.Dataset</span>
+<span class="sd">        gdal dataset</span>
+<span class="sd">    attr : dict, optional</span>
+<span class="sd">        attributes matching those in the metadata, by default {}</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    int</span>
+<span class="sd">        band number</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">count</span> <span class="o">=</span> <span class="n">data_set</span><span class="o">.</span><span class="n">RasterCount</span>
+    <span class="k">for</span> <span class="n">b</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="n">count</span> <span class="o">+</span> <span class="mi">1</span><span class="p">):</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">raster</span> <span class="o">=</span> <span class="n">data_set</span><span class="o">.</span><span class="n">GetRasterBand</span><span class="p">(</span><span class="n">b</span><span class="p">)</span>
+            <span class="n">meta</span> <span class="o">=</span> <span class="n">raster</span><span class="o">.</span><span class="n">GetMetadata_Dict</span><span class="p">()</span>
+            <span class="n">has_attr</span> <span class="o">=</span> <span class="p">[</span>
+                <span class="kc">True</span>
+                <span class="k">for</span> <span class="n">key</span><span class="p">,</span> <span class="n">val</span> <span class="ow">in</span> <span class="n">attr</span><span class="o">.</span><span class="n">items</span><span class="p">()</span>
+                <span class="k">if</span> <span class="p">(</span><span class="n">key</span> <span class="ow">in</span> <span class="n">meta</span> <span class="ow">and</span> <span class="n">val</span> <span class="ow">in</span> <span class="n">raster</span><span class="o">.</span><span class="n">GetMetadataItem</span><span class="p">(</span><span class="n">key</span><span class="p">))</span>
+            <span class="p">]</span>
+            <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">has_attr</span><span class="p">)</span> <span class="o">==</span> <span class="nb">len</span><span class="p">(</span><span class="n">attr</span><span class="p">):</span>
+                <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">has_attr</span><span class="si">=}</span><span class="s2">&quot;</span><span class="p">)</span>
+                <span class="k">return</span> <span class="n">b</span>
+
+        <span class="k">except</span> <span class="ne">RuntimeError</span> <span class="k">as</span> <span class="n">ex</span><span class="p">:</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="nb">type</span><span class="p">(</span><span class="n">ex</span><span class="p">)</span><span class="o">.</span><span class="vm">__name__</span><span class="si">}</span><span class="s2">: </span><span class="si">{</span><span class="n">this</span><span class="si">}</span><span class="s2">: </span><span class="si">{</span><span class="n">ex</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+            <span class="k">continue</span>
+        <span class="k">finally</span><span class="p">:</span>
+            <span class="n">raster</span> <span class="o">=</span> <span class="kc">None</span>
+
+    <span class="k">return</span> <span class="kc">None</span></div>
+
+
+<div class="viewcode-block" id="gdal_calculate"><a class="viewcode-back" href="../../../cumulus_packager.utils.cgdal.html#cumulus_packager.utils.cgdal.gdal_calculate">[docs]</a><span class="k">def</span> <span class="nf">gdal_calculate</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Implement gdal-utils gdal_calc CLI utility</span>
+
+<span class="sd">    gdal_translate documentation:</span>
+
+<span class="sd">    https://gdal.org/programs/gdal_translate.html</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">argv</span> <span class="o">=</span> <span class="p">[</span><span class="n">gdal_calc</span><span class="o">.</span><span class="vm">__file__</span><span class="p">]</span>
+    <span class="n">argv</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span><span class="nb">list</span><span class="p">(</span><span class="n">args</span><span class="p">))</span>
+
+    <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Argvs: </span><span class="si">{</span><span class="n">argv</span><span class="si">=}</span><span class="s2">&quot;</span><span class="p">)</span>
+
+    <span class="n">gdal_calc</span><span class="o">.</span><span class="n">main</span><span class="p">(</span><span class="n">argv</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="gdal_fillnodataval"><a class="viewcode-back" href="../../../cumulus_packager.utils.cgdal.html#cumulus_packager.utils.cgdal.gdal_fillnodataval">[docs]</a><span class="k">def</span> <span class="nf">gdal_fillnodataval</span><span class="p">(</span><span class="n">src</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">dst</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="o">/</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Implement gdal-utils gdal_fillnodata CLI utility as a subprocess</span>
+
+<span class="sd">    gdal_fillnodata documentation:</span>
+
+<span class="sd">    https://gdal.org/programs/gdal_fillnodata.html</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">argv</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;gdal_fillnodata.py&quot;</span><span class="p">]</span>
+    <span class="n">argv</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span><span class="nb">list</span><span class="p">(</span><span class="n">args</span><span class="p">))</span>
+    <span class="n">argv</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">src</span><span class="p">)</span>
+    <span class="n">argv</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">dst</span><span class="p">)</span>
+
+    <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Argvs: </span><span class="si">{</span><span class="n">argv</span><span class="si">=}</span><span class="s2">&quot;</span><span class="p">)</span>
+
+    <span class="k">try</span><span class="p">:</span>
+        <span class="n">result</span> <span class="o">=</span> <span class="n">subprocess</span><span class="o">.</span><span class="n">check_call</span><span class="p">(</span><span class="n">argv</span><span class="p">,</span> <span class="n">cwd</span><span class="o">=</span><span class="n">pathlib</span><span class="o">.</span><span class="n">PurePath</span><span class="p">(</span><span class="n">src</span><span class="p">)</span><span class="o">.</span><span class="n">parent</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">result</span>
+    <span class="k">except</span> <span class="n">subprocess</span><span class="o">.</span><span class="n">CalledProcessError</span> <span class="k">as</span> <span class="n">ex</span><span class="p">:</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="nb">type</span><span class="p">(</span><span class="n">ex</span><span class="p">)</span><span class="o">.</span><span class="vm">__name__</span><span class="si">}</span><span class="s2">: </span><span class="si">{</span><span class="n">this</span><span class="si">}</span><span class="s2">: </span><span class="si">{</span><span class="n">ex</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">result</span></div>
+
+
+<div class="viewcode-block" id="validate_cog"><a class="viewcode-back" href="../../../cumulus_packager.utils.cgdal.html#cumulus_packager.utils.cgdal.validate_cog">[docs]</a><span class="k">def</span> <span class="nf">validate_cog</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">):</span>
+    <span class="n">argv</span> <span class="o">=</span> <span class="p">[</span><span class="n">validate_cloud_optimized_geotiff</span><span class="o">.</span><span class="vm">__file__</span><span class="p">]</span>
+    <span class="n">argv</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span><span class="nb">list</span><span class="p">(</span><span class="n">args</span><span class="p">))</span>
+
+    <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Argvs: </span><span class="si">{</span><span class="n">argv</span><span class="si">=}</span><span class="s2">&quot;</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">validate_cloud_optimized_geotiff</span><span class="o">.</span><span class="n">main</span><span class="p">(</span><span class="n">argv</span><span class="p">)</span></div>
+
+
+<span class="c1"># TODO: GridProcess class</span>
+<div class="viewcode-block" id="GridProcess"><a class="viewcode-back" href="../../../cumulus_packager.utils.cgdal.html#cumulus_packager.utils.cgdal.GridProcess">[docs]</a><span class="k">class</span> <span class="nc">GridProcess</span><span class="p">:</span>
+    <span class="k">pass</span></div>
+
+
+<span class="k">if</span> <span class="vm">__name__</span> <span class="o">==</span> <span class="s2">&quot;__main__&quot;</span><span class="p">:</span>
+    <span class="k">pass</span>
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2022, CRREL.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

@@ -1,6 +1,5 @@
 #!/usr/bin/python3
 
-import asyncio
 import json
 import multiprocessing
 import os
@@ -11,6 +10,7 @@ from collections import deque, namedtuple
 from tempfile import TemporaryDirectory
 
 import boto3
+import requests
 
 from cumulus_packager import logger
 from cumulus_packager.configurations import (
@@ -81,10 +81,11 @@ def start_packager():
 
                 # get the payload from the download endpoint with the download_id
                 # and expand that to a namedtuple
-                cumulus_api = capi.CumulusAPI(CUMULUS_API_URL, HTTP2)
-                cumulus_api.endpoint = f"downloads/{download_id}/packager_request"
-                cumulus_api.query = {"key": APPLICATION_KEY}
-                resp = asyncio.run(cumulus_api.get_(cumulus_api.url))
+                resp = requests.request(
+                    "GET",
+                    url=f"{CUMULUS_API_URL}/downloads/{download_id}/packager_request",
+                    params={"key": APPLICATION_KEY},
+                )
 
                 # logger.debug(f"Request Response: {resp.json()}")
 

@@ -46,10 +46,14 @@ COPY --from=cbuilder --chown=root:root /hec-dss/heclib/heclib_c/src/headers /hec
 RUN bash ./tiffdss/src/make.sh
 
 # pip install/upgrade requirements before the cumulus package
+# sphinx used to generate documentation from docstrings
 RUN python3 -m pip install --upgrade pip wheel setuptools && \
-    python3 -m pip install /app/${PACKAGE}/
+    python3 -m pip install /app/${PACKAGE}/ Sphinx sphinx_rtd_theme
 
-RUN useradd appuser
+RUN useradd appuser && \
+    mkdir -p -m 775 docs && \
+    chown appuser:appuser docs
+
 USER appuser
 
 CMD python3 packager.py

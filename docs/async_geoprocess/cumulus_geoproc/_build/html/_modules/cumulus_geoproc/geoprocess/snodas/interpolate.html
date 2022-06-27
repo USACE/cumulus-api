@@ -1,0 +1,328 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>cumulus_geoproc.geoprocess.snodas.interpolate &mdash; Cumulus Geoprocess 0.1.0 documentation</title>
+      <link rel="stylesheet" href="../../../../_static/pygments.css" type="text/css" />
+      <link rel="stylesheet" href="../../../../_static/css/theme.css" type="text/css" />
+  <!--[if lt IE 9]>
+    <script src="../../../../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script data-url_root="../../../../" id="documentation_options" src="../../../../_static/documentation_options.js"></script>
+        <script src="../../../../_static/jquery.js"></script>
+        <script src="../../../../_static/underscore.js"></script>
+        <script src="../../../../_static/_sphinx_javascript_frameworks_compat.js"></script>
+        <script src="../../../../_static/doctools.js"></script>
+    <script src="../../../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+            <a href="../../../../index.html" class="icon icon-home"> Cumulus Geoprocess
+          </a>
+              <div class="version">
+                0.1.0
+              </div>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../../cumulus_geoproc.html">cumulus_geoproc package</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../../index.html">Cumulus Geoprocess</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../../../index.html" class="icon icon-home"></a> &raquo;</li>
+          <li><a href="../../../index.html">Module code</a> &raquo;</li>
+          <li><a href="../../../cumulus_geoproc.html">cumulus_geoproc</a> &raquo;</li>
+          <li><a href="../snodas.html">cumulus_geoproc.geoprocess.snodas</a> &raquo;</li>
+      <li>cumulus_geoproc.geoprocess.snodas.interpolate</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <h1>Source code for cumulus_geoproc.geoprocess.snodas.interpolate</h1><div class="highlight"><pre>
+<span></span><span class="sd">&quot;&quot;&quot;SNODAS interpolation</span>
+<span class="sd">&quot;&quot;&quot;</span>
+
+<span class="kn">import</span> <span class="nn">asyncio</span>
+<span class="kn">import</span> <span class="nn">os</span>
+<span class="kn">from</span> <span class="nn">collections</span> <span class="kn">import</span> <span class="n">namedtuple</span>
+<span class="kn">from</span> <span class="nn">datetime</span> <span class="kn">import</span> <span class="n">datetime</span><span class="p">,</span> <span class="n">timezone</span>
+<span class="kn">from</span> <span class="nn">string</span> <span class="kn">import</span> <span class="n">Template</span>
+
+<span class="kn">import</span> <span class="nn">pkg_resources</span>
+<span class="kn">from</span> <span class="nn">cumulus_geoproc</span> <span class="kn">import</span> <span class="n">logger</span>
+<span class="kn">from</span> <span class="nn">cumulus_geoproc.configurations</span> <span class="kn">import</span> <span class="n">CUMULUS_PRODUCTS_BASEKEY</span>
+<span class="kn">from</span> <span class="nn">cumulus_geoproc.geoprocess.snodas</span> <span class="kn">import</span> <span class="n">no_data_value</span><span class="p">,</span> <span class="n">product_code</span>
+<span class="kn">from</span> <span class="nn">cumulus_geoproc.utils</span> <span class="kn">import</span> <span class="n">boto</span><span class="p">,</span> <span class="n">cgdal</span><span class="p">,</span> <span class="n">file_extension</span>
+<span class="kn">from</span> <span class="nn">osgeo</span> <span class="kn">import</span> <span class="n">gdal</span>
+
+<span class="n">gdal</span><span class="o">.</span><span class="n">UseExceptions</span><span class="p">()</span>
+
+<span class="n">this</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">basename</span><span class="p">(</span><span class="vm">__file__</span><span class="p">)</span>
+
+
+<div class="viewcode-block" id="is_lakefix"><a class="viewcode-back" href="../../../../cumulus_geoproc.geoprocess.snodas.interpolate.html#cumulus_geoproc.geoprocess.snodas.interpolate.is_lakefix">[docs]</a><span class="k">def</span> <span class="nf">is_lakefix</span><span class="p">(</span><span class="n">dt</span><span class="p">:</span> <span class="n">datetime</span><span class="p">,</span> <span class="n">code</span><span class="p">:</span> <span class="nb">str</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Determine if needing &#39;lakefix&#39;</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    dt : datetime</span>
+<span class="sd">        datetime object</span>
+<span class="sd">    code : str</span>
+<span class="sd">        parameter code related to SNODAS parameters</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    bool</span>
+<span class="sd">        True | False if needing &#39;lakefix&#39;</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">codes</span> <span class="o">=</span> <span class="p">(</span><span class="s2">&quot;1034&quot;</span><span class="p">,</span> <span class="s2">&quot;1036&quot;</span><span class="p">)</span>
+    <span class="n">dt_after</span> <span class="o">=</span> <span class="n">datetime</span><span class="p">(</span><span class="mi">2014</span><span class="p">,</span> <span class="mi">10</span><span class="p">,</span> <span class="mi">9</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="n">tzinfo</span><span class="o">=</span><span class="n">timezone</span><span class="o">.</span><span class="n">utc</span><span class="p">)</span>
+    <span class="n">dt_before</span> <span class="o">=</span> <span class="n">datetime</span><span class="p">(</span><span class="mi">2019</span><span class="p">,</span> <span class="mi">10</span><span class="p">,</span> <span class="mi">10</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="n">tzinfo</span><span class="o">=</span><span class="n">timezone</span><span class="o">.</span><span class="n">utc</span><span class="p">)</span>
+    <span class="k">if</span> <span class="p">(</span><span class="n">dt_after</span> <span class="o">&lt;=</span> <span class="n">dt</span> <span class="o">&lt;=</span> <span class="n">dt_before</span><span class="p">)</span> <span class="ow">and</span> <span class="n">code</span> <span class="ow">in</span> <span class="n">codes</span><span class="p">:</span>
+        <span class="k">return</span> <span class="kc">True</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">return</span> <span class="kc">False</span></div>
+
+
+<div class="viewcode-block" id="snodas_interp_task"><a class="viewcode-back" href="../../../../cumulus_geoproc.geoprocess.snodas.interpolate.html#cumulus_geoproc.geoprocess.snodas.interpolate.snodas_interp_task">[docs]</a><span class="k">async</span> <span class="k">def</span> <span class="nf">snodas_interp_task</span><span class="p">(</span>
+    <span class="n">filepath</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+    <span class="n">product</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+    <span class="n">dt</span><span class="p">:</span> <span class="n">datetime</span><span class="p">,</span>
+    <span class="n">max_dist</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+    <span class="n">nodata</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+    <span class="n">lakefix</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
+<span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;SNODAS interpolation task method used with asyncio</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    filepath : str</span>
+<span class="sd">        FQPN to processed SNODAS COG</span>
+<span class="sd">    product : str</span>
+<span class="sd">        Cumulus product name</span>
+<span class="sd">    dt : datetime</span>
+<span class="sd">        datetime object</span>
+<span class="sd">    max_dist : str</span>
+<span class="sd">        maximum distance in pixel for gdal_fillnodata</span>
+<span class="sd">    nodata : str</span>
+<span class="sd">        raster no data value</span>
+<span class="sd">    lakefix : bool, optional</span>
+<span class="sd">        determine if product needs &#39;lakefix&#39;, by default False</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    dict[str, str] | None</span>
+<span class="sd">        Dictionary of attributes needed to upload to S3 or None</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="n">dst</span><span class="p">,</span> <span class="n">filename</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="n">filepath</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">lakefix</span><span class="p">:</span>
+            <span class="c1"># get the no data masking raster</span>
+            <span class="n">masking_raster</span> <span class="o">=</span> <span class="n">pkg_resources</span><span class="o">.</span><span class="n">resource_filename</span><span class="p">(</span>
+                <span class="n">__package__</span><span class="p">,</span> <span class="s2">&quot;data/no_data_areas_swe_20140201.tif&quot;</span>
+            <span class="p">)</span>
+            <span class="n">lakefix_tif</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span>
+                <span class="n">dst</span><span class="p">,</span>
+                <span class="n">file_extension</span><span class="p">(</span><span class="n">filename</span><span class="p">,</span> <span class="n">suffix</span><span class="o">=</span><span class="s2">&quot;.tiff&quot;</span><span class="p">),</span>
+            <span class="p">)</span>
+            <span class="c1"># set zeros as no data (-9999)</span>
+            <span class="n">cgdal</span><span class="o">.</span><span class="n">gdal_calculate</span><span class="p">(</span>
+                <span class="s2">&quot;-A&quot;</span><span class="p">,</span>
+                <span class="n">filepath</span><span class="p">,</span>
+                <span class="s2">&quot;-B&quot;</span><span class="p">,</span>
+                <span class="n">masking_raster</span><span class="p">,</span>
+                <span class="s2">&quot;--outfile&quot;</span><span class="p">,</span>
+                <span class="n">lakefix_tif</span><span class="p">,</span>
+                <span class="s2">&quot;--calc&quot;</span><span class="p">,</span>
+                <span class="sa">f</span><span class="s2">&quot;numpy.where((A == 0) &amp; (B == </span><span class="si">{</span><span class="n">nodata</span><span class="si">}</span><span class="s2">), </span><span class="si">{</span><span class="n">nodata</span><span class="si">}</span><span class="s2">, A)&quot;</span><span class="p">,</span>
+                <span class="s2">&quot;--NoDataValue&quot;</span><span class="p">,</span>
+                <span class="n">nodata</span><span class="p">,</span>
+                <span class="s2">&quot;--quiet&quot;</span><span class="p">,</span>
+            <span class="p">)</span>
+            <span class="n">filepath</span> <span class="o">=</span> <span class="n">lakefix_tif</span>
+
+        <span class="c1"># -of GTiff required here because COG has no Create(); therefore GTiff</span>
+        <span class="c1"># driver used with creationOptions to be COG</span>
+        <span class="n">fill_tif</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span>
+            <span class="n">dst</span><span class="p">,</span> <span class="n">file_extension</span><span class="p">(</span><span class="n">filename</span><span class="p">,</span> <span class="n">suffix</span><span class="o">=</span><span class="s2">&quot;-interpolated.tiff&quot;</span><span class="p">)</span>
+        <span class="p">)</span>
+
+        <span class="c1"># fillnodata to GTiff</span>
+        <span class="k">if</span> <span class="n">max_dist</span> <span class="o">==</span> <span class="mi">0</span> <span class="ow">or</span> <span class="p">(</span>
+            <span class="n">cgdal</span><span class="o">.</span><span class="n">gdal_fillnodataval</span><span class="p">(</span>
+                <span class="n">filepath</span><span class="p">,</span>
+                <span class="n">fill_tif</span><span class="p">,</span>
+                <span class="s2">&quot;-q&quot;</span><span class="p">,</span>
+                <span class="s2">&quot;-md&quot;</span><span class="p">,</span>
+                <span class="nb">str</span><span class="p">(</span><span class="n">max_dist</span><span class="p">),</span>
+            <span class="p">)</span>
+            <span class="o">!=</span> <span class="mi">0</span>
+        <span class="p">):</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;gdal_fillnodata.py not executed&quot;</span><span class="p">)</span>
+            <span class="n">fill_tif</span> <span class="o">=</span> <span class="n">filepath</span>
+
+        <span class="c1"># convert to COG</span>
+        <span class="n">gdal</span><span class="o">.</span><span class="n">Translate</span><span class="p">(</span>
+            <span class="n">tif</span> <span class="o">:=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span>
+                <span class="n">dst</span><span class="p">,</span> <span class="n">file_extension</span><span class="p">(</span><span class="n">filename</span><span class="p">,</span> <span class="n">suffix</span><span class="o">=</span><span class="s2">&quot;-interpolated.tif&quot;</span><span class="p">)</span>
+            <span class="p">),</span>
+            <span class="n">fill_tif</span><span class="p">,</span>
+            <span class="nb">format</span><span class="o">=</span><span class="s2">&quot;COG&quot;</span><span class="p">,</span>
+            <span class="n">creationOptions</span><span class="o">=</span><span class="p">[</span>
+                <span class="s2">&quot;RESAMPLING=AVERAGE&quot;</span><span class="p">,</span>
+                <span class="s2">&quot;OVERVIEWS=IGNORE_EXISTING&quot;</span><span class="p">,</span>
+                <span class="s2">&quot;OVERVIEW_RESAMPLING=AVERAGE&quot;</span><span class="p">,</span>
+            <span class="p">],</span>
+        <span class="p">)</span>
+        <span class="c1"># validate COG</span>
+        <span class="k">if</span> <span class="p">(</span><span class="n">validate</span> <span class="o">:=</span> <span class="n">cgdal</span><span class="o">.</span><span class="n">validate_cog</span><span class="p">(</span><span class="s2">&quot;-q&quot;</span><span class="p">,</span> <span class="n">tif</span><span class="p">))</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Validate COG = </span><span class="si">{</span><span class="n">validate</span><span class="si">}</span><span class="se">\t</span><span class="si">{</span><span class="n">tif</span><span class="si">}</span><span class="s2"> is a COG&quot;</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="p">{</span>
+            <span class="s2">&quot;file&quot;</span><span class="p">:</span> <span class="n">tif</span><span class="p">,</span>
+            <span class="s2">&quot;filetype&quot;</span><span class="p">:</span> <span class="n">product</span><span class="p">,</span>
+            <span class="s2">&quot;datetime&quot;</span><span class="p">:</span> <span class="n">dt</span><span class="o">.</span><span class="n">isoformat</span><span class="p">(),</span>
+            <span class="s2">&quot;version&quot;</span><span class="p">:</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="p">}</span>
+
+    <span class="k">except</span> <span class="p">(</span><span class="ne">RuntimeError</span><span class="p">,</span> <span class="ne">KeyError</span><span class="p">,</span> <span class="ne">Exception</span><span class="p">)</span> <span class="k">as</span> <span class="n">ex</span><span class="p">:</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="nb">type</span><span class="p">(</span><span class="n">ex</span><span class="p">)</span><span class="o">.</span><span class="vm">__name__</span><span class="si">}</span><span class="s2">: </span><span class="si">{</span><span class="n">this</span><span class="si">}</span><span class="s2">: </span><span class="si">{</span><span class="n">ex</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+    <span class="k">finally</span><span class="p">:</span>
+        <span class="n">ds</span> <span class="o">=</span> <span class="kc">None</span></div>
+
+
+<div class="viewcode-block" id="snodas"><a class="viewcode-back" href="../../../../cumulus_geoproc.geoprocess.snodas.interpolate.html#cumulus_geoproc.geoprocess.snodas.interpolate.snodas">[docs]</a><span class="k">async</span> <span class="k">def</span> <span class="nf">snodas</span><span class="p">(</span><span class="n">cfg</span><span class="p">:</span> <span class="n">namedtuple</span><span class="p">,</span> <span class="n">dst</span><span class="p">:</span> <span class="nb">str</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Main method building asyncio tasks</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    cfg : namedtuple</span>
+<span class="sd">        namedtuple with SQS message as attributes</span>
+<span class="sd">    dst : str</span>
+<span class="sd">        FQPN to temporary directory</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    List[dict[str, str]]</span>
+<span class="sd">        List of dictionary objects with attributes needed to upload to S3</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="c1"># products that don&#39;t actually get interpolated but don&#39;t know why</span>
+    <span class="n">no_interp</span> <span class="o">=</span> <span class="p">(</span>
+        <span class="s2">&quot;2072&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;3333&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;1038&quot;</span><span class="p">,</span>
+    <span class="p">)</span>
+    <span class="n">tasks</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="n">dt</span> <span class="o">=</span> <span class="p">(</span>
+        <span class="n">datetime</span><span class="o">.</span><span class="n">strptime</span><span class="p">(</span><span class="n">cfg</span><span class="o">.</span><span class="n">datetime</span><span class="p">,</span> <span class="s2">&quot;%Y%m</span><span class="si">%d</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="n">hour</span><span class="o">=</span><span class="mi">6</span><span class="p">)</span>
+        <span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="n">tzinfo</span><span class="o">=</span><span class="n">timezone</span><span class="o">.</span><span class="n">utc</span><span class="p">)</span>
+    <span class="p">)</span>
+    <span class="n">nodata_value</span> <span class="o">=</span> <span class="n">no_data_value</span><span class="p">(</span><span class="n">dt</span><span class="p">)</span>
+    <span class="k">for</span> <span class="n">code</span> <span class="ow">in</span> <span class="p">(</span><span class="s2">&quot;1034&quot;</span><span class="p">,</span> <span class="s2">&quot;1036&quot;</span><span class="p">,</span> <span class="s2">&quot;1038&quot;</span><span class="p">,</span> <span class="s2">&quot;3333&quot;</span><span class="p">,</span> <span class="s2">&quot;2072&quot;</span><span class="p">):</span>
+        <span class="n">filename</span> <span class="o">=</span> <span class="n">Template</span><span class="o">.</span><span class="n">substitute</span><span class="p">(</span>
+            <span class="n">product_code</span><span class="p">[</span><span class="n">code</span><span class="p">][</span><span class="s2">&quot;file_template&quot;</span><span class="p">],</span> <span class="n">YMD</span><span class="o">=</span><span class="n">cfg</span><span class="o">.</span><span class="n">datetime</span>
+        <span class="p">)</span>
+        <span class="n">product</span> <span class="o">=</span> <span class="n">product_code</span><span class="p">[</span><span class="n">code</span><span class="p">][</span><span class="s2">&quot;product&quot;</span><span class="p">]</span> <span class="o">+</span> <span class="s2">&quot;-interpolated&quot;</span>
+        <span class="n">key</span> <span class="o">=</span> <span class="p">(</span>
+            <span class="n">CUMULUS_PRODUCTS_BASEKEY</span>
+            <span class="o">+</span> <span class="s2">&quot;/&quot;</span>
+            <span class="o">+</span> <span class="n">product_code</span><span class="p">[</span><span class="n">code</span><span class="p">][</span><span class="s2">&quot;product&quot;</span><span class="p">]</span>
+            <span class="o">+</span> <span class="s2">&quot;/&quot;</span>
+            <span class="o">+</span> <span class="n">filename</span>
+        <span class="p">)</span>
+        <span class="n">lakefix</span> <span class="o">=</span> <span class="n">is_lakefix</span><span class="p">(</span>
+            <span class="n">dt</span><span class="p">,</span>
+            <span class="n">code</span><span class="p">,</span>
+        <span class="p">)</span>
+
+        <span class="n">max_dist</span> <span class="o">=</span> <span class="mi">0</span> <span class="k">if</span> <span class="n">code</span> <span class="ow">in</span> <span class="n">no_interp</span> <span class="k">else</span> <span class="n">cfg</span><span class="o">.</span><span class="n">max_distance</span>
+
+        <span class="k">if</span> <span class="n">download_file</span> <span class="o">:=</span> <span class="n">boto</span><span class="o">.</span><span class="n">s3_download_file</span><span class="p">(</span><span class="n">cfg</span><span class="o">.</span><span class="n">bucket</span><span class="p">,</span> <span class="n">key</span><span class="p">,</span> <span class="n">dst</span><span class="o">=</span><span class="n">dst</span><span class="p">):</span>
+            <span class="n">tasks</span><span class="o">.</span><span class="n">append</span><span class="p">(</span>
+                <span class="n">asyncio</span><span class="o">.</span><span class="n">create_task</span><span class="p">(</span>
+                    <span class="n">snodas_interp_task</span><span class="p">(</span>
+                        <span class="n">download_file</span><span class="p">,</span>
+                        <span class="n">product</span><span class="p">,</span>
+                        <span class="n">dt</span><span class="p">,</span>
+                        <span class="n">max_dist</span><span class="p">,</span>
+                        <span class="n">nodata_value</span><span class="p">,</span>
+                        <span class="n">lakefix</span><span class="p">,</span>
+                    <span class="p">)</span>
+                <span class="p">)</span>
+            <span class="p">)</span>
+
+    <span class="c1"># return the list of objects that are not None</span>
+    <span class="n">return_objs</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">for</span> <span class="n">task</span> <span class="ow">in</span> <span class="n">tasks</span><span class="p">:</span>
+        <span class="n">result</span> <span class="o">=</span> <span class="k">await</span> <span class="n">task</span>
+        <span class="k">if</span> <span class="n">result</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">return_objs</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">result</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">return_objs</span></div>
+
+
+<span class="k">if</span> <span class="vm">__name__</span> <span class="o">==</span> <span class="s2">&quot;__main__&quot;</span><span class="p">:</span>
+    <span class="k">pass</span>
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2022, CRREL.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

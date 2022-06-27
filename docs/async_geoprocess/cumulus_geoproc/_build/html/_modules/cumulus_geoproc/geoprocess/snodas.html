@@ -1,0 +1,339 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>cumulus_geoproc.geoprocess.snodas &mdash; Cumulus Geoprocess 0.1.0 documentation</title>
+      <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+      <link rel="stylesheet" href="../../../_static/css/theme.css" type="text/css" />
+  <!--[if lt IE 9]>
+    <script src="../../../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script data-url_root="../../../" id="documentation_options" src="../../../_static/documentation_options.js"></script>
+        <script src="../../../_static/jquery.js"></script>
+        <script src="../../../_static/underscore.js"></script>
+        <script src="../../../_static/_sphinx_javascript_frameworks_compat.js"></script>
+        <script src="../../../_static/doctools.js"></script>
+    <script src="../../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+            <a href="../../../index.html" class="icon icon-home"> Cumulus Geoprocess
+          </a>
+              <div class="version">
+                0.1.0
+              </div>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../cumulus_geoproc.html">cumulus_geoproc package</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../index.html">Cumulus Geoprocess</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../../index.html" class="icon icon-home"></a> &raquo;</li>
+          <li><a href="../../index.html">Module code</a> &raquo;</li>
+          <li><a href="../../cumulus_geoproc.html">cumulus_geoproc</a> &raquo;</li>
+      <li>cumulus_geoproc.geoprocess.snodas</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <h1>Source code for cumulus_geoproc.geoprocess.snodas</h1><div class="highlight"><pre>
+<span></span><span class="sd">&quot;&quot;&quot;Geoprocessing SNODAS state variables</span>
+
+<span class="sd">Reference:</span>
+<span class="sd">    https://nsidc.org/sites/nsidc.org/files/G02158-V001-UserGuide_2.pdf</span>
+<span class="sd">&quot;&quot;&quot;</span>
+
+
+<span class="kn">import</span> <span class="nn">os</span>
+<span class="kn">from</span> <span class="nn">datetime</span> <span class="kn">import</span> <span class="n">datetime</span><span class="p">,</span> <span class="n">timezone</span>
+<span class="kn">from</span> <span class="nn">string</span> <span class="kn">import</span> <span class="n">Template</span>
+
+<span class="kn">from</span> <span class="nn">cumulus_geoproc</span> <span class="kn">import</span> <span class="n">logger</span>
+<span class="kn">from</span> <span class="nn">cumulus_geoproc.utils</span> <span class="kn">import</span> <span class="n">cgdal</span>
+<span class="kn">from</span> <span class="nn">osgeo</span> <span class="kn">import</span> <span class="n">gdal</span>
+
+<span class="n">gdal</span><span class="o">.</span><span class="n">UseExceptions</span><span class="p">()</span>
+
+<span class="n">this</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">basename</span><span class="p">(</span><span class="vm">__file__</span><span class="p">)</span>
+
+
+<span class="n">product_code</span><span class="p">:</span> <span class="nb">dict</span> <span class="o">=</span> <span class="p">{</span>
+    <span class="s2">&quot;1025&quot;</span><span class="p">:</span> <span class="p">{</span>
+        <span class="s2">&quot;description&quot;</span><span class="p">:</span> <span class="s2">&quot;Precipitation&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;product&quot;</span><span class="p">:</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="s2">&quot;file_template&quot;</span><span class="p">:</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="p">},</span>
+    <span class="s2">&quot;1034&quot;</span><span class="p">:</span> <span class="p">{</span>
+        <span class="s2">&quot;description&quot;</span><span class="p">:</span> <span class="s2">&quot;Snow water equivalent&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;product&quot;</span><span class="p">:</span> <span class="s2">&quot;nohrsc-snodas-swe&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;file_template&quot;</span><span class="p">:</span> <span class="n">Template</span><span class="p">(</span><span class="s2">&quot;zz_ssmv11034tS__T0001TTNATS$</span><span class="si">{YMD}</span><span class="s2">05HP001.tif&quot;</span><span class="p">),</span>
+    <span class="p">},</span>
+    <span class="s2">&quot;1036&quot;</span><span class="p">:</span> <span class="p">{</span>
+        <span class="s2">&quot;description&quot;</span><span class="p">:</span> <span class="s2">&quot;Snow depth&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;product&quot;</span><span class="p">:</span> <span class="s2">&quot;nohrsc-snodas-snowdepth&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;file_template&quot;</span><span class="p">:</span> <span class="n">Template</span><span class="p">(</span><span class="s2">&quot;zz_ssmv11036tS__T0001TTNATS$</span><span class="si">{YMD}</span><span class="s2">05HP001.tif&quot;</span><span class="p">),</span>
+    <span class="p">},</span>
+    <span class="s2">&quot;1038&quot;</span><span class="p">:</span> <span class="p">{</span>
+        <span class="s2">&quot;description&quot;</span><span class="p">:</span> <span class="s2">&quot;Snow pack average temperature&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;product&quot;</span><span class="p">:</span> <span class="s2">&quot;nohrsc-snodas-snowpack-average-temperature&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;file_template&quot;</span><span class="p">:</span> <span class="n">Template</span><span class="p">(</span><span class="s2">&quot;zz_ssmv11038wS__A0024TTNATS$</span><span class="si">{YMD}</span><span class="s2">05DP001.tif&quot;</span><span class="p">),</span>
+    <span class="p">},</span>
+    <span class="s2">&quot;1039&quot;</span><span class="p">:</span> <span class="p">{</span>
+        <span class="s2">&quot;description&quot;</span><span class="p">:</span> <span class="s2">&quot;Blowing snow sublimation&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;product&quot;</span><span class="p">:</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="s2">&quot;file_template&quot;</span><span class="p">:</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="p">},</span>
+    <span class="s2">&quot;1044&quot;</span><span class="p">:</span> <span class="p">{</span>
+        <span class="s2">&quot;description&quot;</span><span class="p">:</span> <span class="s2">&quot;Snow melt&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;product&quot;</span><span class="p">:</span> <span class="s2">&quot;nohrsc-snodas-snowmelt&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;file_template&quot;</span><span class="p">:</span> <span class="n">Template</span><span class="p">(</span><span class="s2">&quot;zz_ssmv11044bS__T0024TTNATS$</span><span class="si">{YMD}</span><span class="s2">05DP000.tif&quot;</span><span class="p">),</span>
+    <span class="p">},</span>
+    <span class="s2">&quot;1050&quot;</span><span class="p">:</span> <span class="p">{</span>
+        <span class="s2">&quot;description&quot;</span><span class="p">:</span> <span class="s2">&quot;Snow pack sublimation&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;product&quot;</span><span class="p">:</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="s2">&quot;file_template&quot;</span><span class="p">:</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="p">},</span>
+    <span class="s2">&quot;2072&quot;</span><span class="p">:</span> <span class="p">{</span>
+        <span class="s2">&quot;description&quot;</span><span class="p">:</span> <span class="s2">&quot;&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;product&quot;</span><span class="p">:</span> <span class="s2">&quot;nohrsc-snodas-coldcontent&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;file_template&quot;</span><span class="p">:</span> <span class="n">Template</span><span class="p">(</span><span class="s2">&quot;zz_ssmv12072tS__T0001TTNATS$</span><span class="si">{YMD}</span><span class="s2">05HP001.tif&quot;</span><span class="p">),</span>
+    <span class="p">},</span>
+    <span class="s2">&quot;3333&quot;</span><span class="p">:</span> <span class="p">{</span>
+        <span class="s2">&quot;description&quot;</span><span class="p">:</span> <span class="s2">&quot;Snow melt (mm)&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;product&quot;</span><span class="p">:</span> <span class="s2">&quot;nohrsc-snodas-snowmelt&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;file_template&quot;</span><span class="p">:</span> <span class="n">Template</span><span class="p">(</span><span class="s2">&quot;zz_ssmv13333bS__T0024TTNATS$</span><span class="si">{YMD}</span><span class="s2">05DP000.tif&quot;</span><span class="p">),</span>
+    <span class="p">},</span>
+<span class="p">}</span>
+
+
+<div class="viewcode-block" id="no_data_value"><a class="viewcode-back" href="../../../cumulus_geoproc.geoprocess.snodas.html#cumulus_geoproc.geoprocess.snodas.no_data_value">[docs]</a><span class="k">def</span> <span class="nf">no_data_value</span><span class="p">(</span><span class="n">dt</span><span class="p">:</span> <span class="n">datetime</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;No data value determined by time</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    dt : datetime</span>
+<span class="sd">        datetime object</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    int</span>
+<span class="sd">        raster no data value</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">dt_nodata</span> <span class="o">=</span> <span class="n">datetime</span><span class="p">(</span><span class="mi">2011</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">24</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="n">tzinfo</span><span class="o">=</span><span class="n">timezone</span><span class="o">.</span><span class="n">utc</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">dt</span> <span class="o">&lt;</span> <span class="n">dt_nodata</span><span class="p">:</span>
+        <span class="k">return</span> <span class="s2">&quot;55537&quot;</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">return</span> <span class="s2">&quot;-9999&quot;</span></div>
+
+
+<div class="viewcode-block" id="snow_melt_mm"><a class="viewcode-back" href="../../../cumulus_geoproc.geoprocess.snodas.html#cumulus_geoproc.geoprocess.snodas.snow_melt_mm">[docs]</a><span class="k">def</span> <span class="nf">snow_melt_mm</span><span class="p">(</span><span class="n">translated_tif</span><span class="p">:</span> <span class="nb">dict</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Dictionary of tiffs generated from gdal translate</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    translated_tif : dict</span>
+
+<span class="sd">        &quot;product_code&quot;: {</span>
+<span class="sd">            &quot;filetype&quot;: str,         Matching database acquirable</span>
+<span class="sd">            &quot;file&quot;: str,             Converted file</span>
+<span class="sd">            &quot;datetime&quot;: str,         Valid Time, ISO format with timezone</span>
+<span class="sd">            &quot;version&quot;: str           Reference Time (forecast), ISO format with timezone</span>
+<span class="sd">        }</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    dict</span>
+<span class="sd">        {</span>
+<span class="sd">            &quot;filetype&quot;: str,         Matching database acquirable</span>
+<span class="sd">            &quot;file&quot;: str,             Converted file</span>
+<span class="sd">            &quot;datetime&quot;: str,         Valid Time, ISO format with timezone</span>
+<span class="sd">            &quot;version&quot;: str           Reference Time (forecast), ISO format with timezone</span>
+<span class="sd">        }</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">snowmelt_code</span> <span class="o">=</span> <span class="s2">&quot;1044&quot;</span>
+    <span class="n">snowmelt_code_mm</span> <span class="o">=</span> <span class="s2">&quot;3333&quot;</span>
+
+    <span class="n">snowmelt</span> <span class="o">=</span> <span class="n">translated_tif</span><span class="p">[</span><span class="n">snowmelt_code</span><span class="p">][</span><span class="s2">&quot;file&quot;</span><span class="p">]</span>
+    <span class="n">snowmelt_dt</span> <span class="o">=</span> <span class="n">translated_tif</span><span class="p">[</span><span class="n">snowmelt_code</span><span class="p">][</span><span class="s2">&quot;datetime&quot;</span><span class="p">]</span>
+
+    <span class="n">snowmelt_mm</span> <span class="o">=</span> <span class="n">snowmelt</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="n">snowmelt_code</span><span class="p">,</span> <span class="n">snowmelt_code_mm</span><span class="p">)</span>
+    <span class="n">temp_snowmelt_mm</span> <span class="o">=</span> <span class="n">snowmelt</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="n">snowmelt_code</span><span class="p">,</span> <span class="s2">&quot;9999&quot;</span><span class="p">)</span>
+
+    <span class="c1"># convert snow melt runoff as meters / 100_000 to mm</span>
+    <span class="c1"># 100_000 is the scale factor getting values to meters</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="n">cgdal</span><span class="o">.</span><span class="n">gdal_calculate</span><span class="p">(</span>
+            <span class="s2">&quot;-A&quot;</span><span class="p">,</span>
+            <span class="n">snowmelt</span><span class="p">,</span>
+            <span class="s2">&quot;--outfile&quot;</span><span class="p">,</span>
+            <span class="n">temp_snowmelt_mm</span><span class="p">,</span>
+            <span class="s2">&quot;--calc&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;A.astype(numpy.float32) / 100_000 * 1000&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;--quiet&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;--overwrite&quot;</span><span class="p">,</span>
+        <span class="p">)</span>
+        <span class="n">gdal</span><span class="o">.</span><span class="n">Translate</span><span class="p">(</span>
+            <span class="n">tif</span> <span class="o">:=</span> <span class="n">snowmelt_mm</span><span class="p">,</span>
+            <span class="n">temp_snowmelt_mm</span><span class="p">,</span>
+            <span class="nb">format</span><span class="o">=</span><span class="s2">&quot;COG&quot;</span><span class="p">,</span>
+            <span class="n">creationOptions</span><span class="o">=</span><span class="p">[</span>
+                <span class="s2">&quot;RESAMPLING=AVERAGE&quot;</span><span class="p">,</span>
+                <span class="s2">&quot;OVERVIEWS=IGNORE_EXISTING&quot;</span><span class="p">,</span>
+                <span class="s2">&quot;OVERVIEW_RESAMPLING=AVERAGE&quot;</span><span class="p">,</span>
+            <span class="p">],</span>
+        <span class="p">)</span>
+        <span class="c1"># validate COG</span>
+        <span class="k">if</span> <span class="p">(</span><span class="n">validate</span> <span class="o">:=</span> <span class="n">cgdal</span><span class="o">.</span><span class="n">validate_cog</span><span class="p">(</span><span class="s2">&quot;-q&quot;</span><span class="p">,</span> <span class="n">tif</span><span class="p">))</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Validate COG = </span><span class="si">{</span><span class="n">validate</span><span class="si">}</span><span class="se">\t</span><span class="si">{</span><span class="n">tif</span><span class="si">}</span><span class="s2"> is a COG&quot;</span><span class="p">)</span>
+    <span class="k">except</span> <span class="ne">RuntimeError</span> <span class="k">as</span> <span class="n">ex</span><span class="p">:</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="nb">type</span><span class="p">(</span><span class="n">ex</span><span class="p">)</span><span class="o">.</span><span class="vm">__name__</span><span class="si">}</span><span class="s2">: </span><span class="si">{</span><span class="n">this</span><span class="si">}</span><span class="s2">: </span><span class="si">{</span><span class="n">ex</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="k">return</span> <span class="kc">None</span>
+
+    <span class="k">return</span> <span class="p">{</span>
+        <span class="n">snowmelt_code_mm</span><span class="p">:</span> <span class="p">{</span>
+            <span class="s2">&quot;file&quot;</span><span class="p">:</span> <span class="n">tif</span><span class="p">,</span>
+            <span class="s2">&quot;filetype&quot;</span><span class="p">:</span> <span class="n">product_code</span><span class="p">[</span><span class="n">snowmelt_code_mm</span><span class="p">][</span><span class="s2">&quot;product&quot;</span><span class="p">],</span>
+            <span class="s2">&quot;datetime&quot;</span><span class="p">:</span> <span class="n">snowmelt_dt</span><span class="p">,</span>
+            <span class="s2">&quot;version&quot;</span><span class="p">:</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="p">}</span>
+    <span class="p">}</span></div>
+
+
+<div class="viewcode-block" id="cold_content"><a class="viewcode-back" href="../../../cumulus_geoproc.geoprocess.snodas.html#cumulus_geoproc.geoprocess.snodas.cold_content">[docs]</a><span class="k">def</span> <span class="nf">cold_content</span><span class="p">(</span><span class="n">translated_tif</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Compute cold content as a function of SWE and snow pack avg temp</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    translated_tif : dict</span>
+
+<span class="sd">        &quot;product_code&quot;: {</span>
+<span class="sd">            &quot;filetype&quot;: str,         Matching database acquirable</span>
+<span class="sd">            &quot;file&quot;: str,             Converted file</span>
+<span class="sd">            &quot;datetime&quot;: str,         Valid Time, ISO format with timezone</span>
+<span class="sd">            &quot;version&quot;: str           Reference Time (forecast), ISO format with timezone</span>
+<span class="sd">        }</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    dict</span>
+<span class="sd">        {</span>
+<span class="sd">            &quot;filetype&quot;: str,         Matching database acquirable</span>
+<span class="sd">            &quot;file&quot;: str,             Converted file</span>
+<span class="sd">            &quot;datetime&quot;: str,         Valid Time, ISO format with timezone</span>
+<span class="sd">            &quot;version&quot;: str           Reference Time (forecast), ISO format with timezone</span>
+<span class="sd">        }</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">coldcontent_code</span> <span class="o">=</span> <span class="s2">&quot;2072&quot;</span>
+    <span class="n">swe_code</span> <span class="o">=</span> <span class="s2">&quot;1034&quot;</span>
+    <span class="n">avg_temp_sp</span> <span class="o">=</span> <span class="s2">&quot;1038&quot;</span>
+
+    <span class="n">swe</span> <span class="o">=</span> <span class="n">translated_tif</span><span class="p">[</span><span class="n">swe_code</span><span class="p">][</span><span class="s2">&quot;file&quot;</span><span class="p">]</span>
+    <span class="n">swe_dt</span> <span class="o">=</span> <span class="n">translated_tif</span><span class="p">[</span><span class="n">swe_code</span><span class="p">][</span><span class="s2">&quot;datetime&quot;</span><span class="p">]</span>
+    <span class="n">avg_temp</span> <span class="o">=</span> <span class="n">translated_tif</span><span class="p">[</span><span class="n">avg_temp_sp</span><span class="p">][</span><span class="s2">&quot;file&quot;</span><span class="p">]</span>
+
+    <span class="n">cold_content_filename</span> <span class="o">=</span> <span class="n">swe</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="n">swe_code</span><span class="p">,</span> <span class="n">coldcontent_code</span><span class="p">)</span>
+    <span class="n">temp_cold_content</span> <span class="o">=</span> <span class="n">swe</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="n">swe_code</span><span class="p">,</span> <span class="s2">&quot;9999&quot;</span><span class="p">)</span>
+
+    <span class="k">try</span><span class="p">:</span>
+        <span class="n">cgdal</span><span class="o">.</span><span class="n">gdal_calculate</span><span class="p">(</span>
+            <span class="s2">&quot;-A&quot;</span><span class="p">,</span>
+            <span class="n">swe</span><span class="p">,</span>
+            <span class="s2">&quot;-B&quot;</span><span class="p">,</span>
+            <span class="n">avg_temp</span><span class="p">,</span>
+            <span class="s2">&quot;--outfile&quot;</span><span class="p">,</span>
+            <span class="n">temp_cold_content</span><span class="p">,</span>
+            <span class="s2">&quot;--calc&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;A.astype(numpy.float32) * 2114 * (B.astype(numpy.float32) - 273) / 333000&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;--quiet&quot;</span><span class="p">,</span>
+        <span class="p">)</span>
+        <span class="n">gdal</span><span class="o">.</span><span class="n">Translate</span><span class="p">(</span>
+            <span class="n">tif</span> <span class="o">:=</span> <span class="n">cold_content_filename</span><span class="p">,</span>
+            <span class="n">temp_cold_content</span><span class="p">,</span>
+            <span class="nb">format</span><span class="o">=</span><span class="s2">&quot;COG&quot;</span><span class="p">,</span>
+            <span class="n">creationOptions</span><span class="o">=</span><span class="p">[</span>
+                <span class="s2">&quot;RESAMPLING=AVERAGE&quot;</span><span class="p">,</span>
+                <span class="s2">&quot;OVERVIEWS=IGNORE_EXISTING&quot;</span><span class="p">,</span>
+                <span class="s2">&quot;OVERVIEW_RESAMPLING=AVERAGE&quot;</span><span class="p">,</span>
+            <span class="p">],</span>
+        <span class="p">)</span>
+        <span class="c1"># validate COG</span>
+        <span class="k">if</span> <span class="p">(</span><span class="n">validate</span> <span class="o">:=</span> <span class="n">cgdal</span><span class="o">.</span><span class="n">validate_cog</span><span class="p">(</span><span class="s2">&quot;-q&quot;</span><span class="p">,</span> <span class="n">tif</span><span class="p">))</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Validate COG = </span><span class="si">{</span><span class="n">validate</span><span class="si">}</span><span class="se">\t</span><span class="si">{</span><span class="n">tif</span><span class="si">}</span><span class="s2"> is a COG&quot;</span><span class="p">)</span>
+    <span class="k">except</span> <span class="ne">RuntimeError</span> <span class="k">as</span> <span class="n">ex</span><span class="p">:</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="nb">type</span><span class="p">(</span><span class="n">ex</span><span class="p">)</span><span class="o">.</span><span class="vm">__name__</span><span class="si">}</span><span class="s2">: </span><span class="si">{</span><span class="n">this</span><span class="si">}</span><span class="s2">: </span><span class="si">{</span><span class="n">ex</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="k">return</span> <span class="kc">None</span>
+
+    <span class="k">return</span> <span class="p">{</span>
+        <span class="n">coldcontent_code</span><span class="p">:</span> <span class="p">{</span>
+            <span class="s2">&quot;file&quot;</span><span class="p">:</span> <span class="n">tif</span><span class="p">,</span>
+            <span class="s2">&quot;filetype&quot;</span><span class="p">:</span> <span class="n">product_code</span><span class="p">[</span><span class="n">coldcontent_code</span><span class="p">][</span><span class="s2">&quot;product&quot;</span><span class="p">],</span>
+            <span class="s2">&quot;datetime&quot;</span><span class="p">:</span> <span class="n">swe_dt</span><span class="p">,</span>
+            <span class="s2">&quot;version&quot;</span><span class="p">:</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="p">}</span>
+    <span class="p">}</span></div>
+
+
+<span class="k">if</span> <span class="vm">__name__</span> <span class="o">==</span> <span class="s2">&quot;__main__&quot;</span><span class="p">:</span>
+    <span class="k">pass</span>
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2022, CRREL.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

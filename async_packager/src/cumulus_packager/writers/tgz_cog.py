@@ -9,7 +9,7 @@ from tarfile import TarFile
 
 import pyplugs
 from cumulus_packager import logger
-from cumulus_packager.packager.handler import PACKAGE_STATUS
+from cumulus_packager.packager.handler import PACKAGE_STATUS, package_status
 from osgeo import gdal
 
 gdal.UseExceptions()
@@ -22,12 +22,11 @@ _status = lambda x: PACKAGE_STATUS[int(x)]
 @pyplugs.register
 def writer(
     id: str,
-    extent: dict,
-    src: list,
+    src: str,
+    extent: str,
     dst: str,
     cellsize: float,
     dst_srs: str = "EPSG:5070",
-    callback=None,
 ):
     """Packager writer plugin
 
@@ -35,18 +34,16 @@ def writer(
     ----------
     id : str
         Download ID
-    extent : dict
-        Object with watershed name and bounding box
     src : list
         List of objects describing the GeoTiff (COG)
+    extent : dict
+        Object with watershed name and bounding box
     dst : str
         Temporary directory
     cellsize : float
         Grid resolution
     dst_srs : str, optional
         Destination Spacial Reference, by default "EPSG:5070"
-    callback : callable, optional
-        callback function sending message to the DB, by default None, by default None
 
     Returns
     -------
@@ -55,7 +52,7 @@ def writer(
     """
     # return None if no items in the 'contents'
     if len(src) < 1:
-        callback(id, _status(-1))
+        package_status(id=id, status_id=_status(-1))
         return
 
     _extent_name = extent["name"]
@@ -96,12 +93,14 @@ def writer(
             _progress = idx / len(src)
             logger.debug(f"Progress: {_progress}")
 
-            if callback is not None:
-                callback(id, _status(_progress), _progress)
-
+            package_status(
+                id=id,
+                status_id=_status(_progress),
+                progress=_progress,
+            )
     except (RuntimeError, Exception) as ex:
         logger.error(f"{type(ex).__name__}: {this}: {ex}")
-        callback(id, _status(-1), _progress)
+        package_status(id=id, status_id=_status(-1), progress=_progress)
         return None
     finally:
         ds = None

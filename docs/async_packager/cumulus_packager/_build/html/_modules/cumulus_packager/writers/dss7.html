@@ -69,9 +69,8 @@
            <div itemprop="articleBody">
              
   <h1>Source code for cumulus_packager.writers.dss7</h1><div class="highlight"><pre>
-<span></span><span class="sd">&quot;&quot;&quot;Packager writer plugin</span>
+<span></span><span class="sd">&quot;&quot;&quot;DSS7 package writer</span>
 
-<span class="sd">    COG --&gt; DSS7</span>
 <span class="sd">&quot;&quot;&quot;</span>
 <span class="kn">import</span> <span class="nn">json</span>
 <span class="kn">import</span> <span class="nn">os</span>
@@ -107,19 +106,16 @@
 <span class="sd">    ----------</span>
 <span class="sd">    id : str</span>
 <span class="sd">        Download ID</span>
-<span class="sd">    extent : dict</span>
-<span class="sd">        Object with watershed name and bounding box</span>
 <span class="sd">    src : list</span>
 <span class="sd">        List of objects describing the GeoTiff (COG)</span>
+<span class="sd">    extent : dict</span>
+<span class="sd">        Object with watershed name and bounding box</span>
 <span class="sd">    dst : str</span>
 <span class="sd">        Temporary directory</span>
 <span class="sd">    cellsize : float</span>
 <span class="sd">        Grid resolution</span>
 <span class="sd">    dst_srs : str, optional</span>
 <span class="sd">        Destination Spacial Reference, by default &quot;EPSG:5070&quot;</span>
-<span class="sd">    callback : str, optional</span>
-<span class="sd">        callback function sending message to the DB, by default None, by default None</span>
-<span class="sd">        implemented as pyplugs plugin</span>
 
 <span class="sd">    Returns</span>
 <span class="sd">    -------</span>
@@ -194,8 +190,7 @@
             <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">xsize</span><span class="si">=}</span><span class="s2">, </span><span class="si">{</span><span class="n">ysize</span><span class="si">=}</span><span class="s2">, </span><span class="si">{</span><span class="n">llx</span><span class="si">=}</span><span class="s2">, </span><span class="si">{</span><span class="n">lly</span><span class="si">=}</span><span class="s2">&quot;</span><span class="p">)</span>
 
             <span class="c1"># get stats from the array</span>
-            <span class="n">_data</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">float32</span><span class="p">(</span><span class="n">warp_ds</span><span class="o">.</span><span class="n">GetRasterBand</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span><span class="o">.</span><span class="n">ReadAsArray</span><span class="p">())</span>
-            <span class="n">data</span> <span class="o">=</span> <span class="n">_data</span><span class="o">.</span><span class="n">flatten</span><span class="p">()</span>
+            <span class="n">data</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">float32</span><span class="p">(</span><span class="n">warp_ds</span><span class="o">.</span><span class="n">GetRasterBand</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span><span class="o">.</span><span class="n">ReadAsArray</span><span class="p">())</span><span class="o">.</span><span class="n">flatten</span><span class="p">()</span>
             <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">data</span><span class="si">=}</span><span class="s2">&quot;</span><span class="p">)</span>
 
             <span class="n">gridStats</span> <span class="o">=</span> <span class="n">heclib</span><span class="o">.</span><span class="n">GridStats</span><span class="p">()</span>
@@ -260,7 +255,6 @@
     <span class="k">finally</span><span class="p">:</span>
         <span class="n">warp_ds</span> <span class="o">=</span> <span class="kc">None</span>
         <span class="n">data</span> <span class="o">=</span> <span class="kc">None</span>
-        <span class="n">_data</span> <span class="o">=</span> <span class="kc">None</span>
 
     <span class="k">return</span> <span class="n">dssfilename</span></div>
 </pre></div>

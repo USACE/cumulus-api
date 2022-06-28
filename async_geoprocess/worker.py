@@ -85,7 +85,7 @@ def start_worker():
                     f"Process Message: Avg {average_sec:0.4f} (sec); Deque Size {len(perf_queue)}"
                 )
             except ZeroDivisionError as ex:
-                logger.info(f"{type(ex).__name__} - {this} - {ex}")
+                logger.warning(f"{type(ex).__name__} - {this} - {ex}")
 
         for message in messages:
             try:

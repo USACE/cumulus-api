@@ -69,7 +69,10 @@
            <div itemprop="articleBody">
              
   <h1>Source code for cumulus_packager.heclib</h1><div class="highlight"><pre>
-<span></span><span class="sd">&quot;&quot;&quot;enumerations for heclib</span>
+<span></span><span class="sd">&quot;&quot;&quot;Module &#39;heclib&#39;</span>
+
+<span class="sd">Enumerations, constants and functions</span>
+
 <span class="sd">&quot;&quot;&quot;</span>
 
 <span class="kn">from</span> <span class="nn">ctypes</span> <span class="kn">import</span> <span class="p">(</span>
@@ -89,6 +92,7 @@
 
 <span class="c1"># libtiffdss.so is compiled and put in /usr/lib during image creation</span>
 <span class="n">tiffdss</span> <span class="o">=</span> <span class="n">LibraryLoader</span><span class="p">(</span><span class="n">CDLL</span><span class="p">)</span><span class="o">.</span><span class="n">LoadLibrary</span><span class="p">(</span><span class="s2">&quot;libtiffdss.so&quot;</span><span class="p">)</span>
+<span class="sd">&quot;&quot;&quot;ctypes.CDLL: tiff to dss shared object&quot;&quot;&quot;</span>
 
 <span class="n">FLOAT_MAX</span> <span class="o">=</span> <span class="mf">3.40282347e38</span>
 <span class="n">UNDEFINED</span> <span class="o">=</span> <span class="o">-</span><span class="n">FLOAT_MAX</span>
@@ -101,6 +105,7 @@
 <span class="s1">PARAMETER[&quot;False_Easting&quot;,1909762.5],PARAMETER[&quot;False_Northing&quot;,7624762.5],</span><span class="se">\</span>
 <span class="s1">PARAMETER[&quot;Central_Meridian&quot;,-105.0],PARAMETER[&quot;Standard_Parallel_1&quot;,60.0],</span><span class="se">\</span>
 <span class="s1">UNIT[&quot;Meter&quot;,1.0]]&#39;</span>
+<span class="sd">&quot;&quot;&quot;str: HRAP WKT&quot;&quot;&quot;</span>
 
 <span class="n">SHG_SRC_DEFINITION</span> <span class="o">=</span> <span class="s1">&#39;PROJCS[&quot;USA_Contiguous_Albers_Equal_Area_Conic_USGS_version&quot;,</span><span class="se">\</span>
 <span class="s1">GEOGCS[&quot;GCS_North_American_1983&quot;,DATUM[&quot;D_North_American_1983&quot;,</span><span class="se">\</span>
@@ -110,6 +115,7 @@
 <span class="s1">PARAMETER[&quot;Central_Meridian&quot;,-96.0],PARAMETER[&quot;Standard_Parallel_1&quot;,29.5],</span><span class="se">\</span>
 <span class="s1">PARAMETER[&quot;Standard_Parallel_2&quot;,45.5],PARAMETER[&quot;Latitude_Of_Origin&quot;,23.0],</span><span class="se">\</span>
 <span class="s1">UNIT[&quot;Meter&quot;,1.0]]&#39;</span>
+<span class="sd">&quot;&quot;&quot;str: SHG WKT&quot;&quot;&quot;</span>
 
 <span class="c1"># Parameters: utmZone, utmHemisphere, central_meridian, false_northing</span>
 <span class="c1"># if (_utmHemisphere.equals(&quot;S&quot;)) falseNorthing = 10000000;</span>
@@ -123,6 +129,7 @@
 <span class="s1">PARAMETER[&quot;scale_factor&quot;,0.9996],PARAMETER[&quot;false_easting&quot;,500000],</span><span class="se">\</span>
 <span class="s1">PARAMETER[&quot;false_northing&quot;,</span><span class="si">%s</span><span class="s1">],</span><span class="se">\</span>
 <span class="s1">AXIS[&quot;Easting&quot;,EAST],AXIS[&quot;Northing&quot;,NORTH]]&#39;</span>
+<span class="sd">&quot;&quot;&quot;str: UTM WKT&quot;&quot;&quot;</span>
 
 <span class="c1"># ProjectionDatum</span>
 <div class="viewcode-block" id="ProjectionDatum"><a class="viewcode-back" href="../../cumulus_packager.heclib.html#cumulus_packager.heclib.ProjectionDatum">[docs]</a><span class="k">class</span> <span class="nc">ProjectionDatum</span><span class="p">(</span><span class="n">Enum</span><span class="p">):</span>
@@ -269,7 +276,24 @@
     <span class="n">data_flat</span><span class="p">:</span> <span class="n">numpy</span><span class="p">,</span>
     <span class="n">gridStats</span><span class="p">:</span> <span class="n">GridStats</span><span class="p">,</span>
 <span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Write the data array to DSS record using the &#39;writeRecord&#39; C function</span>
 
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    dssfilename : str</span>
+<span class="sd">        DSS file name and path</span>
+<span class="sd">    gridStructStore : zStructSpatialGrid</span>
+<span class="sd">        ctypes structure</span>
+<span class="sd">    data_flat : numpy</span>
+<span class="sd">        1D numpy array</span>
+<span class="sd">    gridStats : GridStats</span>
+<span class="sd">        ctypes structure</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    int</span>
+<span class="sd">        Response from the C function</span>
+<span class="sd">    &quot;&quot;&quot;</span>
     <span class="n">ND_POINTER_1</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">ctypeslib</span><span class="o">.</span><span class="n">ndpointer</span><span class="p">(</span><span class="n">dtype</span><span class="o">=</span><span class="n">numpy</span><span class="o">.</span><span class="n">float32</span><span class="p">,</span> <span class="n">ndim</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">flags</span><span class="o">=</span><span class="s2">&quot;C&quot;</span><span class="p">)</span>
 
     <span class="n">tiffdss</span><span class="o">.</span><span class="n">writeRecord</span><span class="o">.</span><span class="n">argtypes</span> <span class="o">=</span> <span class="p">(</span>

@@ -152,14 +152,6 @@ class TimeZone(Enum):
 time_zone = {i.name: i.value for i in TimeZone}
 
 
-class GridStats(Structure):
-    _fields_ = [
-        ("minimum", c_float),
-        ("maximum", c_float),
-        ("meanval", c_float),
-    ]
-
-
 class zStructSpatialGrid(Structure):
     _fields_ = [
         ("structType", c_int),
@@ -203,7 +195,6 @@ def zwrite_record(
     dssfilename: str,
     gridStructStore: zStructSpatialGrid,
     data_flat: numpy,
-    gridStats: GridStats,
 ):
     """Write the data array to DSS record using the 'writeRecord' C function
 
@@ -229,7 +220,6 @@ def zwrite_record(
         c_char_p,
         POINTER(zStructSpatialGrid),
         ND_POINTER_1,
-        POINTER(GridStats),
     )
     tiffdss.writeRecord.restype = c_int
 
@@ -237,7 +227,6 @@ def zwrite_record(
         c_char_p(dssfilename.encode()),
         pointer(gridStructStore),
         data_flat,
-        pointer(gridStats),
     )
 
     return res

@@ -9,7 +9,7 @@
 
 #include "utils.h"
 
-int writeRecord(char *dssfilename, zStructSpatialGrid *gridStructStore, float *data, GridStats *gridStats)
+int writeRecord(char *dssfilename, zStructSpatialGrid *gridStructStore, float *data)
 {
     int i, n, status;
     float min = 0;
@@ -27,19 +27,6 @@ int writeRecord(char *dssfilename, zStructSpatialGrid *gridStructStore, float *d
     min = minimum(data, n, gridStructStore->_nullValue);
     max = maximum(data, n, gridStructStore->_nullValue);
     mean = meanvalue(data, n, gridStructStore->_nullValue);
-    
-    // range limits
-    // float min = gridStats->minimum;
-    // float max = gridStats->maximum;
-    // float mean =gridStats->meanval;
-    // if(gridStats->minimum == gridStructStore->_nullValue)
-    //     min = 0;
-    // if(gridStats->maximum == gridStructStore->_nullValue)
-    //     max = 0;
-    // if(gridStats->meanval == gridStructStore->_nullValue)
-    //     mean = 0;
-
-    // printf("Min, Max, Mean: %f, %f, %f\n", min, max, mean);
 
     float range = max - min;
     // printf("Data range: %f\n", range);
@@ -74,7 +61,9 @@ int writeRecord(char *dssfilename, zStructSpatialGrid *gridStructStore, float *d
     }
 
     // filter no data, reverse, and flip data before assigning to struct
-    filter_nodata(data, n, gridStructStore->_nullValue, gridStructStore->pathname);
+    char cpart[65];
+    status = zpathnameGetPart(gridStructStore->pathname, 3, cpart, sizeof(cpart));
+    filter_nodata(data, n, gridStructStore->_nullValue, cpart);
     // reversing the array values rotates it 180
     reverse_array(data, n);
     // reverse each row to flip <--> 180
@@ -125,7 +114,6 @@ int writeRecord(char *dssfilename, zStructSpatialGrid *gridStructStore, float *d
 
     zstructFree(spatialGridStruct);
     zstructFree(gridStructStore);
-    zstructFree(gridStats);
 
     return status;
 }

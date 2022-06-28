@@ -122,14 +122,6 @@ def writer(
             data = numpy.float32(warp_ds.GetRasterBand(1).ReadAsArray()).flatten()
             logger.debug(f"{data=}")
 
-            gridStats = heclib.GridStats()
-            gridStats.minimum = c_float(numpy.nanmin(data))
-            gridStats.maximum = c_float(numpy.nanmax(data))
-            gridStats.meanval = c_float(numpy.nanmean(data))
-            logger.debug(
-                f"GridStats: {gridStats.minimum=} {gridStats.maximum=} {gridStats.meanval=}"
-            )
-
             try:
                 spatialGridStruct = heclib.zStructSpatialGrid()
                 spatialGridStruct.pathname = c_char_p(dsspathname.encode())
@@ -160,7 +152,6 @@ def writer(
                     dssfilename=dssfilename,
                     gridStructStore=spatialGridStruct,
                     data_flat=data,
-                    gridStats=gridStats,
                 )
 
                 # callback

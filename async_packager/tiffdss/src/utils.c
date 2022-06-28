@@ -16,43 +16,71 @@ int closedss(long long *ifltab)
     return zcloseInternal(ifltab, 0);
 }
 
-float maximum(float *arr, int n)
+float maximum(float *arr, int n, float nodata)
 {
     float max = arr[0];
+    if (max == nodata)
+        max = 0;
 
     for (int i = 0; i < n; i++){
-        if(arr[i] > max)
-            max = arr[i];
+        if (arr[i] > max)
+        {
+            if  (arr[i] != nodata)
+                 max = arr[i];
+        }
     }
     return max;
 }
 
-float minimum(float *arr, int n)
+float minimum(float *arr, int n, float nodata)
 {
     float min = arr[0];
+    if (min == nodata)
+        min = 0;
 
     for (int i = 0; i < n; i++){
-        if(arr[i] < min)
-            min = arr[i];
-    }
+        if (arr[i] < min)
+        {
+            if (arr[i] != nodata)
+                min = arr[i];
+        }    
+}
     return min;
 }
 
-float meanvalue(float *arr, int n)
+float meanvalue(float *arr, int n, float nodata)
 {
+    int count = 0;
     float sum = 0;
+    float mean = 0;
     for (int i = 0; i < n; i++)
-        sum += arr[i];
-
-    return sum / n;
+    {    
+        if (arr[i] != nodata)
+            {
+                sum += arr[i];
+                count++;
+            }
+    }
+    if (count > 0)
+        mean = sum / count;
+    return mean;
 }
 
-void filter_nodata(float *arr, int datasize, float nodata)
+void filter_nodata(float *arr, int datasize, float nodata, char *cpart)
 {
+    // char *pos = strstr(cpart, "PRECIP");
+    int pos = zfindString(cpart,strlen(cpart),"PRECIP",6);
+
     for (int i = 0; i < datasize; i++)
     {
         if (arr[i] == nodata)
-            arr[i] = UNDEFINED_FLOAT;
+        {   
+             arr[i] = UNDEFINED_FLOAT;
+             if (pos >= 0)
+             {
+                arr[i] = 0.0f;
+             }
+        }
     }
 }
 

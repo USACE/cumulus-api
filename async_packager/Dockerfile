@@ -21,6 +21,8 @@ FROM osgeo/gdal:ubuntu-small-3.5.0 as packager
 ENV PYTHONUNBUFFERED=1
 
 ENV GDAL_DISABLE_READDIR_ON_OPEN=EMPTY_DIR
+ENV CPL_VSIL_CURL_CHUNK_SIZE=32000
+ENV GDAL_INGESTED_BYTES_AT_OPEN=32000
 
 ENV PACKAGE=async_packager
 
@@ -46,10 +48,14 @@ COPY --from=cbuilder --chown=root:root /hec-dss/heclib/heclib_c/src/headers /hec
 RUN bash ./tiffdss/src/make.sh
 
 # pip install/upgrade requirements before the cumulus package
+# sphinx used to generate documentation from docstrings
 RUN python3 -m pip install --upgrade pip wheel setuptools && \
-    python3 -m pip install /app/${PACKAGE}/
+    python3 -m pip install /app/${PACKAGE}/ Sphinx sphinx_rtd_theme
 
-RUN useradd appuser
+RUN useradd appuser && \
+    mkdir -p -m 775 docs && \
+    chown appuser:appuser docs
+
 USER appuser
 
 CMD python3 packager.py

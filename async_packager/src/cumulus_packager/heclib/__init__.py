@@ -1,4 +1,7 @@
-"""enumerations for heclib
+"""Module 'heclib'
+
+Enumerations, constants and functions
+
 """
 
 from ctypes import (
@@ -18,6 +21,7 @@ import numpy
 
 # libtiffdss.so is compiled and put in /usr/lib during image creation
 tiffdss = LibraryLoader(CDLL).LoadLibrary("libtiffdss.so")
+"""ctypes.CDLL: tiff to dss shared object"""
 
 FLOAT_MAX = 3.40282347e38
 UNDEFINED = -FLOAT_MAX
@@ -30,6 +34,7 @@ PROJECTION["Stereographic_North_Pole"],\
 PARAMETER["False_Easting",1909762.5],PARAMETER["False_Northing",7624762.5],\
 PARAMETER["Central_Meridian",-105.0],PARAMETER["Standard_Parallel_1",60.0],\
 UNIT["Meter",1.0]]'
+"""str: HRAP WKT"""
 
 SHG_SRC_DEFINITION = 'PROJCS["USA_Contiguous_Albers_Equal_Area_Conic_USGS_version",\
 GEOGCS["GCS_North_American_1983",DATUM["D_North_American_1983",\
@@ -39,6 +44,7 @@ PARAMETER["False_Easting",0.0],PARAMETER["False_Northing",0.0],\
 PARAMETER["Central_Meridian",-96.0],PARAMETER["Standard_Parallel_1",29.5],\
 PARAMETER["Standard_Parallel_2",45.5],PARAMETER["Latitude_Of_Origin",23.0],\
 UNIT["Meter",1.0]]'
+"""str: SHG WKT"""
 
 # Parameters: utmZone, utmHemisphere, central_meridian, false_northing
 # if (_utmHemisphere.equals("S")) falseNorthing = 10000000;
@@ -52,6 +58,7 @@ PARAMETER["central_meridian",%s],\
 PARAMETER["scale_factor",0.9996],PARAMETER["false_easting",500000],\
 PARAMETER["false_northing",%s],\
 AXIS["Easting",EAST],AXIS["Northing",NORTH]]'
+"""str: UTM WKT"""
 
 # ProjectionDatum
 class ProjectionDatum(Enum):
@@ -145,14 +152,6 @@ class TimeZone(Enum):
 time_zone = {i.name: i.value for i in TimeZone}
 
 
-class GridStats(Structure):
-    _fields_ = [
-        ("minimum", c_float),
-        ("maximum", c_float),
-        ("meanval", c_float),
-    ]
-
-
 class zStructSpatialGrid(Structure):
     _fields_ = [
         ("structType", c_int),
@@ -196,16 +195,31 @@ def zwrite_record(
     dssfilename: str,
     gridStructStore: zStructSpatialGrid,
     data_flat: numpy,
-    gridStats: GridStats,
 ):
+    """Write the data array to DSS record using the 'writeRecord' C function
 
+    Parameters
+    ----------
+    dssfilename : str
+        DSS file name and path
+    gridStructStore : zStructSpatialGrid
+        ctypes structure
+    data_flat : numpy
+        1D numpy array
+    gridStats : GridStats
+        ctypes structure
+
+    Returns
+    -------
+    int
+        Response from the C function
+    """
     ND_POINTER_1 = numpy.ctypeslib.ndpointer(dtype=numpy.float32, ndim=1, flags="C")
 
     tiffdss.writeRecord.argtypes = (
         c_char_p,
         POINTER(zStructSpatialGrid),
         ND_POINTER_1,
-        POINTER(GridStats),
     )
     tiffdss.writeRecord.restype = c_int
 
@@ -213,7 +227,6 @@ def zwrite_record(
         c_char_p(dssfilename.encode()),
         pointer(gridStructStore),
         data_flat,
-        pointer(gridStats),
     )
 
     return res

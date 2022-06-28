@@ -9,9 +9,12 @@
 
 #include "utils.h"
 
-int writeRecord(char *dssfilename, zStructSpatialGrid *gridStructStore, float *data, GridStats *gridStats)
+int writeRecord(char *dssfilename, zStructSpatialGrid *gridStructStore, float *data)
 {
     int i, n, status;
+    float min = 0;
+    float max = 0;
+    float mean = 0;
 
     zsetMessageLevel(MESS_METHOD_GLOBAL_ID, MESS_LEVEL_NONE);
 
@@ -21,34 +24,16 @@ int writeRecord(char *dssfilename, zStructSpatialGrid *gridStructStore, float *d
 
     n = gridStructStore->_numberOfCellsX * gridStructStore->_numberOfCellsY;
 
-
-    // filter no data
-    filter_nodata(data, n, gridStructStore->_nullValue);
-    // reversing the array values rotates it 180
-    reverse_array(data, n);
-    // reverse each row to flip <--> 180
-    reverse_rows(data, gridStructStore->_numberOfCellsX, n);
-
-
-    // range limits
-    float min = gridStats->minimum;
-    float max = gridStats->maximum;
-    float mean =gridStats->meanval;
-    if(gridStats->minimum == gridStructStore->_nullValue)
-        min = 0;
-    if(gridStats->maximum == gridStructStore->_nullValue)
-        max = 0;
-    if(gridStats->meanval == gridStructStore->_nullValue)
-        mean = 0;
-
-    // printf("Min, Max, Mean: %f, %f, %f\n", min, max, mean);
+    min = minimum(data, n, gridStructStore->_nullValue);
+    max = maximum(data, n, gridStructStore->_nullValue);
+    mean = meanvalue(data, n, gridStructStore->_nullValue);
 
     float range = max - min;
     // printf("Data range: %f\n", range);
 
     int bins = 5;
     if (range == 0)
-        bins = 1;
+        bins = 2;
 
     static float *rangelimit;
     static int *histo;
@@ -75,6 +60,14 @@ int writeRecord(char *dssfilename, zStructSpatialGrid *gridStructStore, float *d
         }
     }
 
+    // filter no data, reverse, and flip data before assigning to struct
+    char cpart[65];
+    status = zpathnameGetPart(gridStructStore->pathname, 3, cpart, sizeof(cpart));
+    filter_nodata(data, n, gridStructStore->_nullValue, cpart);
+    // reversing the array values rotates it 180
+    reverse_array(data, n);
+    // reverse each row to flip <--> 180
+    reverse_rows(data, gridStructStore->_numberOfCellsX, n);
 
     zStructSpatialGrid *spatialGridStruct = zstructSpatialGridNew(gridStructStore->pathname);
 
@@ -121,7 +114,6 @@ int writeRecord(char *dssfilename, zStructSpatialGrid *gridStructStore, float *d
 
     zstructFree(spatialGridStruct);
     zstructFree(gridStructStore);
-    zstructFree(gridStats);
 
     return status;
 }

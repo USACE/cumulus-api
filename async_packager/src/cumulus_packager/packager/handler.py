@@ -2,10 +2,11 @@
     
 """
 
-import asyncio
 import json
 import os
 from collections import namedtuple
+
+import requests
 
 from cumulus_packager import logger
 from cumulus_packager.configurations import APPLICATION_KEY, CUMULUS_API_URL, HTTP2
@@ -13,6 +14,7 @@ from cumulus_packager.utils import capi
 from cumulus_packager.writers import pkg_writer
 
 this = os.path.basename(__file__)
+"""str: Path to the module"""
 
 __all__ = ["PACKAGE_STATUS", "package_status", "handle_message"]
 
@@ -22,6 +24,7 @@ PACKAGE_STATUS = {
     0: "94727878-7a50-41f8-99eb-a80eb82f737a",  # INITIATED
     1: "3914f0bd-2290-42b1-bc24-41479b3a846f",  # SUCCESS
 }
+"""dict[int, str]: Package status UUIDs for FAILED (0), INITIATED(1), and SUCCESS(-1)"""
 
 
 def package_status(
@@ -53,13 +56,12 @@ def package_status(
         }
         logger.debug(f"Payload: {json.dumps(_json, indent=4)}")
 
-        cumulus_api = capi.CumulusAPI(CUMULUS_API_URL, HTTP2)
-        cumulus_api.endpoint = f"downloads/{id}"
-        cumulus_api.query = {"key": APPLICATION_KEY}
-
-        logger.debug(f"API endpoint URL: {cumulus_api.url}")
-
-        resp = asyncio.run(cumulus_api.put_(cumulus_api.url, _json))
+        resp = requests.request(
+            "PUT",
+            url=f"{CUMULUS_API_URL}/downloads/{id}",
+            params={"key": APPLICATION_KEY},
+            json=_json,
+        )
 
         logger.debug(f"Response: {resp}")
 
@@ -68,25 +70,17 @@ def package_status(
 
 
 def handle_message(que, payload_resp: namedtuple, dst: str):
-
     """Converts JSON-Formatted message string to dictionary and calls package()
 
     Parameters
     ----------
-    q : multiprocessing.Queue
+    que : multiprocessing.Queue
         queue used to return pkg_writer result to the handler
     payload_resp : namedtuple
         Packager request payload as namedtuple
     dst : str
         Temporary directory name
-    callback : str, optional
-        callback function sending message to the DB, by default None
-        needs to be a str b/c implementation is pyplugs
 
-    Returns
-    -------
-    str
-        FQPN to file | None
     """
     result = pkg_writer(
         plugin=payload_resp.format,
@@ -97,7 +91,7 @@ def handle_message(que, payload_resp: namedtuple, dst: str):
         cellsize=None,
         dst_srs=None,
     )
-    # return result
+
     que_get = que.get()
     que_get["return"] = result
     que.put(que_get)

@@ -1,0 +1,189 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>cumulus_geoproc.geoprocess.snodas.interpolate module &mdash; Cumulus Geoprocess 0.1.0 documentation</title>
+      <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+      <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  <!--[if lt IE 9]>
+    <script src="_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js"></script>
+        <script src="_static/jquery.js"></script>
+        <script src="_static/underscore.js"></script>
+        <script src="_static/_sphinx_javascript_frameworks_compat.js"></script>
+        <script src="_static/doctools.js"></script>
+    <script src="_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="cumulus_geoproc.geoprocess.snodas.metaparse module" href="cumulus_geoproc.geoprocess.snodas.metaparse.html" />
+    <link rel="prev" title="cumulus_geoproc.geoprocess.snodas package" href="cumulus_geoproc.geoprocess.snodas.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+            <a href="index.html" class="icon icon-home"> Cumulus Geoprocess
+          </a>
+              <div class="version">
+                0.1.0
+              </div>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul class="current">
+<li class="toctree-l1 current"><a class="reference internal" href="cumulus_geoproc.html">cumulus_geoproc package</a><ul class="current">
+<li class="toctree-l2 current"><a class="reference internal" href="cumulus_geoproc.html#subpackages">Subpackages</a><ul class="current">
+<li class="toctree-l3 current"><a class="reference internal" href="cumulus_geoproc.geoprocess.html">cumulus_geoproc.geoprocess package</a><ul class="current">
+<li class="toctree-l4 current"><a class="reference internal" href="cumulus_geoproc.geoprocess.html#subpackages">Subpackages</a></li>
+<li class="toctree-l4"><a class="reference internal" href="cumulus_geoproc.geoprocess.html#submodules">Submodules</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="cumulus_geoproc.processors.html">cumulus_geoproc.processors package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="cumulus_geoproc.utils.html">cumulus_geoproc.utils package</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="cumulus_geoproc.html#submodules">Submodules</a></li>
+</ul>
+</li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">Cumulus Geoprocess</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="index.html" class="icon icon-home"></a> &raquo;</li>
+          <li><a href="cumulus_geoproc.html">cumulus_geoproc package</a> &raquo;</li>
+          <li><a href="cumulus_geoproc.geoprocess.html">cumulus_geoproc.geoprocess package</a> &raquo;</li>
+          <li><a href="cumulus_geoproc.geoprocess.snodas.html">cumulus_geoproc.geoprocess.snodas package</a> &raquo;</li>
+      <li>cumulus_geoproc.geoprocess.snodas.interpolate module</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="_sources/cumulus_geoproc.geoprocess.snodas.interpolate.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="module-cumulus_geoproc.geoprocess.snodas.interpolate">
+<span id="cumulus-geoproc-geoprocess-snodas-interpolate-module"></span><h1>cumulus_geoproc.geoprocess.snodas.interpolate module<a class="headerlink" href="#module-cumulus_geoproc.geoprocess.snodas.interpolate" title="Permalink to this heading"></a></h1>
+<p>SNODAS interpolation</p>
+<dl class="py function">
+<dt class="sig sig-object py" id="cumulus_geoproc.geoprocess.snodas.interpolate.is_lakefix">
+<span class="sig-prename descclassname"><span class="pre">cumulus_geoproc.geoprocess.snodas.interpolate.</span></span><span class="sig-name descname"><span class="pre">is_lakefix</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">dt</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">datetime</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">code</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/cumulus_geoproc/geoprocess/snodas/interpolate.html#is_lakefix"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#cumulus_geoproc.geoprocess.snodas.interpolate.is_lakefix" title="Permalink to this definition"></a></dt>
+<dd><p>Determine if needing ‘lakefix’</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>dt</strong> (<em>datetime</em>) – datetime object</p></li>
+<li><p><strong>code</strong> (<em>str</em>) – parameter code related to SNODAS parameters</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>True | False if needing ‘lakefix’</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>bool</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="cumulus_geoproc.geoprocess.snodas.interpolate.snodas">
+<em class="property"><span class="k"><span class="pre">async</span></span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">cumulus_geoproc.geoprocess.snodas.interpolate.</span></span><span class="sig-name descname"><span class="pre">snodas</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">cfg</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">namedtuple</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dst</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/cumulus_geoproc/geoprocess/snodas/interpolate.html#snodas"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#cumulus_geoproc.geoprocess.snodas.interpolate.snodas" title="Permalink to this definition"></a></dt>
+<dd><p>Main method building asyncio tasks</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>cfg</strong> (<em>namedtuple</em>) – namedtuple with SQS message as attributes</p></li>
+<li><p><strong>dst</strong> (<em>str</em>) – FQPN to temporary directory</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>List of dictionary objects with attributes needed to upload to S3</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>List[dict[str, str]]</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="cumulus_geoproc.geoprocess.snodas.interpolate.snodas_interp_task">
+<em class="property"><span class="k"><span class="pre">async</span></span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">cumulus_geoproc.geoprocess.snodas.interpolate.</span></span><span class="sig-name descname"><span class="pre">snodas_interp_task</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">filepath</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">product</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dt</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">datetime</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">max_dist</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">nodata</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">lakefix</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/cumulus_geoproc/geoprocess/snodas/interpolate.html#snodas_interp_task"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#cumulus_geoproc.geoprocess.snodas.interpolate.snodas_interp_task" title="Permalink to this definition"></a></dt>
+<dd><p>SNODAS interpolation task method used with asyncio</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>filepath</strong> (<em>str</em>) – FQPN to processed SNODAS COG</p></li>
+<li><p><strong>product</strong> (<em>str</em>) – Cumulus product name</p></li>
+<li><p><strong>dt</strong> (<em>datetime</em>) – datetime object</p></li>
+<li><p><strong>max_dist</strong> (<em>str</em>) – maximum distance in pixel for gdal_fillnodata</p></li>
+<li><p><strong>nodata</strong> (<em>str</em>) – raster no data value</p></li>
+<li><p><strong>lakefix</strong> (<em>bool</em><em>, </em><em>optional</em>) – determine if product needs ‘lakefix’, by default False</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>Dictionary of attributes needed to upload to S3 or None</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>dict[str, str] | None</p>
+</dd>
+</dl>
+</dd></dl>
+
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="cumulus_geoproc.geoprocess.snodas.html" class="btn btn-neutral float-left" title="cumulus_geoproc.geoprocess.snodas package" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="cumulus_geoproc.geoprocess.snodas.metaparse.html" class="btn btn-neutral float-right" title="cumulus_geoproc.geoprocess.snodas.metaparse module" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2022, CRREL.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

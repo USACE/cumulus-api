@@ -1,6 +1,5 @@
-"""Packager writer plugin
+"""DSS7 package writer
 
-    COG --> DSS7
 """
 import json
 import os
@@ -36,19 +35,16 @@ def writer(
     ----------
     id : str
         Download ID
-    extent : dict
-        Object with watershed name and bounding box
     src : list
         List of objects describing the GeoTiff (COG)
+    extent : dict
+        Object with watershed name and bounding box
     dst : str
         Temporary directory
     cellsize : float
         Grid resolution
     dst_srs : str, optional
         Destination Spacial Reference, by default "EPSG:5070"
-    callback : str, optional
-        callback function sending message to the DB, by default None, by default None
-        implemented as pyplugs plugin
 
     Returns
     -------
@@ -123,17 +119,8 @@ def writer(
             logger.debug(f"{xsize=}, {ysize=}, {llx=}, {lly=}")
 
             # get stats from the array
-            _data = numpy.float32(warp_ds.GetRasterBand(1).ReadAsArray())
-            data = _data.flatten()
+            data = numpy.float32(warp_ds.GetRasterBand(1).ReadAsArray()).flatten()
             logger.debug(f"{data=}")
-
-            gridStats = heclib.GridStats()
-            gridStats.minimum = c_float(numpy.nanmin(data))
-            gridStats.maximum = c_float(numpy.nanmax(data))
-            gridStats.meanval = c_float(numpy.nanmean(data))
-            logger.debug(
-                f"GridStats: {gridStats.minimum=} {gridStats.maximum=} {gridStats.meanval=}"
-            )
 
             try:
                 spatialGridStruct = heclib.zStructSpatialGrid()
@@ -165,7 +152,6 @@ def writer(
                     dssfilename=dssfilename,
                     gridStructStore=spatialGridStruct,
                     data_flat=data,
-                    gridStats=gridStats,
                 )
 
                 # callback
@@ -189,6 +175,5 @@ def writer(
     finally:
         warp_ds = None
         data = None
-        _data = None
 
     return dssfilename

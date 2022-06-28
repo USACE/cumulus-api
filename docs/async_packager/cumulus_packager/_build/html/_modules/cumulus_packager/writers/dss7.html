@@ -193,14 +193,6 @@
             <span class="n">data</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">float32</span><span class="p">(</span><span class="n">warp_ds</span><span class="o">.</span><span class="n">GetRasterBand</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span><span class="o">.</span><span class="n">ReadAsArray</span><span class="p">())</span><span class="o">.</span><span class="n">flatten</span><span class="p">()</span>
             <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">data</span><span class="si">=}</span><span class="s2">&quot;</span><span class="p">)</span>
 
-            <span class="n">gridStats</span> <span class="o">=</span> <span class="n">heclib</span><span class="o">.</span><span class="n">GridStats</span><span class="p">()</span>
-            <span class="n">gridStats</span><span class="o">.</span><span class="n">minimum</span> <span class="o">=</span> <span class="n">c_float</span><span class="p">(</span><span class="n">numpy</span><span class="o">.</span><span class="n">nanmin</span><span class="p">(</span><span class="n">data</span><span class="p">))</span>
-            <span class="n">gridStats</span><span class="o">.</span><span class="n">maximum</span> <span class="o">=</span> <span class="n">c_float</span><span class="p">(</span><span class="n">numpy</span><span class="o">.</span><span class="n">nanmax</span><span class="p">(</span><span class="n">data</span><span class="p">))</span>
-            <span class="n">gridStats</span><span class="o">.</span><span class="n">meanval</span> <span class="o">=</span> <span class="n">c_float</span><span class="p">(</span><span class="n">numpy</span><span class="o">.</span><span class="n">nanmean</span><span class="p">(</span><span class="n">data</span><span class="p">))</span>
-            <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span>
-                <span class="sa">f</span><span class="s2">&quot;GridStats: </span><span class="si">{</span><span class="n">gridStats</span><span class="o">.</span><span class="n">minimum</span><span class="si">=}</span><span class="s2"> </span><span class="si">{</span><span class="n">gridStats</span><span class="o">.</span><span class="n">maximum</span><span class="si">=}</span><span class="s2"> </span><span class="si">{</span><span class="n">gridStats</span><span class="o">.</span><span class="n">meanval</span><span class="si">=}</span><span class="s2">&quot;</span>
-            <span class="p">)</span>
-
             <span class="k">try</span><span class="p">:</span>
                 <span class="n">spatialGridStruct</span> <span class="o">=</span> <span class="n">heclib</span><span class="o">.</span><span class="n">zStructSpatialGrid</span><span class="p">()</span>
                 <span class="n">spatialGridStruct</span><span class="o">.</span><span class="n">pathname</span> <span class="o">=</span> <span class="n">c_char_p</span><span class="p">(</span><span class="n">dsspathname</span><span class="o">.</span><span class="n">encode</span><span class="p">())</span>
@@ -231,7 +223,6 @@
                     <span class="n">dssfilename</span><span class="o">=</span><span class="n">dssfilename</span><span class="p">,</span>
                     <span class="n">gridStructStore</span><span class="o">=</span><span class="n">spatialGridStruct</span><span class="p">,</span>
                     <span class="n">data_flat</span><span class="o">=</span><span class="n">data</span><span class="p">,</span>
-                    <span class="n">gridStats</span><span class="o">=</span><span class="n">gridStats</span><span class="p">,</span>
                 <span class="p">)</span>
 
                 <span class="c1"># callback</span>

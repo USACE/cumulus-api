@@ -223,14 +223,6 @@
 <span class="n">time_zone</span> <span class="o">=</span> <span class="p">{</span><span class="n">i</span><span class="o">.</span><span class="n">name</span><span class="p">:</span> <span class="n">i</span><span class="o">.</span><span class="n">value</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">TimeZone</span><span class="p">}</span>
 
 
-<div class="viewcode-block" id="GridStats"><a class="viewcode-back" href="../../cumulus_packager.heclib.html#cumulus_packager.heclib.GridStats">[docs]</a><span class="k">class</span> <span class="nc">GridStats</span><span class="p">(</span><span class="n">Structure</span><span class="p">):</span>
-    <span class="n">_fields_</span> <span class="o">=</span> <span class="p">[</span>
-        <span class="p">(</span><span class="s2">&quot;minimum&quot;</span><span class="p">,</span> <span class="n">c_float</span><span class="p">),</span>
-        <span class="p">(</span><span class="s2">&quot;maximum&quot;</span><span class="p">,</span> <span class="n">c_float</span><span class="p">),</span>
-        <span class="p">(</span><span class="s2">&quot;meanval&quot;</span><span class="p">,</span> <span class="n">c_float</span><span class="p">),</span>
-    <span class="p">]</span></div>
-
-
 <div class="viewcode-block" id="zStructSpatialGrid"><a class="viewcode-back" href="../../cumulus_packager.heclib.html#cumulus_packager.heclib.zStructSpatialGrid">[docs]</a><span class="k">class</span> <span class="nc">zStructSpatialGrid</span><span class="p">(</span><span class="n">Structure</span><span class="p">):</span>
     <span class="n">_fields_</span> <span class="o">=</span> <span class="p">[</span>
         <span class="p">(</span><span class="s2">&quot;structType&quot;</span><span class="p">,</span> <span class="n">c_int</span><span class="p">),</span>
@@ -274,7 +266,6 @@
     <span class="n">dssfilename</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
     <span class="n">gridStructStore</span><span class="p">:</span> <span class="n">zStructSpatialGrid</span><span class="p">,</span>
     <span class="n">data_flat</span><span class="p">:</span> <span class="n">numpy</span><span class="p">,</span>
-    <span class="n">gridStats</span><span class="p">:</span> <span class="n">GridStats</span><span class="p">,</span>
 <span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;Write the data array to DSS record using the &#39;writeRecord&#39; C function</span>
 
@@ -300,7 +291,6 @@
         <span class="n">c_char_p</span><span class="p">,</span>
         <span class="n">POINTER</span><span class="p">(</span><span class="n">zStructSpatialGrid</span><span class="p">),</span>
         <span class="n">ND_POINTER_1</span><span class="p">,</span>
-        <span class="n">POINTER</span><span class="p">(</span><span class="n">GridStats</span><span class="p">),</span>
     <span class="p">)</span>
     <span class="n">tiffdss</span><span class="o">.</span><span class="n">writeRecord</span><span class="o">.</span><span class="n">restype</span> <span class="o">=</span> <span class="n">c_int</span>
 
@@ -308,7 +298,6 @@
         <span class="n">c_char_p</span><span class="p">(</span><span class="n">dssfilename</span><span class="o">.</span><span class="n">encode</span><span class="p">()),</span>
         <span class="n">pointer</span><span class="p">(</span><span class="n">gridStructStore</span><span class="p">),</span>
         <span class="n">data_flat</span><span class="p">,</span>
-        <span class="n">pointer</span><span class="p">(</span><span class="n">gridStats</span><span class="p">),</span>
     <span class="p">)</span>
 
     <span class="k">return</span> <span class="n">res</span></div>

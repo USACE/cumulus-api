@@ -18,23 +18,33 @@ int closedss(long long *ifltab)
 
 float maximum(float *arr, int n, float nodata)
 {
-    float max = 0;
+    float max = arr[0];
+    if (max == nodata)
+        max = 0;
 
     for (int i = 0; i < n; i++){
-        if ((arr[i] > max) && (arr[i] != nodata))
-            max = arr[i];
+        if (arr[i] > max)
+        {
+            if  (arr[i] != nodata)
+                 max = arr[i];
+        }
     }
     return max;
 }
 
 float minimum(float *arr, int n, float nodata)
 {
-    float min = 0;
+    float min = arr[0];
+    if (min == nodata)
+        min = 0;
 
     for (int i = 0; i < n; i++){
-        if ((arr[i] < min) && (arr[i] != nodata))
-            min = arr[i];
-    }
+        if (arr[i] < min)
+        {
+            if (arr[i] != nodata)
+                min = arr[i];
+        }    
+}
     return min;
 }
 
@@ -56,20 +66,21 @@ float meanvalue(float *arr, int n, float nodata)
     return mean;
 }
 
-void filter_nodata(float *arr, int datasize, float nodata, char *pathname)
+void filter_nodata(float *arr, int datasize, float nodata, char *cpart)
 {
-    char pathpart[65];
-    char * pos;
-
-    int status = zpathnameGetPart(pathname, 3, pathpart, sizeof(pathpart));
-    pos = strstr(pathpart, "PRECIP");
+    // char *pos = strstr(cpart, "PRECIP");
+    int pos = zfindString(cpart,strlen(cpart),"PRECIP",6);
 
     for (int i = 0; i < datasize; i++)
     {
         if (arr[i] == nodata)
-            arr[i] = UNDEFINED_FLOAT;
-        if (pos)
-            arr[i] = 0.0f;
+        {   
+             arr[i] = UNDEFINED_FLOAT;
+             if (pos >= 0)
+             {
+                arr[i] = 0.0f;
+             }
+        }
     }
 }
 

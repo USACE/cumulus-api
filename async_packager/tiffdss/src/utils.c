@@ -1,5 +1,5 @@
 #include <string.h>
-
+#include <math.h>
 
 #include "heclib.h"
 #include "utils.h"
@@ -19,14 +19,14 @@ int closedss(long long *ifltab)
 float maximum(float *arr, int n, float nodata)
 {
     float max = arr[0];
-    if (max == nodata)
-        max = 0;
 
     for (int i = 0; i < n; i++){
-        if (arr[i] > max)
+        if  (arr[i] != nodata)
         {
-            if  (arr[i] != nodata)
-                 max = arr[i];
+            if (arr[i] > max)
+            {
+                max = arr[i];
+            }
         }
     }
     return max;
@@ -35,15 +35,15 @@ float maximum(float *arr, int n, float nodata)
 float minimum(float *arr, int n, float nodata)
 {
     float min = arr[0];
-    if (min == nodata)
-        min = 0;
 
     for (int i = 0; i < n; i++){
-        if (arr[i] < min)
+        if (arr[i] != nodata)
         {
-            if (arr[i] != nodata)
+            if (arr[i] < min)
+            {
                 min = arr[i];
-        }    
+            }
+        }
 }
     return min;
 }
@@ -66,21 +66,12 @@ float meanvalue(float *arr, int n, float nodata)
     return mean;
 }
 
-void filter_nodata(float *arr, int datasize, float nodata, char *cpart)
+void filter_nodata(float *arr, int datasize, float nodata)
 {
-    // char *pos = strstr(cpart, "PRECIP");
-    int pos = zfindString(cpart,strlen(cpart),"PRECIP",6);
-
     for (int i = 0; i < datasize; i++)
     {
         if (arr[i] == nodata)
-        {   
-             arr[i] = UNDEFINED_FLOAT;
-             if (pos >= 0)
-             {
-                arr[i] = 0.0f;
-             }
-        }
+            arr[i] = UNDEFINED_FLOAT;
     }
 }
 
@@ -132,4 +123,103 @@ void reverse_rows(float *arr, int cols, int datasize)
             end--;
         }
     }
+}
+
+int dssDataType(const char *dType)
+{
+    if (strcmp(dType, "PER-AVER") == 0)
+        return PER_AVER;
+    if (strcmp(dType, "PER-CUM") == 0)
+        return PER_CUM;
+    if (strcmp(dType, "INST-VAL") == 0)
+        return INST_VAL;
+    if (strcmp(dType, "INST-CUM") == 0)
+        return INST_CUM;
+    if (strcmp(dType, "FREQ") == 0)
+        return FREQ;
+    return -1;
+}
+
+int dssCompressionMethod(const char *compressMethod)
+{
+    if (strcmp(compressMethod, "undefined") == 0)
+        return UNDEFINED_COMPRESSION_METHOD;
+    if (strcmp(compressMethod, "zlib") == 0)
+        return ZLIB_COMPRESSION;
+    return -1;
+}
+
+int dssGridType(const char *gtype)
+{
+    if (strcmp(gtype, "UNDEFINED_GRID_TYPE") == 0)
+        return 400;
+    if (strcmp(gtype, "HRAP") == 0)
+        return 410;
+    if (strcmp(gtype, "ALBERS") == 0 || strcmp(gtype, "SHG") == 0)
+        return 420;
+    if ((strcmp(gtype, "SPECIFIED_GRID_TYPE") == 0) || (strcmp(gtype, "UTM") == 0))
+        return 430;
+    return -1;
+}
+
+int tzOffset(const char *tz)
+{
+    if (tz == NULL)
+        return -1;
+    if ((strcmp(tz, "GMT") == 0) || (strcmp(tz, "UTC") == 0))
+        return 0;
+    if (strcmp(tz, "AST") == 0)
+        return 4;
+    if (strcmp(tz, "EST") == 0)
+        return 5;
+    if (strcmp(tz, "CST") == 0)
+        return 6;
+    if (strcmp(tz, "MST") == 0)
+        return 7;
+    if (strcmp(tz, "PST") == 0)
+        return 8;
+    if (strcmp(tz, "AKST") == 0)
+        return 9;
+    if (strcmp(tz, "HST") == 0)
+        return 10;
+    return -1;
+}
+
+char *dssGridDef(int gtype)
+{
+    switch (gtype)
+    {
+    case 400:
+        return NULL;
+    case 410:
+        return HRAP_SRC_DEFINITION;
+    case 420:
+        return SHG_SRC_DEFINITION;
+    case 430:
+        return NULL;
+    default:
+        return NULL;
+    }
+}
+
+char *utmGridDef(int zone, char *utmHemi)
+{
+    char *falseNorthing = "0";
+    char _centralMeridian[sizeof(int)];
+    char tens[sizeof(int)];
+    char ones[sizeof(int)];
+    int len = sizeof(UTM_SRC_DEFINITION);
+    char *utm = (char *)malloc(sizeof(char) * len);
+
+    if (strcmp(utmHemi, "S") == 0)
+        falseNorthing = "10000000";
+    int centralMeridian = -183 + zone * 6;
+
+    snprintf(_centralMeridian, sizeof(int), "%d", centralMeridian);
+    snprintf(tens, sizeof(int), "%.f", fmodf(zone, 10));
+    snprintf(ones, sizeof(int), "%d", zone / 10);
+
+    snprintf(utm, len, UTM_SRC_DEFINITION, ones, tens, _centralMeridian, falseNorthing);
+
+    return utm;
 }

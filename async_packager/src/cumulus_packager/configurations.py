@@ -44,14 +44,14 @@ WRITE_TO_BUCKET: str = os.getenv("WRITE_TO_BUCKET", default="castle-data-develop
 # GDAL Configuration
 # ------------------------- #
 GDAL_DISABLE_READDIR_ON_OPEN: str = os.getenv(
-    "GDAL_DISABLE_READDIR_ON_OPEN", default="YES"
+    "GDAL_DISABLE_READDIR_ON_OPEN", default="EMPTY_DIR"
 )
-CPL_VSIL_USE_TEMP_FILE_FOR_RANDOM_WRITE: str = os.getenv(
-    "CPL_VSIL_USE_TEMP_FILE_FOR_RANDOM_WRITE", default="YES"
-)
-CPL_TMPDIR: str = os.getenv("CPL_TMPDIR", default="/tmp")
-CPL_DEBUG: str = os.getenv("CPL_DEBUG", default="YES")
-CPL_CURL_VERBOSE: str = os.getenv("CPL_CURL_VERBOSE", default="NO")
+# CPL_VSIL_USE_TEMP_FILE_FOR_RANDOM_WRITE: str = os.getenv(
+#     "CPL_VSIL_USE_TEMP_FILE_FOR_RANDOM_WRITE", default="YES"
+# )
+# CPL_TMPDIR: str = os.getenv("CPL_TMPDIR", default="/tmp")
+# CPL_DEBUG: str = os.getenv("CPL_DEBUG", default="YES")
+# CPL_CURL_VERBOSE: str = os.getenv("CPL_CURL_VERBOSE", default="NO")
 
 
 # ------------------------- #

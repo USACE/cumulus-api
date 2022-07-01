@@ -71,7 +71,9 @@ void filter_nodata(float *arr, int datasize, float nodata)
     for (int i = 0; i < datasize; i++)
     {
         if (arr[i] == nodata)
+        {
             arr[i] = UNDEFINED_FLOAT;
+        }
     }
 }
 

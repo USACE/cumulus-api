@@ -76,6 +76,9 @@ def start_packager():
                 logger.info("%(spacer)s new message %(spacer)s" % {"spacer": "*" * 20})
 
                 # parse message to payload as json object and get the download id
+                message_body = message.body
+                logger.debug(f"{message_body=}")
+
                 download_id = json.loads(message.body)["id"]
                 logger.debug(f"Download ID: {download_id}")
 
@@ -91,6 +94,10 @@ def start_packager():
 
                 if resp.status_code != 200:
                     raise Exception(resp)
+
+                # response json
+                response_json = resp.json()
+                logger.debug(f"{response_json=}")
 
                 # create a temporary directory and release in final exception
                 dst = TemporaryDirectory()

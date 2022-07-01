@@ -9,15 +9,32 @@ from ctypes import c_char_p, c_float, c_int
 import numpy
 import pyplugs
 from cumulus_packager import heclib, logger
-
 from cumulus_packager.packager.handler import PACKAGE_STATUS, package_status
-from osgeo import gdal
+from osgeo import gdal, osr
 
 gdal.UseExceptions()
+
+# gdal.SetConfigOption("CPL_DEBUG", "ON")
 
 this = os.path.basename(__file__)
 
 _status = lambda x: PACKAGE_STATUS[int(x)]
+
+
+def log_dataset(gdal_dataset, *args):
+    logger.debug(f"{args}")
+
+    logger.debug(f"{gdal_dataset.RasterXSize=}")
+    logger.debug(f"{gdal_dataset.RasterYSize=}")
+    logger.debug(f"{gdal_dataset.RasterCount=}")
+    gdal_spatial_ref = gdal_dataset.GetSpatialRef()
+    logger.debug(f"{gdal_spatial_ref.ExportToPrettyWkt()=}")
+
+    raster = gdal_dataset.GetRasterBand(1)
+    logger.debug(f"{raster.GetNoDataValue()=}")
+
+    data = raster.ReadAsArray(resample_alg=gdal.gdalconst.GRIORA_Bilinear)
+    logger.debug(f"{data.min()=}; {data.max()=}; {data.mean()=}; {data.size=}")
 
 
 @pyplugs.register
@@ -63,10 +80,13 @@ def writer(
     _extent_name = extent["name"]
     _bbox = extent["bbox"]
     _progress = 0
-    _nodata = 9999
+
+    # assuming destination spacial references are all EPSG
+    destination_srs = osr.SpatialReference()
+    epsg_code = dst_srs.split(":")[-1]
+    destination_srs.ImportFromEPSG(int(epsg_code))
 
     ###### this can go away when the payload has the resolution ######
-    cellsize = 2000 if cellsize is None else None
     grid_type_name = "SHG"
     grid_type = heclib.dss_grid_type[grid_type_name]
     zcompression = heclib.compression_method["ZLIB_COMPRESSION"]
@@ -80,47 +100,46 @@ def writer(
 
         for idx, tif in enumerate(src):
             TifCfg = namedtuple("TifCfg", tif)(**tif)
-
-            data_type = heclib.data_type[TifCfg.dss_datatype]
-
-            filename_ = os.path.basename(TifCfg.key)
             dsspathname = f"/{grid_type_name}/{_extent_name}/{TifCfg.dss_cpart}/{TifCfg.dss_dpart}/{TifCfg.dss_epart}/{TifCfg.dss_fpart}/"
-
-            if len(TifCfg.dss_epart) < 14:
-                is_interval = 0
+            data_type = heclib.data_type[TifCfg.dss_datatype]
 
             ds = gdal.Open(f"/vsis3_streaming/{TifCfg.bucket}/{TifCfg.key}")
 
+            log_dataset(ds, "BEFORE")
+
             # GDAL Warp the Tiff to what we need for DSS
+            filename_ = os.path.basename(TifCfg.key)
             warp_ds = gdal.Warp(
-                tmptiff := f"/vsimem/{filename_}",
+                f"/vsimem/{filename_}",
                 ds,
                 format="GTiff",
                 outputBounds=_bbox,
                 xRes=cellsize,
                 yRes=cellsize,
                 targetAlignedPixels=True,
-                dstSRS=dst_srs,
-                outputType=gdal.GDT_Float32,
+                dstSRS=destination_srs.ExportToWkt(),
                 resampleAlg="bilinear",
-                dstNodata=_nodata,
                 copyMetadata=False,
             )
-            ds = None
-            logger.debug(f"{tmptiff=}")
 
+            log_dataset(warp_ds, "AFTER")
+
+            # Read data into 1D array
+            raster = warp_ds.GetRasterBand(1)
+            nodata = raster.GetNoDataValue()
+            data = raster.ReadAsArray(resample_alg=gdal.gdalconst.GRIORA_Bilinear)
+            if "PRECIP" in TifCfg.dss_cpart.upper() and nodata != 0:
+                data[data == nodata] = 0
+                nodata = 0
+            data_flat = data.flatten()
+
+            # GeoTransforma and lower X Y
             xsize, ysize = warp_ds.RasterXSize, warp_ds.RasterYSize
             adfGeoTransform = warp_ds.GetGeoTransform()
             llx = int(adfGeoTransform[0] / adfGeoTransform[1])
             lly = int(
                 (adfGeoTransform[5] * ysize + adfGeoTransform[3]) / adfGeoTransform[1]
             )
-
-            logger.debug(f"{xsize=}, {ysize=}, {llx=}, {lly=}")
-
-            # get stats from the array
-            data = numpy.float32(warp_ds.GetRasterBand(1).ReadAsArray()).flatten()
-            logger.debug(f"{data=}")
 
             try:
                 spatialGridStruct = heclib.zStructSpatialGrid()
@@ -142,7 +161,8 @@ def writer(
                 spatialGridStruct._srsDefinition = c_char_p(srs_definition.encode())
                 spatialGridStruct._xCoordOfGridCellZero = c_float(0)
                 spatialGridStruct._yCoordOfGridCellZero = c_float(0)
-                spatialGridStruct._nullValue = c_float(_nodata)
+                if nodata is not None:
+                    spatialGridStruct._nullValue = c_float(nodata)
                 spatialGridStruct._timeZoneID = c_char_p(tz_name.encode())
                 spatialGridStruct._timeZoneRawOffset = c_int(tz_offset)
                 spatialGridStruct._isInterval = c_int(is_interval)
@@ -151,7 +171,7 @@ def writer(
                 _ = heclib.zwrite_record(
                     dssfilename=dssfilename,
                     gridStructStore=spatialGridStruct,
-                    data_flat=data,
+                    data_flat=data_flat.astype(numpy.float32),
                 )
 
                 # callback
@@ -173,7 +193,7 @@ def writer(
         package_status(id=id, status_id=_status(-1), progress=_progress)
         return None
     finally:
+        ds = None
         warp_ds = None
-        data = None
 
     return dssfilename

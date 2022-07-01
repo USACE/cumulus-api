@@ -88,8 +88,8 @@ def handle_message(que, payload_resp: namedtuple, dst: str):
         src=json.dumps(payload_resp.contents),
         extent=json.dumps(payload_resp.extent),
         dst=dst,
-        cellsize=None,
-        dst_srs=None,
+        cellsize=2000,
+        dst_srs="EPSG:5070",
     )
 
     que_get = que.get()

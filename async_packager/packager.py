@@ -8,6 +8,7 @@ import time
 import traceback
 from collections import deque, namedtuple
 from tempfile import TemporaryDirectory
+import tracemalloc
 
 import boto3
 import requests
@@ -22,6 +23,7 @@ from cumulus_packager.configurations import (
     ENDPOINT_URL_SQS,
     MAX_Q_MESSAGES,
     QUEUE_NAME_PACKAGER,
+    TRACE_MEMORY_ALLOCATION,
     WAIT_TIME_SECONDS,
     WRITE_TO_BUCKET,
 )
@@ -55,6 +57,12 @@ def start_packager():
     )
     logger.info("Queue: %s" % queue)
 
+    if TRACE_MEMORY_ALLOCATION:
+        tracemalloc.start()
+        _malloc_startup = tracemalloc.start()
+        _malloc_previous = tracemalloc.take_snapshot()
+    
+    _count_messages_processed = 0
     while True:
         messages = queue.receive_messages(
             MaxNumberOfMessages=MAX_Q_MESSAGES, WaitTimeSeconds=WAIT_TIME_SECONDS
@@ -69,6 +77,7 @@ def start_packager():
             except ZeroDivisionError as ex:
                 logger.warning(f"{type(ex).__name__} - {this} - {ex}")
         for message in messages:
+            _count_messages_processed += 1
             try:
                 start_message = time.perf_counter()
 
@@ -148,6 +157,20 @@ def start_packager():
                 message.delete()
                 perf_queue.append(perf_time := time.perf_counter() - start_message)
                 logger.debug(f"Handle Message Time: {perf_time} (sec)")
+                if TRACE_MEMORY_ALLOCATION:
+                    _malloc_current = tracemalloc.take_snapshot()
+                    # Compare Memory Allocation Current to Original Memory Allocation Prior to Processing Any Messages
+                    _malloc_difference_startup = _malloc_current.compare_to(_malloc_startup)
+                    print(f"After {_count_messages_processed} Total Messages Processed")
+                    print("Memory Allocation Difference From Start\n")
+                    for stat in _malloc_difference_startup[:10]:
+                        print(stat)
+                    # Compare Memory Allocation Current to Original Memory Allocation Prior to Processing Any Messages
+                    _malloc_difference_previous = _malloc_current.compare_to(_malloc_previous)
+                    print("Memory Allocation Difference From Last Completed Message\n")
+                    for stat in _malloc_difference_previous[:10]:
+                        print(stat)
+                    _malloc_previous = _malloc_current
 
 
 if __name__ == "__main__":

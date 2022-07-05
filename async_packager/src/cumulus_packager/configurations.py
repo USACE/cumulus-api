@@ -80,3 +80,7 @@ PRODUCT_FILE_VERSION: str = os.getenv(
 )
 
 LOGGER_LEVEL: str = os.getenv("LOGGER_LEVEL", default="INFO")
+
+# TRACE_MEMORY_ALLOCATION is useful for debugging memory leaks
+# Setting this to True will output additional logging
+TRACE_MEMORY_ALLOCATION: bool = eval(os.getenv("TRACE_MEMORY_ALLOCATION", default="False").title())

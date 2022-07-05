@@ -109,8 +109,9 @@ def writer(
 
             # GDAL Warp the Tiff to what we need for DSS
             filename_ = os.path.basename(TifCfg.key)
+            mem_raster = f"/vsimem/{filename_}"
             warp_ds = gdal.Warp(
-                f"/vsimem/{filename_}",
+                mem_raster,
                 ds,
                 format="GTiff",
                 outputBounds=_bbox,
@@ -190,15 +191,16 @@ def writer(
             finally:
                 spatialGridStruct = None
                 _ = None
-
+                ds = None
+                warp_ds = None
+                raster = None
+                data = None
+                data_flat = None
+                gdal.Unlink(mem_raster)
 
     except (RuntimeError, Exception) as ex:
         logger.error(f"{type(ex).__name__}: {this}: {ex}")
         package_status(id=id, status_id=_status(-1), progress=_progress)
         return None
-    finally:
-        ds = None
-        warp_ds = None
-        raster = None
 
     return dssfilename

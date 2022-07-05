@@ -20,7 +20,6 @@ from cumulus_packager.configurations import (
     AWS_SECRET_ACCESS_KEY,
     CUMULUS_API_URL,
     ENDPOINT_URL_SQS,
-    HTTP2,
     MAX_Q_MESSAGES,
     QUEUE_NAME_PACKAGER,
     WAIT_TIME_SECONDS,
@@ -106,14 +105,15 @@ def start_packager():
                 # response json to namedtuple
                 PayloadResp = namedtuple("PayloadResp", resp.json())(**resp.json())
 
-                mpq = multiprocessing.Queue()
-                mpq.put({"return": None})
-                mp = multiprocessing.Process(
-                    target=handler.handle_message, args=(mpq, PayloadResp, dst.name)
-                )
-                mp.start()
-                mp.join()
-                package_file = mpq.get()["return"]
+                # mpq = multiprocessing.Queue()
+                # mpq.put({"return": None})
+                # mp = multiprocessing.Process(
+                #     target=handler.handle_message, args=(mpq, PayloadResp, dst.name)
+                # )
+                # mp.start()
+                # mp.join()
+                # package_file = mpq.get()["return"]
+                package_file = handler.handle_message(PayloadResp, dst.name)
 
                 # if package_file := handler.handle_message(PayloadResp, dst.name):
                 if package_file:
@@ -141,6 +141,7 @@ def start_packager():
                     f"{type(ex).__name__} - {this} - {ex} - {traceback.format_exc()}"
                 )
             finally:
+                package_file = None
                 if os.path.exists(dst.name):
                     shutil.rmtree(dst.name, ignore_errors=True)
                 dst = None

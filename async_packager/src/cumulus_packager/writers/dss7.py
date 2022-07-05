@@ -187,6 +187,10 @@ def writer(
                 logger.warning(f"{type(ex).__name__}: {this}: {ex}")
                 package_status(id=id, status_id=_status(-1), progress=_progress)
                 return None
+            finally:
+                spatialGridStruct = None
+                _ = None
+
 
     except (RuntimeError, Exception) as ex:
         logger.error(f"{type(ex).__name__}: {this}: {ex}")
@@ -195,5 +199,6 @@ def writer(
     finally:
         ds = None
         warp_ds = None
+        raster = None
 
     return dssfilename

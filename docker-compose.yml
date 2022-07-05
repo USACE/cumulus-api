@@ -81,9 +81,10 @@ services:
       - CUMULUS_MOCK_S3_UPLOAD=FALSE
       - CUMULUS_API_URL=http://api
       - HTTP2=False
-      - GDAL_DISABLE_READDIR_ON_OPEN=YES
+      - GDAL_DISABLE_READDIR_ON_OPEN=EMPTY_DIR
       - LOGGER_LEVEL=DEBUG
       - PACKAGER_UPDATE_INTERVAL=5
+      - TRACE_MEMORY_ALLOCATION=TRUE
     # Volume to persist packager created file
     volumes:
       - ./_volumes/async_packager/output:/output:rw

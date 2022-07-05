@@ -20,9 +20,9 @@ from cumulus_packager.configurations import (
     AWS_SECRET_ACCESS_KEY,
     CUMULUS_API_URL,
     ENDPOINT_URL_SQS,
-    HTTP2,
     MAX_Q_MESSAGES,
     QUEUE_NAME_PACKAGER,
+    TRACE_MEMORY_ALLOCATION,
     WAIT_TIME_SECONDS,
     WRITE_TO_BUCKET,
 )
@@ -56,6 +56,16 @@ def start_packager():
     )
     logger.info("Queue: %s" % queue)
 
+    if TRACE_MEMORY_ALLOCATION:
+        import tracemalloc
+        from pympler import tracker
+
+        tracemalloc.start()
+        _malloc_startup = tracemalloc.take_snapshot()
+        _malloc_previous = tracemalloc.take_snapshot()
+        tr = tracker.SummaryTracker()
+
+    _count_messages_processed = 0
     while True:
         messages = queue.receive_messages(
             MaxNumberOfMessages=MAX_Q_MESSAGES, WaitTimeSeconds=WAIT_TIME_SECONDS
@@ -70,12 +80,16 @@ def start_packager():
             except ZeroDivisionError as ex:
                 logger.warning(f"{type(ex).__name__} - {this} - {ex}")
         for message in messages:
+            _count_messages_processed += 1
             try:
                 start_message = time.perf_counter()
 
                 logger.info("%(spacer)s new message %(spacer)s" % {"spacer": "*" * 20})
 
                 # parse message to payload as json object and get the download id
+                message_body = message.body
+                logger.debug(f"{message_body=}")
+
                 download_id = json.loads(message.body)["id"]
                 logger.debug(f"Download ID: {download_id}")
 
@@ -92,6 +106,10 @@ def start_packager():
                 if resp.status_code != 200:
                     raise Exception(resp)
 
+                # response json
+                response_json = resp.json()
+                logger.debug(f"{response_json=}")
+
                 # create a temporary directory and release in final exception
                 dst = TemporaryDirectory()
                 logger.debug(f"Temporary Directory: {dst.name}")
@@ -99,14 +117,15 @@ def start_packager():
                 # response json to namedtuple
                 PayloadResp = namedtuple("PayloadResp", resp.json())(**resp.json())
 
-                mpq = multiprocessing.Queue()
-                mpq.put({"return": None})
-                mp = multiprocessing.Process(
-                    target=handler.handle_message, args=(mpq, PayloadResp, dst.name)
-                )
-                mp.start()
-                mp.join()
-                package_file = mpq.get()["return"]
+                # mpq = multiprocessing.Queue()
+                # mpq.put({"return": None})
+                # mp = multiprocessing.Process(
+                #     target=handler.handle_message, args=(mpq, PayloadResp, dst.name)
+                # )
+                # mp.start()
+                # mp.join()
+                # package_file = mpq.get()["return"]
+                package_file = handler.handle_message(PayloadResp, dst.name)
 
                 # if package_file := handler.handle_message(PayloadResp, dst.name):
                 if package_file:
@@ -134,12 +153,34 @@ def start_packager():
                     f"{type(ex).__name__} - {this} - {ex} - {traceback.format_exc()}"
                 )
             finally:
+                package_file = None
                 if os.path.exists(dst.name):
                     shutil.rmtree(dst.name, ignore_errors=True)
                 dst = None
                 message.delete()
                 perf_queue.append(perf_time := time.perf_counter() - start_message)
                 logger.debug(f"Handle Message Time: {perf_time} (sec)")
+                if TRACE_MEMORY_ALLOCATION:
+                    _malloc_current = tracemalloc.take_snapshot()
+                    # Compare Memory Allocation Current to Original Memory Allocation Prior to Processing Any Messages
+                    _malloc_difference_startup = _malloc_current.compare_to(
+                        _malloc_startup, "lineno"
+                    )
+                    print(f"After {_count_messages_processed} Total Messages Processed")
+                    print("Memory Allocation Difference From Start\n")
+                    for stat in _malloc_difference_startup[:10]:
+                        print(stat)
+                    # Compare Memory Allocation Current to Original Memory Allocation Prior to Processing Any Messages
+                    _malloc_difference_previous = _malloc_current.compare_to(
+                        _malloc_previous, "lineno"
+                    )
+                    print("Memory Allocation Difference From Last Completed Message\n")
+                    for stat in _malloc_difference_previous[:10]:
+                        print(stat)
+                    _malloc_previous = _malloc_current
+
+                    print("Tracker Module Summary\n")
+                    tr.print_diff()
 
 
 if __name__ == "__main__":

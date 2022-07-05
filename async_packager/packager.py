@@ -8,7 +8,6 @@ import time
 import traceback
 from collections import deque, namedtuple
 from tempfile import TemporaryDirectory
-import tracemalloc
 
 import boto3
 import requests
@@ -58,10 +57,14 @@ def start_packager():
     logger.info("Queue: %s" % queue)
 
     if TRACE_MEMORY_ALLOCATION:
+        import tracemalloc
+        from pympler import tracker
+
         tracemalloc.start()
-        _malloc_startup = tracemalloc.start()
+        _malloc_startup = tracemalloc.take_snapshot()
         _malloc_previous = tracemalloc.take_snapshot()
-    
+        tr = tracker.SummaryTracker()
+
     _count_messages_processed = 0
     while True:
         messages = queue.receive_messages(
@@ -160,17 +163,24 @@ def start_packager():
                 if TRACE_MEMORY_ALLOCATION:
                     _malloc_current = tracemalloc.take_snapshot()
                     # Compare Memory Allocation Current to Original Memory Allocation Prior to Processing Any Messages
-                    _malloc_difference_startup = _malloc_current.compare_to(_malloc_startup)
+                    _malloc_difference_startup = _malloc_current.compare_to(
+                        _malloc_startup, "lineno"
+                    )
                     print(f"After {_count_messages_processed} Total Messages Processed")
                     print("Memory Allocation Difference From Start\n")
                     for stat in _malloc_difference_startup[:10]:
                         print(stat)
                     # Compare Memory Allocation Current to Original Memory Allocation Prior to Processing Any Messages
-                    _malloc_difference_previous = _malloc_current.compare_to(_malloc_previous)
+                    _malloc_difference_previous = _malloc_current.compare_to(
+                        _malloc_previous, "lineno"
+                    )
                     print("Memory Allocation Difference From Last Completed Message\n")
                     for stat in _malloc_difference_previous[:10]:
                         print(stat)
                     _malloc_previous = _malloc_current
+
+                    print("Tracker Module Summary\n")
+                    tr.print_diff()
 
 
 if __name__ == "__main__":

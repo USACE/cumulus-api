@@ -16,24 +16,24 @@ from cumulus_packager.writers import pkg_writer
 this = os.path.basename(__file__)
 """str: Path to the module"""
 
-__all__ = ["PACKAGE_STATUS", "package_status", "handle_message"]
+__all__ = [
+    "PACKAGE_STATUS",
+    "update_status",
+    "handle_message",
+]
 
-
+"""dict[str, str]: Package status UUIDs for FAILED, INITIATED, and SUCCESS"""
 PACKAGE_STATUS = {
-    -1: "a553101e-8c51-4ddd-ac2e-b011ed54389b",  # FAILED
-    0: "94727878-7a50-41f8-99eb-a80eb82f737a",  # INITIATED
-    1: "3914f0bd-2290-42b1-bc24-41479b3a846f",  # SUCCESS
+    "FAILED": "a553101e-8c51-4ddd-ac2e-b011ed54389b",
+    "INITIATED": "94727878-7a50-41f8-99eb-a80eb82f737a",
+    "SUCCESS": "3914f0bd-2290-42b1-bc24-41479b3a846f",
 }
-"""dict[int, str]: Package status UUIDs for FAILED (0), INITIATED(1), and SUCCESS(-1)"""
 
 
-def package_status(
-    id: str = None,
-    status_id: str = None,
-    progress: float = 0,
-    file: str = None,
-):
-    """Update packager status to DB
+def update_status(id: str, status_id: str, progress: int, file: str = None):
+    """Update packager status to Cumulus API
+
+    TODO: Check Documentation for accuracy
 
     Parameters
     ----------
@@ -46,27 +46,23 @@ def package_status(
     file : str, optional
         S3 key to dss file, by default None
     """
-    _progress = int(progress * 100)
     try:
-        _json = {
+        _json_payload = {
             "id": id,
             "status_id": status_id,
-            "progress": _progress,
+            "progress": int(progress),
             "file": file,
         }
-        logger.debug(f"Payload: {json.dumps(_json, indent=4)}")
-
-        resp = requests.request(
-            "PUT",
-            url=f"{CUMULUS_API_URL}/downloads/{id}",
+        r = requests.put(
+            f"{CUMULUS_API_URL}/downloads/{id}",
             params={"key": APPLICATION_KEY},
-            json=_json,
+            json=_json_payload,
         )
 
-        logger.debug(f"Response: {resp}")
+    except Exception as e:
+        logger.error(e)
 
-    except Exception as ex:
-        logger.error(f"{type(ex).__name__}: {this}: {ex}")
+    return
 
 
 # def handle_message(que, payload_resp: namedtuple, dst: str):
@@ -94,10 +90,3 @@ def handle_message(payload_resp: namedtuple, dst: str):
     )
 
     return result
-
-    # TODO: Revisit Multiprocess Queue Implementation
-    # Must ensure multiprocessing.Pool() methods are only called from the process that created the Pool
-    # per: https://docs.python.org/3/library/multiprocessing.html#multiprocessing.pool.Pool
-    # que_get = que.get()
-    # que_get["return"] = result
-    # que.put(que_get)

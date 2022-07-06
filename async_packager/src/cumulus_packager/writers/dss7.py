@@ -2,6 +2,7 @@
 
 """
 import json
+import multiprocessing
 import os
 from collections import namedtuple
 from ctypes import c_char_p, c_float, c_int
@@ -9,16 +10,16 @@ from ctypes import c_char_p, c_float, c_int
 import numpy
 import pyplugs
 from cumulus_packager import heclib, logger
-from cumulus_packager.packager.handler import PACKAGE_STATUS, package_status
+from cumulus_packager.packager.handler import PACKAGE_STATUS, update_status
 from osgeo import gdal, osr
+
+from cumulus_packager.configurations import PACKAGER_UPDATE_INTERVAL
 
 gdal.UseExceptions()
 
 # gdal.SetConfigOption("CPL_DEBUG", "ON")
 
 this = os.path.basename(__file__)
-
-_status = lambda x: PACKAGE_STATUS[int(x)]
 
 
 def log_dataset(gdal_dataset, *args):
@@ -35,6 +36,13 @@ def log_dataset(gdal_dataset, *args):
 
     data = raster.ReadAsArray(resample_alg=gdal.gdalconst.GRIORA_Bilinear)
     logger.debug(f"{data.min()=}; {data.max()=}; {data.mean()=}; {data.size=}")
+
+    gdal_spatial_ref = None
+    data = None
+    raster = None
+    gdal_dataset = None
+
+    return
 
 
 @pyplugs.register
@@ -68,15 +76,21 @@ def writer(
     str
         FQPN to dss file
     """
-    # convert the strings back to json objects; needed for pyplugs
-    src = json.loads(src)
-    extent = json.loads(extent)
 
-    # return None if no items in the 'contents'
-    if len(src) < 1:
-        package_status(id=id, status_id=_status(-1))
+    def _zwrite(dssfilename, gridStructStore, data_flat):
+        _ = heclib.zwrite_record(
+            dssfilename=dssfilename,
+            gridStructStore=spatialGridStruct,
+            data_flat=data_flat.astype(numpy.float32),
+        )
+        _ = None
+
         return
 
+    # convert the strings back to json objects; needed for pyplugs
+    src = json.loads(src)
+    gridcount = len(src)
+    extent = json.loads(extent)
     _extent_name = extent["name"]
     _bbox = extent["bbox"]
     _progress = 0
@@ -95,14 +109,13 @@ def writer(
     tz_offset = heclib.time_zone[tz_name]
     is_interval = 1
 
-    try:
-        dssfilename = os.path.join(dst, id + ".dss")
+    for idx, tif in enumerate(src):
+        TifCfg = namedtuple("TifCfg", tif)(**tif)
+        dsspathname = f"/{grid_type_name}/{_extent_name}/{TifCfg.dss_cpart}/{TifCfg.dss_dpart}/{TifCfg.dss_epart}/{TifCfg.dss_fpart}/"
 
-        for idx, tif in enumerate(src):
-            TifCfg = namedtuple("TifCfg", tif)(**tif)
-            dsspathname = f"/{grid_type_name}/{_extent_name}/{TifCfg.dss_cpart}/{TifCfg.dss_dpart}/{TifCfg.dss_epart}/{TifCfg.dss_fpart}/"
+        try:
+            dssfilename = os.path.join(dst, id + ".dss")
             data_type = heclib.data_type[TifCfg.dss_datatype]
-
             ds = gdal.Open(f"/vsis3_streaming/{TifCfg.bucket}/{TifCfg.key}")
 
             log_dataset(ds, "BEFORE")
@@ -122,7 +135,6 @@ def writer(
                 resampleAlg="bilinear",
                 copyMetadata=False,
             )
-
             log_dataset(warp_ds, "AFTER")
 
             # Read data into 1D array
@@ -130,6 +142,7 @@ def writer(
             nodata = raster.GetNoDataValue()
             data = raster.ReadAsArray(resample_alg=gdal.gdalconst.GRIORA_Bilinear)
             if "PRECIP" in TifCfg.dss_cpart.upper() and nodata != 0:
+                # TODO: Confirm this logic and add comment explaining
                 data[data == nodata] = 0
                 nodata = 0
             data_flat = data.flatten()
@@ -142,65 +155,70 @@ def writer(
                 (adfGeoTransform[5] * ysize + adfGeoTransform[3]) / adfGeoTransform[1]
             )
 
-            try:
-                spatialGridStruct = heclib.zStructSpatialGrid()
-                spatialGridStruct.pathname = c_char_p(dsspathname.encode())
-                spatialGridStruct._structVersion = c_int(-100)
-                spatialGridStruct._type = c_int(grid_type)
-                spatialGridStruct._version = c_int(1)
-                spatialGridStruct._dataUnits = c_char_p(str.encode(TifCfg.dss_unit))
-                spatialGridStruct._dataType = c_int(data_type)
-                spatialGridStruct._dataSource = c_char_p("INTERNAL".encode())
-                spatialGridStruct._lowerLeftCellX = c_int(llx)
-                spatialGridStruct._lowerLeftCellY = c_int(lly)
-                spatialGridStruct._numberOfCellsX = c_int(xsize)
-                spatialGridStruct._numberOfCellsY = c_int(ysize)
-                spatialGridStruct._cellSize = c_float(cellsize)
-                spatialGridStruct._compressionMethod = c_int(zcompression)
-                spatialGridStruct._srsName = c_char_p(grid_type_name.encode())
-                spatialGridStruct._srsDefinitionType = c_int(1)
-                spatialGridStruct._srsDefinition = c_char_p(srs_definition.encode())
-                spatialGridStruct._xCoordOfGridCellZero = c_float(0)
-                spatialGridStruct._yCoordOfGridCellZero = c_float(0)
-                if nodata is not None:
-                    spatialGridStruct._nullValue = c_float(nodata)
-                spatialGridStruct._timeZoneID = c_char_p(tz_name.encode())
-                spatialGridStruct._timeZoneRawOffset = c_int(tz_offset)
-                spatialGridStruct._isInterval = c_int(is_interval)
-                spatialGridStruct._isTimeStamped = c_int(1)
+            spatialGridStruct = heclib.zStructSpatialGrid()
+            spatialGridStruct.pathname = c_char_p(dsspathname.encode())
+            spatialGridStruct._structVersion = c_int(-100)
+            spatialGridStruct._type = c_int(grid_type)
+            spatialGridStruct._version = c_int(1)
+            spatialGridStruct._dataUnits = c_char_p(str.encode(TifCfg.dss_unit))
+            spatialGridStruct._dataType = c_int(data_type)
+            spatialGridStruct._dataSource = c_char_p("INTERNAL".encode())
+            spatialGridStruct._lowerLeftCellX = c_int(llx)
+            spatialGridStruct._lowerLeftCellY = c_int(lly)
+            spatialGridStruct._numberOfCellsX = c_int(xsize)
+            spatialGridStruct._numberOfCellsY = c_int(ysize)
+            spatialGridStruct._cellSize = c_float(cellsize)
+            spatialGridStruct._compressionMethod = c_int(zcompression)
+            spatialGridStruct._srsName = c_char_p(grid_type_name.encode())
+            spatialGridStruct._srsDefinitionType = c_int(1)
+            spatialGridStruct._srsDefinition = c_char_p(srs_definition.encode())
+            spatialGridStruct._xCoordOfGridCellZero = c_float(0)
+            spatialGridStruct._yCoordOfGridCellZero = c_float(0)
+            if nodata is not None:
+                spatialGridStruct._nullValue = c_float(nodata)
+            spatialGridStruct._timeZoneID = c_char_p(tz_name.encode())
+            spatialGridStruct._timeZoneRawOffset = c_int(tz_offset)
+            spatialGridStruct._isInterval = c_int(is_interval)
+            spatialGridStruct._isTimeStamped = c_int(1)
 
-                _ = heclib.zwrite_record(
-                    dssfilename=dssfilename,
-                    gridStructStore=spatialGridStruct,
-                    data_flat=data_flat.astype(numpy.float32),
-                )
+            # Call heclib.zwrite_record() in different process space to release memory after each iteration
+            _p = multiprocessing.Process(
+                target=_zwrite,
+                args=(dssfilename, spatialGridStruct, data_flat.astype(numpy.float32)),
+            )
+            _p.start()
+            _p.join()
 
-                # callback
-                _progress = idx / len(src)
+            _progress = int(((idx + 1) / gridcount) * 100)
+            # Update progress at predefined interval
+            if idx % PACKAGER_UPDATE_INTERVAL == 0 or idx == gridcount - 1:
                 logger.debug(f"Progress: {_progress}")
-
-                package_status(
-                    id=id,
-                    status_id=_status(_progress),
-                    progress=_progress,
+                update_status(
+                    id=id, status_id=PACKAGE_STATUS["INITIATED"], progress=_progress
                 )
-            except Exception as ex:
-                logger.warning(f"{type(ex).__name__}: {this}: {ex}")
-                package_status(id=id, status_id=_status(-1), progress=_progress)
-                return None
-            finally:
-                spatialGridStruct = None
-                _ = None
-                ds = None
-                warp_ds = None
-                raster = None
-                data = None
-                data_flat = None
-                gdal.Unlink(mem_raster)
 
-    except (RuntimeError, Exception) as ex:
-        logger.error(f"{type(ex).__name__}: {this}: {ex}")
-        package_status(id=id, status_id=_status(-1), progress=_progress)
-        return None
+        except (RuntimeError, Exception) as ex:
+            logger.error(f"{type(ex).__name__}: {this}: {ex}")
+            update_status(id=id, status_id=PACKAGE_STATUS["FAILED"], progress=_progress)
+            return None
+
+        finally:
+            spatialGridStruct = None
+            adfGeoTransform = None
+            raster = None
+            nodata = None
+            data = None
+            data_flat = None
+            warp_ds = None
+            gdal.Unlink(mem_raster)
+            TifCfg = None
+            data_type = None
+            ds = None
+
+    grid_type = None
+    zcompression = None
+    srs_definition = None
+    tz_offset = None
+    src = None
 
     return dssfilename

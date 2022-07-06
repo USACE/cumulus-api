@@ -31,7 +31,7 @@ from cumulus_packager.utils.boto import s3_upload_file
 this = os.path.basename(__file__)
 
 
-def do_it(message):
+def handle_message(message):
     try:
         logger.info("%(spacer)s new message %(spacer)s" % {"spacer": "*" * 20})
 
@@ -135,6 +135,6 @@ if __name__ == "__main__":
             MaxNumberOfMessages=MAX_Q_MESSAGES, WaitTimeSeconds=WAIT_TIME_SECONDS
         )
         for message in messages:
-            p = multiprocessing.Process(target=do_it, args=(message,))
+            p = multiprocessing.Process(target=handle_message, args=(message,))
             p.start()
             p.join()

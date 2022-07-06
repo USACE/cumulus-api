@@ -4,9 +4,8 @@ import json
 import multiprocessing
 import os
 import shutil
-import time
 import traceback
-from collections import deque, namedtuple
+from collections import namedtuple
 from tempfile import TemporaryDirectory
 
 import boto3
@@ -22,7 +21,6 @@ from cumulus_packager.configurations import (
     ENDPOINT_URL_SQS,
     MAX_Q_MESSAGES,
     QUEUE_NAME_PACKAGER,
-    TRACE_MEMORY_ALLOCATION,
     WAIT_TIME_SECONDS,
     WRITE_TO_BUCKET,
 )
@@ -33,13 +31,89 @@ from cumulus_packager.utils.boto import s3_upload_file
 this = os.path.basename(__file__)
 
 
-def start_packager():
-    """Starting the packager thread"""
-    perf_queue = deque(maxlen=1000)
+def do_it(message):
+    try:
+        logger.info("%(spacer)s new message %(spacer)s" % {"spacer": "*" * 20})
+
+        # parse message to payload as json object and get the download id
+        message_body = message.body
+        logger.debug(f"{message_body=}")
+
+        download_id = json.loads(message.body)["id"]
+        logger.debug(f"Download ID: {download_id}")
+
+        # get the payload from the download endpoint with the download_id
+        # and expand that to a namedtuple
+        resp = requests.request(
+            "GET",
+            url=f"{CUMULUS_API_URL}/downloads/{download_id}/packager_request",
+            params={"key": APPLICATION_KEY},
+        )
+
+        if resp.status_code != 200:
+            raise Exception(resp)
+
+        # create a temporary directory and release in final exception
+        dst = TemporaryDirectory()
+        logger.debug(f"Temporary Directory: {dst.name}")
+
+        # response json to namedtuple
+        _r = resp.json()
+        PayloadResp = namedtuple("PayloadResp", _r)(**_r)
+
+        # If download request contains 0 grids, set status to 'FAILED' and return
+        if len(PayloadResp.contents) == 0:
+            handler.update_status(download_id, handler.PACKAGE_STATUS["FAILED"], 0)
+            # TODO: Add new package_status in database to represent EMPTY condition
+            logger.info(f"Download Failed Due to Empty Contents: {download_id}")
+        else:
+            package_file = handler.handle_message(PayloadResp, dst.name)
+
+            if package_file:
+                # Upload File to S3
+                logger.debug(f"ID '{download_id}'; Packaging Successful")
+                s3_upload_worked = s3_upload_file(
+                    package_file, WRITE_TO_BUCKET, PayloadResp.output_key
+                )
+                if s3_upload_worked:
+                    logger.debug(f"'{package_file}'; S3 Upload Successful")
+                    handler.update_status(
+                        download_id,
+                        handler.PACKAGE_STATUS["SUCCESS"],
+                        100,
+                        PayloadResp.output_key,
+                    )  # Update Status of Download
+                else:
+                    handler.update_status(
+                        download_id, handler.PACKAGE_STATUS["FAILED"], 51
+                    )
+            else:
+                logger.critical(
+                    f"Failed to package or upload to S3; Download {download_id}"
+                )
+
+    except Exception as ex:
+        logger.warning(
+            f"{type(ex).__name__} - {this} - {ex} - {traceback.format_exc()}"
+        )
+        # Set download status to failed and percent complete to 0; This is a workaround
+        # this should set status to failed and leave percent as-is. TODO: Implement capability
+        # in cumulus-api to support progress updates that include status (without percent complete).
+        handler.update_status(download_id, handler.PACKAGE_STATUS["FAILED"], 50)
+    finally:
+        package_file = None
+        if os.path.exists(dst.name):
+            shutil.rmtree(dst.name, ignore_errors=True)
+        dst = None
+        message.delete()
+
+    return 0
+
+
+if __name__ == "__main__":
 
     # aws_access_key_id, aws_secret_access_key, aws_default_region, etc
     # set as env vars for local dev.  IAM role used for implementation
-
     sqs = boto3.resource(
         service_name="sqs",
         endpoint_url=ENDPOINT_URL_SQS,
@@ -56,132 +130,11 @@ def start_packager():
     )
     logger.info("Queue: %s" % queue)
 
-    if TRACE_MEMORY_ALLOCATION:
-        import tracemalloc
-        from pympler import tracker
-
-        tracemalloc.start()
-        _malloc_startup = tracemalloc.take_snapshot()
-        _malloc_previous = tracemalloc.take_snapshot()
-        tr = tracker.SummaryTracker()
-
-    _count_messages_processed = 0
     while True:
         messages = queue.receive_messages(
             MaxNumberOfMessages=MAX_Q_MESSAGES, WaitTimeSeconds=WAIT_TIME_SECONDS
         )
-
-        if len(messages) == 0:
-            try:
-                average_sec = sum(perf_queue) / len(perf_queue)
-                logger.info(
-                    f"Process Message: Avg {average_sec:0.4f} (sec); Deque Size {len(perf_queue)}"
-                )
-            except ZeroDivisionError as ex:
-                logger.warning(f"{type(ex).__name__} - {this} - {ex}")
         for message in messages:
-            _count_messages_processed += 1
-            try:
-                start_message = time.perf_counter()
-
-                logger.info("%(spacer)s new message %(spacer)s" % {"spacer": "*" * 20})
-
-                # parse message to payload as json object and get the download id
-                message_body = message.body
-                logger.debug(f"{message_body=}")
-
-                download_id = json.loads(message.body)["id"]
-                logger.debug(f"Download ID: {download_id}")
-
-                # get the payload from the download endpoint with the download_id
-                # and expand that to a namedtuple
-                resp = requests.request(
-                    "GET",
-                    url=f"{CUMULUS_API_URL}/downloads/{download_id}/packager_request",
-                    params={"key": APPLICATION_KEY},
-                )
-
-                # logger.debug(f"Request Response: {resp.json()}")
-
-                if resp.status_code != 200:
-                    raise Exception(resp)
-
-                # response json
-                response_json = resp.json()
-                logger.debug(f"{response_json=}")
-
-                # create a temporary directory and release in final exception
-                dst = TemporaryDirectory()
-                logger.debug(f"Temporary Directory: {dst.name}")
-
-                # response json to namedtuple
-                PayloadResp = namedtuple("PayloadResp", resp.json())(**resp.json())
-
-                # mpq = multiprocessing.Queue()
-                # mpq.put({"return": None})
-                # mp = multiprocessing.Process(
-                #     target=handler.handle_message, args=(mpq, PayloadResp, dst.name)
-                # )
-                # mp.start()
-                # mp.join()
-                # package_file = mpq.get()["return"]
-                package_file = handler.handle_message(PayloadResp, dst.name)
-
-                # if package_file := handler.handle_message(PayloadResp, dst.name):
-                if package_file:
-                    logger.debug(f"ID '{download_id}' processed")
-                    if s3_upload_file(
-                        package_file,
-                        WRITE_TO_BUCKET,
-                        PayloadResp.output_key,
-                    ):
-                        handler.package_status(
-                            download_id,
-                            handler.PACKAGE_STATUS[1],
-                            1,
-                            PayloadResp.output_key,
-                        )
-                        logger.debug(f"'{package_file}' uploaded")
-                    else:
-                        raise Exception(f"'{package_file}' failed to upload")
-                else:
-                    raise Exception(f"ID '{download_id} NOT processed")
-
-            except Exception as ex:
-                handler.package_status(download_id, handler.PACKAGE_STATUS[-1], 0)
-                logger.warning(
-                    f"{type(ex).__name__} - {this} - {ex} - {traceback.format_exc()}"
-                )
-            finally:
-                package_file = None
-                if os.path.exists(dst.name):
-                    shutil.rmtree(dst.name, ignore_errors=True)
-                dst = None
-                message.delete()
-                perf_queue.append(perf_time := time.perf_counter() - start_message)
-                logger.debug(f"Handle Message Time: {perf_time} (sec)")
-                if TRACE_MEMORY_ALLOCATION:
-                    _malloc_current = tracemalloc.take_snapshot()
-                    # Compare Memory Allocation Current to Original Memory Allocation Prior to Processing Any Messages
-                    _malloc_difference_startup = _malloc_current.compare_to(
-                        _malloc_startup, "lineno"
-                    )
-                    print(f"After {_count_messages_processed} Total Messages Processed")
-                    print("Memory Allocation Difference From Start\n")
-                    for stat in _malloc_difference_startup[:10]:
-                        print(stat)
-                    # Compare Memory Allocation Current to Original Memory Allocation Prior to Processing Any Messages
-                    _malloc_difference_previous = _malloc_current.compare_to(
-                        _malloc_previous, "lineno"
-                    )
-                    print("Memory Allocation Difference From Last Completed Message\n")
-                    for stat in _malloc_difference_previous[:10]:
-                        print(stat)
-                    _malloc_previous = _malloc_current
-
-                    print("Tracker Module Summary\n")
-                    tr.print_diff()
-
-
-if __name__ == "__main__":
-    start_packager()
+            p = multiprocessing.Process(target=do_it, args=(message,))
+            p.start()
+            p.join()

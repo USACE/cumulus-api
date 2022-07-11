@@ -61,8 +61,6 @@ int writeRecord(char *dssfilename, zStructSpatialGrid *gridStructStore, float *d
         }
     }
 
-    // filter no data, reverse, and flip data before assigning to struct
-    filter_nodata(data, n, gridStructStore->_nullValue);
     // reversing the array values rotates it 180
     reverse_array(data, n);
     // reverse each row to flip <--> 180
@@ -196,13 +194,13 @@ void printUsage(char *name)
            "\t-g: DSS grid type; HRAP | ALBERS | SHG | SPECIFIED_GRID_TYPE | UTM (default: ALBERS)\n"
            "\t-h: Hemisphere N or S; use with -g UTM (default: N)\n"
            "\t-n: Time zone name (default: GMT)\n"
-           "\t-l: zsetMessageLevel (default: 0 (None))"
+           "\t-l: zsetMessageLevel (default: 0 (None))\n"
            "\t-m: No data value (default: 9999)\n"
            "\t-p: DSS pathname\n"
            "\t-s: DSS grid record time stamped; 0 | 1 (default: 1)\n"
            "\t-u: DSS grid record units (default: MM)\n"
            "\t-z: UTM Zone 1-60; use with -g UTM\n"
-           "input_Tiff output_DSS",
+           "<input_Tiff> <output_DSS>\n",
            name);
     exit(0);
 }

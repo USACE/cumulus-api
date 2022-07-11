@@ -15,6 +15,8 @@ int writeRecord(char *dssfilename, zStructSpatialGrid *gridStructStore, float *d
     float min = 0;
     float max = 0;
     float mean = 0;
+    int is_precip;
+    char *str_to_find = "precip";
 
     zsetMessageLevel(MESS_METHOD_GLOBAL_ID, MESS_LEVEL_NONE);
 
@@ -27,6 +29,16 @@ int writeRecord(char *dssfilename, zStructSpatialGrid *gridStructStore, float *d
     min = minimum(data, n, gridStructStore->_nullValue);
     max = maximum(data, n, gridStructStore->_nullValue);
     mean = meanvalue(data, n, gridStructStore->_nullValue);
+
+    char cpart[65];
+    int part_len = zpathnameGetPart(gridStructStore->pathname, 3, cpart, sizeof(cpart));
+    is_precip = zfindString(cpart, part_len, str_to_find, strlen(str_to_find));
+    // If is_precip is > 0, which means it's precip, no need to filter nodata
+    if (is_precip == -1)
+    {
+        printf("Filter no data value: %f\n", gridStructStore->_nullValue);
+        filter_nodata(data, n, gridStructStore->_nullValue);
+    }
 
     float range = max - min;
     // printf("Data range: %f\n", range);
@@ -43,12 +55,14 @@ int writeRecord(char *dssfilename, zStructSpatialGrid *gridStructStore, float *d
     float step = (float)range / bins;
     // printf("Data step: %f\n", step);
 
-    rangelimit[0] = UNDEFINED_FLOAT;
-    rangelimit[1] = min;
+    // rangelimit[0] = UNDEFINED_FLOAT;
+    rangelimit[0] = min;
+    // rangelimit[1] = min;
+    rangelimit[1] = min + step * 2;
     if (step != 0)
     {
-        rangelimit[2] = min + step * 2;
-        rangelimit[3] = min + step * 3;
+        rangelimit[2] = min + step * 3;
+        rangelimit[3] = min + step * 4;
         rangelimit[4] = max;
     }
     // Exceedance
@@ -116,9 +130,9 @@ int writeRecord(char *dssfilename, zStructSpatialGrid *gridStructStore, float *d
 }
 
 int zStructSpatialGridDefine(zStructSpatialGrid *gridStructStore, char *tiff, char *dssfile, char *dsspath,
-                char *gridType, int dss_grid_type, char *gridDef, char *dataType,
-                int dss_data_type, char *units, char *tzname, int tzoffset,
-                int compression_method, int timestamped, float nodata)
+                             char *gridType, int dss_grid_type, char *gridDef, char *dataType,
+                             int dss_data_type, char *units, char *tzname, int tzoffset,
+                             int compression_method, int timestamped, float nodata)
 {
     // see if the record is_interval
     int interval = 0;
@@ -156,7 +170,6 @@ int zStructSpatialGridDefine(zStructSpatialGrid *gridStructStore, char *tiff, ch
     float *data = (float *)CPLMalloc(sizeof(float) * dataSize);
     GDALRasterIO(raster, GF_Read, 0, 0, xsize, ysize, data, xsize, ysize, GDT_Float32, 0, 0);
 
-
     // Spatial Grid Struct
     gridStructStore->_type = dss_grid_type;
     gridStructStore->_dataSource = "INTERNAL";
@@ -184,7 +197,6 @@ int zStructSpatialGridDefine(zStructSpatialGrid *gridStructStore, char *tiff, ch
 
     return 0;
 }
-
 
 void printUsage(char *name)
 {
@@ -344,8 +356,8 @@ int main(int argc, char *argv[])
     zStructSpatialGrid *gridStructStore = zstructSpatialGridNew(dsspath);
 
     status = zStructSpatialGridDefine(gridStructStore, tiff, dssfile, dsspath, gridType, dss_grid_type,
-                         gridDef, dataType, dss_data_type, units, tzname, tzoffset,
-                         compression_method, timestamped, nodata);
+                                      gridDef, dataType, dss_data_type, units, tzname, tzoffset,
+                                      compression_method, timestamped, nodata);
 
     if (status != STATUS_OKAY)
     {

@@ -16,35 +16,36 @@ int closedss(long long *ifltab)
     return zcloseInternal(ifltab, 0);
 }
 
+float roundValue(float var)
+{
+    int precision = 100;
+    float value = (int)(var * precision + 0.5);
+    return (float)value / precision;
+}
+
 float maximum(float *arr, int n, float nodata)
 {
-    float max = arr[0];
+    float max;
 
-    for (int i = 0; i < n; i++){
-        if  (arr[i] != nodata)
-        {
-            if (arr[i] > max)
-            {
-                max = arr[i];
-            }
-        }
+    for (int i = 0; i < n; i++)
+    {
+        if (arr[i] != nodata && arr[i] > max)
+            max = arr[i];
     }
+
     return max;
 }
 
 float minimum(float *arr, int n, float nodata)
 {
-    float min = arr[0];
+    float min;
 
-    for (int i = 0; i < n; i++){
-        if (arr[i] != nodata)
-        {
-            if (arr[i] < min)
-            {
-                min = arr[i];
-            }
-        }
-}
+    for (int i = 0; i < n; i++)
+    {
+        if (arr[i] != nodata && arr[i] < min)
+            min = arr[i];
+    }
+
     return min;
 }
 
@@ -53,13 +54,14 @@ float meanvalue(float *arr, int n, float nodata)
     int count = 0;
     float sum = 0;
     float mean = 0;
+
     for (int i = 0; i < n; i++)
-    {    
+    {
         if (arr[i] != nodata)
-            {
-                sum += arr[i];
-                count++;
-            }
+        {
+            sum += arr[i];
+            count++;
+        }
     }
     if (count > 0)
         mean = sum / count;
@@ -68,23 +70,15 @@ float meanvalue(float *arr, int n, float nodata)
 
 void filter_nodata(float *arr, int datasize, float nodata)
 {
+    // float precision = 0.0001;
+    // float dif;
+
     for (int i = 0; i < datasize; i++)
     {
+        // dif = fabs(arr[i] - nodata);
         if (arr[i] == nodata)
         {
             arr[i] = UNDEFINED_FLOAT;
-        }
-    }
-}
-
-void filter_zeros(float *arr, int datasize, const char *cpart)
-{
-    char *found = strstr(cpart, "PRECIP");
-    if (found != NULL){
-        for (int i = 0; i < datasize; i++)
-        {
-            if (arr[i] == 0)
-                arr[i] = UNDEFINED_FLOAT;
         }
     }
 }

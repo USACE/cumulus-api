@@ -27,3 +27,5 @@ int dssGridType(const char *gtype);
 char *dssGridDef(int gtype);
 
 char *utmGridDef(int zone, char *utmHemi);
+
+float roundValue(float var);

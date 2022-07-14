@@ -1,3 +1,4 @@
 [submodule "hec-dss"]
 	path = hec-dss
 	url = https://github.com/HydrologicEngineeringCenter/hec-dss.git
+	branch = master

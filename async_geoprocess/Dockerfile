@@ -26,3 +26,5 @@ RUN useradd appuser && \
 USER appuser
 
 CMD ["python3", "worker.py"]
+# local testing
+# CMD [ "tail", "-f", "/dev/null" ]

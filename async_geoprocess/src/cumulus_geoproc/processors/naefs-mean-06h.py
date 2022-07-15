@@ -92,7 +92,7 @@ def process(src: str, dst: str, acquirable: str = None):
                         xsize=ncols,
                         ysize=nrows,
                         bands=1,
-                        eType=gdal.GDT_Float64,
+                        eType=gdal.GDT_Float32,
                     )
                     raster.SetGeoTransform(geotransform)
                     srs = osr.SpatialReference()

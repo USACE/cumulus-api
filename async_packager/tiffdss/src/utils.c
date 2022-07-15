@@ -25,7 +25,7 @@ float roundValue(float var)
 
 float maximum(float *arr, int n, float nodata)
 {
-    float max;
+    float max = -2.0E38F;
 
     for (int i = 0; i < n; i++)
     {
@@ -38,7 +38,7 @@ float maximum(float *arr, int n, float nodata)
 
 float minimum(float *arr, int n, float nodata)
 {
-    float min;
+    float min = 2.0E38F;
 
     for (int i = 0; i < n; i++)
     {
@@ -53,7 +53,7 @@ float meanvalue(float *arr, int n, float nodata)
 {
     int count = 0;
     float sum = 0;
-    float mean = 0;
+    float mean = UNDEFINED_FLOAT;
 
     for (int i = 0; i < n; i++)
     {

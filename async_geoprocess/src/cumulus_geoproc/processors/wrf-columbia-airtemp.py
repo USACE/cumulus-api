@@ -4,6 +4,7 @@
 import os
 import re
 from datetime import datetime, timedelta, timezone
+import numpy
 
 import pyplugs
 from cumulus_geoproc import logger
@@ -89,6 +90,11 @@ def process(src: str, dst: str, acquirable: str = None):
 
             raster.SetProjection(srs.ExportToWkt())
             band = raster.GetRasterBand(1)
+
+            # Reference the following for reason to flip
+            # https://www.unidata.ucar.edu/support/help/MailArchives/netcdf/msg03585.html
+            # Basically, get the array sequence like other Tiffs
+            bandx = numpy.flipud(bandx)
             band.WriteArray(bandx)
             raster.FlushCache()
             raster = None

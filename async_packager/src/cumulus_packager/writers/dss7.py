@@ -143,8 +143,8 @@ def writer(
             data = raster.ReadAsArray(resample_alg=gdal.gdalconst.GRIORA_Bilinear)
             if "PRECIP" in TifCfg.dss_cpart.upper() and nodata != 0:
                 # TODO: Confirm this logic and add comment explaining
-                data[data == nodata] = -1
-                nodata = -1
+                data[data == nodata] = 0
+                nodata = 0
             data_flat = data.flatten()
 
             # GeoTransforma and lower X Y

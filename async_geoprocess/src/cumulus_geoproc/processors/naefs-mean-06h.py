@@ -5,6 +5,7 @@
 import os
 import re
 from datetime import datetime, timezone
+import numpy
 
 import pyplugs
 from cumulus_geoproc import logger
@@ -61,9 +62,12 @@ def process(src: str, dst: str, acquirable: str = None):
             xmin, ymin, xmax, ymax = lon.min(), lat.min(), lon.max(), lat.max()
 
             wkt = ncds.variables["crs"].crs_wkt
+            logger.debug(f"WKT: {wkt}")
 
             nctime = ncds.variables["time"]
             for k, acquirable_ in products.items():
+                logger.debug(f"Product Variable: {k}")
+                logger.debug(f"Product Acquirable: {acquirable_}")
                 ncvar = ncds.variables[k]
                 nodata = ncvar._FillValue
 
@@ -73,6 +77,7 @@ def process(src: str, dst: str, acquirable: str = None):
                 yres = (ymax - ymin) / float(nrows)
                 geotransform = (xmin, xres, 0, ymax, 0, -yres)
 
+                _data = None
                 for dt in num2date(
                     nctime[:], nctime.units, only_use_cftime_datetimes=False
                 ):
@@ -82,7 +87,7 @@ def process(src: str, dst: str, acquirable: str = None):
 
                     raster = gdal.GetDriverByName("GTiff").Create(
                         tmptif := os.path.join(
-                            dst, filename.replace(".nc", f"-{nctime_str}.tmp.tif")
+                            dst, filename.replace(".nc", f"-{k}-{nctime_str}-tmp.tif")
                         ),
                         xsize=ncols,
                         ysize=nrows,
@@ -95,21 +100,26 @@ def process(src: str, dst: str, acquirable: str = None):
 
                     raster.SetProjection(wkt)
                     band = raster.GetRasterBand(1)
-                    band.WriteArray(ncvar[idx])
+
+                    # Reference the following for reason to flip
+                    # https://www.unidata.ucar.edu/support/help/MailArchives/netcdf/msg03585.html
+                    # Basically, get the array sequence like other Tiffs
+                    _data = ncvar[idx]
+                    _data = numpy.flipud(_data)
+                    band.WriteArray(_data)
                     raster.FlushCache()
                     raster = None
 
                     gdal.Translate(
-                        tif := os.path.join(dst, tmptif.replace(".tmp.tif", ".tif")),
+                        tif := os.path.join(dst, tmptif.replace("-tmp.tif", ".tif")),
                         tmptif,
                         format="COG",
                         bandList=[1],
                         noData=nodata,
                         creationOptions=[
-                            "RESAMPLING=AVERAGE",
+                            "RESAMPLING=BILINEAR",
                             "OVERVIEWS=IGNORE_EXISTING",
-                            "OVERVIEW_RESAMPLING=AVERAGE",
-                            "NUM_THREADS=ALL_CPUS",
+                            "OVERVIEW_RESAMPLING=BILINEAR",
                         ],
                     )
 
@@ -125,7 +135,6 @@ def process(src: str, dst: str, acquirable: str = None):
                             "version": date_created.isoformat(),
                         }
                     )
-
     except (RuntimeError, KeyError, Exception) as ex:
         logger.error(f"{type(ex).__name__}: {this}: {ex}")
     finally:

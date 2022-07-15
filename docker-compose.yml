@@ -59,6 +59,8 @@ services:
       - LOGGER_LEVEL=DEBUG
     volumes:
       - ./_volumes/async_geoprocess/tmp:/tmp
+      # local testing purposes
+      # - ./async_geoprocess:/app/async_geoprocess:rw
     restart: always
     depends_on:
       - api

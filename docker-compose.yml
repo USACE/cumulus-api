@@ -1,0 +1,62 @@
+version: '3'
+
+networks:
+  default:
+    name: rstest
+
+services:
+  stats:
+    build:
+      context: ./stats
+    environment:
+      - ENDPOINT_URL_SQS=http://elasticmq:9324
+      - ENDPOINT_URL_S3=http://minio:9000
+      # Note: AWS_S3_ENDPOINT required local for GDAL
+      #       to interact with minio S3
+      - AWS_S3_ENDPOINT=minio:9000
+      # Note: AWS_HTTPS=NO required for GDAL and minio
+      - AWS_HTTPS=NO
+      # Note: AWS_VIRTUAL_HOSTING=FALSE required for GDAL and minio
+      - AWS_VIRTUAL_HOSTING=FALSE
+      - AWS_REGION_SQS=elasticmq
+      - AWS_DEFAULT_REGION=us-east-1
+      - AWS_ACCESS_KEY_ID=AKIAIOSFODNN7EXAMPLE
+      - AWS_SECRET_ACCESS_KEY=wJalrXUtnFEMI/K7MDENG/bPxRfiCYEXAMPLEKEY
+      - USE_SSL=False
+      - QUEUE_NAME=cumulus-statistics
+    restart: always
+  minio:
+    image: minio/minio
+    environment:
+      - MINIO_ROOT_USER=AKIAIOSFODNN7EXAMPLE
+      - MINIO_ROOT_PASSWORD=wJalrXUtnFEMI/K7MDENG/bPxRfiCYEXAMPLEKEY
+    command: server /data --console-address ":9001"
+    ports:
+      - '9000:9000'
+      - '9001:9001'
+  # configure minio on startup (create buckets, etc)
+  # inspired by https://github.com/minio/minio/issues/4769
+  # and         https://gist.github.com/haxoza/22afe7cc4a9da7e8bdc09aad393a99cc
+  minio_init:
+    image: minio/mc
+    depends_on:
+      - minio
+    entrypoint: >
+      /bin/sh -c "
+      echo 'sleeping for 5 seconds while minio starts...';
+      sleep 5;
+      /usr/bin/mc config host add minio http://minio:9000 AKIAIOSFODNN7EXAMPLE wJalrXUtnFEMI/K7MDENG/bPxRfiCYEXAMPLEKEY;
+      /usr/bin/mc mb minio/castle-data-develop;
+      /usr/bin/mc policy set public minio/castle-data-develop;
+      /usr/bin/mc cp --recursive /media/ minio/castle-data-develop/;
+      exit 0;
+      "
+    volumes:
+      - ./infiles:/media
+  elasticmq:
+    build:
+      context: elasticmq
+    ports:
+      - '9324:9324'
+      - '9325:9325'
+    restart: always

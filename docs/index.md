@@ -10,9 +10,9 @@
 
 ## Async Geoprocess
 
-- Python Package: cumulus-geoproc [_here_](async_geoprocess/cumulus_geoproc/_build/html/index.html)
+- Python Package: cumulus-geoproc [_here_](async_geoprocess/site/index.html)
 
 ## Async Packager
 
-- Python Package: cumulus-packager [_here_](async_packager/cumulus_packager/_build/html/index.html)
+- Python Package: cumulus-packager [_here_](async_packager/site/index.html)
 

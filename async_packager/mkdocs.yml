@@ -1,0 +1,38 @@
+site_name: Cumulus Packager
+
+docs_dir: ../docs/async_packager/docs
+
+site_dir: ../docs/async_packager/site
+
+use_directory_urls: true
+
+plugins:
+  - search
+  - autorefs
+  - mkdocstrings:
+      default_handler: python
+      handlers:
+        python:
+          options:
+            show_source: true
+            docstring_style: numpy
+
+nav:
+  - Cumulus Packager:
+      - cumulus_packager.md
+      - bin.md
+      - heclib.md
+      - Packager:
+          - packager/handler.md
+      - Utils:
+          - utils/boto.md
+          - utils/capi.md
+          - utils/cgdal.md
+      - Writers:
+          - writers/dss7.md
+          - writers/tgz_cog.md
+
+theme:
+  name: readthedocs
+  features:
+    - navigation.expand

@@ -1,0 +1,566 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+    <meta charset="utf-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+      <link rel="shortcut icon" href="../../img/favicon.ico" />
+    <title>Geoprocess - Cumulus Geoprocessor</title>
+    <link rel="stylesheet" href="../../css/theme.css" />
+    <link rel="stylesheet" href="../../css/theme_extra.css" />
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/10.5.0/styles/github.min.css" />
+        <link href="../../assets/_mkdocstrings.css" rel="stylesheet" />
+    
+      <script>
+        // Current page data
+        var mkdocs_page_name = "Geoprocess";
+        var mkdocs_page_input_path = "geoprocess/geoprocess.md";
+        var mkdocs_page_url = null;
+      </script>
+    
+    <script src="../../js/jquery-3.6.0.min.js" defer></script>
+    <!--[if lt IE 9]>
+      <script src="../../js/html5shiv.min.js"></script>
+    <![endif]-->
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/10.5.0/highlight.min.js"></script>
+      <script>hljs.initHighlightingOnLoad();</script> 
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side stickynav">
+    <div class="wy-side-scroll">
+      <div class="wy-side-nav-search">
+          <a href="../.." class="icon icon-home"> Cumulus Geoprocessor
+        </a><div role="search">
+  <form id ="rtd-search-form" class="wy-form" action="../../search.html" method="get">
+      <input type="text" name="q" placeholder="Search docs" title="Type search term here" />
+  </form>
+</div>
+      </div>
+
+      <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption"><span class="caption-text">Cumulus Geo-Processing</span></p>
+              <ul class="current">
+                  <li class="toctree-l1"><a class="reference internal" href="../../cumulus_geoproc/">Cumulus geoproc</a>
+                  </li>
+                  <li class="toctree-l1 current"><a class="reference internal current" href="#">Geoprocess</a>
+    <ul class="current">
+                <li class="toctree-l2 current"><a class="reference internal current" href="./">Geoprocess</a>
+    <ul class="current">
+    </ul>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../hrrr/">High Resolution Rapid Refresh</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../snodas/">Snow Data Assimilation System</a>
+                </li>
+    </ul>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="#">Processors</a>
+    <ul>
+                <li class="toctree-l2"><a class="reference internal" href="../../processors/processors/">Processors</a>
+                </li>
+    </ul>
+                  </li>
+                  <li class="toctree-l1"><a class="reference internal" href="#">Utils</a>
+    <ul>
+                <li class="toctree-l2"><a class="reference internal" href="../../utils/boto/">Boto</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../../utils/capi/">Capi</a>
+                </li>
+                <li class="toctree-l2"><a class="reference internal" href="../../utils/cgdal/">Cgdal</a>
+                </li>
+    </ul>
+                  </li>
+              </ul>
+      </div>
+    </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+      <nav class="wy-nav-top" role="navigation" aria-label="Mobile navigation menu">
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../..">Cumulus Geoprocessor</a>
+        
+      </nav>
+      <div class="wy-nav-content">
+        <div class="rst-content"><div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href="../.." class="icon icon-home" alt="Docs"></a> &raquo;</li>
+          <li>Cumulus Geo-Processing &raquo;</li>
+          <li>Geoprocess &raquo;</li>
+      <li>Geoprocess</li>
+    <li class="wy-breadcrumbs-aside">
+    </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+            <div class="section" itemprop="articleBody">
+              
+                <div class="doc doc-object doc-module">
+
+
+<a id="cumulus_geoproc.geoprocess"></a>
+  <div class="doc doc-contents first">
+  
+      
+
+  
+
+  <div class="doc doc-children">
+
+
+
+
+
+
+
+
+
+
+
+  </div>
+
+  </div>
+
+</div>
+
+<div class="doc doc-object doc-module">
+
+
+<a id="cumulus_geoproc.geoprocess.handler"></a>
+  <div class="doc doc-contents first">
+  
+      <h2 id="cumulus_geoproc.geoprocess.handler--handle-the-messages-uploadgin-and-notifying-the-database">Handle the messages uploadgin, and notifying the database</h2>
+
+  
+
+  <div class="doc doc-children">
+
+
+
+
+
+
+
+
+
+<div class="doc doc-object doc-function">
+
+
+
+<h2 id="cumulus_geoproc.geoprocess.handler.handle_message" class="doc doc-heading">
+<code class="highlight language-python"><span class="n">handle_message</span><span class="p">(</span><span class="n">geoprocess</span><span class="p">,</span> <span class="n">GeoCfg</span><span class="p">,</span> <span class="n">dst</span><span class="p">)</span></code>
+
+</h2>
+
+
+  <div class="doc doc-contents ">
+  
+      <p>Handle the message from SQS determining what to do with it</p>
+<p>Geo processing is either 'snodas-interpolate' or 'incoming-file-to-cogs'</p>
+<p>Return a list of dictionary objects defining what was created and needs
+to be uploaded to S3 and notify Cumulus DB.</p>
+
+  <p><strong>Parameters:</strong></p>
+  <table>
+    <thead>
+      <tr>
+        <th>Name</th>
+        <th>Type</th>
+        <th>Description</th>
+        <th>Default</th>
+      </tr>
+    </thead>
+    <tbody>
+        <tr>
+          <td><code>geoprocess</code></td>
+          <td>
+                <code>str</code>
+          </td>
+          <td><p>Geoprocess name</p></td>
+          <td>
+              <em>required</em>
+          </td>
+        </tr>
+        <tr>
+          <td><code>GeoCfg</code></td>
+          <td>
+                <code><span title="collections.namedtuple">namedtuple</span></code>
+          </td>
+          <td><p>namedtuple with geoprocess config from payload</p></td>
+          <td>
+              <em>required</em>
+          </td>
+        </tr>
+        <tr>
+          <td><code>dst</code></td>
+          <td>
+                <code>str</code>
+          </td>
+          <td><p>FQP to temporary directory created/downloaded files go</p></td>
+          <td>
+              <em>required</em>
+          </td>
+        </tr>
+    </tbody>
+  </table>
+
+  <p><strong>Returns:</strong></p>
+  <table>
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+        <tr>
+          <td>
+                <code>list[dict]</code>
+          </td>
+          <td><p>list of dictionary objects</p></td>
+        </tr>
+    </tbody>
+  </table>
+
+      <details class="quote">
+        <summary>Source code in <code>cumulus_geoproc/geoprocess/handler.py</code></summary>
+        <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">26</span>
+<span class="normal">27</span>
+<span class="normal">28</span>
+<span class="normal">29</span>
+<span class="normal">30</span>
+<span class="normal">31</span>
+<span class="normal">32</span>
+<span class="normal">33</span>
+<span class="normal">34</span>
+<span class="normal">35</span>
+<span class="normal">36</span>
+<span class="normal">37</span>
+<span class="normal">38</span>
+<span class="normal">39</span>
+<span class="normal">40</span>
+<span class="normal">41</span>
+<span class="normal">42</span>
+<span class="normal">43</span>
+<span class="normal">44</span>
+<span class="normal">45</span>
+<span class="normal">46</span>
+<span class="normal">47</span>
+<span class="normal">48</span>
+<span class="normal">49</span>
+<span class="normal">50</span>
+<span class="normal">51</span>
+<span class="normal">52</span>
+<span class="normal">53</span>
+<span class="normal">54</span>
+<span class="normal">55</span>
+<span class="normal">56</span>
+<span class="normal">57</span>
+<span class="normal">58</span>
+<span class="normal">59</span>
+<span class="normal">60</span>
+<span class="normal">61</span>
+<span class="normal">62</span>
+<span class="normal">63</span>
+<span class="normal">64</span>
+<span class="normal">65</span>
+<span class="normal">66</span>
+<span class="normal">67</span>
+<span class="normal">68</span>
+<span class="normal">69</span>
+<span class="normal">70</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span> <span class="nf">handle_message</span><span class="p">(</span><span class="n">geoprocess</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">GeoCfg</span><span class="p">:</span> <span class="n">namedtuple</span><span class="p">,</span> <span class="n">dst</span><span class="p">:</span> <span class="nb">str</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Handle the message from SQS determining what to do with it</span>
+
+<span class="sd">    Geo processing is either &#39;snodas-interpolate&#39; or &#39;incoming-file-to-cogs&#39;</span>
+
+<span class="sd">    Return a list of dictionary objects defining what was created and needs</span>
+<span class="sd">    to be uploaded to S3 and notify Cumulus DB.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    geoprocess : str</span>
+<span class="sd">        Geoprocess name</span>
+<span class="sd">    GeoCfg : namedtuple</span>
+<span class="sd">        namedtuple with geoprocess config from payload</span>
+<span class="sd">    dst : str</span>
+<span class="sd">        FQP to temporary directory created/downloaded files go</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    list[dict]</span>
+<span class="sd">        list of dictionary objects</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">proc_list</span> <span class="o">=</span> <span class="p">[]</span>
+
+    <span class="k">if</span> <span class="n">geoprocess</span> <span class="o">==</span> <span class="s2">&quot;snodas-interpolate&quot;</span><span class="p">:</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Geoprocess &#39;</span><span class="si">{</span><span class="n">geoprocess</span><span class="si">}</span><span class="s2">&#39; working on &#39;</span><span class="si">{</span><span class="n">GeoCfg</span><span class="o">.</span><span class="n">datetime</span><span class="si">}</span><span class="s2">&#39;&quot;</span><span class="p">)</span>
+        <span class="n">proc_list</span> <span class="o">=</span> <span class="n">asyncio</span><span class="o">.</span><span class="n">run</span><span class="p">(</span>
+            <span class="n">interpolate</span><span class="o">.</span><span class="n">snodas</span><span class="p">(</span>
+                <span class="n">GeoCfg</span><span class="p">,</span>
+                <span class="n">dst</span><span class="o">=</span><span class="n">dst</span><span class="p">,</span>
+            <span class="p">)</span>
+        <span class="p">)</span>
+    <span class="k">elif</span> <span class="n">geoprocess</span> <span class="o">==</span> <span class="s2">&quot;incoming-file-to-cogs&quot;</span><span class="p">:</span>
+        <span class="c1"># process and get resulting dictionary object defining the new grid</span>
+        <span class="c1"># add acquirable id to each object in the list</span>
+        <span class="n">src</span> <span class="o">=</span> <span class="s2">&quot;/&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">([</span><span class="n">GeoCfg</span><span class="o">.</span><span class="n">bucket</span><span class="p">,</span> <span class="n">GeoCfg</span><span class="o">.</span><span class="n">key</span><span class="p">])</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Source: </span><span class="si">{</span><span class="n">src</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="n">proc_list</span> <span class="o">=</span> <span class="n">geo_proc</span><span class="p">(</span>
+            <span class="n">plugin</span><span class="o">=</span><span class="n">GeoCfg</span><span class="o">.</span><span class="n">acquirable_slug</span><span class="p">,</span>
+            <span class="n">src</span><span class="o">=</span><span class="n">src</span><span class="p">,</span>
+            <span class="n">dst</span><span class="o">=</span><span class="n">dst</span><span class="p">,</span>
+            <span class="n">acquirable</span><span class="o">=</span><span class="n">GeoCfg</span><span class="o">.</span><span class="n">acquirable_slug</span><span class="p">,</span>
+        <span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">proc_list</span>
+</code></pre></div></td></tr></table></div>
+      </details>
+  </div>
+
+</div>
+
+<div class="doc doc-object doc-function">
+
+
+
+<h2 id="cumulus_geoproc.geoprocess.handler.upload_notify" class="doc doc-heading">
+<code class="highlight language-python"><span class="n">upload_notify</span><span class="p">(</span><span class="n">notices</span><span class="p">,</span> <span class="n">bucket</span><span class="p">)</span></code>
+
+</h2>
+
+
+  <div class="doc doc-contents ">
+  
+      <p>Upload processed products and POST notification</p>
+
+  <p><strong>Parameters:</strong></p>
+  <table>
+    <thead>
+      <tr>
+        <th>Name</th>
+        <th>Type</th>
+        <th>Description</th>
+        <th>Default</th>
+      </tr>
+    </thead>
+    <tbody>
+        <tr>
+          <td><code>notices</code></td>
+          <td>
+                <code>list</code>
+          </td>
+          <td><p>list of successful uploads to S3</p></td>
+          <td>
+              <em>required</em>
+          </td>
+        </tr>
+        <tr>
+          <td><code>bucket</code></td>
+          <td>
+                <code>str</code>
+          </td>
+          <td><p>S3 bucket</p></td>
+          <td>
+              <em>required</em>
+          </td>
+        </tr>
+    </tbody>
+  </table>
+
+  <p><strong>Returns:</strong></p>
+  <table>
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+        <tr>
+          <td>
+                <code>List</code>
+          </td>
+          <td><p>List of successful uploads and POST notifications</p></td>
+        </tr>
+    </tbody>
+  </table>
+
+      <details class="quote">
+        <summary>Source code in <code>cumulus_geoproc/geoprocess/handler.py</code></summary>
+        <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"> 73</span>
+<span class="normal"> 74</span>
+<span class="normal"> 75</span>
+<span class="normal"> 76</span>
+<span class="normal"> 77</span>
+<span class="normal"> 78</span>
+<span class="normal"> 79</span>
+<span class="normal"> 80</span>
+<span class="normal"> 81</span>
+<span class="normal"> 82</span>
+<span class="normal"> 83</span>
+<span class="normal"> 84</span>
+<span class="normal"> 85</span>
+<span class="normal"> 86</span>
+<span class="normal"> 87</span>
+<span class="normal"> 88</span>
+<span class="normal"> 89</span>
+<span class="normal"> 90</span>
+<span class="normal"> 91</span>
+<span class="normal"> 92</span>
+<span class="normal"> 93</span>
+<span class="normal"> 94</span>
+<span class="normal"> 95</span>
+<span class="normal"> 96</span>
+<span class="normal"> 97</span>
+<span class="normal"> 98</span>
+<span class="normal"> 99</span>
+<span class="normal">100</span>
+<span class="normal">101</span>
+<span class="normal">102</span>
+<span class="normal">103</span>
+<span class="normal">104</span>
+<span class="normal">105</span>
+<span class="normal">106</span>
+<span class="normal">107</span>
+<span class="normal">108</span>
+<span class="normal">109</span>
+<span class="normal">110</span>
+<span class="normal">111</span>
+<span class="normal">112</span>
+<span class="normal">113</span>
+<span class="normal">114</span>
+<span class="normal">115</span>
+<span class="normal">116</span>
+<span class="normal">117</span>
+<span class="normal">118</span>
+<span class="normal">119</span>
+<span class="normal">120</span>
+<span class="normal">121</span>
+<span class="normal">122</span>
+<span class="normal">123</span>
+<span class="normal">124</span>
+<span class="normal">125</span>
+<span class="normal">126</span>
+<span class="normal">127</span>
+<span class="normal">128</span>
+<span class="normal">129</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span> <span class="nf">upload_notify</span><span class="p">(</span><span class="n">notices</span><span class="p">:</span> <span class="nb">list</span><span class="p">,</span> <span class="n">bucket</span><span class="p">:</span> <span class="nb">str</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Upload processed products and POST notification</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    notices : list</span>
+<span class="sd">        list of successful uploads to S3</span>
+<span class="sd">    bucket : str</span>
+<span class="sd">        S3 bucket</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    List</span>
+<span class="sd">        List of successful uploads and POST notifications</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">responses</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="n">payload</span> <span class="o">=</span> <span class="p">[]</span>
+
+    <span class="c1"># upload</span>
+    <span class="k">for</span> <span class="n">notice</span> <span class="ow">in</span> <span class="n">notices</span><span class="p">:</span>
+        <span class="c1"># try to upload and continue if it doesn&#39;t returning only</span>
+        <span class="c1"># what was successfully uploaded</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Upload Notice from Notices: </span><span class="si">{</span><span class="n">notice</span><span class="si">=}</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="c1"># try to upload to S3</span>
+            <span class="n">file</span> <span class="o">=</span> <span class="n">notice</span><span class="p">[</span><span class="s2">&quot;file&quot;</span><span class="p">]</span>
+            <span class="n">filename</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">basename</span><span class="p">(</span><span class="n">file</span><span class="p">)</span>
+            <span class="n">key</span> <span class="o">=</span> <span class="s2">&quot;/&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">([</span><span class="n">CUMULUS_PRODUCTS_BASEKEY</span><span class="p">,</span> <span class="n">notice</span><span class="p">[</span><span class="s2">&quot;filetype&quot;</span><span class="p">],</span> <span class="n">filename</span><span class="p">])</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Notice key: </span><span class="si">{</span><span class="n">key</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+
+            <span class="c1"># upload the file to S3</span>
+            <span class="k">if</span> <span class="n">boto</span><span class="o">.</span><span class="n">s3_upload_file</span><span class="p">(</span><span class="n">file</span><span class="p">,</span> <span class="n">bucket</span><span class="p">,</span> <span class="n">key</span><span class="p">):</span>
+                <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;S3 Upload: </span><span class="si">{</span><span class="n">file</span><span class="si">}</span><span class="s2"> -&gt; </span><span class="si">{</span><span class="n">bucket</span><span class="si">}</span><span class="s2">/</span><span class="si">{</span><span class="n">key</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+
+                <span class="c1"># If successful on upload, notify cumulus, but</span>
+                <span class="c1"># switch file to the key first</span>
+                <span class="n">notice</span><span class="p">[</span><span class="s2">&quot;file&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">key</span>
+
+                <span class="n">responses</span><span class="o">.</span><span class="n">append</span><span class="p">({</span><span class="s2">&quot;key&quot;</span><span class="p">:</span> <span class="n">key</span><span class="p">})</span>
+                <span class="n">payload</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">notice</span><span class="p">)</span>
+                <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Append Response: </span><span class="si">{</span><span class="n">responses</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="k">except</span> <span class="p">(</span><span class="ne">KeyError</span><span class="p">,</span> <span class="n">ClientError</span><span class="p">,</span> <span class="ne">Exception</span><span class="p">)</span> <span class="k">as</span> <span class="n">ex</span><span class="p">:</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="nb">type</span><span class="p">(</span><span class="n">ex</span><span class="p">)</span><span class="o">.</span><span class="vm">__name__</span><span class="si">}</span><span class="s2">: </span><span class="si">{</span><span class="n">this</span><span class="si">}</span><span class="s2">: </span><span class="si">{</span><span class="n">ex</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+            <span class="k">continue</span>
+
+    <span class="c1"># notify</span>
+    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">payload</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="n">cumulus_api</span> <span class="o">=</span> <span class="n">capi</span><span class="o">.</span><span class="n">CumulusAPI</span><span class="p">(</span><span class="n">CUMULUS_API_URL</span><span class="p">,</span> <span class="n">HTTP2</span><span class="p">)</span>
+        <span class="n">cumulus_api</span><span class="o">.</span><span class="n">endpoint</span> <span class="o">=</span> <span class="s2">&quot;productfiles&quot;</span>
+        <span class="n">cumulus_api</span><span class="o">.</span><span class="n">query</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;key&quot;</span><span class="p">:</span> <span class="n">APPLICATION_KEY</span><span class="p">}</span>
+
+        <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Payload to POST: </span><span class="si">{</span><span class="n">payload</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="n">resp</span> <span class="o">=</span> <span class="n">asyncio</span><span class="o">.</span><span class="n">run</span><span class="p">(</span><span class="n">cumulus_api</span><span class="o">.</span><span class="n">post_</span><span class="p">(</span><span class="n">cumulus_api</span><span class="o">.</span><span class="n">url</span><span class="p">,</span> <span class="n">payload</span><span class="o">=</span><span class="n">payload</span><span class="p">))</span>
+
+        <span class="n">responses</span><span class="o">.</span><span class="n">append</span><span class="p">({</span><span class="s2">&quot;upload&quot;</span><span class="p">:</span> <span class="n">resp</span><span class="p">})</span>
+
+    <span class="k">return</span> <span class="n">responses</span>
+</code></pre></div></td></tr></table></div>
+      </details>
+  </div>
+
+</div>
+
+
+
+  </div>
+
+  </div>
+
+</div>
+              
+            </div>
+          </div><footer>
+    <div class="rst-footer-buttons" role="navigation" aria-label="Footer Navigation">
+        <a href="../../cumulus_geoproc/" class="btn btn-neutral float-left" title="Cumulus geoproc"><span class="icon icon-circle-arrow-left"></span> Previous</a>
+        <a href="../hrrr/" class="btn btn-neutral float-right" title="High Resolution Rapid Refresh">Next <span class="icon icon-circle-arrow-right"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <!-- Copyright etc -->
+  </div>
+
+  Built with <a href="https://www.mkdocs.org/">MkDocs</a> using a <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>.
+</footer>
+          
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+
+  <div class="rst-versions" role="note" aria-label="Versions">
+  <span class="rst-current-version" data-toggle="rst-current-version">
+    
+    
+      <span><a href="../../cumulus_geoproc/" style="color: #fcfcfc">&laquo; Previous</a></span>
+    
+    
+      <span><a href="../hrrr/" style="color: #fcfcfc">Next &raquo;</a></span>
+    
+  </span>
+</div>
+    <script>var base_url = '../..';</script>
+    <script src="../../js/theme_extra.js" defer></script>
+    <script src="../../js/theme.js" defer></script>
+      <script src="../../search/main.js" defer></script>
+    <script defer>
+        window.onload = function () {
+            SphinxRtdTheme.Navigation.enable(true);
+        };
+    </script>
+
+</body>
+</html>

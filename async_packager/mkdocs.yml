@@ -2,7 +2,7 @@ site_name: Cumulus Packager
 
 docs_dir: ../docs/async_packager/docs
 
-site_dir: ../docs/async_packager/site
+site_dir: ../docs/async_packager/html
 
 use_directory_urls: true
 

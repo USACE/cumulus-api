@@ -23,6 +23,12 @@ CLIENT.get_queue_by_name(
                 "bucket": "castle-data-develop",
                 "key": "MRMS_MultiSensor_QPE_01H_Pass1_00.00_20220718-170000.tif",
             },
+            "analysis_info": {
+                "srs": "EPSG:5070",
+                "cellsize": 1000,
+                "coordinate_precision": 0,
+                "statistic_precision": 2
+            },
             "output_info": {
                 "url": "https://mimir.corps.cloud/v1/write"
             }

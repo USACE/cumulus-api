@@ -14,7 +14,8 @@ RUN pip3 install --no-cache-dir \
     rasterstats \
     boto3 \
     httpx \
-    httpx[http2]
+    httpx[http2] \
+    pyproj
 
 COPY stats/* /app/
 WORKDIR /app

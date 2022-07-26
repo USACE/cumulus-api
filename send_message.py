@@ -17,7 +17,7 @@ CLIENT.get_queue_by_name(
     MessageBody=json.dumps(
         {
             "geometry_info": {
-                "url": "https://water-api.corps.cloud/watersheds/guyandotte-river/geometry",
+                "url": "https://develop-water-api.corps.cloud/watersheds/guyandotte-river/geometry",
             },
             "raster_info": {
                 "bucket": "castle-data-develop",

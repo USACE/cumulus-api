@@ -72,12 +72,13 @@ def statistics(geometry, raster, srs='EPSG:4326', cellsize=.01):
             targetAlignedPixels=False,
             xRes=cellsize,
             yRes=cellsize,
+            outputBounds=geometry["bbox"]
         )
         ds = None
         
         # Compute Statistics
         features = zonal_stats(
-            geometry['features'], projected_raster, geojson_out=True,
+            geometry['geometry'], projected_raster, geojson_out=True,
         )
 
     return format_statistics(features)

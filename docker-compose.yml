@@ -35,6 +35,10 @@ services:
       - CUMULUS_ASYNC_ENGINE_GEOPROCESS_TARGET=local/http://elasticmq:9324/queue/cumulus-geoprocess
       - CUMULUS_MIN_RECONN=10s
       - CUMULUS_MAX_RECONN=1m
+    depends_on:
+      cumulusdb:
+        condition: service_started
+
     restart: always
   geoprocess:
     build:
@@ -143,6 +147,11 @@ services:
     ports:
       - "80:80"
     restart: always
+    depends_on:
+      cumulusdb:
+        condition: service_started
+      flyway:
+        condition: service_completed_successfully
   flyway:
     build:
       context: sql  
@@ -159,7 +168,8 @@ services:
       - FLYWAY_URL=jdbc:postgresql://cumulusdb:5432/postgres
       - FLYWAY_USER=postgres
     depends_on:
-      - cumulusdb
+      cumulusdb:
+        condition: service_started
   # pgadmin:
   #   image: dpage/pgadmin4
   #   environment:

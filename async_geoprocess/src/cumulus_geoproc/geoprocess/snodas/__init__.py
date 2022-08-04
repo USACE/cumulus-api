@@ -18,6 +18,11 @@ gdal.UseExceptions()
 this = os.path.basename(__file__)
 
 
+tar_file_template = Template(
+    "(?P<region>\\w\\w)_ssmv[01]${PCODE}S?(?P<vcode>\\w{4})[AT](?P<icode>\\d{4})TTNATS${YMD}\\w\w(?P<offset>\\d{3})\\.${EXT}"
+)
+"""tar_file_template: Template requires a ProductCODE, YearMonthDay, and EXTension"""
+
 product_code: dict = {
     "1025": {
         "description": "Precipitation",
@@ -114,8 +119,12 @@ def snow_melt_mm(translated_tif: dict):
     snowmelt_code = "1044"
     snowmelt_code_mm = "3333"
 
-    snowmelt = translated_tif[snowmelt_code]["file"]
-    snowmelt_dt = translated_tif[snowmelt_code]["datetime"]
+    try:
+        snowmelt = translated_tif[snowmelt_code]["file"]
+        snowmelt_dt = translated_tif[snowmelt_code]["datetime"]
+    except KeyError as ex:
+        logger.warning(f"{type(ex).__name__}: {this}: {ex}")
+        return
 
     snowmelt_mm = snowmelt.replace(snowmelt_code, snowmelt_code_mm)
     temp_snowmelt_mm = snowmelt.replace(snowmelt_code, "9999")
@@ -188,9 +197,13 @@ def cold_content(translated_tif):
     swe_code = "1034"
     avg_temp_sp = "1038"
 
-    swe = translated_tif[swe_code]["file"]
-    swe_dt = translated_tif[swe_code]["datetime"]
-    avg_temp = translated_tif[avg_temp_sp]["file"]
+    try:
+        swe = translated_tif[swe_code]["file"]
+        swe_dt = translated_tif[swe_code]["datetime"]
+        avg_temp = translated_tif[avg_temp_sp]["file"]
+    except KeyError as ex:
+        logger.warning(f"{type(ex).__name__}: {this}: {ex}")
+        return
 
     cold_content_filename = swe.replace(swe_code, coldcontent_code)
     temp_cold_content = swe.replace(swe_code, "9999")

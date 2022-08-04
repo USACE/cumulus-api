@@ -105,9 +105,9 @@ def process(src: str, dst: str, acquirable: str = None):
                             meta_ntuple.minimum_y_axis_coordinate,
                         ],
                         creationOptions=[
-                            "RESAMPLING=AVERAGE",
+                            "RESAMPLING=BILINEAR",
                             "OVERVIEWS=IGNORE_EXISTING",
-                            "OVERVIEW_RESAMPLING=AVERAGE",
+                            "OVERVIEW_RESAMPLING=BILINEAR",
                         ],
                     )
 

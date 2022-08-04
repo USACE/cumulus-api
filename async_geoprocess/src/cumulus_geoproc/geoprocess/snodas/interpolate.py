@@ -8,8 +8,9 @@ from datetime import datetime, timezone
 from string import Template
 
 import pkg_resources
+from botocore.errorfactory import ClientError
 from cumulus_geoproc import logger
-from cumulus_geoproc.configurations import CUMULUS_PRODUCTS_BASEKEY
+from cumulus_geoproc.configurations import CUMULUS_PRODUCTS_BASEKEY, ENDPOINT_URL_S3
 from cumulus_geoproc.geoprocess.snodas import no_data_value, product_code
 from cumulus_geoproc.utils import boto, cgdal, file_extension
 from osgeo import gdal
@@ -197,6 +198,20 @@ async def snodas(cfg: namedtuple, dst: str):
         )
 
         max_dist = 0 if code in no_interp else cfg.max_distance
+
+        # check to see if the file exists
+        # this is done because SNODAS products are 2010 - present as unmasked (zz)
+        # 2004 - 2010 masked (us) product filenames start with "us"
+        try:
+            s3 = boto.boto3_client(
+                service_name="s3",
+                endpoint_url=ENDPOINT_URL_S3,
+            )
+            s3.head_object(Bucket=cfg.bucket, Key=key)
+        except ClientError:
+            logger.warning(f"FileNotFound: {cfg.bucket}/{key}")
+            key = key.replace("zz_", "us_")
+            logger.warning(f"Trying {key}")
 
         if download_file := boto.s3_download_file(cfg.bucket, key, dst=dst):
             tasks.append(

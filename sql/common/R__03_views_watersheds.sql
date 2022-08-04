@@ -1,3 +1,4 @@
+-- Always re-create views when running migrations: ${flyway:timestamp}
 
 CREATE OR REPLACE VIEW v_watershed AS (
     SELECT w.id,

@@ -30,6 +30,7 @@ type Config struct {
 	AWSS3DisableSSL              bool   `envconfig:"AWS_S3_DISABLE_SSL"`
 	AWSS3ForcePathStyle          bool   `envconfig:"AWS_S3_FORCE_PATH_STYLE"`
 	AWSS3Bucket                  string `envconfig:"AWS_S3_BUCKET"`
+	PgFeatureservUrl             string `envconfig:"PG_FEATURESERV_URL"`
 }
 
 func (cfg Config) AWSConfig() aws.Config {

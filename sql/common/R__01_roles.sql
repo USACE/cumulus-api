@@ -1,3 +1,4 @@
+-- Always re-apply roles  when running migrations: ${flyway:timestamp}
 --------
 -- ROLES
 --------

@@ -18,11 +18,6 @@ gdal.UseExceptions()
 this = os.path.basename(__file__)
 
 
-tar_file_template = Template(
-    "(?P<region>\\w\\w)_ssmv[01]${PCODE}S?(?P<vcode>\\w{4})[AT](?P<icode>\\d{4})TTNATS${YMD}\\w\w(?P<offset>\\d{3})\\.${EXT}"
-)
-"""tar_file_template: Template requires a ProductCODE, YearMonthDay, and EXTension"""
-
 product_code: dict = {
     "1025": {
         "description": "Precipitation",

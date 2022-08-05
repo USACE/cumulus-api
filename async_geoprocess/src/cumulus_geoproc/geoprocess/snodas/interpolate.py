@@ -4,13 +4,12 @@
 import asyncio
 import os
 from collections import namedtuple
-from datetime import datetime, timezone, tzinfo
+from datetime import datetime, timezone
 from string import Template
 
 import pkg_resources
-from botocore.errorfactory import ClientError
 from cumulus_geoproc import logger
-from cumulus_geoproc.configurations import CUMULUS_PRODUCTS_BASEKEY, ENDPOINT_URL_S3
+from cumulus_geoproc.configurations import CUMULUS_PRODUCTS_BASEKEY
 from cumulus_geoproc.geoprocess.snodas import no_data_value, product_code
 from cumulus_geoproc.utils import boto, cgdal, file_extension
 from osgeo import gdal

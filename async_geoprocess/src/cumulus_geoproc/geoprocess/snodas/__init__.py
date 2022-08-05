@@ -27,17 +27,17 @@ product_code: dict = {
     "1034": {
         "description": "Snow water equivalent",
         "product": "nohrsc-snodas-swe",
-        "file_template": Template("zz_ssmv11034tS__T0001TTNATS${YMD}05HP001.tif"),
+        "file_template": Template("${SC}_ssmv11034tS__T0001TTNATS${YMD}05HP001.tif"),
     },
     "1036": {
         "description": "Snow depth",
         "product": "nohrsc-snodas-snowdepth",
-        "file_template": Template("zz_ssmv11036tS__T0001TTNATS${YMD}05HP001.tif"),
+        "file_template": Template("${SC}_ssmv11036tS__T0001TTNATS${YMD}05HP001.tif"),
     },
     "1038": {
         "description": "Snow pack average temperature",
         "product": "nohrsc-snodas-snowpack-average-temperature",
-        "file_template": Template("zz_ssmv11038wS__A0024TTNATS${YMD}05DP001.tif"),
+        "file_template": Template("${SC}_ssmv11038wS__A0024TTNATS${YMD}05DP001.tif"),
     },
     "1039": {
         "description": "Blowing snow sublimation",
@@ -47,7 +47,7 @@ product_code: dict = {
     "1044": {
         "description": "Snow melt",
         "product": "nohrsc-snodas-snowmelt",
-        "file_template": Template("zz_ssmv11044bS__T0024TTNATS${YMD}05DP000.tif"),
+        "file_template": Template("${SC}_ssmv11044bS__T0024TTNATS${YMD}05DP000.tif"),
     },
     "1050": {
         "description": "Snow pack sublimation",
@@ -57,12 +57,12 @@ product_code: dict = {
     "2072": {
         "description": "",
         "product": "nohrsc-snodas-coldcontent",
-        "file_template": Template("zz_ssmv12072tS__T0001TTNATS${YMD}05HP001.tif"),
+        "file_template": Template("${SC}_ssmv12072tS__T0001TTNATS${YMD}05HP001.tif"),
     },
     "3333": {
         "description": "Snow melt (mm)",
         "product": "nohrsc-snodas-snowmelt",
-        "file_template": Template("zz_ssmv13333bS__T0024TTNATS${YMD}05DP000.tif"),
+        "file_template": Template("${SC}_ssmv13333bS__T0024TTNATS${YMD}05DP000.tif"),
     },
 }
 
@@ -142,9 +142,9 @@ def snow_melt_mm(translated_tif: dict):
             temp_snowmelt_mm,
             format="COG",
             creationOptions=[
-                "RESAMPLING=AVERAGE",
+                "RESAMPLING=BILINEAR",
                 "OVERVIEWS=IGNORE_EXISTING",
-                "OVERVIEW_RESAMPLING=AVERAGE",
+                "OVERVIEW_RESAMPLING=BILINEAR",
             ],
         )
         # validate COG
@@ -220,9 +220,9 @@ def cold_content(translated_tif):
             temp_cold_content,
             format="COG",
             creationOptions=[
-                "RESAMPLING=AVERAGE",
+                "RESAMPLING=BILINEAR",
                 "OVERVIEWS=IGNORE_EXISTING",
-                "OVERVIEW_RESAMPLING=AVERAGE",
+                "OVERVIEW_RESAMPLING=BILINEAR",
             ],
         )
         # validate COG

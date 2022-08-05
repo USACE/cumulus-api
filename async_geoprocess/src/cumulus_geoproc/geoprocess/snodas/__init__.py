@@ -27,17 +27,17 @@ product_code: dict = {
     "1034": {
         "description": "Snow water equivalent",
         "product": "nohrsc-snodas-swe",
-        "file_template": Template("zz_ssmv11034tS__T0001TTNATS${YMD}05HP001.tif"),
+        "file_template": Template("${SC}_ssmv11034tS__T0001TTNATS${YMD}05HP001.tif"),
     },
     "1036": {
         "description": "Snow depth",
         "product": "nohrsc-snodas-snowdepth",
-        "file_template": Template("zz_ssmv11036tS__T0001TTNATS${YMD}05HP001.tif"),
+        "file_template": Template("${SC}_ssmv11036tS__T0001TTNATS${YMD}05HP001.tif"),
     },
     "1038": {
         "description": "Snow pack average temperature",
         "product": "nohrsc-snodas-snowpack-average-temperature",
-        "file_template": Template("zz_ssmv11038wS__A0024TTNATS${YMD}05DP001.tif"),
+        "file_template": Template("${SC}_ssmv11038wS__A0024TTNATS${YMD}05DP001.tif"),
     },
     "1039": {
         "description": "Blowing snow sublimation",
@@ -47,7 +47,7 @@ product_code: dict = {
     "1044": {
         "description": "Snow melt",
         "product": "nohrsc-snodas-snowmelt",
-        "file_template": Template("zz_ssmv11044bS__T0024TTNATS${YMD}05DP000.tif"),
+        "file_template": Template("${SC}_ssmv11044bS__T0024TTNATS${YMD}05DP000.tif"),
     },
     "1050": {
         "description": "Snow pack sublimation",
@@ -57,12 +57,12 @@ product_code: dict = {
     "2072": {
         "description": "",
         "product": "nohrsc-snodas-coldcontent",
-        "file_template": Template("zz_ssmv12072tS__T0001TTNATS${YMD}05HP001.tif"),
+        "file_template": Template("${SC}_ssmv12072tS__T0001TTNATS${YMD}05HP001.tif"),
     },
     "3333": {
         "description": "Snow melt (mm)",
         "product": "nohrsc-snodas-snowmelt",
-        "file_template": Template("zz_ssmv13333bS__T0024TTNATS${YMD}05DP000.tif"),
+        "file_template": Template("${SC}_ssmv13333bS__T0024TTNATS${YMD}05DP000.tif"),
     },
 }
 
@@ -114,8 +114,12 @@ def snow_melt_mm(translated_tif: dict):
     snowmelt_code = "1044"
     snowmelt_code_mm = "3333"
 
-    snowmelt = translated_tif[snowmelt_code]["file"]
-    snowmelt_dt = translated_tif[snowmelt_code]["datetime"]
+    try:
+        snowmelt = translated_tif[snowmelt_code]["file"]
+        snowmelt_dt = translated_tif[snowmelt_code]["datetime"]
+    except KeyError as ex:
+        logger.warning(f"{type(ex).__name__}: {this}: {ex}")
+        return
 
     snowmelt_mm = snowmelt.replace(snowmelt_code, snowmelt_code_mm)
     temp_snowmelt_mm = snowmelt.replace(snowmelt_code, "9999")
@@ -138,9 +142,9 @@ def snow_melt_mm(translated_tif: dict):
             temp_snowmelt_mm,
             format="COG",
             creationOptions=[
-                "RESAMPLING=AVERAGE",
+                "RESAMPLING=BILINEAR",
                 "OVERVIEWS=IGNORE_EXISTING",
-                "OVERVIEW_RESAMPLING=AVERAGE",
+                "OVERVIEW_RESAMPLING=BILINEAR",
             ],
         )
         # validate COG
@@ -188,9 +192,13 @@ def cold_content(translated_tif):
     swe_code = "1034"
     avg_temp_sp = "1038"
 
-    swe = translated_tif[swe_code]["file"]
-    swe_dt = translated_tif[swe_code]["datetime"]
-    avg_temp = translated_tif[avg_temp_sp]["file"]
+    try:
+        swe = translated_tif[swe_code]["file"]
+        swe_dt = translated_tif[swe_code]["datetime"]
+        avg_temp = translated_tif[avg_temp_sp]["file"]
+    except KeyError as ex:
+        logger.warning(f"{type(ex).__name__}: {this}: {ex}")
+        return
 
     cold_content_filename = swe.replace(swe_code, coldcontent_code)
     temp_cold_content = swe.replace(swe_code, "9999")
@@ -212,9 +220,9 @@ def cold_content(translated_tif):
             temp_cold_content,
             format="COG",
             creationOptions=[
-                "RESAMPLING=AVERAGE",
+                "RESAMPLING=BILINEAR",
                 "OVERVIEWS=IGNORE_EXISTING",
-                "OVERVIEW_RESAMPLING=AVERAGE",
+                "OVERVIEW_RESAMPLING=BILINEAR",
             ],
         )
         # validate COG

@@ -46,6 +46,14 @@ type Product struct {
 	CoverageSummary
 }
 
+type ProductStatus struct {
+	Slug                  string     `json:"slug" db:"slug"`
+	LatestProductDatetime *time.Time `json:"latest_product_datetime" db:"latest_product_datetime"`
+	AcceptableTimedelta   *string    `json:"acceptable_timedelta" db:"acceptable_timedelta"`
+	ActualTimedelta       *string    `json:"actual_timedelta" db:"actual_timedelta"`
+	IsCurrent             bool       `json:"is_current" db:"is_current"`
+}
+
 // CoverageSummary describes date ranges spanned by a product
 // PercentCoverage is a comparison of the number of files on-hand
 // with the total number of files that *would* theoretically exist
@@ -71,6 +79,17 @@ type Availability struct {
 type DateCount struct {
 	Date  time.Time `json:"date" db:"date"`
 	Count int       `json:"count" db:"count"`
+}
+
+// GetProductIngestStatus
+func GetProductIngestStatus(db *pgxpool.Pool) ([]ProductStatus, error) {
+	ps := make([]ProductStatus, 0)
+	productStatusSql := `SELECT slug, latest_product_datetime, acceptable_timedelta::text, 
+						actual_timedelta::text, is_current FROM v_product_status`
+	if err := pgxscan.Select(context.Background(), db, &ps, productStatusSql); err != nil {
+		return make([]ProductStatus, 0), err
+	}
+	return ps, nil
 }
 
 // GetProductSlugs

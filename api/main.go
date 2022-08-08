@@ -102,6 +102,7 @@ func main() {
 	)
 
 	// Products
+	public.GET("/product_ingest_status", handlers.GetProductIngestStatus(db))
 	public.GET("/product_slugs", handlers.GetProductSlugs(db))
 	public.GET("/products", handlers.ListProducts(db))
 	public.GET("/products/:product_id", handlers.GetProduct(db))

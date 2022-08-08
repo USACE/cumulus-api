@@ -53,6 +53,21 @@ func GetProduct(db *pgxpool.Pool) echo.HandlerFunc {
 	}
 }
 
+// GetProductIngestStatus returns a list of product status
+func GetProductIngestStatus(db *pgxpool.Pool) echo.HandlerFunc {
+	return func(c echo.Context) error {
+
+		productStatus, err := models.GetProductIngestStatus(db)
+		if err != nil {
+			if pgxscan.NotFound(err) {
+				return c.JSON(http.StatusNotFound, models.DefaultMessageNotFound)
+			}
+			return c.JSON(http.StatusInternalServerError, models.DefaultMessageInternalServerError)
+		}
+		return c.JSON(http.StatusOK, productStatus)
+	}
+}
+
 // CreateProduct creates a single new product
 func CreateProduct(db *pgxpool.Pool) echo.HandlerFunc {
 	return func(c echo.Context) error {

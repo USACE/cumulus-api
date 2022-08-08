@@ -78,8 +78,39 @@ CREATE OR REPLACE VIEW v_productfile AS (
     LEFT JOIN v_product p ON p.id = f.product_id
 );
 
+-- v_product_status
+CREATE OR REPLACE VIEW v_product_status AS (
+    WITH pf_date AS (
+        SELECT pf.product_id, max(pf.datetime) AS max_date
+            FROM cumulus.productfile pf
+            WHERE DATE_PART('year', pf.version::date) = '1111'
+            GROUP BY pf.product_id
+        UNION
+        SELECT pf.product_id, max(pf.version) AS max_date
+            FROM cumulus.productfile pf
+            WHERE DATE_PART('year', pf.version::date) != '1111'
+            GROUP BY pf.product_id 
+    )
+    SELECT 
+        p.slug,
+        max_date AS lastest_product_datetime,
+        p.acceptable_timedelta,
+        DATE_TRUNC('minute', (CURRENT_TIMESTAMP - max_date)) AS actual_timedelta,
+        CASE 
+            WHEN (p.acceptable_timedelta IS NOT NULL) 
+            AND max_date >= DATE_TRUNC('minute', (CURRENT_TIMESTAMP - p.acceptable_timedelta)) THEN TRUE 
+            ELSE FALSE 
+        END AS is_current
+    FROM cumulus.product p 
+    LEFT JOIN pf_date md ON md.product_id = p.id
+    ORDER BY p.slug
+);
+
+
+
 GRANT SELECT ON
     v_acquirablefile,
     v_product,
-    v_productfile
+    v_productfile,
+    v_product_status
 TO cumulus_reader;

@@ -93,7 +93,7 @@ CREATE OR REPLACE VIEW v_product_status AS (
     )
     SELECT 
         p.slug,
-        max_date AS lastest_product_datetime,
+        max_date AS latest_product_datetime,
         p.acceptable_timedelta,
         DATE_TRUNC('minute', (CURRENT_TIMESTAMP - max_date)) AS actual_timedelta,
         CASE 

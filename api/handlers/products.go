@@ -62,8 +62,7 @@ func GetProductIngestStatus(db *pgxpool.Pool) echo.HandlerFunc {
 			if pgxscan.NotFound(err) {
 				return c.JSON(http.StatusNotFound, models.DefaultMessageNotFound)
 			}
-			//return c.JSON(http.StatusInternalServerError, models.DefaultMessageInternalServerError)
-			return c.String(http.StatusInternalServerError, err.Error())
+			return c.JSON(http.StatusInternalServerError, models.DefaultMessageInternalServerError)
 		}
 		return c.JSON(http.StatusOK, productStatus)
 	}

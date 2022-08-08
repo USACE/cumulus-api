@@ -3,6 +3,8 @@ import unittest
 import importlib
 import sys
 
+# TODO: This is work in progress to show the idea. Need to revisit and implement unit tests for this product
+# after https://github.com/USACE/cumulus/issues/260 is closed.
 sys.path.append("../")
 processor = importlib.import_module('processors.ncep-stage4-mosaic-01h')
 
@@ -15,7 +17,7 @@ class TestNcepStage4Mosaic(unittest.TestCase):
 
     def test_ncep_stage4_mosaic_works(self):
         outfiles = processor.process(src, dst, acquirable)
-        print(outfiles)
+        self.assertGreaterEqual(len(outfiles), 1)
 
 
 if __name__ == '__main__':

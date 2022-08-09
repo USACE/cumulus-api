@@ -1,4 +1,5 @@
-"""WRF Columbia Precipitation
+"""
+# WRF Columbia Precipitation
 """
 
 import os
@@ -8,7 +9,7 @@ import numpy
 
 import pyplugs
 from cumulus_geoproc import logger
-from cumulus_geoproc.utils import boto, cgdal
+from cumulus_geoproc.utils import cgdal
 from netCDF4 import Dataset
 from osgeo import gdal, osr
 
@@ -18,41 +19,45 @@ this = os.path.basename(__file__)
 
 
 @pyplugs.register
-def process(src: str, dst: str, acquirable: str = None):
-    """Grid processor
+def process(*, src: str, dst: str = None, acquirable: str = None):
+    """
+    # Grid processor
+
+    __Requires keyword only arguments (*)__
 
     Parameters
     ----------
     src : str
         path to input file for processing
-    dst : str
-        path to temporary directory created from worker thread
-    acquirable: str
+    dst : str, optional
+        path to temporary directory
+    acquirable: str, optional
         acquirable slug
 
     Returns
     -------
     List[dict]
-        {
-            "filetype": str,         Matching database acquirable
-            "file": str,             Converted file
-            "datetime": str,         Valid Time, ISO format with timezone
-            "version": str           Reference Time (forecast), ISO format with timezone
-        }
-    acquirable = "wrf-columbia-precip"
+    ```
+    {
+        "filetype": str,         Matching database acquirable
+        "file": str,             Converted file
+        "datetime": str,         Valid Time, ISO format with timezone
+        "version": str           Reference Time (forecast), ISO format with timezone
+    }
+    ```
     """
 
     outfile_list = []
 
     ncds = None
     try:
-        bucket, key = src.split("/", maxsplit=1)
-        logger.debug(f"s3_download_file({bucket=}, {key=})")
+        # Take the source path as the destination unless defined.
+        # User defined `dst` not programatically removed unless under
+        # source's temporary directory.
+        if dst is None:
+            dst = os.path.dirname(src)
 
-        src_ = boto.s3_download_file(bucket=bucket, key=key, dst=dst)
-        logger.debug(f"S3 Downloaded File: {src_}")
-
-        ncds = Dataset(src_, "r")
+        ncds = Dataset(src, "r")
         lon = ncds.variables["lon"][:]
         lat = ncds.variables["lat"][:]
         var = ncds.variables["var"][:]
@@ -107,9 +112,9 @@ def process(src: str, dst: str, acquirable: str = None):
                     "outputBounds": [-337997.806, 812645.371, 854002.194, -535354.629],
                     "outputSRS": "+proj=lcc +lat_1=45 +lat_2=45 +lon_0=-120 +lat_0=45.80369 +x_0=0 +y_0=0 +a=6370000 +b=6370000 +units=m",
                     "creationOptions": [
-                        "RESAMPLING=AVERAGE",
+                        "RESAMPLING=BILINEAR",
                         "OVERVIEWS=IGNORE_EXISTING",
-                        "OVERVIEW_RESAMPLING=AVERAGE",
+                        "OVERVIEW_RESAMPLING=BILINEAR",
                         "NUM_THREADS=ALL_CPUS",
                     ],
                 },
@@ -144,4 +149,4 @@ def process(src: str, dst: str, acquirable: str = None):
 
 
 if __name__ == "__main__":
-    pass
+    ...

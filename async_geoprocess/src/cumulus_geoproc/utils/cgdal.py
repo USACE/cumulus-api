@@ -1,12 +1,15 @@
-"""Cumulus specific gdal utilities
+"""
+# Cumulus specific gdal utilities
 
-    GTiff Creation Options to be a COG:
-        "-co",
-        "COMPRESS=LZW",
-        "-co",
-        "COPY_SRC_OVERVIEWS=YES",
-        "-co",
-        "TILE=YES",
+GTiff Creation Options to be a COG:
+```
+"-co",
+"COMPRESS=LZW",
+"-co",
+"COPY_SRC_OVERVIEWS=YES",
+"-co",
+"TILE=YES",
+```
 """
 
 import os
@@ -25,7 +28,8 @@ this = os.path.basename(__file__)
 
 
 def gdal_translate_options(**kwargs):
-    """Return gdal translate options
+    """
+    # Return gdal translate options
 
     Add dictionary attributes to use those options for translate
 
@@ -45,6 +49,40 @@ def gdal_translate_options(**kwargs):
         "format": "COG",
     }
     return {**base, **kwargs}
+
+
+def gdal_translate_w_options(
+    dst: str,
+    src: gdal.Dataset,
+    **kwargs,
+):
+    """
+    # GDAL Translate wrapper with base configurations
+
+    Parameters
+    ----------
+    dst : str
+        Output dataset
+    src : gdal.Dataset
+        Dataset object or a filename
+    **kwargs
+        User defined keyword arguments
+    """
+    base = {
+        "format": "COG",
+        "bandList": [1],
+        "creationOptions": [
+            "RESAMPLING=BILINEAR",
+            "OVERVIEWS=IGNORE_EXISTING",
+            "OVERVIEW_RESAMPLING=BILINEAR",
+        ],
+    }
+    _kwargs = {**base, **kwargs}
+    gdal.Translate(
+        dst,
+        src,
+        **_kwargs,
+    )
 
 
 def gdal_translate_w_overviews(
@@ -213,4 +251,4 @@ class GridProcess:
 
 
 if __name__ == "__main__":
-    pass
+    ...

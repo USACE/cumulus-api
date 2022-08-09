@@ -6,3 +6,5 @@ INSERT INTO suite (id, name, slug, description) VALUES
 
 INSERT INTO product (id,slug,"label",temporal_duration,temporal_resolution,dss_fpart,parameter_id,description,unit_id,deleted,suite_id) VALUES
     ('bfa3366a-49ef-4a08-99e7-2cb2e24624c9','abrfc-qpe-01h','ABRFC QPE',3600,3600,'ABRFC-QPE','eb82d661-afe6-436a-b0df-2ab0b478a1af','Arkansas-Red Basin River Forecast Center 1-Hour QPE','e245d39f-3209-4e58-bfb7-4eae94b3f8dd',false,'40d3e055-c812-47a2-a6eb-b9943a236496');
+
+UPDATE product SET acceptable_timedelta = '2 hour' WHERE slug = 'abrfc-qpe-01h';

@@ -1,8 +1,9 @@
 {
 	"info": {
-		"_postman_id": "0738872b-44df-4c26-a47a-53700580689e",
+		"_postman_id": "367844aa-aab4-4b76-bc82-00b9ac7e7dd8",
 		"name": "cumulus-regression-admin",
-		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"_exporter_id": "20040250"
 	},
 	"item": [
 		{
@@ -1034,10 +1035,8 @@
 							"listen": "test",
 							"script": {
 								"exec": [
-									"// status code is 40?",
-									"//browser returns 400 while postman tests return 404",
-									"pm.test(\"Status code is 40?\", function () {",
-									"    pm.expect(pm.response.code).to.be.oneOf([400,401,404]);",
+									"pm.test(\"Status code is 200\", function () {",
+									"    pm.response.to.have.status(200);",
 									"});"
 								],
 								"type": "text/javascript"
@@ -1332,6 +1331,58 @@
 								"products",
 								"757c809c-dda0-412b-9831-cb9bd0f62d1d",
 								"availability"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Product Ingest Status",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"// validate JSON schema",
+									"var schema = {",
+									"    \"type\": \"array\",",
+									"    \"properties\": {",
+									"        \"slug\": { \"type\": \"string\" },",
+									"        \"latest_product_datetime\": {\"type\": [\"null\", \"string\"]},",
+									"        \"acceptable_timedelta\": {\"type\": [\"null\", \"string\"]},",
+									"        \"actual_timedelta\": {\"type\": [\"null\", \"string\"]},",
+									"        \"is_current\": {\"type\": \"boolean\"}",
+									"    },",
+									"    \"required\": [\"slug\", \"is_current\"],",
+									"    \"additionalProperties\": false",
+									"}",
+									"",
+									"pm.globals.set('PRODUCT_INGEST_OBJECT', JSON.stringify(schema));",
+									"",
+									"// status code is 200",
+									"pm.test(\"Status code is 200\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"// validate schema",
+									"pm.test(\"Schema validation\", function () {",
+									"    pm.response.to.have.jsonSchema(schema)",
+									"});",
+									""
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/product_ingest_status",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"product_ingest_status"
 							]
 						}
 					},

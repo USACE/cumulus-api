@@ -80,7 +80,10 @@ def process(*, src: str, dst: str = None, acquirable: str = None):
                     meta_ntuple.stop_year,
                     meta_ntuple.stop_month,
                     meta_ntuple.stop_day,
-                    meta_ntuple.stop_hour,
+                    # Metadata value `Stop hour: 5` present in earlier SNODAS files results in incorrect timestamp if used directly as the timestamp for the data
+                    # This has since been corrected in the SNODAS metadata .txt files. `Stop hour: 5` is no longer present in current files as of today (2022-08-08)
+                    # Additional Information: https://github.com/USACE/cumulus/issues/264, https://github.com/USACE/cumulus/issues/244#issuecomment-1209465407
+                    meta_ntuple.stop_hour if meta_ntuple.stop_year >= 2022 else 6,
                     meta_ntuple.stop_minute,
                     meta_ntuple.stop_second,
                     tzinfo=timezone.utc,

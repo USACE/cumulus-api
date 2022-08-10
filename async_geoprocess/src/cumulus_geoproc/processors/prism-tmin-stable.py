@@ -102,7 +102,3 @@ def process(*, src: str, dst: str = None, acquirable: str = None):
         ds = None
 
     return outfile_list
-
-
-if __name__ == "__main__":
-    ...

@@ -48,7 +48,7 @@ def process(*, src: str, dst: str = None, acquirable: str = None):
 
     try:
         filename = os.path.basename(src)
-        
+
         # Take the source path as the destination unless defined.
         # User defined `dst` not programatically removed unless under
         # source's temporary directory.
@@ -140,7 +140,3 @@ def process(*, src: str, dst: str = None, acquirable: str = None):
         raster = None
 
     return outfile_list
-
-
-if __name__ == "__main__":
-    ...

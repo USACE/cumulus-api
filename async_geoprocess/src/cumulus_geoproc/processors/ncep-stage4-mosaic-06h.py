@@ -1,4 +1,5 @@
-"""NCEP Stage IV Mosaic
+"""
+# NCEP Stage IV Mosaic
 """
 
 
@@ -43,19 +44,19 @@ def process(src: str, dst: str, acquirable: str = None):
     outfile_list = []
 
     try:
+        attr = {"GRIB_ELEMENT": "APCP06"}
 
         filename = os.path.basename(src)
-        filename_ = utils.file_extension(filename)
+        filename_dst = utils.file_extension(filename)
 
-        bucket, key = src.split("/", maxsplit=1)
-        logger.debug(f"s3_download_file({bucket=}, {key=})")
+        # Take the source path as the destination unless defined.
+        # User defined `dst` not programatically removed unless under
+        # source's temporary directory.
+        if dst is None:
+            dst = os.path.dirname(src)
 
-        src_ = boto.s3_download_file(bucket=bucket, key=key, dst=dst)
-        logger.debug(f"S3 Downloaded File: {src_}")
+        ds = gdal.Open(src)
 
-        ds = gdal.Open(src_)
-
-        attr = {"GRIB_ELEMENT": "APCP06"}
         if (band_number := cgdal.find_band(ds, attr)) is None:
             raise Exception("Band number not found for attributes: {attr}")
 
@@ -68,17 +69,9 @@ def process(src: str, dst: str, acquirable: str = None):
         valid_time_match = time_pattern.match(raster.GetMetadataItem("GRIB_VALID_TIME"))
         dt_valid = datetime.fromtimestamp(int(valid_time_match[0]), timezone.utc)
 
-        gdal.Translate(
-            tif := os.path.join(dst, filename_),
+        cgdal.gdal_translate_w_options(
+            tif := os.path.join(dst, filename_dst),
             ds,
-            format="COG",
-            bandList=[band_number],
-            creationOptions=[
-                "RESAMPLING=AVERAGE",
-                "OVERVIEWS=IGNORE_EXISTING",
-                "OVERVIEW_RESAMPLING=AVERAGE",
-                "NUM_THREADS=ALL_CPUS",
-            ],
         )
 
         # validate COG
@@ -102,7 +95,3 @@ def process(src: str, dst: str, acquirable: str = None):
         raster = None
 
     return outfile_list
-
-
-if __name__ == "__main__":
-    pass

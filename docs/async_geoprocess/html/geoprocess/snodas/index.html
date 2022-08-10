@@ -189,11 +189,7 @@
 
       <details class="quote">
         <summary>Source code in <code>cumulus_geoproc/geoprocess/snodas/__init__.py</code></summary>
-        <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">163</span>
-<span class="normal">164</span>
-<span class="normal">165</span>
-<span class="normal">166</span>
-<span class="normal">167</span>
+        <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">167</span>
 <span class="normal">168</span>
 <span class="normal">169</span>
 <span class="normal">170</span>
@@ -260,7 +256,15 @@
 <span class="normal">231</span>
 <span class="normal">232</span>
 <span class="normal">233</span>
-<span class="normal">234</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span> <span class="nf">cold_content</span><span class="p">(</span><span class="n">translated_tif</span><span class="p">):</span>
+<span class="normal">234</span>
+<span class="normal">235</span>
+<span class="normal">236</span>
+<span class="normal">237</span>
+<span class="normal">238</span>
+<span class="normal">239</span>
+<span class="normal">240</span>
+<span class="normal">241</span>
+<span class="normal">242</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span> <span class="nf">cold_content</span><span class="p">(</span><span class="n">translated_tif</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;Compute cold content as a function of SWE and snow pack avg temp</span>
 
 <span class="sd">    Parameters</span>
@@ -288,9 +292,13 @@
     <span class="n">swe_code</span> <span class="o">=</span> <span class="s2">&quot;1034&quot;</span>
     <span class="n">avg_temp_sp</span> <span class="o">=</span> <span class="s2">&quot;1038&quot;</span>
 
-    <span class="n">swe</span> <span class="o">=</span> <span class="n">translated_tif</span><span class="p">[</span><span class="n">swe_code</span><span class="p">][</span><span class="s2">&quot;file&quot;</span><span class="p">]</span>
-    <span class="n">swe_dt</span> <span class="o">=</span> <span class="n">translated_tif</span><span class="p">[</span><span class="n">swe_code</span><span class="p">][</span><span class="s2">&quot;datetime&quot;</span><span class="p">]</span>
-    <span class="n">avg_temp</span> <span class="o">=</span> <span class="n">translated_tif</span><span class="p">[</span><span class="n">avg_temp_sp</span><span class="p">][</span><span class="s2">&quot;file&quot;</span><span class="p">]</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="n">swe</span> <span class="o">=</span> <span class="n">translated_tif</span><span class="p">[</span><span class="n">swe_code</span><span class="p">][</span><span class="s2">&quot;file&quot;</span><span class="p">]</span>
+        <span class="n">swe_dt</span> <span class="o">=</span> <span class="n">translated_tif</span><span class="p">[</span><span class="n">swe_code</span><span class="p">][</span><span class="s2">&quot;datetime&quot;</span><span class="p">]</span>
+        <span class="n">avg_temp</span> <span class="o">=</span> <span class="n">translated_tif</span><span class="p">[</span><span class="n">avg_temp_sp</span><span class="p">][</span><span class="s2">&quot;file&quot;</span><span class="p">]</span>
+    <span class="k">except</span> <span class="ne">KeyError</span> <span class="k">as</span> <span class="n">ex</span><span class="p">:</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="nb">type</span><span class="p">(</span><span class="n">ex</span><span class="p">)</span><span class="o">.</span><span class="vm">__name__</span><span class="si">}</span><span class="s2">: </span><span class="si">{</span><span class="n">this</span><span class="si">}</span><span class="s2">: </span><span class="si">{</span><span class="n">ex</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="k">return</span>
 
     <span class="n">cold_content_filename</span> <span class="o">=</span> <span class="n">swe</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="n">swe_code</span><span class="p">,</span> <span class="n">coldcontent_code</span><span class="p">)</span>
     <span class="n">temp_cold_content</span> <span class="o">=</span> <span class="n">swe</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="n">swe_code</span><span class="p">,</span> <span class="s2">&quot;9999&quot;</span><span class="p">)</span>
@@ -312,9 +320,9 @@
             <span class="n">temp_cold_content</span><span class="p">,</span>
             <span class="nb">format</span><span class="o">=</span><span class="s2">&quot;COG&quot;</span><span class="p">,</span>
             <span class="n">creationOptions</span><span class="o">=</span><span class="p">[</span>
-                <span class="s2">&quot;RESAMPLING=AVERAGE&quot;</span><span class="p">,</span>
+                <span class="s2">&quot;RESAMPLING=BILINEAR&quot;</span><span class="p">,</span>
                 <span class="s2">&quot;OVERVIEWS=IGNORE_EXISTING&quot;</span><span class="p">,</span>
-                <span class="s2">&quot;OVERVIEW_RESAMPLING=AVERAGE&quot;</span><span class="p">,</span>
+                <span class="s2">&quot;OVERVIEW_RESAMPLING=BILINEAR&quot;</span><span class="p">,</span>
             <span class="p">],</span>
         <span class="p">)</span>
         <span class="c1"># validate COG</span>
@@ -575,7 +583,11 @@
 <span class="normal">157</span>
 <span class="normal">158</span>
 <span class="normal">159</span>
-<span class="normal">160</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span> <span class="nf">snow_melt_mm</span><span class="p">(</span><span class="n">translated_tif</span><span class="p">:</span> <span class="nb">dict</span><span class="p">):</span>
+<span class="normal">160</span>
+<span class="normal">161</span>
+<span class="normal">162</span>
+<span class="normal">163</span>
+<span class="normal">164</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span> <span class="nf">snow_melt_mm</span><span class="p">(</span><span class="n">translated_tif</span><span class="p">:</span> <span class="nb">dict</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;Dictionary of tiffs generated from gdal translate</span>
 
 <span class="sd">    Parameters</span>
@@ -602,8 +614,12 @@
     <span class="n">snowmelt_code</span> <span class="o">=</span> <span class="s2">&quot;1044&quot;</span>
     <span class="n">snowmelt_code_mm</span> <span class="o">=</span> <span class="s2">&quot;3333&quot;</span>
 
-    <span class="n">snowmelt</span> <span class="o">=</span> <span class="n">translated_tif</span><span class="p">[</span><span class="n">snowmelt_code</span><span class="p">][</span><span class="s2">&quot;file&quot;</span><span class="p">]</span>
-    <span class="n">snowmelt_dt</span> <span class="o">=</span> <span class="n">translated_tif</span><span class="p">[</span><span class="n">snowmelt_code</span><span class="p">][</span><span class="s2">&quot;datetime&quot;</span><span class="p">]</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="n">snowmelt</span> <span class="o">=</span> <span class="n">translated_tif</span><span class="p">[</span><span class="n">snowmelt_code</span><span class="p">][</span><span class="s2">&quot;file&quot;</span><span class="p">]</span>
+        <span class="n">snowmelt_dt</span> <span class="o">=</span> <span class="n">translated_tif</span><span class="p">[</span><span class="n">snowmelt_code</span><span class="p">][</span><span class="s2">&quot;datetime&quot;</span><span class="p">]</span>
+    <span class="k">except</span> <span class="ne">KeyError</span> <span class="k">as</span> <span class="n">ex</span><span class="p">:</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="nb">type</span><span class="p">(</span><span class="n">ex</span><span class="p">)</span><span class="o">.</span><span class="vm">__name__</span><span class="si">}</span><span class="s2">: </span><span class="si">{</span><span class="n">this</span><span class="si">}</span><span class="s2">: </span><span class="si">{</span><span class="n">ex</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="k">return</span>
 
     <span class="n">snowmelt_mm</span> <span class="o">=</span> <span class="n">snowmelt</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="n">snowmelt_code</span><span class="p">,</span> <span class="n">snowmelt_code_mm</span><span class="p">)</span>
     <span class="n">temp_snowmelt_mm</span> <span class="o">=</span> <span class="n">snowmelt</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="n">snowmelt_code</span><span class="p">,</span> <span class="s2">&quot;9999&quot;</span><span class="p">)</span>
@@ -626,9 +642,9 @@
             <span class="n">temp_snowmelt_mm</span><span class="p">,</span>
             <span class="nb">format</span><span class="o">=</span><span class="s2">&quot;COG&quot;</span><span class="p">,</span>
             <span class="n">creationOptions</span><span class="o">=</span><span class="p">[</span>
-                <span class="s2">&quot;RESAMPLING=AVERAGE&quot;</span><span class="p">,</span>
+                <span class="s2">&quot;RESAMPLING=BILINEAR&quot;</span><span class="p">,</span>
                 <span class="s2">&quot;OVERVIEWS=IGNORE_EXISTING&quot;</span><span class="p">,</span>
-                <span class="s2">&quot;OVERVIEW_RESAMPLING=AVERAGE&quot;</span><span class="p">,</span>
+                <span class="s2">&quot;OVERVIEW_RESAMPLING=BILINEAR&quot;</span><span class="p">,</span>
             <span class="p">],</span>
         <span class="p">)</span>
         <span class="c1"># validate COG</span>
@@ -937,7 +953,19 @@
 <span class="normal">219</span>
 <span class="normal">220</span>
 <span class="normal">221</span>
-<span class="normal">222</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">async</span> <span class="k">def</span> <span class="nf">snodas</span><span class="p">(</span><span class="n">cfg</span><span class="p">:</span> <span class="n">namedtuple</span><span class="p">,</span> <span class="n">dst</span><span class="p">:</span> <span class="nb">str</span><span class="p">):</span>
+<span class="normal">222</span>
+<span class="normal">223</span>
+<span class="normal">224</span>
+<span class="normal">225</span>
+<span class="normal">226</span>
+<span class="normal">227</span>
+<span class="normal">228</span>
+<span class="normal">229</span>
+<span class="normal">230</span>
+<span class="normal">231</span>
+<span class="normal">232</span>
+<span class="normal">233</span>
+<span class="normal">234</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">async</span> <span class="k">def</span> <span class="nf">snodas</span><span class="p">(</span><span class="n">cfg</span><span class="p">:</span> <span class="n">namedtuple</span><span class="p">,</span> <span class="n">dst</span><span class="p">:</span> <span class="nb">str</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;Main method building asyncio tasks</span>
 
 <span class="sd">    Parameters</span>
@@ -965,9 +993,21 @@
         <span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="n">tzinfo</span><span class="o">=</span><span class="n">timezone</span><span class="o">.</span><span class="n">utc</span><span class="p">)</span>
     <span class="p">)</span>
     <span class="n">nodata_value</span> <span class="o">=</span> <span class="n">no_data_value</span><span class="p">(</span><span class="n">dt</span><span class="p">)</span>
+    <span class="c1"># determine spatial coverage; date dependent</span>
+    <span class="n">_sc</span> <span class="o">=</span> <span class="p">(</span>
+        <span class="s2">&quot;us&quot;</span>
+        <span class="k">if</span> <span class="p">(</span>
+            <span class="n">datetime</span><span class="p">(</span><span class="mi">2003</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="n">tzinfo</span><span class="o">=</span><span class="n">timezone</span><span class="o">.</span><span class="n">utc</span><span class="p">)</span>
+            <span class="o">&lt;=</span> <span class="n">dt</span>
+            <span class="o">&lt;</span> <span class="n">datetime</span><span class="p">(</span><span class="mi">2010</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">17</span><span class="p">,</span> <span class="n">tzinfo</span><span class="o">=</span><span class="n">timezone</span><span class="o">.</span><span class="n">utc</span><span class="p">)</span>
+        <span class="p">)</span>
+        <span class="k">else</span> <span class="s2">&quot;zz&quot;</span>
+    <span class="p">)</span>
+    <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Spatial coverage is </span><span class="si">{</span><span class="n">_sc</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+
     <span class="k">for</span> <span class="n">code</span> <span class="ow">in</span> <span class="p">(</span><span class="s2">&quot;1034&quot;</span><span class="p">,</span> <span class="s2">&quot;1036&quot;</span><span class="p">,</span> <span class="s2">&quot;1038&quot;</span><span class="p">,</span> <span class="s2">&quot;3333&quot;</span><span class="p">,</span> <span class="s2">&quot;2072&quot;</span><span class="p">):</span>
         <span class="n">filename</span> <span class="o">=</span> <span class="n">Template</span><span class="o">.</span><span class="n">substitute</span><span class="p">(</span>
-            <span class="n">product_code</span><span class="p">[</span><span class="n">code</span><span class="p">][</span><span class="s2">&quot;file_template&quot;</span><span class="p">],</span> <span class="n">YMD</span><span class="o">=</span><span class="n">cfg</span><span class="o">.</span><span class="n">datetime</span>
+            <span class="n">product_code</span><span class="p">[</span><span class="n">code</span><span class="p">][</span><span class="s2">&quot;file_template&quot;</span><span class="p">],</span> <span class="n">SC</span><span class="o">=</span><span class="n">_sc</span><span class="p">,</span> <span class="n">YMD</span><span class="o">=</span><span class="n">cfg</span><span class="o">.</span><span class="n">datetime</span>
         <span class="p">)</span>
         <span class="n">product</span> <span class="o">=</span> <span class="n">product_code</span><span class="p">[</span><span class="n">code</span><span class="p">][</span><span class="s2">&quot;product&quot;</span><span class="p">]</span> <span class="o">+</span> <span class="s2">&quot;-interpolated&quot;</span>
         <span class="n">key</span> <span class="o">=</span> <span class="p">(</span>
@@ -1315,9 +1355,9 @@
             <span class="n">fill_tif</span><span class="p">,</span>
             <span class="nb">format</span><span class="o">=</span><span class="s2">&quot;COG&quot;</span><span class="p">,</span>
             <span class="n">creationOptions</span><span class="o">=</span><span class="p">[</span>
-                <span class="s2">&quot;RESAMPLING=AVERAGE&quot;</span><span class="p">,</span>
+                <span class="s2">&quot;RESAMPLING=BILINEAR&quot;</span><span class="p">,</span>
                 <span class="s2">&quot;OVERVIEWS=IGNORE_EXISTING&quot;</span><span class="p">,</span>
-                <span class="s2">&quot;OVERVIEW_RESAMPLING=AVERAGE&quot;</span><span class="p">,</span>
+                <span class="s2">&quot;OVERVIEW_RESAMPLING=BILINEAR&quot;</span><span class="p">,</span>
             <span class="p">],</span>
         <span class="p">)</span>
         <span class="c1"># validate COG</span>

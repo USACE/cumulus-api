@@ -1,4 +1,5 @@
-"""NOHRSC SNODAS Assimilated
+"""
+# NOHRSC SNODAS Assimilated
 
 Inside the original assim_layers_YYYYMMDDHH.tar file:
 Inside a folder that looks like: ssm1054_2022012212.20220122134004 (without the word 'east')
@@ -15,7 +16,7 @@ import numpy
 
 import pyplugs
 from cumulus_geoproc import logger, utils
-from cumulus_geoproc.utils import boto, cgdal
+from cumulus_geoproc.utils import cgdal
 from netCDF4 import Dataset
 from osgeo import gdal, osr
 
@@ -23,42 +24,50 @@ this = os.path.basename(__file__)
 
 
 @pyplugs.register
-def process(src: str, dst: str, acquirable: str = None):
-    """Grid processor
+def process(*, src: str, dst: str = None, acquirable: str = None):
+    """
+    # Grid processor
+
+    __Requires keyword only arguments (*)__
 
     Parameters
     ----------
     src : str
         path to input file for processing
-    dst : str
-        path to temporary directory created from worker thread
-    acquirable: str
+    dst : str, optional
+        path to temporary directory
+    acquirable: str, optional
         acquirable slug
 
     Returns
     -------
     List[dict]
-        {
-            "filetype": str,         Matching database acquirable
-            "file": str,             Converted file
-            "datetime": str,         Valid Time, ISO format with timezone
-            "version": str           Reference Time (forecast), ISO format with timezone
-        }
+    ```
+    {
+        "filetype": str,         Matching database acquirable
+        "file": str,             Converted file
+        "datetime": str,         Valid Time, ISO format with timezone
+        "version": str           Reference Time (forecast), ISO format with timezone
+    }
+    ```
     """
 
     outfile_list = []
     acquirable = "nohrsc-snodas-swe-corrections"
 
     try:
-        bucket, key = src.split("/", maxsplit=1)
-        logger.debug(f"s3_download_file({bucket=}, {key=})")
+        filename = os.path.basename(src)
+        filename_dst = utils.file_extension(filename)
 
-        src_ = boto.s3_download_file(bucket=bucket, key=key, dst=dst)
-        logger.debug(f"S3 Downloaded File: {src_}")
+        # Take the source path as the destination unless defined.
+        # User defined `dst` not programatically removed unless under
+        # source's temporary directory.
+        if dst is None:
+            dst = os.path.dirname(src)
 
         # extract the member from the tar using this pattern
         member_pattern = re.compile(r"ssm1054_\d+.\d+/ssm1054_\d+.nc.gz")
-        with tarfile.open(src_) as tar:
+        with tarfile.open(src) as tar:
             for member in tar.getmembers():
                 if member_pattern.match(member.name):
                     tar.extract(member, path=dst)
@@ -78,7 +87,9 @@ def process(src: str, dst: str, acquirable: str = None):
                         crs = ncds.variables["crs"]
                         data_vals = data[:]
 
-                        valid_time = datetime.fromisoformat(data.stop_date).replace(tzinfo=timezone.utc)
+                        valid_time = datetime.fromisoformat(data.stop_date).replace(
+                            tzinfo=timezone.utc
+                        )
 
                         xmin, ymin, xmax, ymax = (
                             lon.min(),
@@ -108,7 +119,7 @@ def process(src: str, dst: str, acquirable: str = None):
 
                         raster.SetProjection(srs.ExportToWkt())
                         band = raster.GetRasterBand(1)
-                        
+
                         # Reference the following for reason to flip
                         # https://www.unidata.ucar.edu/support/help/MailArchives/netcdf/msg03585.html
                         # Basically, get the array sequence like other Tiffs
@@ -117,18 +128,10 @@ def process(src: str, dst: str, acquirable: str = None):
                         raster.FlushCache()
                         raster = None
 
-                        gdal.Translate(
+                        cgdal.gdal_translate_w_options(
                             tif := os.path.join(dst, filename_),
                             tmptif,
-                            format="COG",
-                            bandList=[1],
                             noData=data.no_data_value,
-                            creationOptions=[
-                                "RESAMPLING=AVERAGE",
-                                "OVERVIEWS=IGNORE_EXISTING",
-                                "OVERVIEW_RESAMPLING=AVERAGE",
-                                "NUM_THREADS=ALL_CPUS",
-                            ],
                         )
 
                         # validate COG
@@ -153,7 +156,3 @@ def process(src: str, dst: str, acquirable: str = None):
         ds = None
 
     return outfile_list
-
-
-if __name__ == "__main__":
-    pass

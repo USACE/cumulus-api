@@ -1,4 +1,8 @@
-"""Initialize package
+"""
+# Initialize package
+
+Package level logging defined and log level set
+
 """
 
 

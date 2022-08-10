@@ -1,4 +1,5 @@
-"""utilities for the cumulus geoprocessor package
+"""
+# Utilities for the cumulus geoprocessor package
 """
 
 import gzip
@@ -7,13 +8,35 @@ import tarfile
 import zipfile
 from cumulus_geoproc import logger
 
-# from cumulus_geoproc import logger
+EXTS = (
+    ".bil",
+    ".bin",
+    ".dat",
+    ".gz",
+    ".grb",
+    ".grb.gz",
+    ".grb2",
+    ".grib",
+    ".grib.gz",
+    ".grib2",
+    ".grib2.gz",
+    ".nc",
+    ".tar",
+    ".tar.gz",
+    ".tif",
+    ".tiff",
+    ".txt",
+    ".zip",
+)
 
 this = os.path.basename(__file__)
 
 
-def file_extension(file: str, preffix: str = "", suffix=".tif", maxsplit=-1):
-    """Replace file extension with suffix with allowable extensions
+def file_extension(
+    file: str, preffix: str = None, suffix=".tif", extension: str = None, maxsplit=-1
+):
+    """
+    # Replace file extension with suffix with allowable extensions
 
     Parameters
     ----------
@@ -23,6 +46,8 @@ def file_extension(file: str, preffix: str = "", suffix=".tif", maxsplit=-1):
         add preffix to input string, by default ""
     suffix : str, optional
         replace extension with suffix, by default ".tif"
+    extension : str, optional
+        user defined extension
     maxsplit : int, optional
         for multiple ".ext"; e.g. .tar.gz, by default -1
 
@@ -31,31 +56,15 @@ def file_extension(file: str, preffix: str = "", suffix=".tif", maxsplit=-1):
     str
         filename or FQPN with new extension, preffix, or both
     """
-    file = preffix + file
+    # Do we need the preffix
+    file = preffix + file if preffix is not None else file
 
-    exts = (
-        ".gz",
-        ".nc",
-        ".tar",
-        ".bin",
-        ".grb",
-        ".zip",
-        ".bil",
-        ".dat",
-        ".txt",
-        ".tif",
-        ".tiff",
-        ".grb2",
-        ".grib",
-        ".grib2",
-        ".tar.gz",
-        ".grib.gz",
-        ".grib2.gz",
-        ".grb.gz",
-    )
-    if file.endswith(exts):
+    # User defined extension?
+    _exts = extension if extension else EXTS
+
+    if file.endswith(_exts):
         file_ = [
-            file.replace(file[-len(e) :], suffix) for e in exts if file[-len(e) :] == e
+            file.replace(file[-len(e) :], suffix) for e in EXTS if file[-len(e) :] == e
         ]
 
         # maxsure not to go out of range
@@ -68,7 +77,8 @@ def file_extension(file: str, preffix: str = "", suffix=".tif", maxsplit=-1):
 
 
 def decompress(src: str, dst: str = "/tmp", recursive: bool = False):
-    """Decompress gzip, tar, tar gzip, or zip file
+    """
+    # Decompress gzip, tar, tar gzip, or zip file
 
     Destination as a temporary directory best used because this methods
     does not clean files/directories
@@ -143,6 +153,3 @@ def decompress(src: str, dst: str = "/tmp", recursive: bool = False):
 
     return src
 
-
-if __name__ == "__main__":
-    pass

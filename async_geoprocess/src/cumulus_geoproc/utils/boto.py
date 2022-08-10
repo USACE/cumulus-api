@@ -1,4 +1,5 @@
-"""Cumulus utilities helping with S3 functionality
+"""
+# Cumulus utilities helping with S3 functionality
 """
 
 import os
@@ -105,7 +106,7 @@ def s3_download_file(bucket: str, key: str, dst: str = "/tmp", prefix: str = Non
         )
     except ClientError as ex:
         logger.error(f"{type(ex).__name__}: {this}: {ex} - key: {key}")
-        return False
+        return
     return filename
 
 

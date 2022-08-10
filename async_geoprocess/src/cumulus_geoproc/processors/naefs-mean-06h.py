@@ -9,7 +9,7 @@ import numpy
 
 import pyplugs
 from cumulus_geoproc import logger
-from cumulus_geoproc.utils import boto, cgdal
+from cumulus_geoproc.utils import cgdal
 from osgeo import gdal, osr
 from netCDF4 import Dataset, num2date, date2index
 
@@ -17,41 +17,47 @@ this = os.path.basename(__file__)
 
 
 @pyplugs.register
-def process(src: str, dst: str, acquirable: str = None):
-    """Grid processor
+def process(*, src: str, dst: str = None, acquirable: str = None):
+    """
+    # Grid processor
+
+    __Requires keyword only arguments (*)__
 
     Parameters
     ----------
     src : str
         path to input file for processing
-    dst : str
-        path to temporary directory created from worker thread
-    acquirable: str
+    dst : str, optional
+        path to temporary directory
+    acquirable: str, optional
         acquirable slug
 
     Returns
     -------
     List[dict]
-        {
-            "filetype": str,         Matching database acquirable
-            "file": str,             Converted file
-            "datetime": str,         Valid Time, ISO format with timezone
-            "version": str           Reference Time (forecast), ISO format with timezone
-        }
+    ```
+    {
+        "filetype": str,         Matching database acquirable
+        "file": str,             Converted file
+        "datetime": str,         Valid Time, ISO format with timezone
+        "version": str           Reference Time (forecast), ISO format with timezone
+    }
+    ```
     """
     outfile_list = []
 
     try:
         filename = os.path.basename(src)
 
+        # Take the source path as the destination unless defined.
+        # User defined `dst` not programatically removed unless under
+        # source's temporary directory.
+        if dst is None:
+            dst = os.path.dirname(src)
+
         products = {"QPF": "naefs-mean-qpf-06h", "QTF": "naefs-mean-qtf-06h"}
 
-        bucket, key = src.split("/", maxsplit=1)
-
-        src_ = boto.s3_download_file(bucket=bucket, key=key, dst=dst)
-        logger.debug(f"S3 Downloaded File: {src_}")
-
-        with Dataset(src_, "r") as ncds:
+        with Dataset(src, "r") as ncds:
             time_str = re.match(r"\d{4}-\d{2}-\d{2} \d+:\d+:\d+", ncds.date_created)
             date_created = datetime.fromisoformat(time_str[0]).replace(
                 tzinfo=timezone.utc
@@ -110,17 +116,10 @@ def process(src: str, dst: str, acquirable: str = None):
                     raster.FlushCache()
                     raster = None
 
-                    gdal.Translate(
+                    cgdal.gdal_translate_w_options(
                         tif := os.path.join(dst, tmptif.replace("-tmp.tif", ".tif")),
                         tmptif,
-                        format="COG",
-                        bandList=[1],
                         noData=nodata,
-                        creationOptions=[
-                            "RESAMPLING=BILINEAR",
-                            "OVERVIEWS=IGNORE_EXISTING",
-                            "OVERVIEW_RESAMPLING=BILINEAR",
-                        ],
                     )
 
                     # validate COG
@@ -141,7 +140,3 @@ def process(src: str, dst: str, acquirable: str = None):
         raster = None
 
     return outfile_list
-
-
-if __name__ == "__main__":
-    pass

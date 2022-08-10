@@ -998,7 +998,10 @@
 									"// status code is 201",
 									"pm.test(\"Status code is 201\", function () {",
 									"    pm.response.to.have.status(201);",
-									"});"
+									"});",
+									"",
+									"let jsonData = JSON.parse(responseBody);",
+									"pm.environment.set(\"dynamic_acquirablefile_id\", jsonData.id);"
 								],
 								"type": "text/javascript"
 							}
@@ -1431,6 +1434,46 @@
 							],
 							"path": [
 								"products"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "CreateProductfile",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"// status code is 201",
+									"pm.test(\"Status code is 201\", function () {",
+									"    pm.response.to.have.status(201);",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "[{\n    \"file\": \"cumulus/products/nohrsc-snodas-swe/bogus_test_zz_ssmv11034tS__T0001TTNATS2022081005HP001.tif\",\n    \"datetime\": \"2014-01-01T00:00:00Z\",\n    \"acquirablefile_id\": \"{{dynamic_acquirablefile_id}}\",\n    \"product_id\": \"757c809c-dda0-412b-9831-cb9bd0f62d1d\",\n    \"version\": null\n}]",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{base_url}}/productfiles",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"productfiles"
 							]
 						}
 					},

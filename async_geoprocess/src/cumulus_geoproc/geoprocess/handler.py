@@ -56,7 +56,7 @@ def handle_message(geoprocess: str, GeoCfg: namedtuple, dst: str):
     elif geoprocess == "incoming-file-to-cogs":
         # process and get resulting dictionary object defining the new grid
         # add acquirable id to each object in the list
-        if src := boto.s3_download_file(bucket=GeoCfg.bucket, key=GeoCfg.key):
+        if src := boto.s3_download_file(bucket=GeoCfg.bucket, key=GeoCfg.key, dst=dst):
             proc_list = geo_proc(
                 plugin=GeoCfg.acquirable_slug,
                 src=src,

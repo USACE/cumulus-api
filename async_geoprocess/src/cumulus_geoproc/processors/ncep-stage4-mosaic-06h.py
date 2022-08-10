@@ -19,27 +19,32 @@ this = os.path.basename(__file__)
 
 
 @pyplugs.register
-def process(src: str, dst: str, acquirable: str = None):
-    """Grid processor
+def process(*, src: str, dst: str = None, acquirable: str = None):
+    """
+    # Grid processor
+
+    __Requires keyword only arguments (*)__
 
     Parameters
     ----------
     src : str
         path to input file for processing
-    dst : str
-        path to temporary directory created from worker thread
-    acquirable: str
+    dst : str, optional
+        path to temporary directory
+    acquirable: str, optional
         acquirable slug
 
     Returns
     -------
     List[dict]
-        {
-            "filetype": str,         Matching database acquirable
-            "file": str,             Converted file
-            "datetime": str,         Valid Time, ISO format with timezone
-            "version": str           Reference Time (forecast), ISO format with timezone
-        }
+    ```
+    {
+        "filetype": str,         Matching database acquirable
+        "file": str,             Converted file
+        "datetime": str,         Valid Time, ISO format with timezone
+        "version": str           Reference Time (forecast), ISO format with timezone
+    }
+    ```
     """
     outfile_list = []
 

@@ -1,4 +1,5 @@
-"""Cumulus utilities helping with S3 functionality
+"""
+# Cumulus utilities helping with S3 functionality
 """
 
 import os

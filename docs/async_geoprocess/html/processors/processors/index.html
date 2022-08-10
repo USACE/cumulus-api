@@ -3315,7 +3315,7 @@ Need to uncompress that NetCDF file</p>
                     <span class="c1"># set translate options</span>
                     <span class="n">ds</span> <span class="o">=</span> <span class="n">gdal</span><span class="o">.</span><span class="n">Open</span><span class="p">(</span><span class="n">datafile_pathname</span><span class="p">)</span>
 
-                    <span class="n">cgdal</span><span class="o">.</span><span class="n">gdal_translate_options</span><span class="p">(</span>
+                    <span class="n">cgdal</span><span class="o">.</span><span class="n">gdal_translate_w_options</span><span class="p">(</span>
                         <span class="n">tif</span> <span class="o">:=</span> <span class="n">file_extension</span><span class="p">(</span><span class="n">datafile_pathname</span><span class="p">,</span> <span class="n">suffix</span><span class="o">=</span><span class="s2">&quot;.tif&quot;</span><span class="p">),</span>
                         <span class="n">ds</span><span class="p">,</span>
                         <span class="n">outputSRS</span><span class="o">=</span><span class="sa">f</span><span class="s2">&quot;+proj=longlat +ellps=</span><span class="si">{</span><span class="n">meta_ntuple</span><span class="o">.</span><span class="n">horizontal_datum</span><span class="si">}</span><span class="s2"> +datum=</span><span class="si">{</span><span class="n">meta_ntuple</span><span class="o">.</span><span class="n">horizontal_datum</span><span class="si">}</span><span class="s2"> +no_defs&quot;</span><span class="p">,</span>

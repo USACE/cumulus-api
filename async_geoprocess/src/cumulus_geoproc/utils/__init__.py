@@ -1,4 +1,5 @@
-"""utilities for the cumulus geoprocessor package
+"""
+# Utilities for the cumulus geoprocessor package
 """
 
 import gzip
@@ -151,6 +152,3 @@ def decompress(src: str, dst: str = "/tmp", recursive: bool = False):
 
     return src
 
-
-if __name__ == "__main__":
-    pass

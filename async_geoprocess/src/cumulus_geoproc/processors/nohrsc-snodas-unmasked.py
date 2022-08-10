@@ -102,7 +102,7 @@ def process(*, src: str, dst: str = None, acquirable: str = None):
                     # set translate options
                     ds = gdal.Open(datafile_pathname)
 
-                    cgdal.gdal_translate_options(
+                    cgdal.gdal_translate_w_options(
                         tif := file_extension(datafile_pathname, suffix=".tif"),
                         ds,
                         outputSRS=f"+proj=longlat +ellps={meta_ntuple.horizontal_datum} +datum={meta_ntuple.horizontal_datum} +no_defs",

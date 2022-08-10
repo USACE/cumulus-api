@@ -248,7 +248,3 @@ def validate_cog(*args):
 # TODO: GridProcess class
 class GridProcess:
     pass
-
-
-if __name__ == "__main__":
-    ...

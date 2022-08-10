@@ -1,4 +1,5 @@
-"""Initialize Geo Processor Plugins; source undefined
+"""
+# Initialize Geo Processor Plugins
 """
 import pyplugs
 

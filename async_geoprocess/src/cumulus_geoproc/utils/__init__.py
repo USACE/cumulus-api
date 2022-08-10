@@ -9,23 +9,24 @@ import zipfile
 from cumulus_geoproc import logger
 
 EXTS = (
+    ".bil",
+    ".bin",
+    ".dat",
     ".gz",
+    ".grb",
+    ".grb.gz",
+    ".grb2",
+    ".grib",
+    ".grib.gz",
+    ".grib2",
+    ".grib2.gz",
     ".nc",
     ".tar",
-    ".bin",
-    ".grb",
-    ".zip",
-    ".bil",
-    ".dat",
-    ".txt",
+    ".tar.gz",
     ".tif",
     ".tiff",
-    ".grib",
-    ".grib2",
-    ".tar.gz",
-    ".grib.gz",
-    ".grib2.gz",
-    ".grb.gz",
+    ".txt",
+    ".zip",
 )
 
 this = os.path.basename(__file__)

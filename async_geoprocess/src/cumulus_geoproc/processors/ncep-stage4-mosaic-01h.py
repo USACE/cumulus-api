@@ -9,7 +9,7 @@ from datetime import datetime, timezone
 
 import pyplugs
 from cumulus_geoproc import logger, utils
-from cumulus_geoproc.utils import boto, cgdal
+from cumulus_geoproc.utils import cgdal
 from osgeo import gdal
 
 gdal.UseExceptions()

@@ -124,19 +124,14 @@ def start_worker():
                 # update processed messages with additional attributes
                 # set product version is set to None from processor
                 # KeyError for slug id not available allows for the loop to continue
-                product_versioning = lambda p: PRODUCT_FILE_VERSION if p is None else p
                 processed_ = []
                 for item in processed:
                     try:
-                        item_ = {
+                        processed_.append({
                             **item,
-                            **{
-                                "acquirablefile_id": acquirablefile_id,
-                                "product_id": PRODUCT_MAP[item["filetype"]],
-                                "version": product_versioning(item["version"]),
-                            },
-                        }
-                        processed_.append(item_)
+                            "acquirablefile_id": acquirablefile_id,
+                            "product_id": PRODUCT_MAP[item["filetype"]],
+                        })
                         logger.debug(f"New processed dict item: {processed_[-1]}")
                     except KeyError as ex:
                         logger.warning(f"{type(ex).__name__} - {this} - {ex}")

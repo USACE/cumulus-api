@@ -13,7 +13,7 @@ from cumulus_packager import heclib, logger
 from cumulus_packager.packager.handler import PACKAGE_STATUS, update_status
 from osgeo import gdal, osr
 
-from cumulus_packager.configurations import PACKAGER_UPDATE_INTERVAL
+from cumulus_packager.configurations import PACKAGER_UPDATE_INTERVAL, LOGGER_LEVEL
 
 gdal.UseExceptions()
 
@@ -40,7 +40,6 @@ def log_dataset(gdal_dataset, *args):
     gdal_spatial_ref = None
     data = None
     raster = None
-    gdal_dataset = None
 
     return
 
@@ -80,7 +79,7 @@ def writer(
     def _zwrite(dssfilename, gridStructStore, data_flat):
         _ = heclib.zwrite_record(
             dssfilename=dssfilename,
-            gridStructStore=spatialGridStruct,
+            gridStructStore=gridStructStore,
             data_flat=data_flat.astype(numpy.float32),
         )
         _ = None
@@ -118,7 +117,8 @@ def writer(
             data_type = heclib.data_type[TifCfg.dss_datatype]
             ds = gdal.Open(f"/vsis3_streaming/{TifCfg.bucket}/{TifCfg.key}")
 
-            log_dataset(ds, "BEFORE")
+            if LOGGER_LEVEL.lower == "debug":
+                log_dataset(ds, "BEFORE")
 
             # GDAL Warp the Tiff to what we need for DSS
             filename_ = os.path.basename(TifCfg.key)
@@ -135,7 +135,9 @@ def writer(
                 resampleAlg="bilinear",
                 copyMetadata=False,
             )
-            log_dataset(warp_ds, "AFTER")
+
+            if LOGGER_LEVEL.lower == "debug":
+                log_dataset(warp_ds, "AFTER")
 
             # Read data into 1D array
             raster = warp_ds.GetRasterBand(1)

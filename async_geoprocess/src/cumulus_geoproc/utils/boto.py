@@ -1,4 +1,5 @@
-"""Cumulus utilities helping with S3 functionality
+"""
+# Cumulus utilities helping with S3 functionality
 """
 
 import os
@@ -105,7 +106,7 @@ def s3_download_file(bucket: str, key: str, dst: str = "/tmp", prefix: str = Non
         )
     except ClientError as ex:
         logger.error(f"{type(ex).__name__}: {this}: {ex} - key: {key}")
-        return False
+        return
     return filename
 
 
@@ -125,3 +126,20 @@ def boto3_resource(**kwargs):
     }
 
     return boto3.resource(**kwargs_)
+
+def boto3_client(**kwargs):
+    """Define boto3 client
+
+    Returns
+    -------
+    boto3.client
+        client object with default options with or without user defined attributes
+    """
+    kwargs_ = {
+        "aws_access_key_id": AWS_ACCESS_KEY_ID,
+        "aws_secret_access_key": AWS_SECRET_ACCESS_KEY,
+        "region_name": AWS_DEFAULT_REGION,
+        **kwargs,
+    }
+
+    return boto3.client(**kwargs_)

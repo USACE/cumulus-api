@@ -35,6 +35,10 @@ services:
       - CUMULUS_ASYNC_ENGINE_GEOPROCESS_TARGET=local/http://elasticmq:9324/queue/cumulus-geoprocess
       - CUMULUS_MIN_RECONN=10s
       - CUMULUS_MAX_RECONN=1m
+    depends_on:
+      cumulusdb:
+        condition: service_started
+
     restart: always
   geoprocess:
     build:
@@ -86,6 +90,8 @@ services:
       - GDAL_DISABLE_READDIR_ON_OPEN=EMPTY_DIR
       - LOGGER_LEVEL=DEBUG
       - PACKAGER_UPDATE_INTERVAL=5
+      # - CPL_VSIL_CURL_CHUNK_SIZE=20000000
+      - CPL_CURL_VERBOSE=1
     # Volume to persist packager created file
     volumes:
       - ./_volumes/async_packager/output:/output:rw
@@ -144,6 +150,11 @@ services:
     ports:
       - "80:80"
     restart: always
+    depends_on:
+      cumulusdb:
+        condition: service_started
+      flyway:
+        condition: service_completed_successfully
   flyway:
     build:
       context: sql  
@@ -160,7 +171,8 @@ services:
       - FLYWAY_URL=jdbc:postgresql://cumulusdb:5432/postgres
       - FLYWAY_USER=postgres
     depends_on:
-      - cumulusdb
+      cumulusdb:
+        condition: service_started
   featureserv:
     image: pramsey/pg_featureserv
     container_name: featureserv

@@ -1,4 +1,5 @@
-"""NOHRSC SNODAS Unmasked
+"""
+# NOHRSC SNODAS Unmasked
 """
 
 import os
@@ -8,7 +9,7 @@ import pyplugs
 from cumulus_geoproc import logger, utils
 from cumulus_geoproc.geoprocess import snodas
 from cumulus_geoproc.geoprocess.snodas import metaparse
-from cumulus_geoproc.utils import boto, cgdal, file_extension
+from cumulus_geoproc.utils import cgdal, file_extension
 from osgeo import gdal
 
 gdal.UseExceptions()
@@ -17,42 +18,49 @@ this = os.path.basename(__file__)
 
 
 @pyplugs.register
-def process(src: str, dst: str, acquirable: str = None):
-    """Grid processor
+def process(*, src: str, dst: str = None, acquirable: str = None):
+    """
+    # Grid processor
+
+    __Requires keyword only arguments (*)__
 
     Parameters
     ----------
     src : str
         path to input file for processing
-    dst : str
-        path to temporary directory created from worker thread
-    acquirable: str
+    dst : str, optional
+        path to temporary directory
+    acquirable: str, optional
         acquirable slug
 
     Returns
     -------
     List[dict]
-        {
-            "filetype": str,         Matching database acquirable
-            "file": str,             Converted file
-            "datetime": str,         Valid Time, ISO format with timezone
-            "version": str           Reference Time (forecast), ISO format with timezone
-        }
+    ```
+    {
+        "filetype": str,         Matching database acquirable
+        "file": str,             Converted file
+        "datetime": str,         Valid Time, ISO format with timezone
+        "version": str           Reference Time (forecast), ISO format with timezone
+    }
+    ```
     """
     outfile_list = []
 
     paramater_codes = ["1034", "1036", "1038", "1044"]
 
     try:
-        # download tar to destination (temporary directory)
-        bucket, key = src.split("/", maxsplit=1)
-        logger.debug(f"s3_download_file({bucket=}, {key=})")
+        filename = os.path.basename(src)
+        filename_dst = utils.file_extension(filename)
 
-        src_ = boto.s3_download_file(bucket=bucket, key=key, dst=dst)
-        logger.debug(f"S3 Downloaded File: {src_}")
+        # Take the source path as the destination unless defined.
+        # User defined `dst` not programatically removed unless under
+        # source's temporary directory.
+        if dst is None:
+            dst = os.path.dirname(src)
 
         # decompress the tar and gzip files in the tar
-        decompressed_files = utils.decompress(src_, dst, recursive=True)
+        decompressed_files = utils.decompress(src, dst, recursive=True)
         if not os.path.isdir(decompressed_files):
             raise Exception(f"Not a directory: {decompressed_files}")
 
@@ -72,7 +80,10 @@ def process(src: str, dst: str, acquirable: str = None):
                     meta_ntuple.stop_year,
                     meta_ntuple.stop_month,
                     meta_ntuple.stop_day,
-                    meta_ntuple.stop_hour,
+                    # Metadata value `Stop hour: 5` present in earlier SNODAS files results in incorrect timestamp if used directly as the timestamp for the data
+                    # This has since been corrected in the SNODAS metadata .txt files. `Stop hour: 5` is no longer present in current files as of today (2022-08-08)
+                    # Additional Information: https://github.com/USACE/cumulus/issues/264, https://github.com/USACE/cumulus/issues/244#issuecomment-1209465407
+                    meta_ntuple.stop_hour if meta_ntuple.stop_year >= 2022 else 6,
                     meta_ntuple.stop_minute,
                     meta_ntuple.stop_second,
                     tzinfo=timezone.utc,
@@ -91,11 +102,9 @@ def process(src: str, dst: str, acquirable: str = None):
                     # set translate options
                     ds = gdal.Open(datafile_pathname)
 
-                    gdal.Translate(
+                    cgdal.gdal_translate_w_options(
                         tif := file_extension(datafile_pathname, suffix=".tif"),
                         ds,
-                        format="COG",
-                        bandList=[1],
                         outputSRS=f"+proj=longlat +ellps={meta_ntuple.horizontal_datum} +datum={meta_ntuple.horizontal_datum} +no_defs",
                         noData=int(meta_ntuple.no_data_value),
                         outputBounds=[
@@ -103,11 +112,6 @@ def process(src: str, dst: str, acquirable: str = None):
                             meta_ntuple.maximum_y_axis_coordinate,
                             meta_ntuple.maximum_x_axis_coordinate,
                             meta_ntuple.minimum_y_axis_coordinate,
-                        ],
-                        creationOptions=[
-                            "RESAMPLING=AVERAGE",
-                            "OVERVIEWS=IGNORE_EXISTING",
-                            "OVERVIEW_RESAMPLING=AVERAGE",
                         ],
                     )
 
@@ -149,7 +153,3 @@ def process(src: str, dst: str, acquirable: str = None):
         ds = None
 
     return outfile_list
-
-
-if __name__ == "__main__":
-    pass

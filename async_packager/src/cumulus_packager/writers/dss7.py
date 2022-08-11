@@ -40,7 +40,6 @@ def log_dataset(gdal_dataset, *args):
     gdal_spatial_ref = None
     data = None
     raster = None
-    gdal_dataset = None
 
     return
 

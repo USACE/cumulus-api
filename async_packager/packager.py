@@ -25,7 +25,7 @@ from cumulus_packager.configurations import (
     WRITE_TO_BUCKET,
 )
 from cumulus_packager.packager import handler
-from cumulus_packager.utils import capi
+from cumulus_packager.utils import capi, sizeof_fmt
 from cumulus_packager.utils.boto import s3_upload_file
 
 this = os.path.basename(__file__)
@@ -82,7 +82,12 @@ def handle_message(message):
                         handler.PACKAGE_STATUS["SUCCESS"],
                         100,
                         PayloadResp.output_key,
-                    )  # Update Status of Download
+                        # Manifest JSON
+                        {
+                            "size": sizeof_fmt(os.path.getsize(package_file)),
+                            "filecount": len(PayloadResp.contents)
+                        }
+                    )
                 else:
                     handler.update_status(
                         download_id, handler.PACKAGE_STATUS["FAILED"], 51

@@ -142,5 +142,31 @@ def decompress(src: str, dst: str = "/tmp", recursive: bool = False):
     return src
 
 
+def sizeof_fmt(num, suffix="B"):
+    """Return human-readable filesize string from number of bytes
+     
+    Source: https://stackoverflow.com/questions/1094841/get-human-readable-version-of-file-size
+
+    Parameters
+    ----------
+    num : int
+        number of bytes
+    suffix : str, optional
+        suffix to follow unit prefixes
+    
+    Returns
+    -------
+    str
+        Human-readable filesize string
+    """
+
+    for unit in ["", "Ki", "Mi", "Gi", "Ti", "Pi", "Ei", "Zi"]:
+        if abs(num) < 1024.0:
+            return f"{num:3.1f}{unit}{suffix}"
+        num /= 1024.0
+
+    return f"{num:.1f}Yi{suffix}"
+
+
 if __name__ == "__main__":
     pass

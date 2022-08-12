@@ -91,7 +91,7 @@ services:
       - LOGGER_LEVEL=DEBUG
       - PACKAGER_UPDATE_INTERVAL=5
       # - CPL_VSIL_CURL_CHUNK_SIZE=20000000
-      - CPL_CURL_VERBOSE=1
+      # - CPL_CURL_VERBOSE=1
     # Volume to persist packager created file
     volumes:
       - ./_volumes/async_packager/output:/output:rw

@@ -30,7 +30,7 @@ PACKAGE_STATUS = {
 }
 
 
-def update_status(id: str, status_id: str, progress: int, file: str = None):
+def update_status(id: str, status_id: str, progress: int, file: str = None, manifest: dict = None):
     """Update packager status to Cumulus API
 
     TODO: Check Documentation for accuracy
@@ -45,6 +45,8 @@ def update_status(id: str, status_id: str, progress: int, file: str = None):
         progress percentage as a decimal, by default 0
     file : str, optional
         S3 key to dss file, by default None
+    manifest : dict, optional
+        Dictionary with any information about the download
     """
     try:
         _json_payload = {
@@ -52,6 +54,7 @@ def update_status(id: str, status_id: str, progress: int, file: str = None):
             "status_id": status_id,
             "progress": int(progress),
             "file": file,
+            "manifest": manifest
         }
         r = requests.put(
             f"{CUMULUS_API_URL}/downloads/{id}",

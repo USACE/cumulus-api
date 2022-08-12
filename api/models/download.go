@@ -57,6 +57,7 @@ type PackagerInfo struct {
 	StatusID        uuid.UUID  `json:"status_id"`
 	ProcessingStart time.Time  `json:"processing_start" db:"processing_start"`
 	ProcessingEnd   *time.Time `json:"processing_end" db:"processing_end"`
+	Manifest        *JSONB     `json:"manifest"`
 }
 
 // PackagerRequest holds all information sent to Packager necessary to package files
@@ -89,7 +90,7 @@ type PackagerContentItem struct {
 
 var listDownloadsSQL = fmt.Sprintf(
 	`SELECT id, sub, datetime_start, datetime_end, progress, ('%s' || '/' || file) as file,
-	   processing_start, processing_end, status_id, watershed_id, watershed_slug, watershed_name, status, product_id
+	   processing_start, processing_end, status_id, watershed_id, watershed_slug, watershed_name, status, product_id, format, manifest
 	   FROM v_download
 	`, cfg.StaticHost,
 )
@@ -278,8 +279,8 @@ func UpdateDownload(db *pgxpool.Pool, downloadID *uuid.UUID, info *PackagerInfo)
 	}
 
 	UpdateProgressSetComplete := func() error {
-		sql := `UPDATE download set progress = $2, file = $3, processing_end = CURRENT_TIMESTAMP WHERE id = $1`
-		if _, err := db.Exec(context.Background(), sql, downloadID, info.Progress, info.File); err != nil {
+		sql := `UPDATE download set progress = $2, file = $3, processing_end = CURRENT_TIMESTAMP, manifest = $4 WHERE id = $1`
+		if _, err := db.Exec(context.Background(), sql, downloadID, info.Progress, info.File, info.Manifest); err != nil {
 			return err
 		}
 		return nil

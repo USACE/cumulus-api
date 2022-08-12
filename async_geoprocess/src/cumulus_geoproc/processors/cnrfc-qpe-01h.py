@@ -11,17 +11,19 @@ when viewing metadata (gdalinfo -json *netCDF_file*); therefore Python package
 
 
 import os
-from string import Template
 import re
-from datetime import datetime, timedelta, timezone
+import sys
+from tempfile import TemporaryDirectory
 import time
-import numpy
+import traceback
+from datetime import datetime, timedelta, timezone
 
+import numpy
 import pyplugs
-from cumulus_geoproc import logger
+from cumulus_geoproc import logger, utils
 from cumulus_geoproc.utils import cgdal
-from osgeo import gdal, osr
 from netCDF4 import Dataset
+from osgeo import gdal, osr
 
 this = os.path.basename(__file__)
 
@@ -34,6 +36,9 @@ UNIX_EPOCH = datetime(
     time.gmtime(0).tm_sec,
 )
 """datetime: uniform date for the start of time"""
+
+xster = lambda hrap: hrap * 4762.5 - 401 * 4762.5
+yster = lambda hrap: hrap * 4762.5 - 1601 * 4762.5
 
 
 @pyplugs.register
@@ -66,15 +71,7 @@ def process(*, src: str, dst: str = None, acquirable: str = None):
     """
     outfile_list = []
 
-    proj4_template = Template(
-        "+proj=stere +lat_ts=${lat_ts}"
-        " +k_0=${k_0}"
-        " +long_0=${long_0}"
-        " +R=${radius}"
-        " +x_0=0.0"
-        " +y_0=0.0"
-        " +units=m"
-    )
+    proj4 = "+proj=stere +lat_ts=60 +k_0=1 +long_0=-105 +R=6371200 +x_0=0.0 +y_0=0.0 +units=m"
 
     filename = os.path.basename(src)
 
@@ -85,21 +82,31 @@ def process(*, src: str, dst: str = None, acquirable: str = None):
         dst = os.path.dirname(src)
 
     try:
-        with Dataset(src, "r") as ncds:
-            # Determine time dependencies
+        # Using temporary directory for gzip because netCDF4 does not have a VSI like gdal
+        tmpdir = TemporaryDirectory(dir=dst)
+        src_ = utils.decompress(src, tmpdir.name)
+        with Dataset(src_, "r") as ncds:
+            ncvar = ncds.variables["qpe_grid"]
 
-            nctime = ncds.variables["time"][:]
-            dt_int32 = int(nctime.data[0])
-            dt_valid = (UNIX_EPOCH + timedelta(hours=dt_int32)).replace(
+            # Determine time dependencies
+            nctime = ncvar.validTimes
+            dt_int32 = int(nctime[-1])
+            dt_valid = (UNIX_EPOCH + timedelta(seconds=dt_int32)).replace(
                 tzinfo=timezone.utc
             )
 
-            lat = ncds.variables["y"][:]
-            lon = ncds.variables["x"][:]
-            xmin, ymin, xmax, ymax = lon.min(), lat.min(), lon.max(), lat.max()
+            nodata = ncvar.fillValue
 
-            ncvar = ncds.variables["Total_precipitation"]
-            nodata = ncvar.missing_value
+            lonLL, latLL = ncvar.latLonLL
+            lonUR, latUR = ncvar.latLonUR
+
+            xmin, ymin = ncvar.gridPointLL
+            xmax, ymax = ncvar.gridPointUR
+
+            xmin = xster(xmin)
+            xmax = xster(xmax)
+            ymin = yster(ymin)
+            ymax = yster(ymax)
 
             _, nrows, ncols = ncvar.shape
 
@@ -109,15 +116,6 @@ def process(*, src: str, dst: str = None, acquirable: str = None):
             geotransform = (xmin, xres, 0, ymax, 0, -yres)
 
             # Create a raster, set attributes, and define the spatial reference
-            projection = ncds.variables["Polar_Stereographic"]
-
-            proj4 = proj4_template.substitute(
-                lat_ts=projection.latitude_of_projection_origin,
-                k_0=projection.scale_factor_at_projection_origin,
-                long_0=projection.longitude_of_projection_origin,
-                radius=projection.earth_radius,
-            )
-
             raster = gdal.GetDriverByName("GTiff").Create(
                 tmptif := "/vsimem/{filename}-tmp.tif",
                 xsize=ncols,
@@ -134,7 +132,8 @@ def process(*, src: str, dst: str = None, acquirable: str = None):
             data_masked = ncvar[:]
             data_ndarray = data_masked.data
             data_squeeze = numpy.squeeze(data_ndarray)
-            data = numpy.flipud(data_squeeze)
+            data = numpy.flipud(data_squeeze) * 25.4
+
 
             band = raster.GetRasterBand(1)
             band.WriteArray(data)
@@ -145,10 +144,20 @@ def process(*, src: str, dst: str = None, acquirable: str = None):
             cgdal.gdal_translate_w_options(
                 tif := os.path.join(dst, f"{filename}.tif"),
                 tmptif,
-                outputBounds=[ncds.lon00, ncds.latNxNy, ncds.lonNxNy, ncds.lat00],
+                outputBounds=[lonLL, latUR, lonUR, latLL],
                 outputSRS="EPSG:4326",
                 noData=nodata,
             )
+
+            # gdal.Warp(
+            #     tif := os.path.join(dst, f"{filename}.tif"),
+            #     tmptif,
+            #     format="COG",
+            #     srcSRS=proj4,
+            #     dstSRS="EPSG:4326",
+            #     outputBounds=[lonLL, latLL, lonUR, latUR],
+            #     outputBoundsSRS="EPSG:4326",
+            # )
 
             # validate COG
             if (validate := cgdal.validate_cog("-q", tif)) == 0:
@@ -163,7 +172,16 @@ def process(*, src: str, dst: str = None, acquirable: str = None):
                 }
             )
     except (RuntimeError, KeyError, Exception) as ex:
-        logger.error(f"{type(ex).__name__}: {this}: {ex}")
+        exc_type, exc_value, exc_traceback = sys.exc_info()
+        traceback_details = {
+            "filename": os.path.basename(exc_traceback.tb_frame.f_code.co_filename),
+            "line number": exc_traceback.tb_lineno,
+            "method": exc_traceback.tb_frame.f_code.co_name,
+            "type": exc_type.__name__,
+            "message": exc_value,
+        }
+        for k, v in traceback_details.items():
+            logger.error(f"{k}: {v}")
     finally:
         raster = None
 

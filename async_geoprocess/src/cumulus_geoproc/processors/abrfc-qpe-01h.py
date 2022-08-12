@@ -12,7 +12,6 @@ when viewing metadata (gdalinfo -json *netCDF_file*); therefore Python package
 
 import os
 from string import Template
-import re
 from datetime import datetime, timedelta, timezone
 import time
 import numpy
@@ -20,7 +19,7 @@ import numpy
 import pyplugs
 from cumulus_geoproc import logger
 from cumulus_geoproc.utils import cgdal
-from osgeo import gdal, osr
+from osgeo import gdal
 from netCDF4 import Dataset
 
 this = os.path.basename(__file__)

@@ -13,7 +13,8 @@ CREATE OR REPLACE VIEW v_download AS (
         w.name             AS watershed_name,
         s.name             AS status,
         dp.product_id      AS product_id,
-        f.abbreviation     AS format
+        f.abbreviation     AS format,
+        d.manifest         AS manifest
     FROM download d
         INNER JOIN download_format f ON f.id = d.download_format_id
         INNER JOIN download_status s ON d.status_id = s.id

@@ -433,9 +433,10 @@
 <a id="cumulus_geoproc.processors.cnrfc-qpe-06h"></a>
   <div class="doc doc-contents first">
   
-      <h2 id="cumulus_geoproc.processors.cnrfc-qpe-06h--california-nevada-basin-river-forecast-center">California-Nevada Basin River Forecast Center</h2>
+      <h2 id="cumulus_geoproc.processors.cnrfc-qpe-06h--arkansas-red-basin-river-forecast-center">Arkansas-Red Basin River Forecast Center</h2>
 <h3 id="cumulus_geoproc.processors.cnrfc-qpe-06h--file-type">File Type</h3>
-<p>File type is netCDF-3 (version 3); therefore, Python package
+<p>File type is netCDF-3 (version 3).  GDAL does <code>NOT</code> show any bands available
+when viewing metadata (gdalinfo -json <em>netCDF_file</em>); therefore Python package
 <code>netCDF4</code> is used to process these products.</p>
 
   
@@ -573,8 +574,7 @@
 
       <details class="quote">
         <summary>Source code in <code>cumulus_geoproc/processors/cnrfc-qpe-06h.py</code></summary>
-        <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"> 41</span>
-<span class="normal"> 42</span>
+        <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"> 42</span>
 <span class="normal"> 43</span>
 <span class="normal"> 44</span>
 <span class="normal"> 45</span>
@@ -707,7 +707,8 @@
 <span class="normal">172</span>
 <span class="normal">173</span>
 <span class="normal">174</span>
-<span class="normal">175</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="nd">@pyplugs</span><span class="o">.</span><span class="n">register</span>
+<span class="normal">175</span>
+<span class="normal">176</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="nd">@pyplugs</span><span class="o">.</span><span class="n">register</span>
 <span class="k">def</span> <span class="nf">process</span><span class="p">(</span><span class="o">*</span><span class="p">,</span> <span class="n">src</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">dst</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">acquirable</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="kc">None</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    # Grid processor</span>
@@ -800,6 +801,7 @@
             <span class="n">data_squeeze</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">squeeze</span><span class="p">(</span><span class="n">data_ndarray</span><span class="p">)</span>
             <span class="n">data</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">flipud</span><span class="p">(</span><span class="n">data_squeeze</span><span class="p">)</span> <span class="o">*</span> <span class="mf">25.4</span>
 
+
             <span class="n">band</span> <span class="o">=</span> <span class="n">raster</span><span class="o">.</span><span class="n">GetRasterBand</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
             <span class="n">band</span><span class="o">.</span><span class="n">WriteArray</span><span class="p">(</span><span class="n">data</span><span class="p">)</span>
 
@@ -827,7 +829,6 @@
                 <span class="p">}</span>
             <span class="p">)</span>
     <span class="k">except</span> <span class="p">(</span><span class="ne">RuntimeError</span><span class="p">,</span> <span class="ne">KeyError</span><span class="p">,</span> <span class="ne">Exception</span><span class="p">)</span> <span class="k">as</span> <span class="n">ex</span><span class="p">:</span>
-        <span class="c1"># TODO: Implement this to all processors with method in __init__</span>
         <span class="n">exc_type</span><span class="p">,</span> <span class="n">exc_value</span><span class="p">,</span> <span class="n">exc_traceback</span> <span class="o">=</span> <span class="n">sys</span><span class="o">.</span><span class="n">exc_info</span><span class="p">()</span>
         <span class="n">traceback_details</span> <span class="o">=</span> <span class="p">{</span>
             <span class="s2">&quot;filename&quot;</span><span class="p">:</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">basename</span><span class="p">(</span><span class="n">exc_traceback</span><span class="o">.</span><span class="n">tb_frame</span><span class="o">.</span><span class="n">f_code</span><span class="o">.</span><span class="n">co_filename</span><span class="p">),</span>

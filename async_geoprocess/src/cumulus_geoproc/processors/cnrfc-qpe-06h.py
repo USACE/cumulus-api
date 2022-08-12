@@ -1,9 +1,10 @@
 """
-# California-Nevada Basin River Forecast Center
+# Arkansas-Red Basin River Forecast Center
 
 ## File Type
 
-File type is netCDF-3 (version 3); therefore, Python package
+File type is netCDF-3 (version 3).  GDAL does `NOT` show any bands available
+when viewing metadata (gdalinfo -json *netCDF_file*); therefore Python package
 `netCDF4` is used to process these products.
 
 """
@@ -11,9 +12,9 @@ File type is netCDF-3 (version 3); therefore, Python package
 
 import os
 import sys
+from tempfile import TemporaryDirectory
 import time
 from datetime import datetime, timedelta, timezone
-from tempfile import TemporaryDirectory
 
 import numpy
 import pyplugs
@@ -131,6 +132,7 @@ def process(*, src: str, dst: str = None, acquirable: str = None):
             data_squeeze = numpy.squeeze(data_ndarray)
             data = numpy.flipud(data_squeeze) * 25.4
 
+
             band = raster.GetRasterBand(1)
             band.WriteArray(data)
 
@@ -158,7 +160,6 @@ def process(*, src: str, dst: str = None, acquirable: str = None):
                 }
             )
     except (RuntimeError, KeyError, Exception) as ex:
-        # TODO: Implement this to all processors with method in __init__
         exc_type, exc_value, exc_traceback = sys.exc_info()
         traceback_details = {
             "filename": os.path.basename(exc_traceback.tb_frame.f_code.co_filename),

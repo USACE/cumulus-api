@@ -13,3 +13,5 @@ INSERT INTO product (id,slug,"label",temporal_duration,temporal_resolution,dss_f
 -- product_tags
 INSERT INTO product_tags (product_id, tag_id) VALUES
     ('eac3976f-6503-442d-bf20-1a2ffe555162','726039da-2f21-4393-a15c-5f6e7ea41b1f');
+
+UPDATE product SET acceptable_timedelta = '7 hour' WHERE slug = 'cnrfc-qpe-06h';

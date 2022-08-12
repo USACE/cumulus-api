@@ -195,8 +195,7 @@
 
       <details class="quote">
         <summary>Source code in <code>cumulus_geoproc/utils/cgdal.py</code></summary>
-        <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">164</span>
-<span class="normal">165</span>
+        <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">165</span>
 <span class="normal">166</span>
 <span class="normal">167</span>
 <span class="normal">168</span>
@@ -230,7 +229,8 @@
 <span class="normal">196</span>
 <span class="normal">197</span>
 <span class="normal">198</span>
-<span class="normal">199</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span> <span class="nf">find_band</span><span class="p">(</span><span class="n">data_set</span><span class="p">:</span> <span class="s2">&quot;gdal.Dataset&quot;</span><span class="p">,</span> <span class="n">attr</span><span class="p">:</span> <span class="nb">dict</span> <span class="o">=</span> <span class="p">{}):</span>
+<span class="normal">199</span>
+<span class="normal">200</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span> <span class="nf">find_band</span><span class="p">(</span><span class="n">data_set</span><span class="p">:</span> <span class="s2">&quot;gdal.Dataset&quot;</span><span class="p">,</span> <span class="n">attr</span><span class="p">:</span> <span class="nb">dict</span> <span class="o">=</span> <span class="p">{}):</span>
     <span class="sd">&quot;&quot;&quot;Return the band number</span>
 
 <span class="sd">    Parameters</span>
@@ -290,8 +290,7 @@
 
       <details class="quote">
         <summary>Source code in <code>cumulus_geoproc/utils/cgdal.py</code></summary>
-        <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">202</span>
-<span class="normal">203</span>
+        <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">203</span>
 <span class="normal">204</span>
 <span class="normal">205</span>
 <span class="normal">206</span>
@@ -302,7 +301,8 @@
 <span class="normal">211</span>
 <span class="normal">212</span>
 <span class="normal">213</span>
-<span class="normal">214</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span> <span class="nf">gdal_calculate</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">):</span>
+<span class="normal">214</span>
+<span class="normal">215</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span> <span class="nf">gdal_calculate</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;Implement gdal-utils gdal_calc CLI utility</span>
 
 <span class="sd">    gdal_translate documentation:</span>
@@ -339,8 +339,7 @@
 
       <details class="quote">
         <summary>Source code in <code>cumulus_geoproc/utils/cgdal.py</code></summary>
-        <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">217</span>
-<span class="normal">218</span>
+        <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">218</span>
 <span class="normal">219</span>
 <span class="normal">220</span>
 <span class="normal">221</span>
@@ -358,7 +357,8 @@
 <span class="normal">233</span>
 <span class="normal">234</span>
 <span class="normal">235</span>
-<span class="normal">236</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span> <span class="nf">gdal_fillnodataval</span><span class="p">(</span><span class="n">src</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">dst</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="o">/</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">):</span>
+<span class="normal">236</span>
+<span class="normal">237</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span> <span class="nf">gdal_fillnodataval</span><span class="p">(</span><span class="n">src</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">dst</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="o">/</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;Implement gdal-utils gdal_fillnodata CLI utility as a subprocess</span>
 
 <span class="sd">    gdal_fillnodata documentation:</span>
@@ -562,7 +562,8 @@
 <span class="normal">82</span>
 <span class="normal">83</span>
 <span class="normal">84</span>
-<span class="normal">85</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span> <span class="nf">gdal_translate_w_options</span><span class="p">(</span>
+<span class="normal">85</span>
+<span class="normal">86</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span> <span class="nf">gdal_translate_w_options</span><span class="p">(</span>
     <span class="n">dst</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
     <span class="n">src</span><span class="p">:</span> <span class="n">gdal</span><span class="o">.</span><span class="n">Dataset</span><span class="p">,</span>
     <span class="o">**</span><span class="n">kwargs</span><span class="p">,</span>
@@ -588,6 +589,7 @@
             <span class="s2">&quot;OVERVIEW_RESAMPLING=BILINEAR&quot;</span><span class="p">,</span>
         <span class="p">],</span>
     <span class="p">}</span>
+    <span class="sd">&quot;&quot;&quot;dict: base (default) options but can be re-asigned&quot;&quot;&quot;</span>
     <span class="n">_kwargs</span> <span class="o">=</span> <span class="p">{</span><span class="o">**</span><span class="n">base</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">}</span>
     <span class="n">gdal</span><span class="o">.</span><span class="n">Translate</span><span class="p">(</span>
         <span class="n">dst</span><span class="p">,</span>
@@ -683,8 +685,7 @@
 
       <details class="quote">
         <summary>Source code in <code>cumulus_geoproc/utils/cgdal.py</code></summary>
-        <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"> 88</span>
-<span class="normal"> 89</span>
+        <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"> 89</span>
 <span class="normal"> 90</span>
 <span class="normal"> 91</span>
 <span class="normal"> 92</span>
@@ -755,7 +756,8 @@
 <span class="normal">157</span>
 <span class="normal">158</span>
 <span class="normal">159</span>
-<span class="normal">160</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span> <span class="nf">gdal_translate_w_overviews</span><span class="p">(</span>
+<span class="normal">160</span>
+<span class="normal">161</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span> <span class="nf">gdal_translate_w_overviews</span><span class="p">(</span>
     <span class="n">dst</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
     <span class="n">src</span><span class="p">:</span> <span class="n">gdal</span><span class="o">.</span><span class="n">Dataset</span><span class="p">,</span>
     <span class="n">translate_options</span><span class="p">:</span> <span class="nb">dict</span><span class="p">,</span>

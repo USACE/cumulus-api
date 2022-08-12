@@ -11,16 +11,16 @@ when viewing metadata (gdalinfo -json *netCDF_file*); therefore Python package
 
 
 import os
-from string import Template
-from datetime import datetime, timedelta, timezone
 import time
-import numpy
+from datetime import datetime, timedelta, timezone
+from string import Template
 
+import numpy
 import pyplugs
 from cumulus_geoproc import logger
 from cumulus_geoproc.utils import cgdal
-from osgeo import gdal
 from netCDF4 import Dataset
+from osgeo import gdal
 
 this = os.path.basename(__file__)
 
@@ -32,7 +32,7 @@ UNIX_EPOCH = datetime(
     time.gmtime(0).tm_min,
     time.gmtime(0).tm_sec,
 )
-"""datetime: uniform date for the start of time"""
+"""datetime: UNIX_EPOCH is the uniform date for the start of time"""
 
 
 @pyplugs.register

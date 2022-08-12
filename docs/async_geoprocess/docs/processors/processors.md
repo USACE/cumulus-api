@@ -1,4 +1,5 @@
 ::: cumulus_geoproc.processors
+::: cumulus_geoproc.processors.abrfc-qpe-01h
 ::: cumulus_geoproc.processors.cbrfc-mpe
 ::: cumulus_geoproc.processors.cnrfc-qpe-06h
 ::: cumulus_geoproc.processors.ncrfc-mpe-01h

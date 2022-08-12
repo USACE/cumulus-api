@@ -32,7 +32,7 @@ UNIX_EPOCH = datetime(
     time.gmtime(0).tm_min,
     time.gmtime(0).tm_sec,
 )
-"""datetime: uniform date for the start of time"""
+"""datetime: UNIX_EPOCH is the uniform date for the start of time"""
 
 xster = lambda hrap: hrap * 4762.5 - 401 * 4762.5
 yster = lambda hrap: hrap * 4762.5 - 1601 * 4762.5

@@ -90,6 +90,8 @@ services:
       - GDAL_DISABLE_READDIR_ON_OPEN=EMPTY_DIR
       - LOGGER_LEVEL=DEBUG
       - PACKAGER_UPDATE_INTERVAL=5
+      # - CPL_VSIL_CURL_CHUNK_SIZE=20000000
+      - CPL_CURL_VERBOSE=1
     # Volume to persist packager created file
     volumes:
       - ./_volumes/async_packager/output:/output:rw
@@ -144,6 +146,7 @@ services:
       - CUMULUS_AWS_S3_ENDPOINT=http://minio:9000
       - CUMULUS_AWS_S3_DISABLE_SSL=True
       - CUMULUS_AWS_S3_FORCE_PATH_STYLE=True
+      - PG_FEATURESERV_URL=http://featureserv:8080
     ports:
       - "80:80"
     restart: always
@@ -169,6 +172,25 @@ services:
       - FLYWAY_USER=postgres
     depends_on:
       cumulusdb:
+        condition: service_started
+  featureserv:
+    image: pramsey/pg_featureserv
+    container_name: featureserv
+    restart: always
+    environment:
+      - DATABASE_URL=postgres://cumulus_user:cumulus_pass@cumulusdb:5432/postgres
+      - PGFS_SERVER_HTTPPORT=8080
+      - PGFS_SERVER_HTTPSPORT=8443
+      - PGFS_SERVER_URLBASE=http://localhost/features
+      - PGFS_SERVER_BASEPATH=/features
+      - PGFS_SERVER_DEBUG=true
+      - PGFS_WEBSITE_BASEMAPURL=http://a.tile.openstreetmap.fr/hot/{z}/{x}/{y}.png
+    depends_on:
+      cumulusdb:
+        condition: service_started
+      flyway:
+        condition: service_completed_successfully
+      api:
         condition: service_started
   # pgadmin:
   #   image: dpage/pgadmin4

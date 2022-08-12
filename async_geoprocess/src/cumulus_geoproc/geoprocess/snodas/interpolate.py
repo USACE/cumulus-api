@@ -129,9 +129,9 @@ async def snodas_interp_task(
             fill_tif,
             format="COG",
             creationOptions=[
-                "RESAMPLING=AVERAGE",
+                "RESAMPLING=BILINEAR",
                 "OVERVIEWS=IGNORE_EXISTING",
-                "OVERVIEW_RESAMPLING=AVERAGE",
+                "OVERVIEW_RESAMPLING=BILINEAR",
             ],
         )
         # validate COG
@@ -179,9 +179,21 @@ async def snodas(cfg: namedtuple, dst: str):
         .replace(tzinfo=timezone.utc)
     )
     nodata_value = no_data_value(dt)
+    # determine spatial coverage; date dependent
+    _sc = (
+        "us"
+        if (
+            datetime(2003, 1, 1, tzinfo=timezone.utc)
+            <= dt
+            < datetime(2010, 2, 17, tzinfo=timezone.utc)
+        )
+        else "zz"
+    )
+    logger.debug(f"Spatial coverage is {_sc}")
+
     for code in ("1034", "1036", "1038", "3333", "2072"):
         filename = Template.substitute(
-            product_code[code]["file_template"], YMD=cfg.datetime
+            product_code[code]["file_template"], SC=_sc, YMD=cfg.datetime
         )
         product = product_code[code]["product"] + "-interpolated"
         key = (

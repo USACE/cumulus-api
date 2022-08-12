@@ -36,7 +36,7 @@ int writeRecord(char *dssfilename, zStructSpatialGrid *gridStructStore, float *d
     // If is_precip is > 0, which means it's precip, no need to filter nodata
     if (is_precip == -1)
     {
-        printf("Filter no data value: %f\n", gridStructStore->_nullValue);
+        // printf("Filter no data value: %f\n", gridStructStore->_nullValue);
         filter_nodata(data, n, gridStructStore->_nullValue);
     }
 

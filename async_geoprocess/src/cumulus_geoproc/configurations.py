@@ -1,4 +1,5 @@
-"""Initialize package with configuations
+"""
+# Initialize package with configuations
 """
 
 

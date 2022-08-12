@@ -90,6 +90,10 @@ func main() {
 		return c.JSON(http.StatusOK, map[string]interface{}{"status": "healthy"})
 	})
 
+	// Proxy to pg_featureserv
+	features := public.Group("/features")
+	features.Use(middleware.PgFeatureservProxy(cfg.PgFeatureservUrl))
+
 	// Acquirables
 	public.GET("/acquirables", handlers.ListAcquirables(db))
 	private.GET("/acquirables/:acquirable_id/files", handlers.ListAcquirablefiles(db))
@@ -98,6 +102,7 @@ func main() {
 	)
 
 	// Products
+	public.GET("/product_ingest_status", handlers.GetProductIngestStatus(db))
 	public.GET("/product_slugs", handlers.GetProductSlugs(db))
 	public.GET("/products", handlers.ListProducts(db))
 	public.GET("/products/:product_id", handlers.GetProduct(db))

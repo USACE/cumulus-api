@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no"?>
 <database name="postgres" schema="cumulus" type="PostgreSQL - 13.5 (Debian 13.5-1.pgdg110+1)">
    <tables>
-      <table name="acquirable" numRows="36" remarks="" schema="cumulus" type="TABLE">
+      <table name="acquirable" numRows="43" remarks="" schema="cumulus" type="TABLE">
          <column autoUpdated="false" defaultValue="uuid_generate_v4()" digits="0" id="0" name="id" nullable="false" remarks="" size="2147483647" type="uuid" typeCode="1111">
             <child column="acquirable_id" foreignKey="acquirablefile_acquirable_id_fkey" implied="false" onDeleteCascade="false" schema="cumulus" table="acquirablefile"/>
          </column>
@@ -15,7 +15,7 @@
             <column ascending="true" name="slug"/>
          </index>
       </table>
-      <table name="acquirablefile" numRows="130" remarks="" schema="cumulus" type="TABLE">
+      <table name="acquirablefile" numRows="72" remarks="" schema="cumulus" type="TABLE">
          <column autoUpdated="false" defaultValue="uuid_generate_v4()" digits="0" id="0" name="id" nullable="false" remarks="" size="2147483647" type="uuid" typeCode="1111">
             <child column="acquirablefile_id" foreignKey="productfile_acquirablefile_id_fkey" implied="false" onDeleteCascade="false" schema="cumulus" table="productfile"/>
          </column>
@@ -105,7 +105,7 @@
             <column ascending="true" name="config_name"/>
          </index>
       </table>
-      <table name="download" numRows="0" remarks="" schema="cumulus" type="TABLE">
+      <table name="download" numRows="9929" remarks="" schema="cumulus" type="TABLE">
          <column autoUpdated="false" defaultValue="uuid_generate_v4()" digits="0" id="0" name="id" nullable="false" remarks="" size="2147483647" type="uuid" typeCode="1111"/>
          <column autoUpdated="false" defaultValue="null" digits="0" id="1" name="sub" nullable="false" remarks="" size="2147483647" type="uuid" typeCode="1111"/>
          <column autoUpdated="false" defaultValue="null" digits="6" id="2" name="datetime_start" nullable="false" remarks="" size="35" type="timestamptz" typeCode="93"/>
@@ -143,7 +143,7 @@
             <column ascending="true" name="abbreviation"/>
          </index>
       </table>
-      <table name="download_product" numRows="0" remarks="" schema="cumulus" type="TABLE">
+      <table name="download_product" numRows="29863" remarks="" schema="cumulus" type="TABLE">
          <column autoUpdated="false" defaultValue="null" digits="0" id="0" name="download_id" nullable="false" remarks="" size="2147483647" type="uuid" typeCode="1111"/>
          <column autoUpdated="false" defaultValue="null" digits="0" id="1" name="product_id" nullable="false" remarks="" size="2147483647" type="uuid" typeCode="1111">
             <parent column="id" foreignKey="download_product_product_id_fkey" implied="false" onDeleteCascade="false" schema="cumulus" table="product"/>
@@ -211,7 +211,7 @@
             <column ascending="true" name="symbol"/>
          </index>
       </table>
-      <table name="parameter" numRows="10" remarks="" schema="cumulus" type="TABLE">
+      <table name="parameter" numRows="12" remarks="" schema="cumulus" type="TABLE">
          <column autoUpdated="false" defaultValue="uuid_generate_v4()" digits="0" id="0" name="id" nullable="false" remarks="" size="2147483647" type="uuid" typeCode="1111">
             <child column="parameter_id" foreignKey="product_parameter_id_fkey" implied="false" onDeleteCascade="false" schema="cumulus" table="product"/>
          </column>
@@ -224,7 +224,7 @@
             <column ascending="true" name="name"/>
          </index>
       </table>
-      <table name="product" numRows="51" remarks="" schema="cumulus" type="TABLE">
+      <table name="product" numRows="58" remarks="" schema="cumulus" type="TABLE">
          <column autoUpdated="false" defaultValue="uuid_generate_v4()" digits="0" id="0" name="id" nullable="false" remarks="" size="2147483647" type="uuid" typeCode="1111">
             <child column="product_id" foreignKey="area_group_product_statistics_enabled_product_id_fkey" implied="false" onDeleteCascade="true" schema="cumulus" table="area_group_product_statistics_enabled"/>
             <child column="product_id" foreignKey="download_product_product_id_fkey" implied="false" onDeleteCascade="false" schema="cumulus" table="download_product"/>
@@ -247,6 +247,7 @@
          <column autoUpdated="false" defaultValue="null" digits="0" id="10" name="suite_id" nullable="false" remarks="" size="2147483647" type="uuid" typeCode="1111">
             <parent column="id" foreignKey="product_suite_id_fkey" implied="false" onDeleteCascade="false" schema="cumulus" table="suite"/>
          </column>
+         <column autoUpdated="false" defaultValue="null" digits="6" id="11" name="acceptable_timedelta" nullable="true" remarks="" size="49" type="interval" typeCode="1111"/>
          <primaryKey column="id" sequenceNumberInPK="1"/>
          <index name="product_pkey" unique="true">
             <column ascending="true" name="id"/>
@@ -267,7 +268,7 @@
             <column ascending="true" name="product_id"/>
          </index>
       </table>
-      <table name="productfile" numRows="44" remarks="" schema="cumulus" type="TABLE">
+      <table name="productfile" numRows="59" remarks="" schema="cumulus" type="TABLE">
          <column autoUpdated="false" defaultValue="uuid_generate_v4()" digits="0" id="0" name="id" nullable="false" remarks="" size="2147483647" type="uuid" typeCode="1111"/>
          <column autoUpdated="false" defaultValue="null" digits="6" id="1" name="datetime" nullable="false" remarks="" size="35" type="timestamptz" typeCode="93"/>
          <column autoUpdated="false" defaultValue="null" digits="0" id="2" name="file" nullable="false" remarks="" size="1200" type="varchar" typeCode="12"/>
@@ -289,7 +290,7 @@
             <column ascending="true" name="datetime"/>
          </index>
       </table>
-      <table name="suite" numRows="20" remarks="" schema="cumulus" type="TABLE">
+      <table name="suite" numRows="22" remarks="" schema="cumulus" type="TABLE">
          <column autoUpdated="false" defaultValue="uuid_generate_v4()" digits="0" id="0" name="id" nullable="false" remarks="" size="2147483647" type="uuid" typeCode="1111">
             <child column="suite_id" foreignKey="product_suite_id_fkey" implied="false" onDeleteCascade="false" schema="cumulus" table="product"/>
          </column>
@@ -372,7 +373,7 @@
          <column autoUpdated="false" defaultValue="null" digits="0" id="13" name="product_id" nullable="true" remarks="" size="2147483647" type="_uuid" typeCode="2003"/>
          <column autoUpdated="false" defaultValue="null" digits="0" id="14" name="format" nullable="true" remarks="" size="120" type="varchar" typeCode="12"/>
       </table>
-      <table name="v_download_request" numRows="0" remarks="" schema="cumulus" type="VIEW" viewSql=" WITH download_products AS (&#10;         SELECT dp.download_id,&#10;            dp.product_id,&#10;            d.datetime_start,&#10;            d.datetime_end&#10;           FROM (download d&#10;             JOIN download_product dp ON ((dp.download_id = d.id)))&#10;        )&#10; SELECT dss.download_id,&#10;    dss.product_id,&#10;    dss.datetime_start,&#10;    dss.datetime_end,&#10;    dss.key,&#10;    dss.bucket,&#10;    dss.dss_datatype,&#10;    dss.dss_cpart,&#10;        CASE&#10;            WHEN ((dss.dss_datatype = 'INST-VAL'::text) AND (date_part('hour'::text, dss.datetime_dss_dpart) = (0)::double precision) AND (date_part('minute'::text, dss.datetime_dss_dpart) = (0)::double precision)) THEN to_char((dss.datetime_dss_dpart - '1 day'::interval), 'DDMONYYYY:24MI'::text)&#10;            ELSE COALESCE(to_char(dss.datetime_dss_dpart, 'DDMONYYYY:HH24MI'::text), ''::text)&#10;        END AS dss_dpart,&#10;        CASE&#10;            WHEN ((date_part('hour'::text, dss.datetime_dss_epart) = (0)::double precision) AND (date_part('minute'::text, dss.datetime_dss_dpart) = (0)::double precision)) THEN to_char((dss.datetime_dss_epart - '1 day'::interval), 'DDMONYYYY:24MI'::text)&#10;            ELSE COALESCE(to_char(dss.datetime_dss_epart, 'DDMONYYYY:HH24MI'::text), ''::text)&#10;        END AS dss_epart,&#10;    dss.dss_fpart,&#10;    dss.dss_unit,&#10;    dss.forecast_version&#10;   FROM ( SELECT dp.download_id,&#10;            dp.product_id,&#10;            dp.datetime_start,&#10;            dp.datetime_end,&#10;            f.file AS key,&#10;            ( SELECT config.config_value&#10;                   FROM config&#10;                  WHERE ((config.config_name)::text = 'write_to_bucket'::text)) AS bucket,&#10;                CASE&#10;                    WHEN (p.temporal_duration = 0) THEN 'INST-VAL'::text&#10;                    ELSE 'PER-CUM'::text&#10;                END AS dss_datatype,&#10;                CASE&#10;                    WHEN (p.temporal_duration = 0) THEN f.datetime&#10;                    ELSE (f.datetime - ((p.temporal_duration)::double precision * '00:00:01'::interval))&#10;                END AS datetime_dss_dpart,&#10;                CASE&#10;                    WHEN (p.temporal_duration = 0) THEN NULL::timestamp with time zone&#10;                    ELSE f.datetime&#10;                END AS datetime_dss_epart,&#10;            p.dss_fpart,&#10;            u.name AS dss_unit,&#10;            a.name AS dss_cpart,&#10;            f.version AS forecast_version&#10;           FROM ((((productfile f&#10;             JOIN download_products dp ON ((dp.product_id = f.product_id)))&#10;             JOIN product p ON ((f.product_id = p.id)))&#10;             JOIN unit u ON ((p.unit_id = u.id)))&#10;             JOIN parameter a ON ((a.id = p.parameter_id)))&#10;          WHERE (((date_part('year'::text, f.version) = '1111'::double precision) AND (f.datetime &gt;= dp.datetime_start) AND (f.datetime &lt;= dp.datetime_end)) OR ((dp.datetime_end &lt; now()) AND (date_part('year'::text, f.version) &lt;&gt; '1111'::double precision) AND ((f.version &gt;= (dp.datetime_end - '24:00:00'::interval)) AND (f.version &lt;= dp.datetime_end))) OR ((dp.datetime_end &gt;= now()) AND (date_part('year'::text, f.version) &lt;&gt; '1111'::double precision) AND ((f.version &gt;= (now() - '18:00:00'::interval)) AND (f.version &lt;= now()))))&#10;          ORDER BY f.product_id, f.version, f.datetime) dss;">
+      <table name="v_download_request" numRows="0" remarks="" schema="cumulus" type="VIEW" viewSql=" WITH download_products AS (&#10;         SELECT dp.download_id,&#10;            dp.product_id,&#10;            d.datetime_start,&#10;            d.datetime_end&#10;           FROM (download d&#10;             JOIN download_product dp ON ((dp.download_id = d.id)))&#10;        )&#10; SELECT dss.download_id,&#10;    dss.product_id,&#10;    dss.datetime_start,&#10;    dss.datetime_end,&#10;    dss.key,&#10;    dss.bucket,&#10;    dss.dss_datatype,&#10;    dss.dss_cpart,&#10;        CASE&#10;            WHEN ((dss.dss_datatype = 'INST-VAL'::text) AND (date_part('hour'::text, dss.datetime_dss_dpart) = (0)::double precision) AND (date_part('minute'::text, dss.datetime_dss_dpart) = (0)::double precision)) THEN to_char((dss.datetime_dss_dpart - '1 day'::interval), 'DDMONYYYY:24MI'::text)&#10;            ELSE COALESCE(to_char(dss.datetime_dss_dpart, 'DDMONYYYY:HH24MI'::text), ''::text)&#10;        END AS dss_dpart,&#10;        CASE&#10;            WHEN ((date_part('hour'::text, dss.datetime_dss_epart) = (0)::double precision) AND (date_part('minute'::text, dss.datetime_dss_dpart) = (0)::double precision)) THEN to_char((dss.datetime_dss_epart - '1 day'::interval), 'DDMONYYYY:24MI'::text)&#10;            ELSE COALESCE(to_char(dss.datetime_dss_epart, 'DDMONYYYY:HH24MI'::text), ''::text)&#10;        END AS dss_epart,&#10;    dss.dss_fpart,&#10;    dss.dss_unit,&#10;    dss.forecast_version&#10;   FROM ( SELECT dp.download_id,&#10;            dp.product_id,&#10;            dp.datetime_start,&#10;            dp.datetime_end,&#10;            f.file AS key,&#10;            ( SELECT config.config_value&#10;                   FROM config&#10;                  WHERE ((config.config_name)::text = 'write_to_bucket'::text)) AS bucket,&#10;                CASE&#10;                    WHEN (p.temporal_duration = 0) THEN 'INST-VAL'::text&#10;                    WHEN ((a.name)::text = ANY ((ARRAY['AIRTEMP-MIN'::character varying, 'AIRTEMP-MAX'::character varying])::text[])) THEN 'PER-AVER'::text&#10;                    ELSE 'PER-CUM'::text&#10;                END AS dss_datatype,&#10;                CASE&#10;                    WHEN (p.temporal_duration = 0) THEN f.datetime&#10;                    ELSE (f.datetime - ((p.temporal_duration)::double precision * '00:00:01'::interval))&#10;                END AS datetime_dss_dpart,&#10;                CASE&#10;                    WHEN (p.temporal_duration = 0) THEN NULL::timestamp with time zone&#10;                    ELSE f.datetime&#10;                END AS datetime_dss_epart,&#10;            p.dss_fpart,&#10;            u.name AS dss_unit,&#10;            a.name AS dss_cpart,&#10;            f.version AS forecast_version&#10;           FROM ((((productfile f&#10;             JOIN download_products dp ON ((dp.product_id = f.product_id)))&#10;             JOIN product p ON ((f.product_id = p.id)))&#10;             JOIN unit u ON ((p.unit_id = u.id)))&#10;             JOIN parameter a ON ((a.id = p.parameter_id)))&#10;          WHERE (((date_part('year'::text, f.version) = '1111'::double precision) AND (f.datetime &gt;= dp.datetime_start) AND (f.datetime &lt;= dp.datetime_end)) OR ((dp.datetime_end &lt; now()) AND (date_part('year'::text, f.version) &lt;&gt; '1111'::double precision) AND ((f.version &gt;= (dp.datetime_end - '24:00:00'::interval)) AND (f.version &lt;= dp.datetime_end))) OR ((dp.datetime_end &gt;= now()) AND (date_part('year'::text, f.version) &lt;&gt; '1111'::double precision) AND ((f.version &gt;= (now() - '18:00:00'::interval)) AND (f.version &lt;= now()))))&#10;          ORDER BY f.product_id, f.version, f.datetime) dss;">
          <column autoUpdated="false" defaultValue="null" digits="0" id="0" name="download_id" nullable="true" remarks="" size="2147483647" type="uuid" typeCode="1111"/>
          <column autoUpdated="false" defaultValue="null" digits="0" id="1" name="product_id" nullable="true" remarks="" size="2147483647" type="uuid" typeCode="1111"/>
          <column autoUpdated="false" defaultValue="null" digits="6" id="2" name="datetime_start" nullable="true" remarks="" size="35" type="timestamptz" typeCode="93"/>
@@ -408,6 +409,13 @@
          <column autoUpdated="false" defaultValue="null" digits="0" id="17" name="productfile_count" nullable="true" remarks="" size="19" type="int8" typeCode="-5"/>
          <column autoUpdated="false" defaultValue="null" digits="6" id="18" name="last_forecast_version" nullable="true" remarks="" size="35" type="timestamptz" typeCode="93"/>
       </table>
+      <table name="v_product_status" numRows="0" remarks="" schema="cumulus" type="VIEW" viewSql=" WITH pf_date AS (&#10;         SELECT pf.product_id,&#10;            max(pf.datetime) AS max_date&#10;           FROM productfile pf&#10;          WHERE (date_part('year'::text, (pf.version)::date) = '1111'::double precision)&#10;          GROUP BY pf.product_id&#10;        UNION&#10;         SELECT pf.product_id,&#10;            max(pf.version) AS max_date&#10;           FROM productfile pf&#10;          WHERE (date_part('year'::text, (pf.version)::date) &lt;&gt; '1111'::double precision)&#10;          GROUP BY pf.product_id&#10;        )&#10; SELECT p.slug,&#10;    md.max_date AS latest_product_datetime,&#10;    p.acceptable_timedelta,&#10;    date_trunc('minute'::text, (CURRENT_TIMESTAMP - md.max_date)) AS actual_timedelta,&#10;        CASE&#10;            WHEN ((p.acceptable_timedelta IS NOT NULL) AND (md.max_date &gt;= date_trunc('minute'::text, (CURRENT_TIMESTAMP - p.acceptable_timedelta)))) THEN true&#10;            ELSE false&#10;        END AS is_current&#10;   FROM (product p&#10;     LEFT JOIN pf_date md ON ((md.product_id = p.id)))&#10;  ORDER BY p.slug;">
+         <column autoUpdated="false" defaultValue="null" digits="0" id="0" name="slug" nullable="true" remarks="" size="120" type="varchar" typeCode="12"/>
+         <column autoUpdated="false" defaultValue="null" digits="6" id="1" name="latest_product_datetime" nullable="true" remarks="" size="35" type="timestamptz" typeCode="93"/>
+         <column autoUpdated="false" defaultValue="null" digits="6" id="2" name="acceptable_timedelta" nullable="true" remarks="" size="49" type="interval" typeCode="1111"/>
+         <column autoUpdated="false" defaultValue="null" digits="6" id="3" name="actual_timedelta" nullable="true" remarks="" size="49" type="interval" typeCode="1111"/>
+         <column autoUpdated="false" defaultValue="null" digits="0" id="4" name="is_current" nullable="true" remarks="" size="1" type="bool" typeCode="-7"/>
+      </table>
       <table name="v_productfile" numRows="0" remarks="" schema="cumulus" type="VIEW" viewSql=" SELECT p.id AS product_id,&#10;    p.name AS product_name,&#10;    p.slug AS product_slug,&#10;    f.id,&#10;    f.datetime,&#10;    f.file,&#10;    f.version&#10;   FROM (productfile f&#10;     LEFT JOIN v_product p ON ((p.id = f.product_id)));">
          <column autoUpdated="false" defaultValue="null" digits="0" id="0" name="product_id" nullable="true" remarks="" size="2147483647" type="uuid" typeCode="1111"/>
          <column autoUpdated="false" defaultValue="null" digits="0" id="1" name="product_name" nullable="true" remarks="" size="2147483647" type="text" typeCode="12"/>
@@ -425,7 +433,7 @@
          <column autoUpdated="false" defaultValue="null" digits="0" id="4" name="area_groups" nullable="true" remarks="" size="2147483647" type="_uuid" typeCode="2003"/>
          <column autoUpdated="false" defaultValue="null" digits="0" id="5" name="office_symbol" nullable="true" remarks="" size="120" type="varchar" typeCode="12"/>
       </table>
-      <table name="watershed" numRows="219" remarks="" schema="cumulus" type="TABLE">
+      <table name="watershed" numRows="222" remarks="" schema="cumulus" type="TABLE">
          <column autoUpdated="false" defaultValue="uuid_generate_v4()" digits="0" id="0" name="id" nullable="false" remarks="" size="2147483647" type="uuid" typeCode="1111">
             <child column="watershed_id" foreignKey="area_group_watershed_id_fkey" implied="false" onDeleteCascade="true" schema="cumulus" table="area_group"/>
             <child column="watershed_id" foreignKey="download_watershed_id_fkey" implied="false" onDeleteCascade="false" schema="cumulus" table="download"/>

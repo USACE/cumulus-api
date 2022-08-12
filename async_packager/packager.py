@@ -84,7 +84,7 @@ def handle_message(message):
                         PayloadResp.output_key,
                         # Manifest JSON
                         {
-                            "size": sizeof_fmt(os.path.getsize(package_file)),
+                            "size_bytes": os.path.getsize(package_file),
                             "filecount": len(PayloadResp.contents)
                         }
                     )

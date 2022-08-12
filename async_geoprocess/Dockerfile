@@ -16,7 +16,8 @@ COPY . .
 
 # pip install/upgrade requirements before the cumulus package
 # sphinx used to generate documentation from docstrings
-RUN python3 -m pip install --upgrade pip wheel setuptools
+RUN python3 -m pip install --upgrade pip wheel setuptools && \
+    python3 -m pip install /app/${PACKAGE}/
 
 RUN useradd appuser && \
     mkdir -p -m 775 docs && \

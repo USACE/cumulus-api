@@ -134,7 +134,7 @@ def process(*, src: str, dst: str = None, acquirable: str = None):
                     "filetype": acquirable,
                     "file": tif,
                     "datetime": nctime.isoformat(),
-                    "version": datetime.utcnow(),
+                    "version": None,
                 }
             )
 

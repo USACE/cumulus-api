@@ -82,7 +82,12 @@ def handle_message(message):
                         handler.PACKAGE_STATUS["SUCCESS"],
                         100,
                         PayloadResp.output_key,
-                    )  # Update Status of Download
+                        # Manifest JSON
+                        {
+                            "size_bytes": os.path.getsize(package_file),
+                            "filecount": len(PayloadResp.contents),
+                        },
+                    )
                 else:
                     handler.update_status(
                         download_id, handler.PACKAGE_STATUS["FAILED"], 51

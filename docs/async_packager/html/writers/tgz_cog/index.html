@@ -104,7 +104,7 @@
                 <div class="doc doc-object doc-module">
 
 
-<a id="cumulus_packager.writers.tgz_cog"></a>
+<a id="cumulus_packager.writers.tgz-cog"></a>
   <div class="doc doc-contents first">
   
       <p>Packager writer plugin</p>
@@ -126,7 +126,7 @@
 
 
 
-<h2 id="cumulus_packager.writers.tgz_cog.writer" class="doc doc-heading">
+<h2 id="cumulus_packager.writers.tgz-cog.writer" class="doc doc-heading">
 <code class="highlight language-python"><span class="n">writer</span><span class="p">(</span><span class="nb">id</span><span class="p">,</span> <span class="n">src</span><span class="p">,</span> <span class="n">extent</span><span class="p">,</span> <span class="n">dst</span><span class="p">,</span> <span class="n">cellsize</span><span class="p">,</span> <span class="n">dst_srs</span><span class="o">=</span><span class="s1">&#39;EPSG:5070&#39;</span><span class="p">)</span></code>
 
 </h2>
@@ -229,8 +229,9 @@
   </table>
 
       <details class="quote">
-        <summary>Source code in <code>cumulus_packager/writers/tgz_cog.py</code></summary>
-        <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"> 22</span>
+        <summary>Source code in <code>cumulus_packager/writers/tgz-cog.py</code></summary>
+        <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"> 21</span>
+<span class="normal"> 22</span>
 <span class="normal"> 23</span>
 <span class="normal"> 24</span>
 <span class="normal"> 25</span>
@@ -317,7 +318,8 @@
 <span class="normal">106</span>
 <span class="normal">107</span>
 <span class="normal">108</span>
-<span class="normal">109</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="nd">@pyplugs</span><span class="o">.</span><span class="n">register</span>
+<span class="normal">109</span>
+<span class="normal">110</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="nd">@pyplugs</span><span class="o">.</span><span class="n">register</span>
 <span class="k">def</span> <span class="nf">writer</span><span class="p">(</span>
     <span class="nb">id</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
     <span class="n">src</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
@@ -348,14 +350,18 @@
 <span class="sd">    str</span>
 <span class="sd">        FQPN to dss file</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="c1"># return None if no items in the &#39;contents&#39;</span>
-    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">src</span><span class="p">)</span> <span class="o">&lt;</span> <span class="mi">1</span><span class="p">:</span>
-        <span class="n">package_status</span><span class="p">(</span><span class="nb">id</span><span class="o">=</span><span class="nb">id</span><span class="p">,</span> <span class="n">status_id</span><span class="o">=</span><span class="n">_status</span><span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">))</span>
-        <span class="k">return</span>
-
-    <span class="n">_extent_name</span> <span class="o">=</span> <span class="n">extent</span><span class="p">[</span><span class="s2">&quot;name&quot;</span><span class="p">]</span>
+    <span class="c1"># convert the strings back to json objects; needed for pyplugs</span>
+    <span class="n">src</span> <span class="o">=</span> <span class="n">json</span><span class="o">.</span><span class="n">loads</span><span class="p">(</span><span class="n">src</span><span class="p">)</span>
+    <span class="n">gridcount</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">src</span><span class="p">)</span>
+    <span class="n">extent</span> <span class="o">=</span> <span class="n">json</span><span class="o">.</span><span class="n">loads</span><span class="p">(</span><span class="n">extent</span><span class="p">)</span>
+    <span class="c1"># _extent_name = extent[&quot;name&quot;]</span>
     <span class="n">_bbox</span> <span class="o">=</span> <span class="n">extent</span><span class="p">[</span><span class="s2">&quot;bbox&quot;</span><span class="p">]</span>
     <span class="n">_progress</span> <span class="o">=</span> <span class="mi">0</span>
+
+    <span class="c1"># return None if no items in the &#39;contents&#39;</span>
+    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">src</span><span class="p">)</span> <span class="o">&lt;</span> <span class="mi">1</span><span class="p">:</span>
+        <span class="n">update_status</span><span class="p">(</span><span class="nb">id</span><span class="o">=</span><span class="nb">id</span><span class="p">,</span> <span class="n">status_id</span><span class="o">=</span><span class="n">PACKAGE_STATUS</span><span class="p">[</span><span class="s2">&quot;FAILED&quot;</span><span class="p">],</span> <span class="n">progress</span><span class="o">=</span><span class="n">_progress</span><span class="p">)</span>
+        <span class="k">return</span>
 
     <span class="n">tarfilename</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">dst</span><span class="p">,</span> <span class="nb">id</span><span class="p">)</span> <span class="o">+</span> <span class="s2">&quot;.tar.gz&quot;</span>
     <span class="k">try</span><span class="p">:</span>
@@ -366,9 +372,8 @@
 
             <span class="n">filename_</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">basename</span><span class="p">(</span><span class="n">TifCfg</span><span class="o">.</span><span class="n">key</span><span class="p">)</span>
 
-            <span class="n">ds</span> <span class="o">=</span> <span class="n">gdal</span><span class="o">.</span><span class="n">Open</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;/vsis3_streaming/</span><span class="si">{</span><span class="n">TifCfg</span><span class="o">.</span><span class="n">bucket</span><span class="si">}</span><span class="s2">/</span><span class="si">{</span><span class="n">TifCfg</span><span class="o">.</span><span class="n">key</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
-
             <span class="c1"># GDAL Warp the Tiff to what we need for DSS</span>
+            <span class="n">ds</span> <span class="o">=</span> <span class="n">gdal</span><span class="o">.</span><span class="n">Open</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;/vsis3_streaming/</span><span class="si">{</span><span class="n">TifCfg</span><span class="o">.</span><span class="n">bucket</span><span class="si">}</span><span class="s2">/</span><span class="si">{</span><span class="n">TifCfg</span><span class="o">.</span><span class="n">key</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
             <span class="n">gdal</span><span class="o">.</span><span class="n">Warp</span><span class="p">(</span>
                 <span class="n">tarfile</span> <span class="o">:=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">dst</span><span class="p">,</span> <span class="n">filename_</span><span class="p">),</span>
                 <span class="n">ds</span><span class="p">,</span>
@@ -388,17 +393,16 @@
             <span class="n">tar</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">tarfile</span><span class="p">,</span> <span class="n">arcname</span><span class="o">=</span><span class="n">filename_</span><span class="p">,</span> <span class="n">recursive</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
 
             <span class="c1"># callback</span>
-            <span class="n">_progress</span> <span class="o">=</span> <span class="n">idx</span> <span class="o">/</span> <span class="nb">len</span><span class="p">(</span><span class="n">src</span><span class="p">)</span>
-            <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Progress: </span><span class="si">{</span><span class="n">_progress</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
-
-            <span class="n">package_status</span><span class="p">(</span>
-                <span class="nb">id</span><span class="o">=</span><span class="nb">id</span><span class="p">,</span>
-                <span class="n">status_id</span><span class="o">=</span><span class="n">_status</span><span class="p">(</span><span class="n">_progress</span><span class="p">),</span>
-                <span class="n">progress</span><span class="o">=</span><span class="n">_progress</span><span class="p">,</span>
-            <span class="p">)</span>
+            <span class="n">_progress</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(((</span><span class="n">idx</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span> <span class="o">/</span> <span class="n">gridcount</span><span class="p">)</span> <span class="o">*</span> <span class="mi">100</span><span class="p">)</span>
+            <span class="c1"># Update progress at predefined interval</span>
+            <span class="k">if</span> <span class="n">idx</span> <span class="o">%</span> <span class="n">PACKAGER_UPDATE_INTERVAL</span> <span class="o">==</span> <span class="mi">0</span> <span class="ow">or</span> <span class="n">idx</span> <span class="o">==</span> <span class="n">gridcount</span> <span class="o">-</span> <span class="mi">1</span><span class="p">:</span>
+                <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Progress: </span><span class="si">{</span><span class="n">_progress</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+                <span class="n">update_status</span><span class="p">(</span>
+                    <span class="nb">id</span><span class="o">=</span><span class="nb">id</span><span class="p">,</span> <span class="n">status_id</span><span class="o">=</span><span class="n">PACKAGE_STATUS</span><span class="p">[</span><span class="s2">&quot;INITIATED&quot;</span><span class="p">],</span> <span class="n">progress</span><span class="o">=</span><span class="n">_progress</span>
+                <span class="p">)</span>
     <span class="k">except</span> <span class="p">(</span><span class="ne">RuntimeError</span><span class="p">,</span> <span class="ne">Exception</span><span class="p">)</span> <span class="k">as</span> <span class="n">ex</span><span class="p">:</span>
         <span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="nb">type</span><span class="p">(</span><span class="n">ex</span><span class="p">)</span><span class="o">.</span><span class="vm">__name__</span><span class="si">}</span><span class="s2">: </span><span class="si">{</span><span class="n">this</span><span class="si">}</span><span class="s2">: </span><span class="si">{</span><span class="n">ex</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
-        <span class="n">package_status</span><span class="p">(</span><span class="nb">id</span><span class="o">=</span><span class="nb">id</span><span class="p">,</span> <span class="n">status_id</span><span class="o">=</span><span class="n">_status</span><span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">),</span> <span class="n">progress</span><span class="o">=</span><span class="n">_progress</span><span class="p">)</span>
+        <span class="n">update_status</span><span class="p">(</span><span class="nb">id</span><span class="o">=</span><span class="nb">id</span><span class="p">,</span> <span class="n">status_id</span><span class="o">=</span><span class="n">PACKAGE_STATUS</span><span class="p">[</span><span class="s2">&quot;FAILED&quot;</span><span class="p">],</span> <span class="n">progress</span><span class="o">=</span><span class="n">_progress</span><span class="p">)</span>
         <span class="k">return</span> <span class="kc">None</span>
     <span class="k">finally</span><span class="p">:</span>
         <span class="n">ds</span> <span class="o">=</span> <span class="kc">None</span>

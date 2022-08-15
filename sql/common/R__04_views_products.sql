@@ -16,7 +16,7 @@ CREATE OR REPLACE VIEW v_acquirablefile AS (
 CREATE OR REPLACE VIEW v_product AS (
     WITH tags_by_product AS (
 		SELECT product_id         AS product_id,
-               array_agg(tag_id ORDER BY tag_id:VARCHAR)  AS tags
+               array_agg(tag_id ORDER BY tag_id::VARCHAR)  AS tags
 	    FROM product_tags
 	    GROUP BY product_id
 	)

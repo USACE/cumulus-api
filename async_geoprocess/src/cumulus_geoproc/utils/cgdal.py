@@ -77,6 +77,7 @@ def gdal_translate_w_options(
             "OVERVIEW_RESAMPLING=BILINEAR",
         ],
     }
+    """dict: base (default) options but can be re-asigned"""
     _kwargs = {**base, **kwargs}
     gdal.Translate(
         dst,

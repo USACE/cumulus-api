@@ -16,11 +16,36 @@ int closedss(long long *ifltab)
     return zcloseInternal(ifltab, 0);
 }
 
-float roundValue(float var)
+float roundValue(float var, int precision)
 {
-    int precision = 100;
-    float value = (int)(var * precision + 0.5);
-    return (float)value / precision;
+    int precision_ = 1 / pow(10, precision);
+    float value = (int)(var / precision_ + 0.5);
+    return (float)value * precision_;
+}
+
+void rangelimit_table(float minval, float maxval, int range, int bins, int datasize, float *rangelimit, int *histo, float *data)
+{
+    float step = (float)range / bins;
+
+    int i = 0;
+    rangelimit[i] = UNDEFINED_FLOAT;
+    rangelimit[i + 1] = minval;
+    for (i = 2; i < bins - 1; i++)
+    {
+        if (step != 0)
+            rangelimit[i] = minval + step * i;
+    }
+    rangelimit[i] = maxval;
+
+    // Exceedance
+    for (int idx = 0; idx < datasize; idx++)
+    {
+        for (int jdx = 0; jdx < bins; jdx++)
+        {
+            if (data[idx] >= rangelimit[jdx])
+                histo[jdx]++;
+        }
+    }
 }
 
 float maximum(float *arr, int n, float nodata)
@@ -57,22 +82,18 @@ float meanvalue(float *arr, int n, float nodata)
 
     for (int i = 0; i < n; i++)
     {
-        if (arr[i] != nodata)
+        if (arr[i] != nodata && arr[i] != UNDEFINED_FLOAT)
         {
             sum += arr[i];
             count++;
         }
     }
-    if (count > 0)
-        mean = sum / count;
+    mean = sum / count;
     return mean;
 }
 
 void filter_nodata(float *arr, int datasize, float nodata)
 {
-    // float precision = 0.0001;
-    // float dif;
-
     for (int i = 0; i < datasize; i++)
     {
         // dif = fabs(arr[i] - nodata);

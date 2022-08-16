@@ -13,24 +13,26 @@ import (
 )
 
 var listProductsSQL = `SELECT id, slug, name, label, tags, temporal_resolution, temporal_duration,
-                              parameter_id, parameter, unit_id, unit, dss_fpart, description,
+                              parameter_id, parameter, unit_id, unit, dss_fpart, dss_datatype, description,
 							  suite_id, suite, after, before, productfile_count, last_forecast_version
 	                   FROM v_product`
 
 // ProductInfo holds information required to create a product
 type ProductInfo struct {
-	Name               string    `json:"name"`
-	TemporalResolution int       `json:"temporal_resolution" db:"temporal_resolution"`
-	TemporalDuration   int       `json:"temporal_duration" db:"temporal_duration"`
-	DssFpart           string    `json:"dss_fpart" db:"dss_fpart"`
-	ParameterID        uuid.UUID `json:"parameter_id" db:"parameter_id"`
-	Parameter          string    `json:"parameter"`
-	UnitID             uuid.UUID `json:"unit_id" db:"unit_id"`
-	Unit               string    `json:"unit"`
-	Description        string    `json:"description"`
-	SuiteID            uuid.UUID `json:"suite_id" db:"suite_id"`
-	Suite              string    `json:"suite"`
-	Label              string    `json:"label"`
+	Name               string     `json:"name"`
+	TemporalResolution int        `json:"temporal_resolution" db:"temporal_resolution"`
+	TemporalDuration   int        `json:"temporal_duration" db:"temporal_duration"`
+	DssFpart           string     `json:"dss_fpart" db:"dss_fpart"`
+	DssDatatypeID      *uuid.UUID `json:"dss_datatype_id,omitempty" db:"dss_datatype_id"`
+	DssDatatype        string     `json:"dss_datatype" db:"dss_datatype"`
+	ParameterID        uuid.UUID  `json:"parameter_id" db:"parameter_id"`
+	Parameter          string     `json:"parameter"`
+	UnitID             uuid.UUID  `json:"unit_id" db:"unit_id"`
+	Unit               string     `json:"unit"`
+	Description        string     `json:"description"`
+	SuiteID            uuid.UUID  `json:"suite_id" db:"suite_id"`
+	Suite              string     `json:"suite"`
+	Label              string     `json:"label"`
 }
 
 type ProductIdentifiers struct {
@@ -165,9 +167,9 @@ func CreateProduct(db *pgxpool.Pool, p *ProductInfo) (*Product, error) {
 	var pID uuid.UUID
 	if err := pgxscan.Get(
 		context.Background(), db, &pID,
-		`INSERT INTO product (temporal_resolution, temporal_duration, dss_fpart, parameter_id, unit_id, description, suite_id, label, slug) VALUES
-			($1, $2, $3, $4, $5, $6, $7, $8, $9)
-		RETURNING id`, p.TemporalResolution, p.TemporalDuration, p.DssFpart, p.ParameterID, p.UnitID, p.Description, p.SuiteID, p.Label, slug,
+		`INSERT INTO product (temporal_resolution, temporal_duration, dss_fpart, dss_datatype_id, parameter_id, unit_id, description, suite_id, label, slug) VALUES
+			($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
+		RETURNING id`, p.TemporalResolution, p.TemporalDuration, p.DssFpart, p.DssDatatypeID, p.ParameterID, p.UnitID, p.Description, p.SuiteID, p.Label, slug,
 	); err != nil {
 		return nil, err
 	}
@@ -179,10 +181,10 @@ func UpdateProduct(db *pgxpool.Pool, p *Product) (*Product, error) {
 	var pID uuid.UUID
 	if err := pgxscan.Get(
 		context.Background(), db, &pID,
-		`UPDATE product SET temporal_resolution=$2, temporal_duration=$3, dss_fpart=$4,
-		                    parameter_id=$5, unit_id=$6, description=$7, suite_id=$8, label=$9 
+		`UPDATE product SET temporal_resolution=$2, temporal_duration=$3, dss_fpart=$4, dss_datatype_id=$5,
+		                    parameter_id=$6, unit_id=$7, description=$8, suite_id=$9, label=$10
 		 WHERE id = $1
-		 RETURNING id`, p.ID, p.TemporalResolution, p.TemporalDuration, p.DssFpart, p.ParameterID, p.UnitID, p.Description, p.SuiteID, p.Label,
+		 RETURNING id`, p.ID, p.TemporalResolution, p.TemporalDuration, p.DssFpart, p.DssDatatypeID, p.ParameterID, p.UnitID, p.Description, p.SuiteID, p.Label,
 	); err != nil {
 		return nil, err
 	}

@@ -1,3 +1,4 @@
+-- Always re-apply when running migrations: ${flyway:timestamp}
 CREATE OR REPLACE VIEW v_download AS (
     SELECT d.id            AS id,
         d.datetime_start   AS datetime_start,

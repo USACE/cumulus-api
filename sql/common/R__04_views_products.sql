@@ -1,6 +1,4 @@
-DROP VIEW v_productfile;
-DROP VIEW v_product;
-
+-- Always re-apply when running migrations: ${flyway:timestamp}
 -- v_acquirablefile
 CREATE OR REPLACE VIEW v_acquirablefile AS (
     SELECT a.id           AS acquirable_id,

@@ -1,3 +1,6 @@
+DROP VIEW v_productfile;
+DROP VIEW v_product;
+
 -- v_acquirablefile
 CREATE OR REPLACE VIEW v_acquirablefile AS (
     SELECT a.id           AS acquirable_id,

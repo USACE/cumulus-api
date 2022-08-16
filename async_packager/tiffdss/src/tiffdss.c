@@ -12,11 +12,9 @@
 int writeRecord(char *dssfilename, zStructSpatialGrid *gridStructStore, float *data)
 {
     int i, n, status;
-    float min = 0;
-    float max = 0;
+    float minval = 0;
+    float maxval = 0;
     float mean = 0;
-    int is_precip;
-    char *str_to_find = "precip";
 
     zsetMessageLevel(MESS_METHOD_GLOBAL_ID, MESS_LEVEL_NONE);
 
@@ -26,59 +24,26 @@ int writeRecord(char *dssfilename, zStructSpatialGrid *gridStructStore, float *d
 
     n = gridStructStore->_numberOfCellsX * gridStructStore->_numberOfCellsY;
 
-    min = minimum(data, n, gridStructStore->_nullValue);
-    max = maximum(data, n, gridStructStore->_nullValue);
+    minval = minimum(data, n, gridStructStore->_nullValue);
+    maxval = maximum(data, n, gridStructStore->_nullValue);
     mean = meanvalue(data, n, gridStructStore->_nullValue);
 
-    char cpart[65];
-    int part_len = zpathnameGetPart(gridStructStore->pathname, 3, cpart, sizeof(cpart));
-    is_precip = zfindString(cpart, part_len, str_to_find, strlen(str_to_find));
-    // If is_precip is > 0, which means it's precip, no need to filter nodata
-    if (is_precip == -1)
-    {
-        // printf("Filter no data value: %f\n", gridStructStore->_nullValue);
-        filter_nodata(data, n, gridStructStore->_nullValue);
-    }
+    // filter no data values to UNDEFINE_FLOAT
+    filter_nodata(data, n, gridStructStore->_nullValue);
 
-    float range = max - min;
-    // printf("Data range: %f\n", range);
-
-    int bins = 5;
-    if (range == 0)
-        bins = 2;
+    // get the rangelimit table and histogram
+    int bin_range = (int)(ceil(maxval) - floor(minval));
+    int bins = 3;
+    if (bin_range > 0)
+        bins = floor(1 + 3.322 * log10(n) + 1);
 
     static float *rangelimit;
     static int *histo;
     rangelimit = calloc(bins, sizeof(float));
     histo = calloc(bins, sizeof(float));
 
-    float step = (float)range / bins;
-    // printf("Data step: %f\n", step);
-
-    // rangelimit[0] = UNDEFINED_FLOAT;
-    rangelimit[0] = min;
-    // rangelimit[1] = min;
-    rangelimit[1] = min + step * 2;
-    if (step != 0)
-    {
-        rangelimit[2] = min + step * 3;
-        rangelimit[3] = min + step * 4;
-        rangelimit[4] = max;
-    }
-    // Exceedance
-    for (int idx = 0; idx < n; idx++)
-    {
-        for (int jdx = 0; jdx < bins; jdx++)
-        {
-            if (data[idx] >= rangelimit[jdx])
-                histo[jdx]++;
-        }
-    }
-
-    // reversing the array values rotates it 180
-    reverse_array(data, n);
-    // reverse each row to flip <--> 180
-    reverse_rows(data, gridStructStore->_numberOfCellsX, n);
+    // populate the rangelimit and histogram
+    rangelimit_table(minval, maxval, bin_range, bins, n, rangelimit, histo, data);
 
     zStructSpatialGrid *spatialGridStruct = zstructSpatialGridNew(gridStructStore->pathname);
 
@@ -109,8 +74,8 @@ int writeRecord(char *dssfilename, zStructSpatialGrid *gridStructStore, float *d
     spatialGridStruct->_isInterval = gridStructStore->_isInterval;
     spatialGridStruct->_isTimeStamped = gridStructStore->_isTimeStamped;
 
-    spatialGridStruct->_maxDataValue = &max;
-    spatialGridStruct->_minDataValue = &min;
+    spatialGridStruct->_maxDataValue = &maxval;
+    spatialGridStruct->_minDataValue = &minval;
     spatialGridStruct->_meanDataValue = &mean;
     spatialGridStruct->_data = data;
 

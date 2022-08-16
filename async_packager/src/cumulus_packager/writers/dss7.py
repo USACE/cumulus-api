@@ -10,10 +10,9 @@ from ctypes import c_char_p, c_float, c_int
 import numpy
 import pyplugs
 from cumulus_packager import heclib, logger
+from cumulus_packager.configurations import LOGGER_LEVEL, PACKAGER_UPDATE_INTERVAL
 from cumulus_packager.packager.handler import PACKAGE_STATUS, update_status
 from osgeo import gdal, osr
-
-from cumulus_packager.configurations import PACKAGER_UPDATE_INTERVAL, LOGGER_LEVEL
 
 gdal.UseExceptions()
 
@@ -76,16 +75,6 @@ def writer(
         FQPN to dss file
     """
 
-    def _zwrite(dssfilename, gridStructStore, data_flat):
-        _ = heclib.zwrite_record(
-            dssfilename=dssfilename,
-            gridStructStore=gridStructStore,
-            data_flat=data_flat.astype(numpy.float32),
-        )
-        _ = None
-
-        return
-
     # convert the strings back to json objects; needed for pyplugs
     src = json.loads(src)
     gridcount = len(src)
@@ -122,9 +111,8 @@ def writer(
 
             # GDAL Warp the Tiff to what we need for DSS
             filename_ = os.path.basename(TifCfg.key)
-            mem_raster = f"/vsimem/{filename_}"
             warp_ds = gdal.Warp(
-                mem_raster,
+                mem_raster := f"/vsimem/{filename_}",
                 ds,
                 format="GTiff",
                 outputBounds=_bbox,
@@ -141,13 +129,12 @@ def writer(
 
             # Read data into 1D array
             raster = warp_ds.GetRasterBand(1)
-            nodata = raster.GetNoDataValue()
-            data = raster.ReadAsArray(resample_alg=gdal.gdalconst.GRIORA_Bilinear)
-            if "PRECIP" in TifCfg.dss_cpart.upper() and nodata != 0:
-                # TODO: Confirm this logic and add comment explaining
-                data[data == nodata] = 0
-                nodata = 0
-            data_flat = data.flatten()
+            _nodata = raster.GetNoDataValue()
+            nodata = 9999 if _nodata is None else _nodata
+
+            data = numpy.flipud(
+                raster.ReadAsArray(resample_alg=gdal.gdalconst.GRIORA_Bilinear)
+            ).flatten()
 
             # GeoTransforma and lower X Y
             xsize, ysize = warp_ds.RasterXSize, warp_ds.RasterYSize
@@ -176,8 +163,7 @@ def writer(
             spatialGridStruct._srsDefinition = c_char_p(srs_definition.encode())
             spatialGridStruct._xCoordOfGridCellZero = c_float(0)
             spatialGridStruct._yCoordOfGridCellZero = c_float(0)
-            if nodata is not None:
-                spatialGridStruct._nullValue = c_float(nodata)
+            spatialGridStruct._nullValue = c_float(nodata)
             spatialGridStruct._timeZoneID = c_char_p(tz_name.encode())
             spatialGridStruct._timeZoneRawOffset = c_int(tz_offset)
             spatialGridStruct._isInterval = c_int(is_interval)
@@ -185,8 +171,8 @@ def writer(
 
             # Call heclib.zwrite_record() in different process space to release memory after each iteration
             _p = multiprocessing.Process(
-                target=_zwrite,
-                args=(dssfilename, spatialGridStruct, data_flat.astype(numpy.float32)),
+                target=heclib.zwrite_record,
+                args=(dssfilename, spatialGridStruct, data.astype(numpy.float32)),
             )
             _p.start()
             _p.join()
@@ -199,6 +185,13 @@ def writer(
                     id=id, status_id=PACKAGE_STATUS["INITIATED"], progress=_progress
                 )
 
+            # try to unlink the memory file and continue if it causes a problem
+            try:
+                gdal.Unlink(mem_raster)
+            except RuntimeError as ex:
+                logger.error(f"{type(ex).__name__}: {this}: {ex}")
+                continue
+
         except (RuntimeError, Exception) as ex:
             logger.error(f"{type(ex).__name__}: {this}: {ex}")
             update_status(id=id, status_id=PACKAGE_STATUS["FAILED"], progress=_progress)
@@ -210,9 +203,7 @@ def writer(
             raster = None
             nodata = None
             data = None
-            data_flat = None
             warp_ds = None
-            gdal.Unlink(mem_raster)
             TifCfg = None
             data_type = None
             ds = None

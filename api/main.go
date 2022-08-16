@@ -87,7 +87,10 @@ func main() {
 
 	// Health Check
 	public.GET("/health", func(c echo.Context) error {
-		return c.JSON(http.StatusOK, map[string]interface{}{"status": "healthy"})
+		return c.JSON(http.StatusOK, map[string]interface{}{
+			"status":  "healthy",
+			"version": "2.08.00",
+		})
 	})
 
 	// Proxy to pg_featureserv
@@ -172,6 +175,9 @@ func main() {
 	private.DELETE("/units/:unit_id", handlers.DeleteUnit(db),
 		middleware.IsAdmin,
 	)
+
+	// DSS Specific Information
+	public.GET("/dss/datatypes", handlers.ListDssDatatypes(db))
 
 	// Parameters
 	public.GET("/parameters", handlers.ListParameters(db))

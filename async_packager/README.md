@@ -77,10 +77,16 @@ ___
 
 ## Create documentation from the Python docstring
 
-_Requires Pycco_
+_Requires mkdocs_
+
+The `mkdocs.yml` file and the repo's `docs/async_packager/docs` are the configurations for building documentation from Python docstrings.  Documenation pages can be built with the command `mkdocs build` at the same directory level as `mkdocs.yml`.
+
+### Mkdocs
+
+Generating documentation locally requires mkdocs to be installed.  Use `pip install mkdocs` to install and make available `mkdocs` at the command line.
 
 `Example:`
 
-```python
-pycco cumulus_packager/**/*.py -p -i -d ~/projects/cumulus-api/docs/async_packager/
+```bash
+[./cumulus-api/async_packager] > mkdocs build
 ```

@@ -22,7 +22,7 @@ ENV HECFLAG="/hec-dss/heclib/heclib_c/Output/libhec_c.a /hec-dss/heclib/heclib_f
 
 # Compile tiffdss with heclib C, heclib Fortran and GDAL library in /usr/lib
 WORKDIR /tiffdss/src
-RUN make
+RUN make libtiffdss.so
 
 # Packager
 FROM osgeo/gdal:ubuntu-small-3.5.0 as packager
@@ -35,7 +35,6 @@ ENV GDAL_DISABLE_READDIR_ON_OPEN=EMPTY_DIR
 ENV PACKAGE=async_packager
 
 # update, install and clean up
-    # apt-get -y upgrade && \
 RUN apt-get -y update && \
     apt-get install -y python3-pip && \
     rm -rf /var/lib/apt/lists/*
@@ -52,7 +51,7 @@ RUN python3 -m pip install --upgrade pip wheel setuptools && \
     python3 -m pip install /app/${PACKAGE}/ Sphinx sphinx_rtd_theme
 
 # copy over the libtiffdss.so
-# COPY --from=cbuilder --chown=root:root /tiffdss/src/libtiffdss.so /usr/lib/libtiffdss.so
+COPY --from=cbuilder --chown=root:root /tiffdss/src/libtiffdss.so /usr/lib/
 
 RUN useradd appuser && \
     mkdir -p -m 775 docs && \

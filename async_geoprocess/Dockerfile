@@ -8,19 +8,17 @@ RUN apt-get update -y \
   && apt-get install -y python3-pip git \
   && rm -rf /var/lib/apt/lists/*
 
+# pip install/upgrade requirements before the cumulus package
+RUN python3 -m pip install --upgrade pip wheel setuptools \
+  && python3 -m pip install git+https://github.com/USACE/cumulus-geoproc@${CUMULUS_GEOPROC_VERSION}
+
+RUN useradd appuser
+
 RUN mkdir -p /app/async_geoprocess
+
 WORKDIR /app/async_geoprocess
 
 COPY . .
-
-# pip install/upgrade requirements before the cumulus package
-# sphinx used to generate documentation from docstrings
-RUN python3 -m pip install --upgrade pip wheel setuptools && \
-    python3 -m pip install git+https://github.com/USACE/cumulus-geoproc@${CUMULUS_GEOPROC_VERSION}
-
-RUN useradd appuser && \
-    mkdir -p -m 775 docs && \
-    chown appuser:appuser docs
 
 USER appuser
 

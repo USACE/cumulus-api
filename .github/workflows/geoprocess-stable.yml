@@ -7,8 +7,11 @@ on:
       - 'async_geoprocess/**'
       - '.github/workflows/geoprocess-stable.yml'
   workflow_dispatch:
-jobs:
 
+env:
+  CUMULUS_GEOPROC_PIP_URL: git+https://github.com/USACE/cumulus-geoproc@stable
+
+jobs:
   GeoprocessDockerImage:
     name: Geoprocess Image Stable
     # The type of runner that the job will run on

@@ -1,6 +1,7 @@
 acquirable
 download_format
 download_status
+dss_datatype
 office
 parameter
 suite

@@ -16,6 +16,7 @@ tag
 suite
 parameter
 office
+dss_datatype
 download_status
 download_format
 acquirable

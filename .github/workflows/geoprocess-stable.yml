@@ -8,9 +8,6 @@ on:
       - '.github/workflows/geoprocess-stable.yml'
   workflow_dispatch:
 
-env:
-  CUMULUS_GEOPROC_PIP_URL: git+https://github.com/USACE/cumulus-geoproc@main
-
 jobs:
   GeoprocessDockerImage:
     name: Geoprocess Image Stable
@@ -39,7 +36,9 @@ jobs:
           ECR_REPOSITORY: cumulus-geoprocess
           IMAGE_TAG: ${{ github.sha }}
         run: |
-          docker build -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG -t $ECR_REGISTRY/$ECR_REPOSITORY:stable async_geoprocess
+          docker build \
+            --build-arg CUMULUS_GEOPROC_PIP_URL=git+https://github.com/USACE/cumulus-geoproc@main \
+            -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG -t $ECR_REGISTRY/$ECR_REPOSITORY:stable async_geoprocess
           docker push $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
           docker push $ECR_REGISTRY/$ECR_REPOSITORY:stable
 

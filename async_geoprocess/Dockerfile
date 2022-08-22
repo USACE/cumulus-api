@@ -1,27 +1,23 @@
 FROM osgeo/gdal:ubuntu-small-3.5.0
 
+ARG CUMULUS_GEOPROC_PIP_URL
 ENV PYTHONUNBUFFERED=1
 
-RUN apt-get update -y && apt-get install -y \
-  python3-pip \
+RUN apt-get update -y \
+  && apt-get install -y python3-pip git \
   && rm -rf /var/lib/apt/lists/*
 
-ENV PACKAGE=async_geoprocess
+# pip install/upgrade requirements before the cumulus package
+RUN python3 -m pip install --upgrade pip wheel setuptools \
+  && python3 -m pip install $CUMULUS_GEOPROC_PIP_URL
 
-RUN mkdir -p /app/${PACKAGE}
+RUN useradd appuser
 
-WORKDIR /app/${PACKAGE}
+RUN mkdir -p /app/async_geoprocess
+
+WORKDIR /app/async_geoprocess
 
 COPY . .
-
-# pip install/upgrade requirements before the cumulus package
-# sphinx used to generate documentation from docstrings
-RUN python3 -m pip install --upgrade pip wheel setuptools && \
-    python3 -m pip install /app/${PACKAGE}/
-
-RUN useradd appuser && \
-    mkdir -p -m 775 docs && \
-    chown appuser:appuser docs
 
 USER appuser
 

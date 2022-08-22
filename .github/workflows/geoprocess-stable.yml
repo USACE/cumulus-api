@@ -9,7 +9,7 @@ on:
   workflow_dispatch:
 
 env:
-  CUMULUS_GEOPROC_PIP_URL: git+https://github.com/USACE/cumulus-geoproc@stable
+  CUMULUS_GEOPROC_PIP_URL: git+https://github.com/USACE/cumulus-geoproc@main
 
 jobs:
   GeoprocessDockerImage:

@@ -8,9 +8,6 @@ on:
       - '.github/workflows/geoprocess-develop.yml'
   workflow_dispatch:
 
-env:
-  CUMULUS_GEOPROC_PIP_URL: git+https://github.com/USACE/cumulus-geoproc@main
-
 jobs:
   GeoprocessDockerImage:
     name: Geoprocess Image Develop
@@ -38,7 +35,9 @@ jobs:
           ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
           ECR_REPOSITORY: cumulus-geoprocess
         run: |
-          docker build -t $ECR_REGISTRY/$ECR_REPOSITORY:latest async_geoprocess
+          docker build \
+            --build-arg CUMULUS_GEOPROC_PIP_URL=git+https://github.com/USACE/cumulus-geoproc@main \
+            -t $ECR_REGISTRY/$ECR_REPOSITORY:latest async_geoprocess
           docker push $ECR_REGISTRY/$ECR_REPOSITORY:latest
 
       - name: Logout of Amazon ECR

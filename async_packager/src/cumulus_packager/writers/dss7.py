@@ -143,10 +143,8 @@ def writer(
             raster = warp_ds.GetRasterBand(1)
             nodata = raster.GetNoDataValue()
             data = raster.ReadAsArray(resample_alg=gdal.gdalconst.GRIORA_Bilinear)
-            if "PRECIP" in TifCfg.dss_cpart.upper() and nodata != 0:
-                # TODO: Confirm this logic and add comment explaining
-                data[data == nodata] = 0
-                nodata = 0
+            # Flip the dataset up/down because tif and dss have different origins
+            data = numpy.flipud(data)
             data_flat = data.flatten()
 
             # GeoTransforma and lower X Y

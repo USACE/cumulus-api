@@ -7,7 +7,7 @@ RUN apt-get -y update && \
 
 # clone the branches needed to compile
 RUN git clone --branch 7-IJ --single-branch https://github.com/HydrologicEngineeringCenter/hec-dss.git
-RUN git clone --branch main --single-branch https://github.com/HydrologicEngineeringCenter/tiffdss.git
+RUN git clone --branch stable --single-branch https://github.com/HydrologicEngineeringCenter/tiffdss.git
 
 # Compile heclib C
 WORKDIR /hec-dss/heclib/heclib_c

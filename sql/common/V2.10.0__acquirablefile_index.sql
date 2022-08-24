@@ -1,0 +1,1 @@
+CREATE INDEX IF NOT EXISTS acquirablefile_acquirable_id_idx ON acquirablefile (acquirable_id);

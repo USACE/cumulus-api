@@ -7,6 +7,9 @@ RUN apt-get update -y \
   && apt-get install -y python3-pip git \
   && rm -rf /var/lib/apt/lists/*
 
+# Cache buster
+RUN echo $(date +%s)
+
 # pip install/upgrade requirements before the cumulus package
 RUN python3 -m pip install --upgrade pip wheel setuptools \
   && python3 -m pip install $CUMULUS_GEOPROC_PIP_URL

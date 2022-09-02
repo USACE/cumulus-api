@@ -9,7 +9,7 @@ INSERT INTO parameter (id, name) VALUES
 -- Insert new units
 INSERT INTO unit (id, name, abbreviation) VALUES
     ('d5e7b710-f759-4eef-a0eb-d3148d81c43c','METER PER SEC','m/s'),
-    ('bc613cae-602f-4973-b496-34c503afa666','KILO PASCAL','kPa'),
-    ('c32186a9-28c8-4fda-84cf-a107d4fd40b4','HECTO PASCAL','hPa'),
+    ('bc613cae-602f-4973-b496-34c503afa666','KILOPASCAL','kPa'),
+    ('c32186a9-28c8-4fda-84cf-a107d4fd40b4','HECTOPASCAL','hPa'),
     ('880d70f4-d17a-44ba-8f1c-8ff58a87ef89','WATT PER M2','W/m2'),
     ('5dd42877-0967-432e-9d84-a0b7239b4647','PERCENT','%');

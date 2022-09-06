@@ -1,6 +1,17 @@
--- insert new acquirable
-INSERT INTO acquirable (id, name, slug) VALUES   
-    ('234ab142-a434-471b-a8c6-7b41ee341ac4', 'wrf-columbia', 'wrf-columbia');
+-- rename acquirable
+UPDATE acquirable SET
+    name = 'wrf-columbia',
+    slug = 'wrf-columbia'
+    WHERE id = 'ec926de8-6872-4d2b-b7ce-6002221babcd';
+
+-- delete acquirablefile
+DELETE FROM acquirablefile WHERE acquirable_id = 'ec926de8-6872-4d2b-b7ce-6002221babcd';
+
+-- delete productfile
+DELETE FROM productfile WHERE product_id = (SELECT id FROM product WHERE slug = 'wrf-columbia-precip');
+
+-- delete download_product
+DELETE FROM download_product WHERE product_id = (SELECT id FROM product WHERE slug = 'wrf-columbia-precip');
 
 -- insert new products
 INSERT INTO product (id,slug,"label",temporal_duration,temporal_resolution,dss_datatype_id, dss_fpart,parameter_id,description,unit_id,deleted,suite_id) VALUES

@@ -1,3 +1,19 @@
+-- rename acquirable
+UPDATE acquirable SET
+    name = 'wrf-bc',
+    slug = 'wrf-bc'
+    WHERE id = '552bf762-449f-4983-bbdc-9d89daada260';
+
+-- delete acquirablefile
+DELETE FROM acquirablefile WHERE acquirable_id = '552bf762-449f-4983-bbdc-9d89daada260';
+
+-- delete productfile
+DELETE FROM productfile WHERE product_id = (SELECT id FROM product WHERE slug = 'wrf-columbia-airtemp');
+
+-- delete download_product
+DELETE FROM download_product WHERE product_id = (SELECT id FROM product WHERE slug = 'wrf-columbia-airtemp');
+
+
 -- insert a new suit
 INSERT INTO suite (id, name, slug, description) VALUES
     ('a274d10d-f01f-4b82-860c-2ac75286d61d', 'Weather Research and Forecasting Model (WRF) British Columbia', 'wrf-british-columbia', '');

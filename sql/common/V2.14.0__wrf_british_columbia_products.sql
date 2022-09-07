@@ -1,27 +1,10 @@
--- rename acquirable
-UPDATE acquirable SET
-    name = 'wrf-bc',
-    slug = 'wrf-bc'
-    WHERE id = '552bf762-449f-4983-bbdc-9d89daada260';
-
--- delete acquirablefile
-DELETE FROM acquirablefile WHERE acquirable_id = '552bf762-449f-4983-bbdc-9d89daada260';
-
--- delete productfile
-DELETE FROM productfile WHERE product_id = (SELECT id FROM product WHERE slug = 'wrf-columbia-airtemp');
-
--- delete download_product
-DELETE FROM download_product WHERE product_id = (SELECT id FROM product WHERE slug = 'wrf-columbia-airtemp');
-
+-- insert new acquirable
+INSERT INTO acquirable (id, name, slug) VALUES   
+    ('52dbf840-276d-4c19-b2fb-b4d8539abf5f', 'wrf-bc', 'wrf-bc');
 
 -- insert a new suit
 INSERT INTO suite (id, name, slug, description) VALUES
     ('a274d10d-f01f-4b82-860c-2ac75286d61d', 'Weather Research and Forecasting Model (WRF) British Columbia', 'wrf-british-columbia', '');
-
-
--- insert new acquirable
-INSERT INTO acquirable (id, name, slug) VALUES   
-    ('b5bb46bd-97c8-4f3d-abf3-78a75ac7c5d9', 'wrf-bc', 'wrf-bc');
 
 -- insert new products
 INSERT INTO product (id,slug,"label",temporal_duration,temporal_resolution,dss_datatype_id, dss_fpart,parameter_id,description,unit_id,deleted,suite_id) VALUES

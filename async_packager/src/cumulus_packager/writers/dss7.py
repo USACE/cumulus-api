@@ -142,13 +142,15 @@ def writer(
             # Read data into 1D array
             raster = warp_ds.GetRasterBand(1)
             nodata = raster.GetNoDataValue()
+
             data = raster.ReadAsArray(resample_alg=gdal.gdalconst.GRIORA_Bilinear)
             # Flip the dataset up/down because tif and dss have different origins
             data = numpy.flipud(data)
             data_flat = data.flatten()
 
             # GeoTransforma and lower X Y
-            xsize, ysize = warp_ds.RasterXSize, warp_ds.RasterYSize
+            xsize = warp_ds.RasterXSize
+            ysize = warp_ds.RasterYSize
             adfGeoTransform = warp_ds.GetGeoTransform()
             llx = int(adfGeoTransform[0] / adfGeoTransform[1])
             lly = int(

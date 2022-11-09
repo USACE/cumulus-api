@@ -1,6 +1,7 @@
 -- insert acquirable
 INSERT INTO acquirable(id, name, slug) VALUES
-    ('e8ce6e5c-1eb8-459e-9da7-5e9e43006c47', 'wrf-columbia', 'wrf-columbia');
+    ('e8ce6e5c-1eb8-459e-9da7-5e9e43006c47', 'wrf-columbia', 'wrf-columbia')
+ON CONFLICT (id) DO NOTHING;
 
 -- insert new products
 INSERT INTO product (id,slug,"label",temporal_duration,temporal_resolution,dss_datatype_id, dss_fpart,parameter_id,description,unit_id,deleted,suite_id) VALUES
@@ -14,7 +15,8 @@ INSERT INTO product (id,slug,"label",temporal_duration,temporal_resolution,dss_d
     ('962ec366-e022-45d4-9528-f995b53c29e1','wrf-columbia-dewpntt','',0,3600, 'b1433fa7-645f-4e3c-b560-29cba59e80c6', 'WRF-COLUMBIA','1997ea14-9908-46e5-8d59-0ec7b1b7fc5d','Dew point temperature (DEWPNT_T)','0c8dcd1f-93db-4e64-be1d-47b3462deb2a',false,'894205d5-cc55-4071-946b-d4027004cb40'),
     ('fa6d9ae6-f307-4330-8e5c-24e10b137c22','wrf-columbia-rh','',0,3600, 'b1433fa7-645f-4e3c-b560-29cba59e80c6', 'WRF-COLUMBIA','c2c25499-1bc0-4c92-b429-446eaaf37768','Relative humidity (RH______)','5dd42877-0967-432e-9d84-a0b7239b4647',false,'894205d5-cc55-4071-946b-d4027004cb40'),
     ('6f138d28-b398-455a-8465-46e2ce1fc302','wrf-columbia-swdown','',0,3600, 'b1433fa7-645f-4e3c-b560-29cba59e80c6', 'WRF-COLUMBIA','14dc8407-f63a-4237-8251-5ef1746c3d89','Shortwave radiation (SWDOWN__)','880d70f4-d17a-44ba-8f1c-8ff58a87ef89',false,'894205d5-cc55-4071-946b-d4027004cb40'),
-    ('2e3786cd-ea7e-46c4-8156-bc86abe7104b','wrf-columbia-lwdown','',0,3600, 'b1433fa7-645f-4e3c-b560-29cba59e80c6', 'WRF-COLUMBIA','6f3efef3-6d6c-4378-94e3-0d7be7321707','Longwave radiation (LWDOWN__)','880d70f4-d17a-44ba-8f1c-8ff58a87ef89',false,'894205d5-cc55-4071-946b-d4027004cb40');
+    ('2e3786cd-ea7e-46c4-8156-bc86abe7104b','wrf-columbia-lwdown','',0,3600, 'b1433fa7-645f-4e3c-b560-29cba59e80c6', 'WRF-COLUMBIA','6f3efef3-6d6c-4378-94e3-0d7be7321707','Longwave radiation (LWDOWN__)','880d70f4-d17a-44ba-8f1c-8ff58a87ef89',false,'894205d5-cc55-4071-946b-d4027004cb40')
+ON CONFLICT (id) DO NOTHING;
 
 -- WRF product tags
 INSERT INTO product_tags (product_id, tag_id) VALUES
@@ -26,4 +28,5 @@ INSERT INTO product_tags (product_id, tag_id) VALUES
     ('962ec366-e022-45d4-9528-f995b53c29e1','17308048-d207-43dd-b346-c9836073e911'),
     ('fa6d9ae6-f307-4330-8e5c-24e10b137c22','17308048-d207-43dd-b346-c9836073e911'),
     ('6f138d28-b398-455a-8465-46e2ce1fc302','17308048-d207-43dd-b346-c9836073e911'),
-    ('2e3786cd-ea7e-46c4-8156-bc86abe7104b','17308048-d207-43dd-b346-c9836073e911');
+    ('2e3786cd-ea7e-46c4-8156-bc86abe7104b','17308048-d207-43dd-b346-c9836073e911')
+ON CONFLICT ON CONSTRAINT unique_tag_product DO NOTHING;

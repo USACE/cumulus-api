@@ -14,7 +14,8 @@ INSERT INTO parameter (id, name) VALUES
     ('5c993bde-6024-45ac-9b54-d4b87fac3b50','TEMPERATURE'),
     ('ca11ed97-02b9-4a44-9280-70c08bc0d5f9','TEMPERATURE-GROUND'),
     ('1997ea14-9908-46e5-8d59-0ec7b1b7fc5d','TEMPERATURE-DEWPOINT'),
-    ('37281336-ac37-4824-b83f-bcbc37a64daf','AIRTEMP-2METER');
+    ('37281336-ac37-4824-b83f-bcbc37a64daf','AIRTEMP-2METER')
+ON CONFLICT (id) DO NOTHING;
 
 -- Insert new units
 INSERT INTO unit (id, name, abbreviation) VALUES
@@ -22,4 +23,5 @@ INSERT INTO unit (id, name, abbreviation) VALUES
     ('bc613cae-602f-4973-b496-34c503afa666','KILOPASCAL','kPa'),
     ('c32186a9-28c8-4fda-84cf-a107d4fd40b4','HECTOPASCAL','hPa'),
     ('880d70f4-d17a-44ba-8f1c-8ff58a87ef89','WATT PER M2','W/m2'),
-    ('5dd42877-0967-432e-9d84-a0b7239b4647','PERCENT','%');
+    ('5dd42877-0967-432e-9d84-a0b7239b4647','PERCENT','%')
+ON CONFLICT (id) DO NOTHING;

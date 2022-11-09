@@ -1,10 +1,13 @@
 -- insert new acquirable
 INSERT INTO acquirable (id, name, slug) VALUES   
-    ('52dbf840-276d-4c19-b2fb-b4d8539abf5f', 'wrf-bc', 'wrf-bc');
+    ('52dbf840-276d-4c19-b2fb-b4d8539abf5f', 'wrf-bc', 'wrf-bc')
+ON CONFLICT (id) DO NOTHING;
 
 -- insert a new suit
 INSERT INTO suite (id, name, slug, description) VALUES
-    ('a274d10d-f01f-4b82-860c-2ac75286d61d', 'Weather Research and Forecasting Model (WRF) British Columbia', 'wrf-british-columbia', '');
+    ('a274d10d-f01f-4b82-860c-2ac75286d61d', 'Weather Research and Forecasting Model (WRF) British Columbia', 'wrf-british-columbia', '')
+ON CONFLICT (id) DO NOTHING;
+
 
 -- insert new products
 INSERT INTO product (id,slug,"label",temporal_duration,temporal_resolution,dss_datatype_id, dss_fpart,parameter_id,description,unit_id,deleted,suite_id) VALUES
@@ -18,7 +21,8 @@ INSERT INTO product (id,slug,"label",temporal_duration,temporal_resolution,dss_d
     ('85cceeb1-467f-4775-a453-8a78b3e3e045','wrf-bc-dewpntt','',0,3600, 'b1433fa7-645f-4e3c-b560-29cba59e80c6', 'WRF-BRITISH-COLUMBIA','1997ea14-9908-46e5-8d59-0ec7b1b7fc5d','Dew point temperature (DEWPNT_T)','0c8dcd1f-93db-4e64-be1d-47b3462deb2a',false,'a274d10d-f01f-4b82-860c-2ac75286d61d'),
     ('754b5bcc-ebf7-41c0-b675-b80ad37fb954','wrf-bc-rh','',0,3600, 'b1433fa7-645f-4e3c-b560-29cba59e80c6', 'WRF-BRITISH-COLUMBIA','c2c25499-1bc0-4c92-b429-446eaaf37768','Relative humidity (RH______)','5dd42877-0967-432e-9d84-a0b7239b4647',false,'a274d10d-f01f-4b82-860c-2ac75286d61d'),
     ('35a79907-7a04-4e25-a2d3-400edb442eac','wrf-bc-swdown','',0,3600, 'b1433fa7-645f-4e3c-b560-29cba59e80c6', 'WRF-BRITISH-COLUMBIA','14dc8407-f63a-4237-8251-5ef1746c3d89','Shortwave radiation (SWDOWN__)','880d70f4-d17a-44ba-8f1c-8ff58a87ef89',false,'a274d10d-f01f-4b82-860c-2ac75286d61d'),
-    ('13b83148-c00b-4206-afa8-59f4356be7f9','wrf-bc-lwdown','',0,3600, 'b1433fa7-645f-4e3c-b560-29cba59e80c6', 'WRF-BRITISH-COLUMBIA','6f3efef3-6d6c-4378-94e3-0d7be7321707','Longwave radiation (LWDOWN__)','880d70f4-d17a-44ba-8f1c-8ff58a87ef89',false,'a274d10d-f01f-4b82-860c-2ac75286d61d');
+    ('13b83148-c00b-4206-afa8-59f4356be7f9','wrf-bc-lwdown','',0,3600, 'b1433fa7-645f-4e3c-b560-29cba59e80c6', 'WRF-BRITISH-COLUMBIA','6f3efef3-6d6c-4378-94e3-0d7be7321707','Longwave radiation (LWDOWN__)','880d70f4-d17a-44ba-8f1c-8ff58a87ef89',false,'a274d10d-f01f-4b82-860c-2ac75286d61d')
+ON CONFLICT (id) DO NOTHING;
 
 -- WRF product tags
 INSERT INTO product_tags (product_id, tag_id) VALUES
@@ -32,4 +36,5 @@ INSERT INTO product_tags (product_id, tag_id) VALUES
     ('85cceeb1-467f-4775-a453-8a78b3e3e045','17308048-d207-43dd-b346-c9836073e911'),
     ('754b5bcc-ebf7-41c0-b675-b80ad37fb954','17308048-d207-43dd-b346-c9836073e911'),
     ('35a79907-7a04-4e25-a2d3-400edb442eac','17308048-d207-43dd-b346-c9836073e911'),
-    ('13b83148-c00b-4206-afa8-59f4356be7f9','17308048-d207-43dd-b346-c9836073e911');
+    ('13b83148-c00b-4206-afa8-59f4356be7f9','17308048-d207-43dd-b346-c9836073e911')
+ON CONFLICT ON CONSTRAINT unique_tag_product DO NOTHING;

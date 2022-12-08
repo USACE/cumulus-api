@@ -55,3 +55,7 @@ _volumes/minio/**
 !_volumes/minio/cumulus
 _volumes/minio/cumulus/**
 !_volumes/minio/cumulus/README.md
+# tcpdump directory for network packet capture and analysis
+!_volumes/tcpdump
+_volumes/tcpdump/**
+!_volumes/tcpdump/README.md

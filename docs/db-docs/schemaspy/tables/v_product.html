@@ -205,6 +205,23 @@
                                     <td></td>
                                 </tr>
                                 <tr>
+                                    <td><span id="dss_datatype">dss_datatype</span></td>
+                                    <td>varchar</td>
+                                    <td>12</td>
+                                    <td title='nullable'>√</td>
+                                    <td title=''></td>
+                                    <td>null</td>
+                                    <td>
+                                        <table border='0' cellspacing='0' cellpadding='0'>
+                                        </table>
+                                    </td>
+                                    <td>
+                                        <table border='0' cellspacing='0' cellpadding='0'>
+                                        </table>
+                                    </td>
+                                    <td></td>
+                                </tr>
+                                <tr>
                                     <td><span id="dss_fpart">dss_fpart</span></td>
                                     <td>varchar</td>
                                     <td>40</td>
@@ -439,7 +456,7 @@
                             </div>
                         </div>
                         <div class="box-body">
-                            <textarea id="sql-script-codemirror" name="sql-script-codemirror" rows="" style="display: none;">WITH tags_by_product AS (&#10;         SELECT product_tags.product_id,&#10;            array_agg(product_tags.tag_id) AS tags&#10;           FROM product_tags&#10;          GROUP BY product_tags.product_id&#10;        )&#10; SELECT a.id,&#10;    a.slug,&#10;    concat(upper((s.slug)::text), &#39; &#39;,&#10;        CASE&#10;            WHEN (length((a.label)::text) &gt; 1) THEN concat(a.label, &#39; &#39;)&#10;            ELSE &#39;&#39;::text&#10;        END, p.name, &#39; &#39;, ((a.temporal_resolution / 60) / 60), &#39;hr&#39;) AS name,&#10;    a.label,&#10;    a.temporal_resolution,&#10;    a.temporal_duration,&#10;    a.dss_fpart,&#10;    a.description,&#10;    a.suite_id,&#10;    s.name AS suite,&#10;    COALESCE(t.tags, &#39;{}&#39;::uuid[]) AS tags,&#10;    p.id AS parameter_id,&#10;    p.name AS parameter,&#10;    u.id AS unit_id,&#10;    u.name AS unit,&#10;    pf.after,&#10;    pf.before,&#10;    COALESCE(pf.productfile_count, (0)::bigint) AS productfile_count,&#10;    pf.last_forecast_version&#10;   FROM (((((product a&#10;     JOIN unit u ON ((u.id = a.unit_id)))&#10;     JOIN parameter p ON ((p.id = a.parameter_id)))&#10;     JOIN suite s ON ((s.id = a.suite_id)))&#10;     LEFT JOIN tags_by_product t ON ((t.product_id = a.id)))&#10;     LEFT JOIN ( SELECT productfile.product_id,&#10;            count(productfile.id) AS productfile_count,&#10;            min(productfile.datetime) AS after,&#10;            max(productfile.datetime) AS before,&#10;            NULLIF(max(productfile.version), &#39;1111-11-11 11:11:11.11+00&#39;::timestamp with time zone) AS last_forecast_version&#10;           FROM productfile&#10;          GROUP BY productfile.product_id) pf ON ((pf.product_id = a.id)))&#10;  WHERE (NOT a.deleted)&#10;  ORDER BY (concat(upper((s.slug)::text), &#39; &#39;,&#10;        CASE&#10;            WHEN (length((a.label)::text) &gt; 1) THEN concat(a.label, &#39; &#39;)&#10;            ELSE &#39;&#39;::text&#10;        END, p.name, &#39; &#39;, ((a.temporal_resolution / 60) / 60), &#39;hr&#39;));</textarea>
+                            <textarea id="sql-script-codemirror" name="sql-script-codemirror" rows="" style="display: none;">WITH tags_by_product AS (&#10;         SELECT product_tags.product_id,&#10;            array_agg(product_tags.tag_id ORDER BY (product_tags.tag_id)::character varying) AS tags&#10;           FROM product_tags&#10;          GROUP BY product_tags.product_id&#10;        )&#10; SELECT a.id,&#10;    a.slug,&#10;    concat(upper((s.slug)::text), &#39; &#39;,&#10;        CASE&#10;            WHEN (length((a.label)::text) &gt; 1) THEN concat(a.label, &#39; &#39;)&#10;            ELSE &#39;&#39;::text&#10;        END, p.name, &#39; &#39;, ((a.temporal_resolution / 60) / 60), &#39;hr&#39;) AS name,&#10;    a.label,&#10;    a.temporal_resolution,&#10;    a.temporal_duration,&#10;    d.name AS dss_datatype,&#10;    a.dss_fpart,&#10;    a.description,&#10;    a.suite_id,&#10;    s.name AS suite,&#10;    COALESCE(t.tags, &#39;{}&#39;::uuid[]) AS tags,&#10;    p.id AS parameter_id,&#10;    p.name AS parameter,&#10;    u.id AS unit_id,&#10;    u.name AS unit,&#10;    pf.after,&#10;    pf.before,&#10;    COALESCE(pf.productfile_count, (0)::bigint) AS productfile_count,&#10;    pf.last_forecast_version&#10;   FROM ((((((product a&#10;     JOIN unit u ON ((u.id = a.unit_id)))&#10;     JOIN parameter p ON ((p.id = a.parameter_id)))&#10;     JOIN suite s ON ((s.id = a.suite_id)))&#10;     JOIN dss_datatype d ON ((d.id = a.dss_datatype_id)))&#10;     LEFT JOIN tags_by_product t ON ((t.product_id = a.id)))&#10;     LEFT JOIN ( SELECT productfile.product_id,&#10;            count(productfile.id) AS productfile_count,&#10;            min(productfile.datetime) AS after,&#10;            max(productfile.datetime) AS before,&#10;            NULLIF(max(productfile.version), &#39;1111-11-11 11:11:11.11+00&#39;::timestamp with time zone) AS last_forecast_version&#10;           FROM productfile&#10;          GROUP BY productfile.product_id) pf ON ((pf.product_id = a.id)))&#10;  WHERE (NOT a.deleted)&#10;  ORDER BY (concat(upper((s.slug)::text), &#39; &#39;,&#10;        CASE&#10;            WHEN (length((a.label)::text) &gt; 1) THEN concat(a.label, &#39; &#39;)&#10;            ELSE &#39;&#39;::text&#10;        END, p.name, &#39; &#39;, ((a.temporal_resolution / 60) / 60), &#39;hr&#39;));</textarea>
                             <div style="padding-top: 5px;"><hr></div>
                             <div class="box box-solid">
                                 <div class="box-header with-border">
@@ -450,6 +467,7 @@
                                 <div class="box-body">
                                     <ul class="list-unstyled">
                                         <li><a href="product_tags.html">product_tags</a></li>
+                                        <li><a href="dss_datatype.html">dss_datatype</a></li>
                                         <li><a href="suite.html">suite</a></li>
                                         <li><a href="parameter.html">parameter</a></li>
                                         <li><a href="unit.html">unit</a></li>

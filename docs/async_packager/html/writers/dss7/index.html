@@ -107,7 +107,7 @@
 <a id="cumulus_packager.writers.dss7"></a>
   <div class="doc doc-contents first">
   
-      <h2 id="cumulus_packager.writers.dss7--dss7-package-writer">DSS7 package writer</h2>
+      <p>DSS7 package writer</p>
 
   
 
@@ -229,7 +229,9 @@
 
       <details class="quote">
         <summary>Source code in <code>cumulus_packager/writers/dss7.py</code></summary>
-        <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"> 49</span>
+        <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"> 47</span>
+<span class="normal"> 48</span>
+<span class="normal"> 49</span>
 <span class="normal"> 50</span>
 <span class="normal"> 51</span>
 <span class="normal"> 52</span>
@@ -405,7 +407,8 @@
 <span class="normal">222</span>
 <span class="normal">223</span>
 <span class="normal">224</span>
-<span class="normal">225</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="nd">@pyplugs</span><span class="o">.</span><span class="n">register</span>
+<span class="normal">225</span>
+<span class="normal">226</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="nd">@pyplugs</span><span class="o">.</span><span class="n">register</span>
 <span class="k">def</span> <span class="nf">writer</span><span class="p">(</span>
     <span class="nb">id</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
     <span class="n">src</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
@@ -440,7 +443,7 @@
     <span class="k">def</span> <span class="nf">_zwrite</span><span class="p">(</span><span class="n">dssfilename</span><span class="p">,</span> <span class="n">gridStructStore</span><span class="p">,</span> <span class="n">data_flat</span><span class="p">):</span>
         <span class="n">_</span> <span class="o">=</span> <span class="n">heclib</span><span class="o">.</span><span class="n">zwrite_record</span><span class="p">(</span>
             <span class="n">dssfilename</span><span class="o">=</span><span class="n">dssfilename</span><span class="p">,</span>
-            <span class="n">gridStructStore</span><span class="o">=</span><span class="n">spatialGridStruct</span><span class="p">,</span>
+            <span class="n">gridStructStore</span><span class="o">=</span><span class="n">gridStructStore</span><span class="p">,</span>
             <span class="n">data_flat</span><span class="o">=</span><span class="n">data_flat</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="n">numpy</span><span class="o">.</span><span class="n">float32</span><span class="p">),</span>
         <span class="p">)</span>
         <span class="n">_</span> <span class="o">=</span> <span class="kc">None</span>
@@ -478,7 +481,8 @@
             <span class="n">data_type</span> <span class="o">=</span> <span class="n">heclib</span><span class="o">.</span><span class="n">data_type</span><span class="p">[</span><span class="n">TifCfg</span><span class="o">.</span><span class="n">dss_datatype</span><span class="p">]</span>
             <span class="n">ds</span> <span class="o">=</span> <span class="n">gdal</span><span class="o">.</span><span class="n">Open</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;/vsis3_streaming/</span><span class="si">{</span><span class="n">TifCfg</span><span class="o">.</span><span class="n">bucket</span><span class="si">}</span><span class="s2">/</span><span class="si">{</span><span class="n">TifCfg</span><span class="o">.</span><span class="n">key</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
 
-            <span class="n">log_dataset</span><span class="p">(</span><span class="n">ds</span><span class="p">,</span> <span class="s2">&quot;BEFORE&quot;</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">LOGGER_LEVEL</span><span class="o">.</span><span class="n">lower</span> <span class="o">==</span> <span class="s2">&quot;debug&quot;</span><span class="p">:</span>
+                <span class="n">log_dataset</span><span class="p">(</span><span class="n">ds</span><span class="p">,</span> <span class="s2">&quot;BEFORE&quot;</span><span class="p">)</span>
 
             <span class="c1"># GDAL Warp the Tiff to what we need for DSS</span>
             <span class="n">filename_</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">basename</span><span class="p">(</span><span class="n">TifCfg</span><span class="o">.</span><span class="n">key</span><span class="p">)</span>
@@ -495,7 +499,9 @@
                 <span class="n">resampleAlg</span><span class="o">=</span><span class="s2">&quot;bilinear&quot;</span><span class="p">,</span>
                 <span class="n">copyMetadata</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
             <span class="p">)</span>
-            <span class="n">log_dataset</span><span class="p">(</span><span class="n">warp_ds</span><span class="p">,</span> <span class="s2">&quot;AFTER&quot;</span><span class="p">)</span>
+
+            <span class="k">if</span> <span class="n">LOGGER_LEVEL</span><span class="o">.</span><span class="n">lower</span> <span class="o">==</span> <span class="s2">&quot;debug&quot;</span><span class="p">:</span>
+                <span class="n">log_dataset</span><span class="p">(</span><span class="n">warp_ds</span><span class="p">,</span> <span class="s2">&quot;AFTER&quot;</span><span class="p">)</span>
 
             <span class="c1"># Read data into 1D array</span>
             <span class="n">raster</span> <span class="o">=</span> <span class="n">warp_ds</span><span class="o">.</span><span class="n">GetRasterBand</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>

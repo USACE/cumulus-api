@@ -15,7 +15,7 @@
         "AWS_SECRET_ACCESS_KEY": "x",
         "AWS_REGION": "us-east-1",
         "CUMULUS_APPLICATION_KEY": "appkey",
-        "CUMULUS_AUTH_ENVIRONMENT": "DEVELOP",
+        "CUMULUS_AUTH_ENVIRONMENT": "MOCK",
         "CUMULUS_DBUSER": "cumulus_user",
         "CUMULUS_DBPASS": "cumulus_pass",
         "CUMULUS_DBNAME": "postgres",
@@ -27,7 +27,7 @@
         "CUMULUS_ASYNC_ENGINE_PACKAGER_TARGET": "local/http://localhost:9324/queue/cumulus-packager",
         "CUMULUS_ASYNC_ENGINE_STATISTICS": "AWSSQS",
         "CUMULUS_ASYNC_ENGINE_STATISTICS_TARGET": "local/http://localhost:9324/queue/cumulus-statistics",
-        "CUMULUS_STATIC_HOST": "https://api.rsgis.dev"
+        "CUMULUS_STATIC_HOST": "http://localhost"
       },
       "args": []
     }

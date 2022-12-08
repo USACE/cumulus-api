@@ -1,3 +1,4 @@
+-- Always re-apply when running migrations: ${flyway:timestamp}
 -- v_acquirablefile
 CREATE OR REPLACE VIEW v_acquirablefile AS (
     SELECT a.id           AS acquirable_id,
@@ -16,7 +17,7 @@ CREATE OR REPLACE VIEW v_acquirablefile AS (
 CREATE OR REPLACE VIEW v_product AS (
     WITH tags_by_product AS (
 		SELECT product_id         AS product_id,
-               array_agg(tag_id)  AS tags
+               array_agg(tag_id ORDER BY tag_id::VARCHAR)  AS tags
 	    FROM product_tags
 	    GROUP BY product_id
 	)
@@ -34,6 +35,7 @@ CREATE OR REPLACE VIEW v_product AS (
            a.label                           AS label,
            a.temporal_resolution             AS temporal_resolution,
            a.temporal_duration               AS temporal_duration,
+           d.name                            AS dss_datatype,
            a.dss_fpart                       AS dss_fpart,
            a.description                     AS description,
            a.suite_id                        AS suite_id,
@@ -51,6 +53,7 @@ CREATE OR REPLACE VIEW v_product AS (
 	JOIN unit u ON u.id = a.unit_id
 	JOIN parameter p ON p.id = a.parameter_id
     JOIN suite s ON s.id = a.suite_id
+    JOIN dss_datatype d ON d.id = a.dss_datatype_id
 	LEFT JOIN tags_by_product t ON t.product_id = a.id
     LEFT JOIN (
         SELECT product_id    AS product_id,
@@ -78,8 +81,39 @@ CREATE OR REPLACE VIEW v_productfile AS (
     LEFT JOIN v_product p ON p.id = f.product_id
 );
 
+-- v_product_status
+CREATE OR REPLACE VIEW v_product_status AS (
+    WITH pf_date AS (
+        SELECT pf.product_id, max(pf.datetime) AS max_date
+            FROM cumulus.productfile pf
+            WHERE DATE_PART('year', pf.version::date) = '1111'
+            GROUP BY pf.product_id
+        UNION
+        SELECT pf.product_id, max(pf.version) AS max_date
+            FROM cumulus.productfile pf
+            WHERE DATE_PART('year', pf.version::date) != '1111'
+            GROUP BY pf.product_id 
+    )
+    SELECT 
+        p.slug,
+        max_date AS latest_product_datetime,
+        p.acceptable_timedelta,
+        DATE_TRUNC('minute', (CURRENT_TIMESTAMP - max_date)) AS actual_timedelta,
+        CASE 
+            WHEN (p.acceptable_timedelta IS NOT NULL) 
+            AND max_date >= DATE_TRUNC('minute', (CURRENT_TIMESTAMP - p.acceptable_timedelta)) THEN TRUE 
+            ELSE FALSE 
+        END AS is_current
+    FROM cumulus.product p 
+    LEFT JOIN pf_date md ON md.product_id = p.id
+    ORDER BY p.slug
+);
+
+
+
 GRANT SELECT ON
     v_acquirablefile,
     v_product,
-    v_productfile
+    v_productfile,
+    v_product_status
 TO cumulus_reader;

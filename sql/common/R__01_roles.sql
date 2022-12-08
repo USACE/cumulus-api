@@ -1,3 +1,4 @@
+-- Always re-apply roles  when running migrations: ${flyway:timestamp}
 --------
 -- ROLES
 --------
@@ -63,6 +64,7 @@ GRANT SELECT ON
     area_group_product_statistics_enabled,
     config,
     download_format,
+    dss_datatype,
     office,
     parameter,
     unit,
@@ -87,6 +89,7 @@ GRANT INSERT,UPDATE,DELETE ON
     area_group_product_statistics_enabled,
     config,
     download_format,
+    dss_datatype,
     office,
     parameter,
     unit,

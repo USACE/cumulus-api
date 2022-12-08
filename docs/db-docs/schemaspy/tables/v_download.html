@@ -357,6 +357,23 @@
                                     </td>
                                     <td></td>
                                 </tr>
+                                <tr>
+                                    <td><span id="manifest">manifest</span></td>
+                                    <td>jsonb</td>
+                                    <td>2147483647</td>
+                                    <td title='nullable'>√</td>
+                                    <td title=''></td>
+                                    <td>null</td>
+                                    <td>
+                                        <table border='0' cellspacing='0' cellpadding='0'>
+                                        </table>
+                                    </td>
+                                    <td>
+                                        <table border='0' cellspacing='0' cellpadding='0'>
+                                        </table>
+                                    </td>
+                                    <td></td>
+                                </tr>
                                 </tbody>
                             </table>
                         </div>
@@ -371,7 +388,7 @@
                             </div>
                         </div>
                         <div class="box-body">
-                            <textarea id="sql-script-codemirror" name="sql-script-codemirror" rows="" style="display: none;">SELECT d.id,&#10;    d.datetime_start,&#10;    d.datetime_end,&#10;    d.progress,&#10;    d.file,&#10;    d.processing_start,&#10;    d.processing_end,&#10;    d.status_id,&#10;    d.watershed_id,&#10;    d.sub,&#10;    w.slug AS watershed_slug,&#10;    w.name AS watershed_name,&#10;    s.name AS status,&#10;    dp.product_id,&#10;    f.abbreviation AS format&#10;   FROM ((((download d&#10;     JOIN download_format f ON ((f.id = d.download_format_id)))&#10;     JOIN download_status s ON ((d.status_id = s.id)))&#10;     JOIN watershed w ON ((w.id = d.watershed_id)))&#10;     JOIN ( SELECT array_agg(download_product.product_id) AS product_id,&#10;            download_product.download_id&#10;           FROM download_product&#10;          GROUP BY download_product.download_id) dp ON ((d.id = dp.download_id)))&#10;  ORDER BY d.processing_start DESC;</textarea>
+                            <textarea id="sql-script-codemirror" name="sql-script-codemirror" rows="" style="display: none;">SELECT d.id,&#10;    d.datetime_start,&#10;    d.datetime_end,&#10;    d.progress,&#10;    d.file,&#10;    d.processing_start,&#10;    d.processing_end,&#10;    d.status_id,&#10;    d.watershed_id,&#10;    d.sub,&#10;    w.slug AS watershed_slug,&#10;    w.name AS watershed_name,&#10;    s.name AS status,&#10;    dp.product_id,&#10;    f.abbreviation AS format,&#10;    d.manifest&#10;   FROM ((((download d&#10;     JOIN download_format f ON ((f.id = d.download_format_id)))&#10;     JOIN download_status s ON ((d.status_id = s.id)))&#10;     JOIN watershed w ON ((w.id = d.watershed_id)))&#10;     JOIN ( SELECT array_agg(download_product.product_id) AS product_id,&#10;            download_product.download_id&#10;           FROM download_product&#10;          GROUP BY download_product.download_id) dp ON ((d.id = dp.download_id)))&#10;  ORDER BY d.processing_start DESC;</textarea>
                             <div style="padding-top: 5px;"><hr></div>
                             <div class="box box-solid">
                                 <div class="box-header with-border">

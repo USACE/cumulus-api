@@ -1,3 +1,4 @@
+-- Always re-apply when running migrations: ${flyway:timestamp}
 CREATE OR REPLACE VIEW v_download AS (
     SELECT d.id            AS id,
         d.datetime_start   AS datetime_start,
@@ -13,7 +14,8 @@ CREATE OR REPLACE VIEW v_download AS (
         w.name             AS watershed_name,
         s.name             AS status,
         dp.product_id      AS product_id,
-        f.abbreviation     AS format
+        f.abbreviation     AS format,
+        d.manifest         AS manifest
     FROM download d
         INNER JOIN download_format f ON f.id = d.download_format_id
         INNER JOIN download_status s ON d.status_id = s.id
@@ -67,11 +69,7 @@ CREATE OR REPLACE VIEW v_download_request AS (
                dp.datetime_end,
                f.file AS key,
                (SELECT config.config_value FROM config WHERE config.config_name::text = 'write_to_bucket'::text) AS bucket,
-               CASE
-                   WHEN p.temporal_duration = 0 THEN 'INST-VAL'::text
-                   WHEN a.name in ('AIRTEMP-MIN', 'AIRTEMP-MAX') THEN 'PER-AVER'
-                   ELSE 'PER-CUM'::text
-               END AS dss_datatype,
+               d.name AS dss_datatype,
                CASE
                    WHEN p.temporal_duration = 0 THEN f.datetime
                    ELSE f.datetime - p.temporal_duration::double precision * '00:00:01'::interval
@@ -89,6 +87,7 @@ CREATE OR REPLACE VIEW v_download_request AS (
         JOIN product p ON f.product_id = p.id
         JOIN unit u ON p.unit_id = u.id
         JOIN parameter a ON a.id = p.parameter_id
+        JOIN dss_datatype d ON p.dss_datatype_id = d.id
         -- observed data will use the file datetime
         WHERE (date_part('year', f.version) = '1111' AND f.datetime >= dp.datetime_start AND f.datetime <= dp.datetime_end)
         -- forecast data with an end date < now (looking at forecasts in the past)

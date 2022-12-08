@@ -190,6 +190,10 @@ class zStructSpatialGrid(Structure):
         ("_data", c_void_p),
     ]
 
+    def __init__(self, *args, **kw):
+        self._nullValue = UNDEFINED
+        super().__init__(*args, **kw)
+
 
 def zwrite_record(
     dssfilename: str,

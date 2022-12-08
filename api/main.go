@@ -87,8 +87,15 @@ func main() {
 
 	// Health Check
 	public.GET("/health", func(c echo.Context) error {
-		return c.JSON(http.StatusOK, map[string]interface{}{"status": "healthy"})
+		return c.JSON(http.StatusOK, map[string]interface{}{
+			"status":  "healthy",
+			"version": "2.08.00",
+		})
 	})
+
+	// Proxy to pg_featureserv
+	features := public.Group("/features")
+	features.Use(middleware.PgFeatureservProxy(cfg.PgFeatureservUrl))
 
 	// Acquirables
 	public.GET("/acquirables", handlers.ListAcquirables(db))
@@ -98,6 +105,7 @@ func main() {
 	)
 
 	// Products
+	public.GET("/product_ingest_status", handlers.GetProductIngestStatus(db))
 	public.GET("/product_slugs", handlers.GetProductSlugs(db))
 	public.GET("/products", handlers.ListProducts(db))
 	public.GET("/products/:product_id", handlers.GetProduct(db))
@@ -167,6 +175,9 @@ func main() {
 	private.DELETE("/units/:unit_id", handlers.DeleteUnit(db),
 		middleware.IsAdmin,
 	)
+
+	// DSS Specific Information
+	public.GET("/dss/datatypes", handlers.ListDssDatatypes(db))
 
 	// Parameters
 	public.GET("/parameters", handlers.ListParameters(db))

@@ -1,0 +1,66 @@
+version: "3"
+
+services:
+  cumulusdb:
+    image: postgis/postgis:13-3.1
+    restart: always
+    environment:
+        - POSTGRES_PASSWORD=postgres
+    ports:
+        - "5432:5432"
+  api:
+    build:
+      context: api
+    environment:
+      - AWS_ACCESS_KEY_ID=AKIAIOSFODNN7EXAMPLE
+      - AWS_SECRET_ACCESS_KEY=wJalrXUtnFEMI/K7MDENG/bPxRfiCYEXAMPLEKEY
+      - AWS_DEFAULT_REGION=us-east-1
+      - AWS_REGION=us-east-1
+      - CUMULUS_APPLICATION_KEY=appkey
+      # CUMULUS_AUTH_ENVIRONMENT; OPTIONS:  MOCK | DEVELOP | STABLE
+      - CUMULUS_AUTH_ENVIRONMENT=MOCK
+      - CUMULUS_DOWNLOAD_DEFAULT_FORMAT=dss7
+      - CUMULUS_DBUSER=cumulus_user
+      - CUMULUS_DBPASS=cumulus_pass
+      - CUMULUS_DBNAME=postgres
+      - CUMULUS_DBHOST=cumulusdb
+      - CUMULUS_DBSSLMODE=disable
+      - CUMULUS_ASYNC_ENGINE_ACQUISITION=MOCK
+      - CUMULUS_ASYNC_ENGINE_ACQUISITION_TARGET=""
+      - CUMULUS_ASYNC_ENGINE_PACKAGER=AWSSQS
+      - CUMULUS_ASYNC_ENGINE_PACKAGER_TARGET=local/http://localhost:9324/queue/cumulus-packager
+      - CUMULUS_ASYNC_ENGINE_STATISTICS=AWSSQS
+      - CUMULUS_ASYNC_ENGINE_STATISTICS_TARGET=local/http://localhost:9324/queue/cumulus-statistics
+      - CUMULUS_STATIC_HOST=http://localhost
+      - CUMULUS_AWS_S3_REGION=us-east-1
+      - CUMULUS_AWS_S3_BUCKET=castle-data-develop
+      - CUMULUS_AWS_S3_ENDPOINT=http://minio:9000
+      - CUMULUS_AWS_S3_DISABLE_SSL=True
+      - CUMULUS_AWS_S3_FORCE_PATH_STYLE=True
+      - PG_FEATURESERV_URL=http://featureserv:8080
+    ports:
+      - "80:80"
+    restart: always
+    depends_on:
+      cumulusdb:
+        condition: service_started
+      flyway:
+        condition: service_completed_successfully
+  flyway:
+    build:
+      context: sql  
+    restart: on-failure
+    command: -connectRetries=60 migrate
+    environment:
+      - FLYWAY_EDITION=community
+      # Exclude Local Seed Data; Uncomment Line Below
+      # - FLYWAY_LOCATIONS=filesystem:/flyway/sql/common,filesystem:/flyway/sql/develop
+      # Include Local Seed Data; Uncomment Line Below (Comment Line Above)
+      - FLYWAY_LOCATIONS=filesystem:/flyway/sql/common,filesystem:/flyway/sql/develop,filesystem:/flyway/sql/local
+      - FLYWAY_PASSWORD=postgres
+      - FLYWAY_SCHEMAS=cumulus
+      - FLYWAY_URL=jdbc:postgresql://cumulusdb:5432/postgres
+      - FLYWAY_USER=postgres
+    depends_on:
+      cumulusdb:
+        condition: service_started

@@ -1,6 +1,6 @@
 {
 	"info": {
-		"_postman_id": "0738872b-44df-4c26-a47a-53700580689e",
+		"_postman_id": "2273ceeb-3854-4c0b-bc24-e07eb7329e6e",
 		"name": "cumulus-regression-admin",
 		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
 	},
@@ -997,7 +997,10 @@
 									"// status code is 201",
 									"pm.test(\"Status code is 201\", function () {",
 									"    pm.response.to.have.status(201);",
-									"});"
+									"});",
+									"",
+									"let jsonData = JSON.parse(responseBody);",
+									"pm.environment.set(\"dynamic_acquirablefile_id\", jsonData.id);"
 								],
 								"type": "text/javascript"
 							}
@@ -1034,10 +1037,8 @@
 							"listen": "test",
 							"script": {
 								"exec": [
-									"// status code is 40?",
-									"//browser returns 400 while postman tests return 404",
-									"pm.test(\"Status code is 40?\", function () {",
-									"    pm.expect(pm.response.code).to.be.oneOf([400,401,404]);",
+									"pm.test(\"Status code is 200\", function () {",
+									"    pm.response.to.have.status(200);",
 									"});"
 								],
 								"type": "text/javascript"
@@ -1117,6 +1118,7 @@
 									"        \"temporal_resolution\": { \"type\": \"number\" },",
 									"        \"temporal_duration\": { \"type\": \"number\" },",
 									"        \"dss_fpart\": { \"type\": \"string\" },",
+									"        \"dss_datatype\": { \"type\": \"string\" },",
 									"        \"parameter_id\": { \"type\": \"string\" },",
 									"        \"parameter\": { \"type\": \"string\" },",
 									"        \"unit_id\": { \"type\": \"string\" },",
@@ -1338,6 +1340,58 @@
 					"response": []
 				},
 				{
+					"name": "Product Ingest Status",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"// validate JSON schema",
+									"var schema = {",
+									"    \"type\": \"array\",",
+									"    \"properties\": {",
+									"        \"slug\": { \"type\": \"string\" },",
+									"        \"latest_product_datetime\": {\"type\": [\"null\", \"string\"]},",
+									"        \"acceptable_timedelta\": {\"type\": [\"null\", \"string\"]},",
+									"        \"actual_timedelta\": {\"type\": [\"null\", \"string\"]},",
+									"        \"is_current\": {\"type\": \"boolean\"}",
+									"    },",
+									"    \"required\": [\"slug\", \"is_current\"],",
+									"    \"additionalProperties\": false",
+									"}",
+									"",
+									"pm.globals.set('PRODUCT_INGEST_OBJECT', JSON.stringify(schema));",
+									"",
+									"// status code is 200",
+									"pm.test(\"Status code is 200\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"// validate schema",
+									"pm.test(\"Schema validation\", function () {",
+									"    pm.response.to.have.jsonSchema(schema)",
+									"});",
+									""
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/product_ingest_status",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"product_ingest_status"
+							]
+						}
+					},
+					"response": []
+				},
+				{
 					"name": "CreateProduct",
 					"event": [
 						{
@@ -1366,7 +1420,7 @@
 						"header": [],
 						"body": {
 							"mode": "raw",
-							"raw": "{\n    \"label\": \"TEST-LABEL\",\n    \"temporal_resolution\": 200,\n    \"temporal_duration\": 0,\n    \"dss_fpart\": \"INTEGRATION TEST PRODUCT\",\n    \"parameter_id\": \"683a55b9-4a94-46b5-9f47-26e66f3037a8\",\n    \"unit_id\": \"e245d39f-3209-4e58-bfb7-4eae94b3f8dd\",\n    \"description\": \"Example Product Description\",\n    \"suite_id\": \"c133e9e7-ddc8-4a98-82d7-880d5db35060\"\n}",
+							"raw": "{\n    \"label\": \"TEST-LABEL\",\n    \"temporal_resolution\": 200,\n    \"temporal_duration\": 0,\n    \"dss_fpart\": \"INTEGRATION TEST PRODUCT\",\n    \"dss_datatype_id\": \"392f8984-2e4e-47ea-ae24-dad81d87f662\",\n    \"parameter_id\": \"683a55b9-4a94-46b5-9f47-26e66f3037a8\",\n    \"unit_id\": \"e245d39f-3209-4e58-bfb7-4eae94b3f8dd\",\n    \"description\": \"Example Product Description\",\n    \"suite_id\": \"c133e9e7-ddc8-4a98-82d7-880d5db35060\"\n}",
 							"options": {
 								"raw": {
 									"language": "json"
@@ -1380,6 +1434,46 @@
 							],
 							"path": [
 								"products"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "CreateProductfile",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"// status code is 201",
+									"pm.test(\"Status code is 201\", function () {",
+									"    pm.response.to.have.status(201);",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "[{\n    \"file\": \"cumulus/products/nohrsc-snodas-swe/bogus_test_zz_ssmv11034tS__T0001TTNATS2022081005HP001.tif\",\n    \"datetime\": \"2014-01-01T00:00:00Z\",\n    \"acquirablefile_id\": \"{{dynamic_acquirablefile_id}}\",\n    \"product_id\": \"757c809c-dda0-412b-9831-cb9bd0f62d1d\",\n    \"version\": null\n}]",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{base_url}}/productfiles",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"productfiles"
 							]
 						}
 					},
@@ -1414,7 +1508,7 @@
 						"header": [],
 						"body": {
 							"mode": "raw",
-							"raw": "{\n    \"id\": \"757c809c-dda0-412b-9831-cb9bd0f62d1d\",\n    \"label\": \"UPDATED LABEL\",\n    \"slug\": \"nohrsc-snodas-swe\",\n    \"tags\": [\n        \"57bda84f-ecec-4cd7-b3b1-c0c36f838a05\"\n    ],\n    \"name\": \"New Name for NOHRSC SNODAS SWE\",\n    \"temporal_resolution\": 86400,\n    \"temporal_duration\": 0,\n    \"dss_fpart\": \"SNODAS\",\n    \"parameter_id\": \"683a55b9-4a94-46b5-9f47-26e66f3037a8\",\n    \"parameter\": \"SWE\",\n    \"unit_id\": \"e245d39f-3209-4e58-bfb7-4eae94b3f8dd\",\n    \"unit\": \"MM\",\n    \"description\": \"New Description for NOHRSC SNODAS SWE\",\n    \"suite_id\": \"c133e9e7-ddc8-4a98-82d7-880d5db35060\"\n}",
+							"raw": "{\n    \"id\": \"757c809c-dda0-412b-9831-cb9bd0f62d1d\",\n    \"label\": \"UPDATED LABEL\",\n    \"slug\": \"nohrsc-snodas-swe\",\n    \"tags\": [\n        \"57bda84f-ecec-4cd7-b3b1-c0c36f838a05\"\n    ],\n    \"name\": \"New Name for NOHRSC SNODAS SWE\",\n    \"temporal_resolution\": 86400,\n    \"temporal_duration\": 0,\n    \"dss_fpart\": \"SNODAS\",\n    \"dss_datatype_id\": \"f13182ec-8944-494e-b947-994b189d62f2\",\n    \"parameter_id\": \"683a55b9-4a94-46b5-9f47-26e66f3037a8\",\n    \"parameter\": \"SWE\",\n    \"unit_id\": \"e245d39f-3209-4e58-bfb7-4eae94b3f8dd\",\n    \"unit\": \"MM\",\n    \"description\": \"New Description for NOHRSC SNODAS SWE\",\n    \"suite_id\": \"c133e9e7-ddc8-4a98-82d7-880d5db35060\"\n}",
 							"options": {
 								"raw": {
 									"language": "json"
@@ -1685,7 +1779,10 @@
 									"// status code is 201",
 									"pm.test(\"Status code is 201\", function () {",
 									"    pm.response.to.have.status(201);",
-									"});"
+									"});",
+									"",
+									"let jsonData = JSON.parse(responseBody);",
+									"pm.environment.set(\"dynamic_download_id\", jsonData.id);"
 								],
 								"type": "text/javascript"
 							}
@@ -1710,6 +1807,47 @@
 							],
 							"path": [
 								"downloads"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "UpdateDownload",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"// status code is 200",
+									"pm.test(\"Status code is 200\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "PUT",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n\t\"id\": \"{{dynamic_download_id}}\",\n    \"status_id\": \"3914f0bd-2290-42b1-bc24-41479b3a846f\",\n\t\"progress\": 100,\n\t\"file\": \"3e8db268-d9ca-47ec-ae93-21a3c2bcf0a1\",\n\t\"manifest\": {\n        \"size_bytes\": 2000000,\n        \"filecount\": 15\n    }\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{base_url}}/downloads/{{dynamic_download_id}}",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"downloads",
+								"{{dynamic_download_id}}"
 							]
 						}
 					},
@@ -2122,6 +2260,69 @@
 								"area_groups",
 								"e3fd63a1-f19f-4bf3-b436-1c7086b7afe7",
 								"areas"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "dss_datatypes",
+			"item": [
+				{
+					"name": "ListDssDatatypes",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"// JSON object schema",
+									"var object_schema = {",
+									"    \"type\": \"object\",",
+									"    \"properties\": {",
+									"        \"id\": { \"type\": \"string\" },",
+									"        \"name\": { \"type\": \"string\" }",
+									"    },",
+									"    \"required\": [\"id\", \"name\"],",
+									"    \"additionalProperties\": false",
+									"}",
+									"",
+									"pm.globals.set('DSS_DATATYPE_OBJECT', JSON.stringify(object_schema));",
+									"",
+									"// schema validator",
+									"var array_schema = {",
+									"    \"type\": \"array\",",
+									"    \"items\": JSON.parse(pm.globals.get('DSS_DATATYPE_OBJECT'))",
+									"}",
+									"",
+									"pm.globals.set('DSS_DATATYPE_ARRAY', JSON.stringify(array_schema));",
+									"",
+									"// status code is 200",
+									"pm.test(\"Status code is 200\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"// schema validation",
+									"pm.test(\"Schema validation\", function () {",
+									"    pm.response.to.have.jsonSchema(array_schema)",
+									"});",
+									""
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/dss/datatypes",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"dss",
+								"datatypes"
 							]
 						}
 					},

@@ -1,1 +1,1 @@
-::: cumulus_packager.writers.tgz_cog
+::: cumulus_packager.writers.tgz-cog

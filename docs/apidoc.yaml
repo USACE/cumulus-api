@@ -151,6 +151,18 @@ components:
         - datetime_end
         - watershed_id
         - product_id
+    dssDatatype:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        name:
+          type: string
+    dssDatatypes:
+      type: array
+      items:
+        $ref: '#/components/schemas/dssDatatype'
     product:
       type: object
       properties:
@@ -170,6 +182,8 @@ components:
           type: integer
         temporal_duration:
           type: integer
+        dss_datatype:
+          type: string
         dss_fpart:
           type: string
         parameter_id:
@@ -225,6 +239,7 @@ components:
         name: NOHRSC Snodas SWE
         temporal_resolution: 86400
         temporal_duration: 0
+        dss_datatype_id: 392f8984-2e4e-47ea-ae24-dad81d87f662
         dss_fpart: SNODAS
         parameter_id: 683a55b9-4a94-46b5-9f47-26e66f3037a8
         unit_id: e245d39f-3209-4e58-bfb7-4eae94b3f8dd
@@ -237,6 +252,7 @@ components:
         name: NOHRSC Snodas SWE
         temporal_resolution: 86400
         temporal_duration: 0
+        dss_datatype: INST-VAL
         dss_fpart: SNODAS
         parameter_id: 683a55b9-4a94-46b5-9f47-26e66f3037a8
         parameter: SWE
@@ -252,6 +268,7 @@ components:
         name: NOHRSC Snodas SWE
         temporal_resolution: 86400
         temporal_duration: 0
+        dss_datatype: INST-VAL
         dss_fpart: SNODAS
         parameter_id: 683a55b9-4a94-46b5-9f47-26e66f3037a8
         parameter: SWE
@@ -423,6 +440,19 @@ paths:
         in: path
         required: true
         description: Acquirable UUID
+  /dss/datatypes:
+    get:
+      tags:
+        - DSS
+      description: List DSS Datatypes
+      responses:
+        '200':
+          description: Array of DSS Datatypes
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/dssDatatypes'
+      operationId: list-dss-datatypes
   /products:
     get:
       tags:
@@ -454,6 +484,9 @@ paths:
                   type: integer
                 temporal_duration:
                   type: integer
+                dss_datatype_id:
+                  type: string
+                  format: uuid
                 dss_fpart:
                   type: string
                 parameter_id:
@@ -468,6 +501,7 @@ paths:
                   name: string
                   temporal_resolution: 0
                   temporal_duration: 0
+                  dss_datatype_id: 392f8984-2e4e-47ea-ae24-dad81d87f662
                   dss_fpart: string
                   parameter_id: d4531ae7-3de2-4d63-ad99-c60ad3103820
                   unit_id: 5becc822-b69e-4e66-a762-ad8e868dcab6
@@ -488,6 +522,7 @@ paths:
                       - 497f6eca-6276-4993-bfeb-53cbbbba6f08
                     temporal_resolution: 0
                     temporal_duration: 0
+                    dss_datatype: string
                     dss_fpart: string
                     parameter_id: d4531ae7-3de2-4d63-ad99-c60ad3103820
                     parameter: string

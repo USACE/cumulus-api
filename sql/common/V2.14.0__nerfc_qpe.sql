@@ -3,7 +3,7 @@ INSERT INTO suite (id, name, slug, description) VALUES
     ('c61c6ea1-f276-4663-9d5a-99549e38181a', 'Northeast River Forecast Center (NERFC)', 'nerfc', 'NERFC Description');
 
 ---------------------
--- add nwrfc-qpe-06h
+-- add nerfc-qpe-01h
 ---------------------
 
 -- add acquirable

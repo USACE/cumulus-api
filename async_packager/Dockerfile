@@ -1,5 +1,5 @@
 # Compile DSS and tiffdss
-FROM osgeo/gdal:ubuntu-small-3.5.0 as cbuilder
+FROM osgeo/gdal:ubuntu-small-3.5.3 as cbuilder
 
 RUN apt-get -y update && \
     apt-get install -y git gcc gfortran python3-pip libffi-dev gdb zlib1g-dev make  && \
@@ -25,7 +25,7 @@ WORKDIR /tiffdss/src
 RUN make libtiffdss.so
 
 # Packager
-FROM osgeo/gdal:ubuntu-small-3.5.0 as packager
+FROM osgeo/gdal:ubuntu-small-3.5.3 as packager
 
 # force stdout and stderr to be unbuffered setting to non-empty
 ENV PYTHONUNBUFFERED=1

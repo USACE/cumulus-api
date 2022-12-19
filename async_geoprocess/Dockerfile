@@ -1,4 +1,4 @@
-FROM osgeo/gdal:ubuntu-full-3.5.1
+FROM osgeo/gdal:ubuntu-full-3.5.3
 
 ARG CUMULUS_GEOPROC_PIP_URL=git+https://github.com/USACE/cumulus-geoproc@main
 ENV PYTHONUNBUFFERED=1

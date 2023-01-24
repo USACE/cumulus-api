@@ -6,7 +6,6 @@ info:
   contact:
     name: Cumulus API Support
     url: 'https://github.com/USACE/cumulus/issues'
-    email: support@example.com
 servers:
   - url: 'https://cumulus-api.corps.cloud'
     description: Stable API

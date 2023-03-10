@@ -201,8 +201,7 @@ def writer(
 
         except (RuntimeError, Exception) as ex:
             logger.error(f"{type(ex).__name__}: {this}: {ex}")
-            update_status(id=id, status_id=PACKAGE_STATUS["FAILED"], progress=_progress)
-            return None
+            continue
 
         finally:
             spatialGridStruct = None
@@ -212,15 +211,27 @@ def writer(
             data = None
             data_flat = None
             warp_ds = None
-            gdal.Unlink(mem_raster)
             TifCfg = None
             data_type = None
             ds = None
+            # https://github.com/USACE/cumulus/issues/326
+            try:
+                gdal.Unlink(mem_raster)
+            except:
+                logger.error(f"Unable to unlink {mem_raster}")
+                continue
 
     grid_type = None
     zcompression = None
     srs_definition = None
     tz_offset = None
     src = None
+
+    # If no progress was made for any items in the payload (ex: all tifs could not be projected properly),
+    # don't return a dssfilename
+    if _progress == 0:
+        logger.error(f"No files processed - Progress:{_progress}")
+        update_status(id=id, status_id=PACKAGE_STATUS["FAILED"], progress=_progress)
+        return None
 
     return dssfilename

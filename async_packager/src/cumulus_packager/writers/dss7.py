@@ -211,15 +211,15 @@ def writer(
             data = None
             data_flat = None
             warp_ds = None
+            TifCfg = None
+            data_type = None
+            ds = None
             # https://github.com/USACE/cumulus/issues/326
             try:
                 gdal.Unlink(mem_raster)
             except:
                 logger.error(f"Unable to unlink {mem_raster}")
-                pass
-            TifCfg = None
-            data_type = None
-            ds = None
+                continue
 
     grid_type = None
     zcompression = None

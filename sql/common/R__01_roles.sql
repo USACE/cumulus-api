@@ -79,7 +79,8 @@ GRANT SELECT ON
     download,
     download_product,
     watershed,
-    my_watersheds
+    my_watersheds,
+    product_metadata
 TO cumulus_reader;
 
 -- Role cumulus_writer
@@ -104,5 +105,6 @@ GRANT INSERT,UPDATE,DELETE ON
     download,
     download_product,
     watershed,
-    my_watersheds
+    my_watersheds,
+    product_metadata
 TO cumulus_writer;

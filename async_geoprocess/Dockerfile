@@ -16,7 +16,9 @@ ENV PYTHONUNBUFFERED=1
 
 # pip install/upgrade requirements before the cumulus package
 RUN python3 -m pip install --upgrade pip wheel setuptools \
-  && python3 -m pip install $CUMULUS_GEOPROC_PIP_URL
+  && python3 -m pip install git+https://github.com/USACE/cumulus-geoproc@feature/nbm-qpf-qtf
+
+#$CUMULUS_GEOPROC_PIP_URL
 
 WORKDIR /app/async_geoprocess
 

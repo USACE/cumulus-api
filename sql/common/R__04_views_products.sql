@@ -14,58 +14,96 @@ CREATE OR REPLACE VIEW v_acquirablefile AS (
 );
 
 -- v_product
-CREATE OR REPLACE VIEW v_product AS (
-    WITH tags_by_product AS (
-		SELECT product_id         AS product_id,
-               array_agg(tag_id ORDER BY tag_id::VARCHAR)  AS tags
-	    FROM product_tags
-	    GROUP BY product_id
-	)
-	SELECT a.id                              AS id,
-           a.slug                            AS slug,
-           CONCAT(
-               UPPER(s.slug), ' ', 
-               (CASE WHEN LENGTH(a.label) > 1
-                     THEN CONCAT(a.label, ' ')
-                     ELSE ''
-                END), 
-                p.name, ' ',
-                a.temporal_resolution/60/60, 'hr'
-           )                                 AS name,
-           a.label                           AS label,
-           a.temporal_resolution             AS temporal_resolution,
-           a.temporal_duration               AS temporal_duration,
-           d.name                            AS dss_datatype,
-           a.dss_fpart                       AS dss_fpart,
-           a.description                     AS description,
-           a.suite_id                        AS suite_id,
-           s.name                            AS suite,
-           COALESCE(t.tags, '{}')            AS tags,
-           p.id                              AS parameter_id,
-           p.name                            AS parameter,
-           u.id                              AS unit_id,
-           u.name                            AS unit,
-           pf.after                          AS after,
-           pf.before                         AS before,
-           COALESCE(pf.productfile_count, 0) AS productfile_count,
-           pf.last_forecast_version          AS last_forecast_version
-	FROM product a
-	JOIN unit u ON u.id = a.unit_id
-	JOIN parameter p ON p.id = a.parameter_id
-    JOIN suite s ON s.id = a.suite_id
-    JOIN dss_datatype d ON d.id = a.dss_datatype_id
-	LEFT JOIN tags_by_product t ON t.product_id = a.id
-    LEFT JOIN (
-        SELECT product_id    AS product_id,
-                COUNT(id)     AS productfile_count,
-                MIN(datetime) AS after,
-                MAX(datetime) AS before,
-                NULLIF(max(productfile."version"),'1111-11-11T11:11:11.11Z') AS last_forecast_version
-        FROM productfile
-        GROUP BY product_id
-    ) AS pf ON pf.product_id = a.id
-    WHERE NOT a.deleted
-    order by name
+CREATE OR REPLACE
+VIEW v_product AS (
+WITH tags_by_product AS (
+SELECT
+    product_id AS product_id,
+    array_agg(tag_id
+ORDER BY
+    tag_id::VARCHAR) AS tags
+FROM
+    product_tags
+GROUP BY
+    product_id
+    )
+SELECT
+    a.id AS id,
+    a.slug AS slug,
+    CONCAT(
+    UPPER(s.slug),
+    ' ',
+    (CASE
+        WHEN LENGTH(a.label) > 1
+                     THEN CONCAT(a.label,
+        ' ')
+        ELSE ''
+    END),
+    p.name,
+    ' ',
+    a.temporal_resolution / 60 / 60,
+    'hr'
+           ) AS name,
+    a.label AS LABEL,
+    a.temporal_resolution AS temporal_resolution,
+    a.temporal_duration AS temporal_duration,
+    d.name AS dss_datatype,
+    a.dss_fpart AS dss_fpart,
+    a.description AS description,
+    a.suite_id AS suite_id,
+    s.name AS suite,
+    COALESCE(t.tags,
+    '{}') AS tags,
+    p.id AS parameter_id,
+    p.name AS PARAMETER,
+    u.id AS unit_id,
+    u.name AS unit,
+    pf.after AS AFTER,
+    pf.before AS BEFORE,
+    COALESCE(pf.productfile_count,
+    0) AS productfile_count,
+    pf.last_forecast_version AS last_forecast_version,
+    pm.time_zone,
+    pm.driver_short_name AS driver_short,
+    pm.driver_long_name AS driver_long,
+    pm.crs_proj4 AS crs_proj4,
+    pm.acquisition_source AS acquire_source,
+    pm.source_reference AS source_reference,
+    pm.raster_xsize AS raster_xsize,
+    pm.raster_ysize AS raster_ysize,
+    pm.notes AS notes
+FROM
+    product a
+JOIN unit u ON
+    u.id = a.unit_id
+JOIN PARAMETER p ON
+    p.id = a.parameter_id
+JOIN suite s ON
+    s.id = a.suite_id
+JOIN dss_datatype d ON
+    d.id = a.dss_datatype_id
+LEFT JOIN product_metadata pm ON
+    pm.product_id = a.id
+LEFT JOIN tags_by_product t ON
+    t.product_id = a.id
+LEFT JOIN (
+    SELECT
+        product_id AS product_id,
+        COUNT(id) AS productfile_count,
+        MIN(datetime) AS AFTER,
+        MAX(datetime) AS BEFORE,
+        NULLIF(max(productfile."version"),
+        '1111-11-11T11:11:11.11Z') AS last_forecast_version
+    FROM
+        productfile
+    GROUP BY
+        product_id
+    ) AS pf ON
+    pf.product_id = a.id
+WHERE
+    NOT a.deleted
+ORDER BY
+    name
 );
 
 -- v_productfile

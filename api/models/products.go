@@ -13,9 +13,10 @@ import (
 )
 
 var listProductsSQL = `SELECT id, slug, name, label, tags, temporal_resolution, temporal_duration,
-                              parameter_id, parameter, unit_id, unit, dss_fpart, dss_datatype, description,
-							  suite_id, suite, after, before, productfile_count, last_forecast_version
-	                   FROM v_product`
+							parameter_id, parameter, unit_id, unit, dss_fpart, dss_datatype, description,
+							suite_id, suite, after, before, productfile_count, last_forecast_version,
+							time_zone, driver_short, driver_long, crs_proj4, acquire_source, source_reference, raster_xsize, raster_ysize, notes
+						FROM v_product`
 
 // ProductInfo holds information required to create a product
 type ProductInfo struct {
@@ -33,6 +34,15 @@ type ProductInfo struct {
 	SuiteID            uuid.UUID  `json:"suite_id" db:"suite_id"`
 	Suite              string     `json:"suite"`
 	Label              string     `json:"label"`
+	TimeZone           *string    `json:"time_zone"`
+	DriverShort        *string    `json:"driver_short"`
+	DriverLong         *string    `json:"driver_long"`
+	CrsProj4           *string    `json:"crs_proj4"`
+	AcquireSource      *string    `json:"acquire_source"`
+	SourceReference    *string    `json:"source_reference"`
+	RasterXsize        *int       `json:"raster_xsize"`
+	RasterYsize        *int       `json:"raster_ysize"`
+	Notes              *string    `json:"notes"`
 }
 
 type ProductIdentifiers struct {

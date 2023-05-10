@@ -15,7 +15,7 @@ import (
 var listProductsSQL = `SELECT id, slug, name, label, tags, temporal_resolution, temporal_duration,
 							parameter_id, parameter, unit_id, unit, dss_fpart, dss_datatype, description,
 							suite_id, suite, after, before, productfile_count, last_forecast_version,
-							time_zone, driver_short, driver_long, crs_proj4, acquire_source, source_reference, raster_xsize, raster_ysize, notes
+							time_zone, driver_short, driver_long, coordinate_system, source_acquisition, source_reference, raster_xsize, raster_ysize, notes
 						FROM v_product`
 
 // ProductInfo holds information required to create a product
@@ -37,8 +37,8 @@ type ProductInfo struct {
 	TimeZone           *string    `json:"time_zone"`
 	DriverShort        *string    `json:"driver_short"`
 	DriverLong         *string    `json:"driver_long"`
-	CrsProj4           *string    `json:"crs_proj4"`
-	AcquireSource      *string    `json:"acquire_source"`
+	CoordinateSystem   *string    `json:"coordinate_system"`
+	SourceAcquisition  *string    `json:"source_acquisition"`
 	SourceReference    *string    `json:"source_reference"`
 	RasterXsize        *int       `json:"raster_xsize"`
 	RasterYsize        *int       `json:"raster_ysize"`

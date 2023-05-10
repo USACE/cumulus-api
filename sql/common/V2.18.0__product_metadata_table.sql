@@ -16,8 +16,8 @@ CREATE TABLE IF NOT EXISTS product_metadata (
 
 INSERT INTO product_metadata (product_id, driver_short_name, driver_long_name, coordinate_system, source_acquisition, source_reference, raster_xsize, raster_ysize) VALUES
     ('bfa3366a-49ef-4a08-99e7-2cb2e24624c9','netCDF','Network Common Data Format', 'Polar Stereographic', 'https://tgftp.nws.noaa.gov/data/rfc/abrfc/xmrg_qpe/', 'https://', 2345, 1597), --abrfc-qpe-01h
-    ('c500f609-428f-4c38-b658-e7dde63de2ea','GRIB', 'General Regularly-distributed Information in Binary', 'CRS', 'https://', 'https://', 9999,9999), --cbrfc-mpe
-    ('002125d6-2c90-4c24-9382-10a535d398bb','GRIB', 'General Regularly-distributed Information in Binary', 'CRS', 'https://', 'https://', 9999,9999), --hrrr-total-precip
+    ('c500f609-428f-4c38-b658-e7dde63de2ea','GRIB', 'General Regularly-distributed Information in Binary', 'CRS', 'https://www.cbrfc.noaa.gov/outgoing/usace_la/xmrgMMDDYYYYHHz.grb', 'https://', 9999,9999), --cbrfc-mpe
+    ('002125d6-2c90-4c24-9382-10a535d398bb','GRIB', 'General Regularly-distributed Information in Binary', 'CRS', 'https://nomads.ncep.noaa.gov/pub/data/nccf/com/hrrr/prod/', 'https://', 9999,9999), --hrrr-total-precip
     ('5e13560b-7589-474f-9fd5-bc1cf4163fe4','GRIB', 'General Regularly-distributed Information in Binary', 'CRS', 'https://', 'https://', 9999,9999), --lmrfc-qpe-01h
     ('1c8c130e-0d3c-4ccc-af5b-d2f95379429c','GRIB', 'General Regularly-distributed Information in Binary', 'CRS', 'https://', 'https://', 9999,9999), --lmrfc-qpf-06h
     ('8b5672d2-2cf1-4ccf-8785-8a9d9302b3a8','GRIB', 'General Regularly-distributed Information in Binary', 'CRS', 'https://', 'https://', 9999,9999), --marfc-fmat-06h
@@ -66,10 +66,10 @@ INSERT INTO product_metadata (product_id, driver_short_name, driver_long_name, c
     ('517369a5-7fe3-4b0a-9ef6-10f26f327b26','driver', 'driver name', 'CRS', 'https://', 'https://', 9999,9999), --nohrsc-snodas-swe-interpolated
     ('bf73ae80-22fc-43a2-930a-599531470dc6','driver', 'driver name', 'CRS', 'https://', 'https://', 9999,9999), --nsidc-ua-snowdepth-v1
     ('87d79a53-5e66-4d31-973c-2adbbe733de2','driver', 'driver name', 'CRS', 'https://', 'https://', 9999,9999), --nsidc-ua-swe-v1
-    ('5bfec3ee-3f11-4142-b959-b76c28ca5170','driver', 'driver name', 'CRS', 'https://', 'https://', 9999,9999), --nwrfc-qpe-06h
-    ('a10d5f10-9074-4afc-925d-1271e469226e','driver', 'driver name', 'CRS', 'https://', 'https://', 9999,9999), --nwrfc-qpf-06h
-    ('d60307f1-55d4-4ca8-86d5-516b399427c5','driver', 'driver name', 'CRS', 'https://', 'https://', 9999,9999), --nwrfc-qte-06h
-    ('630ea9a7-9ef3-47ff-9e99-77d23af78ceb','driver', 'driver name', 'CRS', 'https://', 'https://', 9999,9999), --nwrfc-qtf-06h
+    ('5bfec3ee-3f11-4142-b959-b76c28ca5170','netCDF','Network Common Data Format', 'CRS', 'https://', 'https://', 9999,9999), --nwrfc-qpe-06h
+    ('a10d5f10-9074-4afc-925d-1271e469226e','netCDF','Network Common Data Format', 'CRS', 'https://', 'https://', 9999,9999), --nwrfc-qpf-06h
+    ('d60307f1-55d4-4ca8-86d5-516b399427c5','netCDF','Network Common Data Format', 'CRS', 'https://', 'https://', 9999,9999), --nwrfc-qte-06h
+    ('630ea9a7-9ef3-47ff-9e99-77d23af78ceb','netCDF','Network Common Data Format', 'CRS', 'https://', 'https://', 9999,9999), --nwrfc-qtf-06h
     ('64756f41-75e2-40ce-b91a-fda5aeb441fc','driver', 'driver name', 'CRS', 'https://', 'https://', 9999,9999), --prism-ppt-early
     ('b86e81b0-a860-46b1-bbc8-23b02234a4d2','driver', 'driver name', 'CRS', 'https://', 'https://', 9999,9999), --prism-ppt-stable
     ('6357a677-5e77-4c37-8aeb-3300707ca885','driver', 'driver name', 'CRS', 'https://', 'https://', 9999,9999), --prism-tmax-early
@@ -78,7 +78,7 @@ INSERT INTO product_metadata (product_id, driver_short_name, driver_long_name, c
     ('61fcae9d-cd50-4c00-998b-0a69fc4a2203','driver', 'driver name', 'CRS', 'https://', 'https://', 9999,9999), --prism-tmin-stable
     ('ae11dad4-7065-4963-8771-7f5aa1e94b5d','GRIB', 'General Regularly-distributed Information in Binary', 'CRS', 'https://', 'https://', 9999,9999), --serfc-qpe-01h
     ('a9a74d32-acdb-4fd2-8478-14d7098c50a7','GRIB', 'General Regularly-distributed Information in Binary', 'CRS', 'https://', 'https://', 9999,9999), --serfc-qpf-06h
-    ('0ac60940-35c2-4c0d-8a3b-49c20e455ff5','driver', 'driver name', 'CRS', 'https://', 'https://', 9999,9999), --wpc-qpf-2p5km
+    ('0ac60940-35c2-4c0d-8a3b-49c20e455ff5','GRIB', 'General Regularly-distributed Information in Binary', 'CRS', 'https://', 'https://', 9999,9999), --wpc-qpf-2p5km
     ('85cceeb1-467f-4775-a453-8a78b3e3e045','netCDF','Network Common Data Format', 'CRS', 'https://', 'https://', 9999,9999), --wrf-bc-dewpntt
     ('4378048a-5231-406c-b8fd-2dd8fce8bbb2','netCDF','Network Common Data Format', 'CRS', 'https://', 'https://', 9999,9999), --wrf-bc-groundt
     ('13b83148-c00b-4206-afa8-59f4356be7f9','netCDF','Network Common Data Format', 'CRS', 'https://', 'https://', 9999,9999), --wrf-bc-lwdown

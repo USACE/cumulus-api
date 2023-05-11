@@ -15,17 +15,6 @@ INSERT INTO product (id,slug,"label",temporal_duration,temporal_resolution,dss_f
     ('f43cb3b8-221a-4ff0-aaa6-5937e54323b6','nbm-co-qtf-03h','QTF',0,10800,'NBM','5fab39b9-90ba-482a-8156-d863ad7c45ad','National Blend of Models air temperature forecast, 3 hour','8f51e5b5-08be-4ea7-9ebc-ad44b465dbc6',false,'c9b39f25-51e5-49cd-9b5a-77c575bebc3b','4 hour','b1433fa7-645f-4e3c-b560-29cba59e80c6'),
     ('7e5c7acf-7d2b-4d02-a582-7ddf9b2e3700','nbm-co-qtf-06h','QTF',0,21600,'NBM','5fab39b9-90ba-482a-8156-d863ad7c45ad','National Blend of Models air temperature forecast, 6 hour','8f51e5b5-08be-4ea7-9ebc-ad44b465dbc6',false,'c9b39f25-51e5-49cd-9b5a-77c575bebc3b','7 hour','b1433fa7-645f-4e3c-b560-29cba59e80c6');
 
--- tags for listed products above, precip, temperature and all forecast
-INSERT INTO product_tags (product_id, tag_id) VALUES
-    ('2d82ef5e-cf5d-430a-94ee-61af29a796e3','726039da-2f21-4393-a15c-5f6e7ea41b1f'),
-    ('2d82ef5e-cf5d-430a-94ee-61af29a796e3','cc93b3f9-fbe1-4b35-8f9c-2d1515961c6a'),
-    ('f43cb3b8-221a-4ff0-aaa6-5937e54323b6','cc93b3f9-fbe1-4b35-8f9c-2d1515961c6a'),
-    ('f43cb3b8-221a-4ff0-aaa6-5937e54323b6','d9613031-7cf0-4722-923e-e5c3675a163b'),
-    ('7e5c7acf-7d2b-4d02-a582-7ddf9b2e3700','cc93b3f9-fbe1-4b35-8f9c-2d1515961c6a'),
-    ('7e5c7acf-7d2b-4d02-a582-7ddf9b2e3700','d9613031-7cf0-4722-923e-e5c3675a163b'),
-    ('d0c1d6f4-cf5d-4332-a17e-dd1757c99c94','d9613031-7cf0-4722-923e-e5c3675a163b'),
-    ('5317d1c4-c6db-40c2-b527-72f7603be8a0','726039da-2f21-4393-a15c-5f6e7ea41b1f');
-
 -- rename fpart for NBM QPF 01Hr
 UPDATE product
     SET dss_fpart = 'NBM-QPF01'

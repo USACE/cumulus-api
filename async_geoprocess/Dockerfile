@@ -11,7 +11,7 @@ RUN mkdir -p /app/async_geoprocess
 # Cache buster
 RUN echo $(date +%s)
 
-ARG CUMULUS_GEOPROC_PIP_URL=git+https://github.com/USACE/cumulus-geoproc@03137e8
+ARG CUMULUS_GEOPROC_PIP_URL=git+https://github.com/USACE/cumulus-geoproc@32c8237
 ENV PYTHONUNBUFFERED=1
 
 # pip install/upgrade requirements before the cumulus package

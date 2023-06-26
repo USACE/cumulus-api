@@ -8,7 +8,7 @@ ENV GDAL_DISABLE_READDIR_ON_OPEN=EMPTY_DIR
 
 ENV PACKAGE=async_packager
 
-ENV TIFFDSS_VERSION=v0.1.2
+ENV TIFFDSS_VERSION=v0.2.0
 ENV TIFFDSS=tiffdss_ubuntu-latest
 
 # update and install other dependencies

@@ -104,6 +104,10 @@ services:
     restart: always
     cpus: 1.0
     mem_limit: 2048m
+    depends_on:
+      elasticmq:
+        condition: service_started
+
   # statistics:
   #   build:
   #     context: async_statistics

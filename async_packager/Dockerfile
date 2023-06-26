@@ -1,5 +1,5 @@
 # Packager
-FROM osgeo/gdal:ubuntu-small-3.5.3
+FROM ghcr.io/osgeo/gdal:ubuntu-full-3.7.0 as base
 
 # force stdout and stderr to be unbuffered setting to non-empty
 ENV PYTHONUNBUFFERED=1
@@ -13,6 +13,7 @@ ENV TIFFDSS=tiffdss_ubuntu-latest
 
 # update and install other dependencies
 RUN apt-get -y update && \
+    apt-get -y upgrade && \
     apt-get install -y python3-pip curl && \
     rm -rf /var/lib/apt/lists/*
 
@@ -22,9 +23,9 @@ WORKDIR /app/${PACKAGE}
 
 COPY . .
 
-# pip install/upgrade
-RUN python3 -m pip install --upgrade pip wheel setuptools && \
-    python3 -m pip install /app/${PACKAGE}/
+# pip install the package and upgrade outdated packages
+RUN echo "pip wheel setuptools" | xargs pip3 install --upgrade && \
+    pip3 install /app/${PACKAGE}/
 
 # get libtiffdss.so
 RUN curl -L https://github.com/HydrologicEngineeringCenter/tiffdss/releases/download/${TIFFDSS_VERSION}/${TIFFDSS}_${TIFFDSS_VERSION}.tar.gz \
@@ -39,6 +40,4 @@ RUN useradd appuser && \
 
 USER appuser
 
-CMD python3 packager.py
-# local testing only
-# CMD [ "tail", "-f" , "/dev/null" ]
+CMD ["./packager.py"]

@@ -4,6 +4,7 @@ FROM ghcr.io/osgeo/gdal:ubuntu-full-3.7.0 as base
 # force stdout and stderr to be unbuffered setting to non-empty
 ENV PYTHONUNBUFFERED=1
 
+ENV GDAL_DATA=/usr/share/gdal
 ENV GDAL_DISABLE_READDIR_ON_OPEN=EMPTY_DIR
 
 ENV PACKAGE=async_packager

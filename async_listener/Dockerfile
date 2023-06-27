@@ -1,5 +1,5 @@
 # BUILD GO BINARIES
-FROM golang:1.17-alpine AS builder
+FROM golang:1.19-alpine AS builder
 # Install Git
 RUN apk update && apk add --no-cache git ca-certificates
 # Copy In Source Code

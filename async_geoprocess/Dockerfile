@@ -26,6 +26,7 @@ RUN echo $(date +%s)
 ARG CUMULUS_GEOPROC_PIP_URL=git+https://github.com/USACE/cumulus-geoproc@main
 
 ENV PYTHONUNBUFFERED=1
+ENV GDAL_DATA=/usr/share/gdal
 
 # pip install the cumulus package
 RUN python3 -m pip install $CUMULUS_GEOPROC_PIP_URL

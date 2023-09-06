@@ -13,8 +13,9 @@ import (
 )
 
 var listProductsSQL = `SELECT id, slug, name, label, tags, temporal_resolution, temporal_duration,
-                              parameter_id, parameter, unit_id, unit, dss_fpart, dss_datatype, description,
-							  suite_id, suite, after, before, productfile_count, last_forecast_version
+                              parameter_id, parameter, unit_id, unit, dss_fpart, dss_datatype_id, 
+							  dss_datatype, description, suite_id, suite, after, before, 
+							  productfile_count, last_forecast_version
 	                   FROM v_product`
 
 // ProductInfo holds information required to create a product

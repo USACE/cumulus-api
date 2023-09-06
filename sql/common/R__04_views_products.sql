@@ -35,6 +35,7 @@ CREATE OR REPLACE VIEW v_product AS (
            a.label                           AS label,
            a.temporal_resolution             AS temporal_resolution,
            a.temporal_duration               AS temporal_duration,
+           d.id								 AS dss_datatype_id,
            d.name                            AS dss_datatype,
            a.dss_fpart                       AS dss_fpart,
            a.description                     AS description,

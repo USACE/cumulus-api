@@ -2,20 +2,21 @@
 
 """
 import json
-import os
+import sys
 from collections import namedtuple
 from ctypes import c_char_p, c_float, c_int
 from pathlib import Path
-import sys
 
 import numpy
 import pyplugs
+from codetiming import Timer
 from cumulus_packager import heclib, logger
 from cumulus_packager.configurations import PACKAGER_UPDATE_INTERVAL
 from cumulus_packager.packager.handler import PACKAGE_STATUS, update_status
 from osgeo import gdal, osr
 
 gdal.UseExceptions()
+
 
 @pyplugs.register
 def writer(
@@ -141,16 +142,21 @@ def writer(
             spatialGridStruct._isTimeStamped = c_int(1)
 
             # Call heclib.zwrite_record() in different process space to release memory after each iteration
+            t = Timer(name="accumuluated", logger=None)
+            t.start()
             result = heclib.zwrite_record(
                 dssfilename, spatialGridStruct, data_flat.astype(numpy.float32)
             )
+            elapsed_time = t.stop()
+            logger.debug(f'Processed "{TifCfg.key}" in {elapsed_time:.4f} seconds')
             if result != 0:
-                logger.debug(f"TiffDss Write Record Result: {result}")
+                logger.warning(f"TiffDss Write Record Fail: {result}")
 
             _progress = int(((idx + 1) / gridcount) * 100)
             # Update progress at predefined interval
             if idx % PACKAGER_UPDATE_INTERVAL == 0 or idx == gridcount - 1:
-                logger.debug(f"Progress: {_progress}")
+                if _progress % 10 == 0:
+                    logger.debug(f"Progress: {_progress}")
                 update_status(
                     id=id, status_id=PACKAGE_STATUS["INITIATED"], progress=_progress
                 )
@@ -164,10 +170,15 @@ def writer(
                 "type": exc_type.__name__,
                 "message": exc_value,
             }
-            for k, v in traceback_details.items():
-                logger.error("{%s}: {%s}".format(k, v))
+            logger.error(traceback_details)
 
             continue
+
+        finally:
+            ds = None
+            raster = None
+            warp_ds = None
+            spatialGridStruct = None
 
     # If no progress was made for any items in the payload (ex: all tifs could not be projected properly),
     # don't return a dssfilename
@@ -175,5 +186,8 @@ def writer(
         logger.error(f"No files processed - Progress:{_progress}")
         update_status(id=id, status_id=PACKAGE_STATUS["FAILED"], progress=_progress)
         return None
+
+    total_time = Timer.timers["accumuluated"]
+    logger.debug(f"Total Processing Time: {total_time:.4f}")
 
     return dssfilename

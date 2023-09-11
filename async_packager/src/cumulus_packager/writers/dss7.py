@@ -76,16 +76,6 @@ def writer(
         FQPN to dss file
     """
 
-    def _zwrite(dssfilename, gridStructStore, data_flat):
-        _ = heclib.zwrite_record(
-            dssfilename=dssfilename,
-            gridStructStore=gridStructStore,
-            data_flat=data_flat.astype(numpy.float32),
-        )
-        _ = None
-
-        return
-
     # convert the strings back to json objects; needed for pyplugs
     src = json.loads(src)
     gridcount = len(src)
@@ -185,7 +175,7 @@ def writer(
 
             # Call heclib.zwrite_record() in different process space to release memory after each iteration
             _p = multiprocessing.Process(
-                target=_zwrite,
+                target=heclib.zwrite_record,
                 args=(dssfilename, spatialGridStruct, data_flat.astype(numpy.float32)),
             )
             _p.start()
@@ -202,30 +192,6 @@ def writer(
         except (RuntimeError, Exception) as ex:
             logger.error(f"{type(ex).__name__}: {this}: {ex}")
             continue
-
-        finally:
-            spatialGridStruct = None
-            adfGeoTransform = None
-            raster = None
-            nodata = None
-            data = None
-            data_flat = None
-            warp_ds = None
-            TifCfg = None
-            data_type = None
-            ds = None
-            # https://github.com/USACE/cumulus/issues/326
-            try:
-                gdal.Unlink(mem_raster)
-            except:
-                logger.error(f"Unable to unlink {mem_raster}")
-                continue
-
-    grid_type = None
-    zcompression = None
-    srs_definition = None
-    tz_offset = None
-    src = None
 
     # If no progress was made for any items in the payload (ex: all tifs could not be projected properly),
     # don't return a dssfilename

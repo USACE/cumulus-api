@@ -220,14 +220,14 @@ def zwrite_record(
     """
     ND_POINTER_1 = numpy.ctypeslib.ndpointer(dtype=numpy.float32, ndim=1, flags="C")
 
-    tiffdss.writeRecord.argtypes = (
+    tiffdss.writeRecord_External.argtypes = (
         c_char_p,
         POINTER(zStructSpatialGrid),
         ND_POINTER_1,
     )
-    tiffdss.writeRecord.restype = c_int
+    tiffdss.writeRecord_External.restype = c_int
 
-    res = tiffdss.writeRecord(
+    res = tiffdss.writeRecord_External(
         c_char_p(dssfilename.encode()),
         pointer(gridStructStore),
         data_flat,

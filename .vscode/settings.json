@@ -2,9 +2,8 @@
     "editor.defaultFormatter": "golang.go",
     "editor.formatOnSave": true,
     "[python]": {
-        "editor.defaultFormatter": "ms-python.python",
+        "editor.defaultFormatter": "ms-python.black-formatter",
         "editor.formatOnSave": true,
-    
     },
     "python.analysis.extraPaths": [
         "./async_geoprocess/src",
@@ -12,5 +11,6 @@
     ],
     "[jsonc]": {
         "editor.defaultFormatter": "vscode.json-language-features"
-    }
+    },
+    "python.formatting.provider": "none"
 }

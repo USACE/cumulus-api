@@ -2,46 +2,20 @@
 
 """
 import json
-import multiprocessing
-import os
+import sys
 from collections import namedtuple
 from ctypes import c_char_p, c_float, c_int
+from pathlib import Path
 
 import numpy
 import pyplugs
+from codetiming import Timer
 from cumulus_packager import heclib, logger
+from cumulus_packager.configurations import PACKAGER_UPDATE_INTERVAL
 from cumulus_packager.packager.handler import PACKAGE_STATUS, update_status
 from osgeo import gdal, osr
 
-from cumulus_packager.configurations import PACKAGER_UPDATE_INTERVAL, LOGGER_LEVEL
-
 gdal.UseExceptions()
-
-# gdal.SetConfigOption("CPL_DEBUG", "ON")
-
-this = os.path.basename(__file__)
-
-
-def log_dataset(gdal_dataset, *args):
-    logger.debug(f"{args}")
-
-    logger.debug(f"{gdal_dataset.RasterXSize=}")
-    logger.debug(f"{gdal_dataset.RasterYSize=}")
-    logger.debug(f"{gdal_dataset.RasterCount=}")
-    gdal_spatial_ref = gdal_dataset.GetSpatialRef()
-    logger.debug(f"{gdal_spatial_ref.ExportToPrettyWkt()=}")
-
-    raster = gdal_dataset.GetRasterBand(1)
-    logger.debug(f"{raster.GetNoDataValue()=}")
-
-    data = raster.ReadAsArray(resample_alg=gdal.gdalconst.GRIORA_Bilinear)
-    logger.debug(f"{data.min()=}; {data.max()=}; {data.mean()=}; {data.size=}")
-
-    gdal_spatial_ref = None
-    data = None
-    raster = None
-
-    return
 
 
 @pyplugs.register
@@ -76,16 +50,6 @@ def writer(
         FQPN to dss file
     """
 
-    def _zwrite(dssfilename, gridStructStore, data_flat):
-        _ = heclib.zwrite_record(
-            dssfilename=dssfilename,
-            gridStructStore=gridStructStore,
-            data_flat=data_flat.astype(numpy.float32),
-        )
-        _ = None
-
-        return
-
     # convert the strings back to json objects; needed for pyplugs
     src = json.loads(src)
     gridcount = len(src)
@@ -113,15 +77,12 @@ def writer(
         dsspathname = f"/{grid_type_name}/{_extent_name}/{TifCfg.dss_cpart}/{TifCfg.dss_dpart}/{TifCfg.dss_epart}/{TifCfg.dss_fpart}/"
 
         try:
-            dssfilename = os.path.join(dst, id + ".dss")
+            dssfilename = Path(dst).joinpath(id).with_suffix(".dss").as_posix()
             data_type = heclib.data_type[TifCfg.dss_datatype]
             ds = gdal.Open(f"/vsis3_streaming/{TifCfg.bucket}/{TifCfg.key}")
 
-            if LOGGER_LEVEL.lower == "debug":
-                log_dataset(ds, "BEFORE")
-
             # GDAL Warp the Tiff to what we need for DSS
-            filename_ = os.path.basename(TifCfg.key)
+            filename_ = Path(TifCfg.key).name
             mem_raster = f"/vsimem/{filename_}"
             warp_ds = gdal.Warp(
                 mem_raster,
@@ -135,9 +96,6 @@ def writer(
                 resampleAlg="bilinear",
                 copyMetadata=False,
             )
-
-            if LOGGER_LEVEL.lower == "debug":
-                log_dataset(warp_ds, "AFTER")
 
             # Read data into 1D array
             raster = warp_ds.GetRasterBand(1)
@@ -184,48 +142,43 @@ def writer(
             spatialGridStruct._isTimeStamped = c_int(1)
 
             # Call heclib.zwrite_record() in different process space to release memory after each iteration
-            _p = multiprocessing.Process(
-                target=_zwrite,
-                args=(dssfilename, spatialGridStruct, data_flat.astype(numpy.float32)),
+            t = Timer(name="accumuluated", logger=None)
+            t.start()
+            result = heclib.zwrite_record(
+                dssfilename, spatialGridStruct, data_flat.astype(numpy.float32)
             )
-            _p.start()
-            _p.join()
+            elapsed_time = t.stop()
+            logger.debug(f'Processed "{TifCfg.key}" in {elapsed_time:.4f} seconds')
+            if result != 0:
+                logger.warning(f"TiffDss Write Record Fail: {result}")
 
             _progress = int(((idx + 1) / gridcount) * 100)
             # Update progress at predefined interval
             if idx % PACKAGER_UPDATE_INTERVAL == 0 or idx == gridcount - 1:
-                logger.debug(f"Progress: {_progress}")
+                if _progress % 10 == 0:
+                    logger.debug(f"Progress: {_progress}")
                 update_status(
                     id=id, status_id=PACKAGE_STATUS["INITIATED"], progress=_progress
                 )
 
         except (RuntimeError, Exception) as ex:
-            logger.error(f"{type(ex).__name__}: {this}: {ex}")
+            exc_type, exc_value, exc_traceback = sys.exc_info()
+            traceback_details = {
+                "filename": Path(exc_traceback.tb_frame.f_code.co_filename).name,
+                "line number": exc_traceback.tb_lineno,
+                "method": exc_traceback.tb_frame.f_code.co_name,
+                "type": exc_type.__name__,
+                "message": exc_value,
+            }
+            logger.error(traceback_details)
+
             continue
 
         finally:
-            spatialGridStruct = None
-            adfGeoTransform = None
-            raster = None
-            nodata = None
-            data = None
-            data_flat = None
-            warp_ds = None
-            TifCfg = None
-            data_type = None
             ds = None
-            # https://github.com/USACE/cumulus/issues/326
-            try:
-                gdal.Unlink(mem_raster)
-            except:
-                logger.error(f"Unable to unlink {mem_raster}")
-                continue
-
-    grid_type = None
-    zcompression = None
-    srs_definition = None
-    tz_offset = None
-    src = None
+            raster = None
+            warp_ds = None
+            spatialGridStruct = None
 
     # If no progress was made for any items in the payload (ex: all tifs could not be projected properly),
     # don't return a dssfilename
@@ -233,5 +186,8 @@ def writer(
         logger.error(f"No files processed - Progress:{_progress}")
         update_status(id=id, status_id=PACKAGE_STATUS["FAILED"], progress=_progress)
         return None
+
+    total_time = Timer.timers["accumuluated"]
+    logger.debug(f"Total Processing Time: {total_time:.4f}")
 
     return dssfilename

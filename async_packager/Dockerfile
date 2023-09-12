@@ -9,7 +9,7 @@ ENV GDAL_DISABLE_READDIR_ON_OPEN=EMPTY_DIR
 
 ENV PACKAGE=async_packager
 
-ENV TIFFDSS_VERSION=v0.2.0
+ENV TIFFDSS_VERSION=v0.2.2
 ENV TIFFDSS=tiffdss_ubuntu-latest
 
 # update and install other dependencies
@@ -38,6 +38,7 @@ RUN curl -L https://github.com/HydrologicEngineeringCenter/tiffdss/releases/down
     --output ${TIFFDSS}_${TIFFDSS_VERSION}.tar.gz && \
     tar -zxvf ${TIFFDSS}_${TIFFDSS_VERSION}.tar.gz && \
     mv libtiffdss.so /usr/lib/ && \
+    mv tiffdss /usr/local/bin/ && \
     rm -f ${TIFFDSS}_${TIFFDSS_VERSION}.tar.gz tiffdss *.o
 
 RUN useradd appuser && \

@@ -30,7 +30,9 @@ PACKAGE_STATUS = {
 }
 
 
-def update_status(id: str, status_id: str, progress: int, file: str = None, manifest: dict = None):
+def update_status(
+    id: str, status_id: str, progress: int, file: str = None, manifest: dict = None
+):
     """Update packager status to Cumulus API
 
     TODO: Check Documentation for accuracy
@@ -54,7 +56,7 @@ def update_status(id: str, status_id: str, progress: int, file: str = None, mani
             "status_id": status_id,
             "progress": int(progress),
             "file": file,
-            "manifest": manifest
+            "manifest": manifest,
         }
         r = requests.put(
             f"{CUMULUS_API_URL}/downloads/{id}",
@@ -82,6 +84,7 @@ def handle_message(payload_resp: namedtuple, dst: str):
         Temporary directory name
 
     """
+    logger.info(f"Handle message with plugin '{payload_resp.format}'")
     result = pkg_writer(
         plugin=payload_resp.format,
         id=payload_resp.download_id,

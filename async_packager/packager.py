@@ -3,6 +3,7 @@
 import json
 import multiprocessing
 import os
+from pathlib import Path
 import shutil
 import traceback
 from collections import namedtuple
@@ -80,7 +81,9 @@ def handle_message(message):
                 )
                 elapsed_time = t1.stop()
                 if s3_upload_worked:
-                    logger.debug(f"'{package_file}'; S3 Upload Successful in {elapsed_time:.4f}")
+                    logger.info(
+                        f"S3 upload '{PayloadResp.output_key}' in {elapsed_time:.4f} seconds"
+                    )
                     handler.update_status(
                         download_id,
                         handler.PACKAGE_STATUS["SUCCESS"],
@@ -120,7 +123,6 @@ def handle_message(message):
 
 
 if __name__ == "__main__":
-
     # aws_access_key_id, aws_secret_access_key, aws_default_region, etc
     # set as env vars for local dev.  IAM role used for implementation
     sqs = boto3.resource(

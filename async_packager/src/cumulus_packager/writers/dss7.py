@@ -2,6 +2,7 @@
 
 """
 import json
+import os
 import sys
 from collections import namedtuple
 from ctypes import c_char_p, c_float, c_int
@@ -49,6 +50,10 @@ def writer(
     str
         FQPN to dss file
     """
+
+    logger.info(
+        f"Write Records to DSS using TiffDss {os.getenv('TIFFDSS_VERSION')}",
+    )
 
     # convert the strings back to json objects; needed for pyplugs
     src = json.loads(src)
@@ -155,8 +160,9 @@ def writer(
             _progress = int(((idx + 1) / gridcount) * 100)
             # Update progress at predefined interval
             if idx % PACKAGER_UPDATE_INTERVAL == 0 or idx == gridcount - 1:
-                if _progress % 10 == 0:
-                    logger.debug(f"Progress: {_progress}")
+                # double the PACKAGER_UPDATE_INTERVAL for logging
+                if _progress % (PACKAGER_UPDATE_INTERVAL * 2) == 0:
+                    logger.info(f"Progress: {_progress}")
                 update_status(
                     id=id, status_id=PACKAGE_STATUS["INITIATED"], progress=_progress
                 )
@@ -188,6 +194,6 @@ def writer(
         return None
 
     total_time = Timer.timers["accumuluated"]
-    logger.debug(f"Total Processing Time: {total_time:.4f}")
+    logger.info(f"Total Processing Time: {total_time:.4f} seconds")
 
     return dssfilename

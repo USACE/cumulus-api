@@ -3,12 +3,14 @@
 import json
 import multiprocessing
 import os
+from pathlib import Path
 import shutil
 import traceback
 from collections import namedtuple
 from tempfile import TemporaryDirectory
 
 import boto3
+from codetiming import Timer
 import requests
 
 from cumulus_packager import logger
@@ -72,11 +74,16 @@ def handle_message(message):
             if package_file:
                 # Upload File to S3
                 logger.debug(f"ID '{download_id}'; Packaging Successful")
+                t1 = Timer(logger=None)
+                t1.start()
                 s3_upload_worked = s3_upload_file(
                     package_file, WRITE_TO_BUCKET, PayloadResp.output_key
                 )
+                elapsed_time = t1.stop()
                 if s3_upload_worked:
-                    logger.debug(f"'{package_file}'; S3 Upload Successful")
+                    logger.info(
+                        f"S3 upload '{PayloadResp.output_key}' in {elapsed_time:.4f} seconds"
+                    )
                     handler.update_status(
                         download_id,
                         handler.PACKAGE_STATUS["SUCCESS"],
@@ -116,7 +123,6 @@ def handle_message(message):
 
 
 if __name__ == "__main__":
-
     # aws_access_key_id, aws_secret_access_key, aws_default_region, etc
     # set as env vars for local dev.  IAM role used for implementation
     sqs = boto3.resource(

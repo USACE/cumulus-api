@@ -77,12 +77,13 @@ def writer(
     tz_offset = heclib.time_zone[tz_name]
     is_interval = 1
 
+    dssfilename = Path(dst).joinpath(id).with_suffix(".dss").as_posix()
+
     for idx, tif in enumerate(src):
         TifCfg = namedtuple("TifCfg", tif)(**tif)
         dsspathname = f"/{grid_type_name}/{_extent_name}/{TifCfg.dss_cpart}/{TifCfg.dss_dpart}/{TifCfg.dss_epart}/{TifCfg.dss_fpart}/"
 
         try:
-            dssfilename = Path(dst).joinpath(id).with_suffix(".dss").as_posix()
             data_type = heclib.data_type[TifCfg.dss_datatype]
             ds = gdal.Open(f"/vsis3_streaming/{TifCfg.bucket}/{TifCfg.key}")
 
@@ -155,17 +156,16 @@ def writer(
             elapsed_time = t.stop()
             logger.debug(f'Processed "{TifCfg.key}" in {elapsed_time:.4f} seconds')
             if result != 0:
-                logger.warning(f"TiffDss Write Record Fail: {result}")
+                logger.info(f'TiffDss write record failed for "{TifCfg.key}": {result}')
 
             _progress = int(((idx + 1) / gridcount) * 100)
             # Update progress at predefined interval
             if idx % PACKAGER_UPDATE_INTERVAL == 0 or idx == gridcount - 1:
-                # double the PACKAGER_UPDATE_INTERVAL for logging
-                if _progress % (PACKAGER_UPDATE_INTERVAL * 2) == 0:
-                    logger.info(f"Progress: {_progress}")
                 update_status(
                     id=id, status_id=PACKAGE_STATUS["INITIATED"], progress=_progress
                 )
+                if _progress % PACKAGER_UPDATE_INTERVAL == 0:
+                    logger.info(f'Download ID "{id}" progress: {_progress}%')
 
         except (RuntimeError, Exception) as ex:
             exc_type, exc_value, exc_traceback = sys.exc_info()
@@ -189,11 +189,11 @@ def writer(
     # If no progress was made for any items in the payload (ex: all tifs could not be projected properly),
     # don't return a dssfilename
     if _progress == 0:
-        logger.error(f"No files processed - Progress:{_progress}")
+        logger.error(f'No files processed for download ID "{id}"- Progress:{_progress}')
         update_status(id=id, status_id=PACKAGE_STATUS["FAILED"], progress=_progress)
         return None
 
     total_time = Timer.timers["accumuluated"]
-    logger.info(f"Total Processing Time: {total_time:.4f} seconds")
+    logger.info(f'Total processing time for download ID "{id}" in {total_time:.4f} seconds')
 
     return dssfilename

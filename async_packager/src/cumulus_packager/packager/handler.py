@@ -84,7 +84,7 @@ def handle_message(payload_resp: namedtuple, dst: str):
         Temporary directory name
 
     """
-    logger.info(f"Handle message with plugin '{payload_resp.format}'")
+    logger.info(f'Handle message with plugin "{payload_resp.format}"')
     result = pkg_writer(
         plugin=payload_resp.format,
         id=payload_resp.download_id,

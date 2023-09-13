@@ -67,13 +67,13 @@ def handle_message(message):
         if len(PayloadResp.contents) == 0:
             handler.update_status(download_id, handler.PACKAGE_STATUS["FAILED"], 0)
             # TODO: Add new package_status in database to represent EMPTY condition
-            logger.info(f"Download Failed Due to Empty Contents: {download_id}")
+            logger.info(f'Empty Contents: No products selected in the request for download ID "{download_id}"')
         else:
             package_file = handler.handle_message(PayloadResp, dst.name)
 
             if package_file:
                 # Upload File to S3
-                logger.debug(f"ID '{download_id}'; Packaging Successful")
+                logger.debug(f'Packaging successful for download ID "{download_id}"')
                 t1 = Timer(logger=None)
                 t1.start()
                 s3_upload_worked = s3_upload_file(
@@ -82,7 +82,7 @@ def handle_message(message):
                 elapsed_time = t1.stop()
                 if s3_upload_worked:
                     logger.info(
-                        f"S3 upload '{PayloadResp.output_key}' in {elapsed_time:.4f} seconds"
+                        f'S3 upload "{PayloadResp.output_key}" in {elapsed_time:.4f} seconds'
                     )
                     handler.update_status(
                         download_id,
@@ -101,7 +101,7 @@ def handle_message(message):
                     )
             else:
                 logger.critical(
-                    f"Failed to package or upload to S3; Download {download_id}"
+                    f'Failed to package or upload "{package_file}" to S3 download ID "{download_id}"'
                 )
 
     except Exception as ex:

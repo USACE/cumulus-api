@@ -167,7 +167,7 @@ def writer(
                 if _progress % PACKAGER_UPDATE_INTERVAL == 0:
                     logger.info(f'Download ID "{id}" progress: {_progress}%')
 
-        except (RuntimeError, Exception) as ex:
+        except (RuntimeError, Exception):
             exc_type, exc_value, exc_traceback = sys.exc_info()
             traceback_details = {
                 "filename": Path(exc_traceback.tb_frame.f_code.co_filename).name,
@@ -181,9 +181,17 @@ def writer(
             continue
 
         finally:
-            ds = None
+            data = None
             raster = None
             warp_ds = None
+            # Try to unlink and remove the memory raster object for each source file processed
+            try:
+                gdal.Unlink(mem_raster)
+                mem_raster = None
+            except Exception as ex:
+                logger.debug("vismem unlink exception: %s", ex)
+
+            ds = None
             spatialGridStruct = None
 
     # If no progress was made for any items in the payload (ex: all tifs could not be projected properly),
@@ -194,6 +202,8 @@ def writer(
         return None
 
     total_time = Timer.timers["accumuluated"]
-    logger.info(f'Total processing time for download ID "{id}" in {total_time:.4f} seconds')
+    logger.info(
+        f'Total processing time for download ID "{id}" in {total_time:.4f} seconds'
+    )
 
     return dssfilename

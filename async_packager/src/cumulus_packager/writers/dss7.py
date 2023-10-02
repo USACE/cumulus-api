@@ -194,6 +194,8 @@ def writer(
         return None
 
     total_time = Timer.timers["accumuluated"]
-    logger.info(f'Total processing time for download ID "{id}" in {total_time:.4f} seconds')
+    logger.info(
+        f'Total processing time for download ID "{id}" in {total_time:.4f} seconds'
+    )
 
     return dssfilename

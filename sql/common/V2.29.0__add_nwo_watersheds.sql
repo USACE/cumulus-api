@@ -55,5 +55,4 @@ INSERT INTO watershed (id,slug,"name",geometry,office_id) VALUES
 
 -- Upper South Platte
 INSERT INTO watershed (id,slug,"name",geometry,office_id) VALUES
-    	 ('64060d1d-107b-424b-8705-7d5f49f4eb23','upper-south-platte','Upper South Platte',
-         ST_GeomFromText('POLYGON ((-891100 1935100, -710000 1935100, -710000 1771700, -891100 1771700, -891100 1935100))',5070),'1f579664-d1db-4ee9-897e-47c16dc55012');
+    	 ('64060d1d-107b-424b-8705-7d5f49f4eb23','upper-south-platte','Upper South Platte',ST_GeomFromText('POLYGON ((-891100 1935100, -710000 1935100, -710000 1771700, -891100 1771700, -891100 1935100))',5070),'1f579664-d1db-4ee9-897e-47c16dc55012');

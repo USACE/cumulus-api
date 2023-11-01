@@ -1,0 +1,68 @@
+-- xmin,ymax (top left), xmax ymax (top right), xmax ymin (bottom right), xmin ymin (bottom left), xmin ymax (top left again)
+
+-- This migration will correct the RFC extents to be the radar/data extents rather than the operational boundaries of the RFC.
+
+-- ABRFC
+UPDATE watershed 
+SET geometry = ST_GeomFromText('POLYGON ((-970000 1880000, 471700 1880000, 471700 1035600, -970000 1035600, -970000 1880000))', 5070)
+WHERE id = '17cb1eb9-7573-4010-bf3e-3692215be13a';
+
+-- APRFC
+-- Not in Cumulus - add as new watershed
+INSERT INTO watershed (id,slug,"name",geometry,office_id) VALUES
+('afec9c31-60ee-4a8c-bc2b-d4427d037b45','aprfc','Alaska-Pacific River Forecast Center (APRFC)',ST_GeomFromText('POLYGON ((-3310000 6108000, -1840000 6108000, -1840000 3969900, -3310000 3969900, -3310000 6108000))', 5070),'4283e3a7-db01-4ddb-9592-e12a361c0b4c');
+
+-- CBRFC
+UPDATE watershed 
+SET geometry = ST_GeomFromText('POLYGON ((-1992000 2522000, -486000 2522000, -486000 894000, -1992000 894000, -1992000 2522000))', 5070)
+WHERE id = '9b3d5d1d-ff7e-474b-a4b9-7963af99376a';
+
+-- CNRFC
+UPDATE watershed 
+SET geometry = ST_GeomFromText('POLYGON ((-2452000 2684000, -1404000 2684000, -1404000 1134000, -2452000 1134000, -2452000 2684000))', 5070)
+WHERE id = 'bd8d5663-50b1-4284-b2e2-f9e42eefcb53';
+
+-- LMRFC
+UPDATE watershed 
+SET geometry = ST_GeomFromText('POLYGON ((-282000 2322000, 1706000 2322000, 1706000 326200, -282000 326200, -282000 2322000))', 5070)
+WHERE id = '9d114f73-6c7a-49fa-9540-dd91be4baf27';
+
+-- MARFC
+UPDATE watershed 
+SET geometry = ST_GeomFromText('POLYGON ((1087500 2570200, 2138600 2570200, 2138600 1505800, 1087500 1505800, 1087500 2570200))', 5070)
+WHERE id = '59d04e09-0c04-41fc-a39f-a64c104f66eb';
+
+-- MBRFC
+UPDATE watershed 
+SET geometry = ST_GeomFromText('POLYGON ((-1468000 3115900, 793300 3115900, 793300 1464900, -1468000 1464900, -1468000 3115900))', 5070)
+WHERE id = 'a76386d1-aaa8-40e7-85ed-371b810715f2';
+
+-- NCRFC
+UPDATE watershed 
+SET geometry = ST_GeomFromText('POLYGON ((-836562 3206311, 1351600 3206311, 1351600 1381207, -836562 1381207, -836562 3206311))', 5070)
+WHERE id = '03784645-2ccb-4e77-b391-1ee7e613c3c4';
+
+-- NERFC
+UPDATE watershed 
+SET geometry = ST_GeomFromText('POLYGON ((1300000 3222000, 2374100 3222000, 2374100 1996000, 1300000 1996000, 1300000 3222000))', 5070)
+WHERE id = 'ce33e599-b09b-44f1-9169-f1c0ff804913';
+
+-- NWRFC
+UPDATE watershed 
+SET geometry = ST_GeomFromText('POLYGON ((-2404000 3595900, -950000 3595900, -950000 2010200, -2404000 2010200, -2404000 3595900))', 5070)
+WHERE id = '31018b4b-1c64-4d94-ae9f-e2df0979c8c8';
+
+-- OHRFC
+UPDATE watershed 
+SET geometry = ST_GeomFromText('POLYGON ((531800 2530500, 1603000 2530500, 1603000 1292700, 531800 1292700, 531800 2530500))', 5070)
+WHERE id = '56ed6f77-da5e-4a61-976b-1d13617fe563';
+
+-- SERFC
+UPDATE watershed 
+SET geometry = ST_GeomFromText('POLYGON ((447000 2068300, 2124600 2068300, 2124600 173800, 447000 173800, 447000 2068300))', 5070)
+WHERE id = '724b7228-6174-42c3-b455-a6e4b09f65ee';
+
+-- WGRFC
+UPDATE watershed 
+SET geometry = ST_GeomFromText('POLYGON ((-1333700 1810800, 505300 1810800, 505300 102800, -1333700 102800, -1333700 1810800))', 5070)
+WHERE id = '75734de7-e02a-4eca-93cb-090521d6625a';

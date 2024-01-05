@@ -36,6 +36,26 @@ Jng+cOOaf/ZGA0qe8AHhMNZHvRVopOGSsVNtIOhDFqVJN9NKuJZ+sjihiwPymcam
 8oCYMHjKRSXUSGmoYLbIFwznpBF5Tu78X6eZBBOr06uoMW7Noy4+I8btrgGNmwXf
 a98Xst+8TrgTq3+jKBvAVEMCAwEAAQ==
 -----END PUBLIC KEY-----`
+
+	testPublicKey = `-----BEGIN PUBLIC KEY-----
+MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEArYxyX6mFWXEEpi8GhEs8
+GbUjZwYLIJ7ixEIoIZN1f4C7LoNMxz5mrDZcojNi91xSXqtFLlXfYTc/sI4JLYUE
+zKE0fNUxY9jldzI36ZLvIMqGg7KqaFukI3WO1AVejkJ77Lox+V20nJoZTrO577uE
+lfIsqlJc11HHojME4f/Q7OOYoTPE4yYOGP8WbLPg4CSiSNR+ZYA4JdDLMZxD+Fdu
+hHkE7QbPZGsZqXCnr1UDzgNUaXFbufsmGo1N2h9eQOTNu6aV9zI7DdMZkVCbApwE
+ov+p2n8EMp3xAZ5tAviXNzP8z3oifsw8XQLFFCyUUEr8e3kCmLW97lV7ys5iWnNh
+MQIDAQAB
+-----END PUBLIC KEY-----`
+
+	prodPublicKey = `-----BEGIN PUBLIC KEY-----
+MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAgaLcKGp9KKeN+8REa4oH
+K41PQYpvIeP7XpXmPB70cV8uBBx8Er3SDrZ2TAz9UKZ2Z6m6QRreQjgk2FI+EQ2b
+HWToMRhnthIzbuHzI64GyBjCnGhu3sd0OFb9wTAvu6TcV7w+q7+WrVIF1vzHlpFo
+7qLewxJjEAKzJGx3EgDFhlRCPXG4BjP4Lsg/rBpV3ltZ74HtTlx3r7XeDKCIIgqA
+JOQueaQtwR7Snp2FFY3is/PHrWNKWLw3lRV0Lm4VtGHm4YOAqCwq6FfyHLjjohp2
+JXuzTVB+9s7cmbLq1dyDBCWkX02s4g3AZuJcycyrie+8TDvbCJ+ogHLcixwLDizX
+aQIDAQAB
+-----END PUBLIC KEY-----`
 )
 
 var skipper = func(c echo.Context) bool {
@@ -57,6 +77,22 @@ var JWTStable = middleware.JWTWithConfig(middleware.JWTConfig{
 	SigningMethod: "RS512",
 	KeyFunc: func(t *jwt.Token) (interface{}, error) {
 		return jwt.ParseRSAPublicKeyFromPEM([]byte(stablePublicKey))
+	},
+	Skipper: skipper,
+})
+
+var JWTTest = middleware.JWTWithConfig(middleware.JWTConfig{
+	SigningMethod: "RS512",
+	KeyFunc: func(t *jwt.Token) (interface{}, error) {
+		return jwt.ParseRSAPublicKeyFromPEM([]byte(testPublicKey))
+	},
+	Skipper: skipper,
+})
+
+var JWTProd = middleware.JWTWithConfig(middleware.JWTConfig{
+	SigningMethod: "RS512",
+	KeyFunc: func(t *jwt.Token) (interface{}, error) {
+		return jwt.ParseRSAPublicKeyFromPEM([]byte(prodPublicKey))
 	},
 	Skipper: skipper,
 })

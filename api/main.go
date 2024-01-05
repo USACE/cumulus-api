@@ -78,6 +78,10 @@ func main() {
 		private.Use(middleware.JWTDevelop)
 	case "STABLE":
 		private.Use(middleware.JWTStable)
+	case "TEST":
+		private.Use(middleware.JWTTest)
+	case "PROD":
+		private.Use(middleware.JWTProd)
 	default:
 		log.Fatalf("Unknown AUTH_ENVIRONMENT Variable: %s", cfg.AuthEnvironment)
 	}

@@ -19,6 +19,7 @@ import (
 	"github.com/USACE/cumulus-api/api/middleware"
 
 	"github.com/labstack/echo-contrib/prometheus"
+	echoMiddleware "github.com/labstack/echo/v4/middleware"
 )
 
 // Connection returns a database connection from configuration parameters
@@ -63,6 +64,11 @@ func main() {
 	// Middleware for All Routes
 	e.Use(middleware.CORS, middleware.GZIP)
 
+	// rewrite for AWS ALB route rule
+	e.Pre(echoMiddleware.Rewrite(map[string]string{
+		"/api/*": "/$1",
+	}))
+
 	// Public Routes
 	public := e.Group("")
 
@@ -78,6 +84,10 @@ func main() {
 		private.Use(middleware.JWTDevelop)
 	case "STABLE":
 		private.Use(middleware.JWTStable)
+	case "TEST":
+		private.Use(middleware.JWTTest)
+	case "PROD":
+		private.Use(middleware.JWTProd)
 	default:
 		log.Fatalf("Unknown AUTH_ENVIRONMENT Variable: %s", cfg.AuthEnvironment)
 	}

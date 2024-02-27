@@ -138,6 +138,8 @@ services:
       - AWS_DEFAULT_REGION=us-east-1
       - AWS_REGION=us-east-1
       - CUMULUS_APPLICATION_KEY=appkey
+      - CUMULUS_AUTH_HOST=https://identity-test.cwbi.us
+      - CUMULUS_AUTH_PUBLIC_KEY=
       # CUMULUS_AUTH_ENVIRONMENT; OPTIONS:  MOCK | DEVELOP | STABLE
       - CUMULUS_AUTH_ENVIRONMENT=MOCK
       - CUMULUS_DOWNLOAD_DEFAULT_FORMAT=dss7
@@ -178,11 +180,15 @@ services:
       # Exclude Local Seed Data; Uncomment Line Below
       # - FLYWAY_LOCATIONS=filesystem:/flyway/sql/common,filesystem:/flyway/sql/develop
       # Include Local Seed Data; Uncomment Line Below (Comment Line Above)
-      - FLYWAY_LOCATIONS=filesystem:/flyway/sql/common,filesystem:/flyway/sql/develop,filesystem:/flyway/sql/local
+      # - FLYWAY_LOCATIONS=filesystem:/flyway/sql/common,filesystem:/flyway/sql/develop,filesystem:/flyway/sql/local
+      - FLYWAY_LOCATIONS=filesystem:/flyway/sql/common,filesystem:/flyway/sql/local
       - FLYWAY_PASSWORD=postgres
       - FLYWAY_SCHEMAS=cumulus
       - FLYWAY_URL=jdbc:postgresql://cumulusdb:5432/postgres
       - FLYWAY_USER=postgres
+      - FLYWAY_PLACEHOLDERS_WRITE_TO_BUCKET=castle-data-develop
+      - FLYWAY_PLACEHOLDERS_APP_USER=cumulus_user
+      - FLYWAY_PLACEHOLDERS_APP_PASS=cumulus_pass
     depends_on:
       cumulusdb:
         condition: service_started

@@ -2,13 +2,10 @@
 --------
 -- ROLES
 --------
--- For a production-ready deployment scenario, the role 'cumulus_user' with a complicated selected password
--- should already exist, having been created when the database was stood-up.
--- The statement below is used to create database user for developing locally with Docker Compose with a
--- simple password ('cumulus_pass'). https://stackoverflow.com/questions/8092086/create-postgresql-role-user-if-it-doesnt-exist
+
 DO $$
 BEGIN
-  CREATE USER cumulus_user WITH ENCRYPTED PASSWORD 'cumulus_pass';
+  CREATE USER ${APP_USER} WITH ENCRYPTED PASSWORD '${APP_PASS}';
   EXCEPTION WHEN DUPLICATE_OBJECT THEN
   RAISE NOTICE 'not creating role cumulus_user -- it already exists';
 END

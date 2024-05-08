@@ -1,6 +1,7 @@
 """DSS7 package writer
 
 """
+
 import json
 import os
 import sys
@@ -69,7 +70,11 @@ def writer(
     destination_srs.ImportFromEPSG(int(epsg_code))
 
     ###### this can go away when the payload has the resolution ######
-    grid_type_name = "SHG"
+    if epsg_code == 26906:
+        grid_type_name = "UTM6N"
+    else:
+        grid_type_name = "SHG"
+
     grid_type = heclib.dss_grid_type[grid_type_name]
     zcompression = heclib.compression_method["ZLIB_COMPRESSION"]
     srs_definition = heclib.spatial_reference_definition[grid_type_name]

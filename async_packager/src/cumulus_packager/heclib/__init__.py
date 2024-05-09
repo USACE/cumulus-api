@@ -119,6 +119,7 @@ class DssGridType(Enum):
     HRAP = 410
     SHG = ALBERS = 420
     SPECIFIED_GRID_TYPE = 430
+    UTM6N = 430
 
 
 dss_grid_type = {i.name: i.value for i in DssGridType}

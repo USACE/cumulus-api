@@ -70,12 +70,15 @@ def writer(
     destination_srs.ImportFromEPSG(int(epsg_code))
 
     ###### this can go away when the payload has the resolution ######
-    if epsg_code == 26906:
+    if epsg_code == "26906":
         grid_type_name = "UTM6N"
+        grid_type = 430
     else:
         grid_type_name = "SHG"
-
-    grid_type = heclib.dss_grid_type[grid_type_name]
+        grid_type = heclib.dss_grid_type[grid_type_name]
+    logger.info(
+        f"grid type name {grid_type_name}",
+    )
     zcompression = heclib.compression_method["ZLIB_COMPRESSION"]
     srs_definition = heclib.spatial_reference_definition[grid_type_name]
     tz_name = "GMT"

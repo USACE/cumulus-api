@@ -16,7 +16,6 @@ type Watershed struct {
 	Name         string      `json:"name"`
 	AreaGroups   []uuid.UUID `json:"area_groups" db:"area_groups"`
 	Bbox         []float64   `json:"bbox" db:"bbox"`
-	//srid         int16       `json:"output_srid" db:"output_srid"`
 }
 
 // WatershedSQL includes common fields selected to build a watershed
@@ -31,7 +30,6 @@ const WatershedSQL = `SELECT w.id,
 								 ST_XMax(w.geometry),
 								 ST_YMax(w.geometry)
 							 ] AS bbox`
-							//w.output_srid`
 
 // ListWatersheds returns an array of watersheds
 func ListWatersheds(db *pgxpool.Pool) ([]Watershed, error) {

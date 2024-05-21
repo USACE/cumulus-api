@@ -73,6 +73,7 @@ type PackagerRequest struct {
 type Extent struct {
 	Name string    `json:"name"`
 	Bbox []float64 `json:"bbox"`
+	Srid float64   `json:"srid"`
 }
 
 // PackagerContentItem is a single item for Packager to include in output file
@@ -181,9 +182,12 @@ func GetDownloadPackagerRequest(db *pgxpool.Pool, downloadID *uuid.UUID) (*Packa
 		       json_build_object(
 				   'name', w.name,
 				   'bbox', ARRAY[
-					   ST_XMin(w.geometry),ST_Ymin(w.geometry),
-					   ST_XMax(w.geometry),ST_YMax(w.geometry)
-					]
+					   ST_XMin(ST_Transform(w.geometry,w.output_srid)),
+					   ST_YMin(ST_Transform(w.geometry,w.output_srid)),
+					   ST_XMax(ST_Transform(w.geometry,w.output_srid)),
+					   ST_YMax(ST_Transform(w.geometry,w.output_srid))
+					],
+					'srid', w.output_srid
 			   ) AS extent,
 			   CONCAT(
 				   'cumulus/download/', f.abbreviation,

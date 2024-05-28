@@ -60,6 +60,7 @@ PARAMETER["false_northing",%s],\
 AXIS["Easting",EAST],AXIS["Northing",NORTH]]'
 """str: UTM WKT"""
 
+
 # ProjectionDatum
 class ProjectionDatum(Enum):
     UNDEFINED_PROJECTION_DATUM = 0
@@ -79,6 +80,7 @@ class CompressionMethod(Enum):
 
 compression_method = {i.name: i.value for i in CompressionMethod}
 
+
 # StorageDataType
 class StorageDataType(Enum):
     GRID_FLOAT = 0
@@ -88,6 +90,7 @@ class StorageDataType(Enum):
 
 
 storage_data_type = {i.name: i.value for i in StorageDataType}
+
 
 # DataType
 class DataType(Enum):
@@ -101,6 +104,7 @@ class DataType(Enum):
 
 data_type = {i.name.replace("_", "-"): i.value for i in DataType}
 
+
 # GridStructVersion
 class GridStructVersion(Enum):
     VERSION_100 = -100
@@ -108,24 +112,28 @@ class GridStructVersion(Enum):
 
 grid_struct_version = {i.name: i.value for i in GridStructVersion}
 
+
 # DssGridType
 class DssGridType(Enum):
     UNDEFINED_GRID_TYPE = 400
     HRAP = 410
     SHG = ALBERS = 420
     SPECIFIED_GRID_TYPE = 430
+    UTM6N = 430
 
 
 dss_grid_type = {i.name: i.value for i in DssGridType}
+
 
 # DssGridTypeName
 class DssGridTypeName(Enum):
     HRAP = "HRAP"
     SHG = "ALBERS"
-    UTM = "UMT%s%s"
+    UTM = "UTM%s%s"
 
 
 dss_grid_type_name = {i.name: i.value for i in DssGridTypeName}
+
 
 # SpatialRefereceDefinition
 class SpatialReferenceDefinition(Enum):
@@ -133,9 +141,11 @@ class SpatialReferenceDefinition(Enum):
     HRAP = HRAP_SRC_DEFINITION
     SHG = ALBERS = SHG_SRC_DEFINITION
     SPECIFIED_GRID_TYPE = None
+    UTM6N = UTM_SRC_DEFINITION % ("6", "N", "-147", "0")
 
 
 spatial_reference_definition = {i.name: i.value for i in SpatialReferenceDefinition}
+
 
 # TimeZones
 class TimeZone(Enum):
@@ -193,6 +203,7 @@ class zStructSpatialGrid(Structure):
     def __init__(self, *args, **kw):
         self._nullValue = UNDEFINED
         super().__init__(*args, **kw)
+
 
 def zwrite_record(
     dssfilename: str,

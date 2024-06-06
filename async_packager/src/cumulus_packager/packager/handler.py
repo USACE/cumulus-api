@@ -85,14 +85,18 @@ def handle_message(payload_resp: namedtuple, dst: str):
 
     """
     logger.info(f'Handle message with plugin "{payload_resp.format}"')
+    extent = payload_resp.extent
+    logger.info(f"extent {extent}")
+    dst_srs = f'EPSG:{extent["srid"]}'
+    logger.info(f"output projection of grids will be {dst_srs}")
     result = pkg_writer(
         plugin=payload_resp.format,
         id=payload_resp.download_id,
         src=json.dumps(payload_resp.contents),
-        extent=json.dumps(payload_resp.extent),
+        extent=json.dumps(extent),
         dst=dst,
         cellsize=2000,
-        dst_srs="EPSG:5070",
+        dst_srs=dst_srs,
     )
 
     return result

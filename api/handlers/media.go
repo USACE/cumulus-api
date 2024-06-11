@@ -4,6 +4,7 @@ import (
 	"net/http"
 	"net/url"
 	"path/filepath"
+	"strings"
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/session"
@@ -13,6 +14,8 @@ import (
 
 func cleanFilepath(rawPath string) (string, error) {
 	p, err := url.PathUnescape(rawPath)
+	// Replace /api with /
+	p = strings.Replace(p, "/api", "/", 1)
 	if err != nil {
 		return "", err
 	}

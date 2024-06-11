@@ -82,7 +82,7 @@ var JWTStable = middleware.JWTWithConfig(middleware.JWTConfig{
 })
 
 var JWTTest = middleware.JWTWithConfig(middleware.JWTConfig{
-	SigningMethod: "RS512",
+	SigningMethod: "RS256",
 	KeyFunc: func(t *jwt.Token) (interface{}, error) {
 		return jwt.ParseRSAPublicKeyFromPEM([]byte(testPublicKey))
 	},
@@ -90,7 +90,7 @@ var JWTTest = middleware.JWTWithConfig(middleware.JWTConfig{
 })
 
 var JWTProd = middleware.JWTWithConfig(middleware.JWTConfig{
-	SigningMethod: "RS512",
+	SigningMethod: "RS256",
 	KeyFunc: func(t *jwt.Token) (interface{}, error) {
 		return jwt.ParseRSAPublicKeyFromPEM([]byte(prodPublicKey))
 	},

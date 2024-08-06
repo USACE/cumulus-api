@@ -1,22 +1,22 @@
 --(xmin ymax, xmax ymax, xmax ymin, xmin ymin, xmin ymax)
 
 -- notes
-/**********************
-Buffered extends from qgis
 
-xmin = 989539.3071116814
-xmax = 1671778.6007457851
-ymax = 978696.9156769654
-ymin = 385612.5100058009
+--Buffered extends from qgis
 
-After rounding by hand
+--xmin = 989539.3071116814
+--xmax = 1671778.6007457851
+--ymax = 978696.9156769654
+--ymin = 385612.5100058009
 
-xmin = 989500
-xmax = 1671800
-ymax = 978700
-ymin = 340000
+--After rounding by hand
 
-*********************/
+--xmin = 989500
+--xmax = 1671800
+--ymax = 978700
+--ymin = 340000
+
+
 
 -- add new watershed
 INSERT INTO watershed (id, slug, "name", geometry, office_id, output_srid) VALUES

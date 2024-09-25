@@ -9,7 +9,7 @@ require (
 )
 
 require (
-	github.com/aws/aws-sdk-go v1.44.290 // indirect
+	github.com/aws/aws-sdk-go v1.54.13 // indirect
 	github.com/jmespath/go-jmespath v0.4.0 // indirect
 	github.com/streadway/amqp v1.1.0 // indirect
 )

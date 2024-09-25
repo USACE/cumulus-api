@@ -1,6 +1,6 @@
 module github.com/USACE/cumulus-api/listener
 
-go 1.19
+go 1.22
 
 require (
 	github.com/USACE/go-simple-asyncer v0.0.0-20201015223104-446ae10887a8
@@ -9,7 +9,7 @@ require (
 )
 
 require (
-	github.com/aws/aws-sdk-go v1.54.13 // indirect
+	github.com/aws/aws-sdk-go v1.55.5 // indirect
 	github.com/jmespath/go-jmespath v0.4.0 // indirect
 	github.com/streadway/amqp v1.1.0 // indirect
 )

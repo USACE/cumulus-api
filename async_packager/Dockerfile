@@ -1,5 +1,5 @@
 # Packager
-FROM ghcr.io/osgeo/gdal:ubuntu-full-3.7.0 as base
+FROM ghcr.io/osgeo/gdal:ubuntu-full-3.9.1 as base
 
 # force stdout and stderr to be unbuffered setting to non-empty
 ENV PYTHONUNBUFFERED=1
@@ -13,15 +13,16 @@ ENV TIFFDSS_VERSION=v0.2.2
 ENV TIFFDSS=tiffdss_ubuntu-latest
 
 # update and install other dependencies
-RUN apt-get -y update && \
-    apt-get -y upgrade && \
-    apt-get install -y python3-pip curl && \
-    rm -rf /var/lib/apt/lists/* && \
-    pip install --no-cache-dir --upgrade pip && \
-    pip install --no-cache-dir --upgrade setuptools && \
-    pip install --no-cache-dir --upgrade wheel && \
-    pip install --no-cache-dir --upgrade pillow && \
-    pip install --no-cache-dir --upgrade numpy
+RUN apt-get update -y && apt-get install -y \
+  git \
+  python3-pip \
+  python3-venv \
+  python3-dev \
+  postgresql-server-dev-all \
+  libhdf5-dev \
+  zlib1g-dev \
+  libnetcdf-dev \
+  && rm -rf /var/lib/apt/lists/*
 
 
 RUN mkdir -p /app/${PACKAGE}
@@ -31,7 +32,7 @@ WORKDIR /app/${PACKAGE}
 COPY . .
 
 # pip install the package and upgrade outdated packages
-RUN pip3 install /app/${PACKAGE}/
+RUN pip3 install --break-system-packages /app/${PACKAGE}/
 
 # get libtiffdss.so
 RUN curl -L https://github.com/HydrologicEngineeringCenter/tiffdss/releases/download/${TIFFDSS_VERSION}/${TIFFDSS}_${TIFFDSS_VERSION}.tar.gz \

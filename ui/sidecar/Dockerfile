@@ -1,5 +1,5 @@
 # https://gallery.ecr.aws/docker/library/alpine
-FROM public.ecr.aws/docker/library/alpine:3.19.1 as base
+FROM public.ecr.aws/docker/library/alpine:3.20.3 AS base
 
 # Create a non-root user with a specified UID and GID
 RUN addgroup --system --gid 50000 data \

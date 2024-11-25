@@ -37,6 +37,8 @@ func Connection(cfg *config.Config) *pgxpool.Pool {
 	poolConfig.MaxConns = 15
 	poolConfig.MaxConnIdleTime = time.Minute * 30
 	poolConfig.MinConns = 10
+	// set the application name in pg_stat_activity to identify the connection
+	poolConfig.ConnConfig.RuntimeParams["application_name"] = "cumulus-api"
 
 	db, err := pgxpool.ConnectConfig(context.Background(), poolConfig)
 	if err != nil {

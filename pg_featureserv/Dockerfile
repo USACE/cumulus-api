@@ -1,4 +1,5 @@
 FROM pramsey/pg_featureserv:20241119
+# FROM pramsey/pg_featureserv:1.3.1-amd64
 
 # Copy your entrypoint script into the container
 COPY entrypoint.sh /entrypoint.sh

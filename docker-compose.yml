@@ -204,6 +204,7 @@ services:
       - PGUSER=cumulus_user
       - PGPASSWORD=cumulus_pass
       - PGDATABASE=postgres
+      - PGTARGETROLE=cumulus_reader #this env var is custom
       - PGFS_SERVER_HTTPPORT=8080
       - PGFS_SERVER_HTTPSPORT=8443
       - PGFS_SERVER_URLBASE=http://localhost/features

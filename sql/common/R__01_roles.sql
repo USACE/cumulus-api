@@ -54,6 +54,10 @@ ALTER ROLE cumulus_user SET search_path TO cumulus,topology,public;
 -- Grant Schema Usage to cumulus_user
 GRANT USAGE ON SCHEMA cumulus TO cumulus_user;
 
+-- This was added to make pg_featureserv work, 
+-- since it connects with this role to limit ability
+GRANT USAGE ON SCHEMA cumulus TO cumulus_reader;
+
 -- Role cumulus_reader
 GRANT SELECT ON
     area,

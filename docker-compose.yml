@@ -1,6 +1,6 @@
 services:
   cumulusdb:
-    image: postgis/postgis:13-3.1
+    image: postgis/postgis:16-3.5
     restart: always
     environment:
       - POSTGRES_PASSWORD=postgres
@@ -38,6 +38,8 @@ services:
     depends_on:
       cumulusdb:
         condition: service_started
+      flyway:
+        condition: service_completed_successfully
     restart: always
   # --------------------------------------
   geoprocess:

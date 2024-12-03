@@ -71,6 +71,14 @@ func main() {
 		"/api/*": "/$1",
 	}))
 
+	// Middleware to serve static content from s3
+	// Make sure it is last in the middleware chain
+	e.Use(middleware.S3StaticWithConfig(middleware.S3StaticConfig{
+		Bucket:  cfg.AWSS3Bucket,
+		Prefix:  cfg.AWSS3BucketPrefix,
+		Skipper: func(c echo.Context) bool { return c.Path() == "/api/*" },
+	}))
+
 	// Public Routes
 	public := e.Group("")
 

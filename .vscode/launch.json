@@ -30,6 +30,21 @@
         "CUMULUS_STATIC_HOST": "http://localhost"
       },
       "args": []
+    },
+    {
+      "name": "Application API",
+      "type": "go",
+      "request": "attach",
+      "mode": "remote",
+      "debugAdapter": "dlv-dap",
+      "port": 2345,
+      "substitutePath": [
+        {
+          "from": "${workspaceFolder}/api",
+          "to": "/go/src/app"
+        },
+      ],
+      "postDebugTask": "remove debug_bin"
     }
   ]
 }

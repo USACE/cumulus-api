@@ -40,7 +40,7 @@ def start_worker():
     # initialize product slug list
     try:
         cumulus_api = CumulusAPI(CUMULUS_API_URL, HTTP2)
-        cumulus_api.endpoint = "product_slugs"
+        cumulus_api.endpoint = "api/product_slugs"
         resp = asyncio.run(cumulus_api.get_(cumulus_api.url))
         PRODUCT_MAP = resp.json()
         logger.debug("Initialize Product Slug -> UUID mapping'%s'" % PRODUCT_MAP)

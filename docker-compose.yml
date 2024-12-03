@@ -63,7 +63,7 @@ services:
             - USE_SSL=False
             - QUEUE_NAME=cumulus-geoprocess
             - CUMULUS_MOCK_S3_UPLOAD=FALSE
-            - CUMULUS_API_URL=http://api
+            - CUMULUS_API_URL=http://api/api
             - HTTP2=False
             - GDAL_DISABLE_READDIR_ON_OPEN=YES
             - LOGGER_LEVEL=DEBUG
@@ -92,7 +92,7 @@ services:
             - USE_SSL=False
             - QUEUE_NAME_PACKAGER=cumulus-packager
             - CUMULUS_MOCK_S3_UPLOAD=FALSE
-            - CUMULUS_API_URL=http://api
+            - CUMULUS_API_URL=http://api/api
             - HTTP2=False
             - GDAL_DISABLE_READDIR_ON_OPEN=EMPTY_DIR
             - LOGGER_LEVEL=INFO

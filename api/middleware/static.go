@@ -8,6 +8,7 @@ import (
 	"path"
 	"strings"
 
+	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/config"
 	"github.com/aws/aws-sdk-go-v2/service/s3"
 	"github.com/labstack/echo/v4"
@@ -30,6 +31,12 @@ type (
 		// Index file for serving content.
 		// Optional. Default value "index.html".
 		Index string `yaml:"index"`
+
+		// Working Environment.
+		Environment string `yaml:"environment"`
+
+		// S3 Endpoint
+		Endpoint string
 	}
 )
 
@@ -92,18 +99,19 @@ func S3StaticWithConfig(staticConfig S3StaticConfig) echo.MiddlewareFunc {
 
 			// load aws config and get a client
 			cfg, err := config.LoadDefaultConfig(context.Background())
-
-			// cfg, err := config.LoadDefaultConfig(context.Background(),
-			// 	config.WithEndpointResolverWithOptions(
-			// 		aws.EndpointResolverWithOptionsFunc(
-			// 			func(service, region string, options ...any) (aws.Endpoint, error) {
-			// 				return aws.Endpoint{
-			// 					URL:               os.Getenv("CUMULUS_AWS_S3_ENDPOINT"),
-			// 					HostnameImmutable: true,
-			// 				}, nil
-			// 			}),
-			// 	),
-			// )
+			if staticConfig.Environment == "MOCK" {
+				cfg, err = config.LoadDefaultConfig(context.Background(),
+					config.WithEndpointResolverWithOptions(
+						aws.EndpointResolverWithOptionsFunc(
+							func(service, region string, options ...any) (aws.Endpoint, error) {
+								return aws.Endpoint{
+									URL:               staticConfig.Endpoint,
+									HostnameImmutable: true,
+								}, nil
+							}),
+					),
+				)
+			}
 
 			client := s3.NewFromConfig(cfg)
 

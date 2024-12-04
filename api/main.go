@@ -19,7 +19,6 @@ import (
 	"github.com/USACE/cumulus-api/api/middleware"
 
 	"github.com/labstack/echo-contrib/prometheus"
-	echoMiddleware "github.com/labstack/echo/v4/middleware"
 )
 
 // Connection returns a database connection from configuration parameters
@@ -66,16 +65,26 @@ func main() {
 	// Middleware for All Routes
 	e.Use(middleware.CORS, middleware.GZIP)
 
-	// rewrite for AWS ALB route rule
-	e.Pre(echoMiddleware.Rewrite(map[string]string{
-		"/api/*": "/$1",
+	// Middleware to serve static content from s3
+	// Make sure it is last in the middleware chain
+	e.Use(middleware.S3StaticWithConfig(middleware.S3StaticConfig{
+		Bucket:      cfg.AWSS3Bucket,
+		Prefix:      cfg.AWSS3BucketPrefix,
+		Environment: cfg.AuthEnvironment,
+		Endpoint:    cfg.AWSS3Endpoint,
+		Skipper: func(c echo.Context) bool {
+			return strings.HasPrefix(c.Request().URL.Path, "/api/")
+		},
 	}))
 
+	// API Routes
+	api := e.Group("api")
+
 	// Public Routes
-	public := e.Group("")
+	public := api.Group("")
 
 	// Private Routes Supporting CAC (JWT) or Key Auth
-	private := e.Group("")
+	private := api.Group("")
 
 	// JWT Authentication Middleware
 	log.Printf("AUTH_ENVIRONMENT: %s", cfg.AuthEnvironment)

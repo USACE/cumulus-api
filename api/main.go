@@ -73,7 +73,7 @@ func main() {
 		Environment: cfg.AuthEnvironment,
 		Endpoint:    cfg.AWSS3Endpoint,
 		Skipper: func(c echo.Context) bool {
-			return strings.HasPrefix(c.Request().URL.Path, "/api/")
+			return strings.HasPrefix(c.Request().URL.Path, "/api/") || strings.HasPrefix(c.Request().URL.Path, "/features/")
 		},
 	}))
 
@@ -115,7 +115,7 @@ func main() {
 	})
 
 	// Proxy to pg_featureserv
-	features := public.Group("/features")
+	features := e.Group("/features")
 	features.Use(middleware.PgFeatureservProxy(cfg.PgFeatureservUrl))
 
 	// Acquirables

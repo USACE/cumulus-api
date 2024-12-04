@@ -73,7 +73,7 @@ func main() {
 		Environment: cfg.AuthEnvironment,
 		Endpoint:    cfg.AWSS3Endpoint,
 		Skipper: func(c echo.Context) bool {
-			return strings.Contains(c.Request().URL.Path, "/api/")
+			return strings.HasPrefix(c.Request().URL.Path, "/api/")
 		},
 	}))
 

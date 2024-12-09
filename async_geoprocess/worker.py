@@ -9,12 +9,11 @@ import os
 import shutil
 import time
 import traceback
-from collections import deque, namedtuple
+from collections import namedtuple
 from tempfile import TemporaryDirectory
 
 import boto3
-
-from cumulus_geoproc import logger, utils
+from cumulus_geoproc import logger
 from cumulus_geoproc.configurations import (
     AWS_ACCESS_KEY_ID,
     AWS_DEFAULT_REGION,
@@ -23,7 +22,6 @@ from cumulus_geoproc.configurations import (
     ENDPOINT_URL_SQS,
     HTTP2,
     MAX_Q_MESSAGES,
-    PRODUCT_FILE_VERSION,
     QUEUE_NAME,
     WAIT_TIME_SECONDS,
 )
@@ -36,11 +34,11 @@ this = os.path.basename(__file__)
 def start_worker():
     """starting the worker thread"""
     start = time.time()
-    perf_queue = deque(maxlen=1000)
     # initialize product slug list
     try:
         cumulus_api = CumulusAPI(CUMULUS_API_URL, HTTP2)
         cumulus_api.endpoint = "api/product_slugs"
+        logger.info(f"cumulus api endpoint: {cumulus_api.url=}")
         resp = asyncio.run(cumulus_api.get_(cumulus_api.url))
         PRODUCT_MAP = resp.json()
         logger.debug("Initialize Product Slug -> UUID mapping'%s'" % PRODUCT_MAP)
@@ -77,15 +75,6 @@ def start_worker():
         messages = queue.receive_messages(
             MaxNumberOfMessages=MAX_Q_MESSAGES, WaitTimeSeconds=WAIT_TIME_SECONDS
         )
-
-        if len(messages) == 0:
-            try:
-                average_sec = sum(perf_queue) / len(perf_queue)
-                logger.info(
-                    f"Process Message: Avg {average_sec:0.4f} (sec); Deque Size {len(perf_queue)}"
-                )
-            except ZeroDivisionError as ex:
-                logger.warning(f"{type(ex).__name__} - {this} - {ex}")
 
         for message in messages:
             try:
@@ -127,11 +116,13 @@ def start_worker():
                 processed_ = []
                 for item in processed:
                     try:
-                        processed_.append({
-                            **item,
-                            "acquirablefile_id": acquirablefile_id,
-                            "product_id": PRODUCT_MAP[item["filetype"]],
-                        })
+                        processed_.append(
+                            {
+                                **item,
+                                "acquirablefile_id": acquirablefile_id,
+                                "product_id": PRODUCT_MAP[item["filetype"]],
+                            }
+                        )
                         logger.debug(f"New processed dict item: {processed_[-1]}")
                     except KeyError as ex:
                         logger.warning(f"{type(ex).__name__} - {this} - {ex}")
@@ -152,7 +143,6 @@ def start_worker():
                     shutil.rmtree(dst.name, ignore_errors=True)
                 dst = None
                 message.delete()
-                perf_queue.append(perf_time := time.perf_counter() - start_message)
                 logger.debug(f"Handle Message Time: {perf_time} (sec)")
 
 

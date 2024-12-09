@@ -67,7 +67,7 @@ def start_worker():
     while True:
         # check for updated product mapping each hour
         if (time.time() - start) > 3600:
-            cumulus_api.endpoint = "product_slugs"
+            cumulus_api.endpoint = "api/product_slugs"
             resp = asyncio.run(cumulus_api.get_(cumulus_api.url))
             PRODUCT_MAP = resp.json()
             start = time.time()
@@ -143,7 +143,6 @@ def start_worker():
                     shutil.rmtree(dst.name, ignore_errors=True)
                 dst = None
                 message.delete()
-                logger.debug(f"Handle Message Time: {perf_time} (sec)")
 
 
 if __name__ == "__main__":

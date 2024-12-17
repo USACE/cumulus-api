@@ -18,7 +18,7 @@ RUN mkdir -p /app/async_geoprocess
 # Cache buster
 RUN echo $(date +%s)
 
-ARG CUMULUS_GEOPROC_PIP_URL=git+https://github.com/USACE/cumulus-geoproc@088bd08
+ARG CUMULUS_GEOPROC_PIP_URL=git+https://github.com/USACE/cumulus-geoproc@8931c63
 
 ENV PYTHONUNBUFFERED=1
 ENV GDAL_DATA=/usr/share/gdal

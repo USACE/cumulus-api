@@ -3,7 +3,7 @@ package middleware
 import (
 	"net/http"
 
-	"github.com/golang-jwt/jwt"
+	"github.com/golang-jwt/jwt/v5"
 	"github.com/google/uuid"
 
 	"github.com/labstack/echo/v4"
@@ -23,8 +23,8 @@ func AttachAnonymousUserInfo(next echo.HandlerFunc) echo.HandlerFunc {
 	return func(c echo.Context) error {
 		anonUUID := uuid.MustParse("11111111-1111-1111-1111-111111111111")
 		c.Set("userInfo", UserInfo{
-			Sub: &anonUUID,
-			Roles: []string{},
+			Sub:     &anonUUID,
+			Roles:   []string{},
 			IsAdmin: false,
 		})
 		return next(c)

@@ -1,5 +1,5 @@
 # Packager
-FROM ghcr.io/osgeo/gdal:ubuntu-full-3.7.0 as base
+FROM ghcr.io/osgeo/gdal:ubuntu-full-3.7.0 AS base
 
 # force stdout and stderr to be unbuffered setting to non-empty
 ENV PYTHONUNBUFFERED=1

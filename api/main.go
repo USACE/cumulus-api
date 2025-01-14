@@ -125,6 +125,9 @@ func main() {
 		middleware.IsAdmin,
 	)
 
+	// Offices
+	public.GET("/offices", handlers.ListOffices(db))
+
 	// Products
 	public.GET("/product_ingest_status", handlers.GetProductIngestStatus(db))
 	public.GET("/product_slugs", handlers.GetProductSlugs(db))

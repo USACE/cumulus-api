@@ -1,8 +1,9 @@
 {
 	"info": {
-		"_postman_id": "2273ceeb-3854-4c0b-bc24-e07eb7329e6e",
+		"_postman_id": "228e75eb-16e8-4f3e-9329-a47c43723725",
 		"name": "cumulus-regression-admin",
-		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"_exporter_id": "13201855"
 	},
 	"item": [
 		{
@@ -2323,6 +2324,28 @@
 							"path": [
 								"dss",
 								"datatypes"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "offices",
+			"item": [
+				{
+					"name": "Get Offices",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/offices",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"offices"
 							]
 						}
 					},

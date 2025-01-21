@@ -108,6 +108,7 @@ func main() {
 	public.GET("/product_ingest_status", handlers.GetProductIngestStatus(db))
 	public.GET("/product_slugs", handlers.GetProductSlugs(db))
 	public.GET("/products", handlers.ListProducts(db))
+	public.GET("/products/:product_id/file-availability", handlers.GetProductFileAvailability(db))
 	public.GET("/products/:product_id", handlers.GetProduct(db))
 	private.POST("/products", handlers.CreateProduct(db),
 		middleware.IsAdmin,

@@ -1,7 +1,9 @@
 package handlers
 
 import (
+	"fmt"
 	"net/http"
+	"time"
 
 	"github.com/georgysavva/scany/pgxscan"
 	"github.com/google/uuid"
@@ -50,6 +52,34 @@ func GetProduct(db *pgxpool.Pool) echo.HandlerFunc {
 			return c.JSON(http.StatusInternalServerError, models.DefaultMessageInternalServerError)
 		}
 		return c.JSON(http.StatusOK, product)
+	}
+}
+
+// GetProductFileAvailability returns an object denoting which timestamps for the product have files
+func GetProductFileAvailability(db *pgxpool.Pool) echo.HandlerFunc {
+	return func(c echo.Context) error {
+		id, err := uuid.Parse(c.Param("product_id"))
+		if err != nil {
+			return c.JSON(http.StatusBadRequest, models.DefaultMessageBadRequest)
+		}
+		product, err := models.GetProduct(db, &id)
+		if err != nil {
+			if pgxscan.NotFound(err) {
+				return c.JSON(http.StatusNotFound, models.DefaultMessageNotFound)
+			}
+			return c.JSON(http.StatusInternalServerError, models.DefaultMessageInternalServerError)
+
+		}
+		d, err := time.Parse(time.RFC3339, c.QueryParam("date"))
+		if err != nil {
+			return c.JSON(http.StatusBadRequest, models.DefaultMessageBadRequest)
+		}
+		interval := fmt.Sprint(product.TemporalResolution/60/60, " Hour")
+		availability, err := models.GetProductFileAvailability(db, id, interval, d)
+		if err != nil {
+			return c.JSON(http.StatusInternalServerError, models.DefaultMessageInternalServerError)
+		}
+		return c.JSON(http.StatusOK, availability)
 	}
 }
 

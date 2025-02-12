@@ -1,9 +1,9 @@
 package middleware
 
 import (
-	"github.com/golang-jwt/jwt"
+	"github.com/golang-jwt/jwt/v5"
+	echojwt "github.com/labstack/echo-jwt/v4"
 	"github.com/labstack/echo/v4"
-	"github.com/labstack/echo/v4/middleware"
 )
 
 const (
@@ -65,7 +65,7 @@ var skipper = func(c echo.Context) bool {
 	return false
 }
 
-var JWTDevelop = middleware.JWTWithConfig(middleware.JWTConfig{
+var JWTDevelop = echojwt.WithConfig(echojwt.Config{
 	SigningMethod: "RS512",
 	KeyFunc: func(t *jwt.Token) (interface{}, error) {
 		return jwt.ParseRSAPublicKeyFromPEM([]byte(developPublicKey))
@@ -73,7 +73,7 @@ var JWTDevelop = middleware.JWTWithConfig(middleware.JWTConfig{
 	Skipper: skipper,
 })
 
-var JWTStable = middleware.JWTWithConfig(middleware.JWTConfig{
+var JWTStable = echojwt.WithConfig(echojwt.Config{
 	SigningMethod: "RS512",
 	KeyFunc: func(t *jwt.Token) (interface{}, error) {
 		return jwt.ParseRSAPublicKeyFromPEM([]byte(stablePublicKey))
@@ -81,7 +81,7 @@ var JWTStable = middleware.JWTWithConfig(middleware.JWTConfig{
 	Skipper: skipper,
 })
 
-var JWTTest = middleware.JWTWithConfig(middleware.JWTConfig{
+var JWTTest = echojwt.WithConfig(echojwt.Config{
 	SigningMethod: "RS256",
 	KeyFunc: func(t *jwt.Token) (interface{}, error) {
 		return jwt.ParseRSAPublicKeyFromPEM([]byte(testPublicKey))
@@ -89,7 +89,7 @@ var JWTTest = middleware.JWTWithConfig(middleware.JWTConfig{
 	Skipper: skipper,
 })
 
-var JWTProd = middleware.JWTWithConfig(middleware.JWTConfig{
+var JWTProd = echojwt.WithConfig(echojwt.Config{
 	SigningMethod: "RS256",
 	KeyFunc: func(t *jwt.Token) (interface{}, error) {
 		return jwt.ParseRSAPublicKeyFromPEM([]byte(prodPublicKey))
@@ -97,7 +97,7 @@ var JWTProd = middleware.JWTWithConfig(middleware.JWTConfig{
 	Skipper: skipper,
 })
 
-var JWTMock = middleware.JWTWithConfig(middleware.JWTConfig{
+var JWTMock = echojwt.WithConfig(echojwt.Config{
 	SigningKey: []byte("mock"),
 	Skipper:    skipper,
 })

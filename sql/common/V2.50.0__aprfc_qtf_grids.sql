@@ -32,5 +32,5 @@ INSERT INTO product (id,
                     '8f51e5b5-08be-4ea7-9ebc-ad44b465dbc6',
                     false,
                     'a3a20fc7-537a-4670-afdd-af248d9566d1',
-                    '30 hour',
+                    '26 hour',
                     'b1433fa7-645f-4e3c-b560-29cba59e80c6');

@@ -1,9 +1,9 @@
 {
 	"info": {
-		"_postman_id": "228e75eb-16e8-4f3e-9329-a47c43723725",
+		"_postman_id": "00c1f40e-eeab-43a4-94b4-73d1e497aa1f",
 		"name": "cumulus-regression-admin",
 		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
-		"_exporter_id": "13201855"
+		"_exporter_id": "20040250"
 	},
 	"item": [
 		{
@@ -1341,6 +1341,50 @@
 					"response": []
 				},
 				{
+					"name": "ListProductFileAvailability",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"",
+									"// status code is 200",
+									"pm.test(\"Status code is 200\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"",
+									"",
+									""
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/products/ae11dad4-7065-4963-8771-7f5aa1e94b5d/file-availability?date={{currentDateTime}}",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"products",
+								"ae11dad4-7065-4963-8771-7f5aa1e94b5d",
+								"file-availability"
+							],
+							"query": [
+								{
+									"key": "date",
+									"value": "{{currentDateTime}}"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
 					"name": "Product Ingest Status",
 					"event": [
 						{
@@ -2330,28 +2374,6 @@
 					"response": []
 				}
 			]
-		},
-		{
-			"name": "offices",
-			"item": [
-				{
-					"name": "Get Offices",
-					"request": {
-						"method": "GET",
-						"header": [],
-						"url": {
-							"raw": "{{base_url}}/offices",
-							"host": [
-								"{{base_url}}"
-							],
-							"path": [
-								"offices"
-							]
-						}
-					},
-					"response": []
-				}
-			]
 		}
 	],
 	"auth": {
@@ -2370,6 +2392,25 @@
 			"script": {
 				"type": "text/javascript",
 				"exec": [
+					"// Get the current date and time",
+					"const now = new Date();",
+					"",
+					"// Format the date components",
+					"const year = now.getFullYear();",
+					"const month = String(now.getMonth() + 1).padStart(2, '0'); // Months are 0-indexed",
+					"const day = String(now.getDate()).padStart(2, '0');",
+					"",
+					"// Format the time components",
+					"const hours = String(now.getHours()).padStart(2, '0');",
+					"const minutes = String(now.getMinutes()).padStart(2, '0');",
+					"const seconds = String(now.getSeconds()).padStart(2, '0');",
+					"",
+					"// Construct the ISO 8601 format with UTC 'Z'",
+					"const currentDateTime = `${year}-${month}-${day}T${hours}:${minutes}:${seconds}Z`;",
+					"",
+					"// Set the formatted current date and time as an environment variable",
+					"pm.environment.set(\"currentDateTime\", currentDateTime);",
+					"",
 					""
 				]
 			}

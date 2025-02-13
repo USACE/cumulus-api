@@ -8,6 +8,7 @@ on:
     paths:
       - .github/workflows/cwbi-dev-build-push-geoproc.yml
       - 'async_geoprocess/**'
+  workflow_dispatch:
 
 env:
   AWS_REGION: aws-us-gov #Change to reflect your Region

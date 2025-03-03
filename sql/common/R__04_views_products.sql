@@ -70,6 +70,79 @@ CREATE OR REPLACE VIEW v_product AS (
     order by name
 );
 
+-- v_product_series
+CREATE OR REPLACE VIEW v_product_series AS (
+    WITH tags_by_product AS (
+		SELECT product_series_id             AS product_series_id,
+               array_agg(tag_id ORDER BY tag_id::VARCHAR)  AS tags
+	    FROM product_tags
+	    GROUP BY product_series_id
+	), temporal_stats AS (
+        SELECT product_series_id,
+            CASE
+                WHEN COUNT(product_series_id) = 1 THEN MAX(temporal_resolution)
+                ELSE NULL
+            END AS temporal_resolution,
+            CASE
+                WHEN COUNT(product_series_id) = 1 THEN MAX(temporal_duration)
+                ELSE NULL
+            END AS temporal_duration
+        FROM product
+        GROUP BY product_series_id
+    )
+	SELECT a.id                              AS id,
+           a.slug                            AS slug,
+           CONCAT(
+               UPPER(s.slug), ' ', 
+               (CASE WHEN LENGTH(a.label) > 1
+                     THEN CONCAT(a.label, ' ')
+                     ELSE ''
+                END), 
+                p.name, ' ',
+                (CASE WHEN ts.temporal_resolution IS NOT NULL
+                      THEN CONCAT(ts.temporal_resolution/60/60, 'hr')
+                      ELSE ''
+                END)
+           )                                 AS name,
+           a.label                           AS label,
+           ts.temporal_resolution            AS temporal_resolution,
+           ts.temporal_duration              AS temporal_duration,
+           d.id								 AS dss_datatype_id,
+           d.name                            AS dss_datatype,
+           a.dss_fpart                       AS dss_fpart,
+           a.description                     AS description,
+           a.suite_id                        AS suite_id,
+           s.name                            AS suite,
+           COALESCE(t.tags, '{}')            AS tags,
+           p.id                              AS parameter_id,
+           p.name                            AS parameter,
+           u.id                              AS unit_id,
+           u.name                            AS unit,
+           pf.after                          AS after,
+           pf.before                         AS before,
+           COALESCE(pf.productfile_count, 0) AS productfile_count,
+           pf.last_forecast_version          AS last_forecast_version
+	FROM product_series a
+	JOIN unit u ON u.id = a.unit_id
+	JOIN parameter p ON p.id = a.parameter_id
+    JOIN suite s ON s.id = a.suite_id
+    JOIN dss_datatype d ON d.id = a.dss_datatype_id
+	LEFT JOIN tags_by_product t ON t.product_series_id = a.id
+    LEFT JOIN temporal_stats ts ON ts.product_series_id = a.id
+    LEFT JOIN (
+        SELECT p.product_series_id AS product_series_id,
+                COUNT(pf.id)       AS productfile_count,
+                MIN(pf.datetime)   AS after,
+                MAX(pf.datetime)   AS before,
+                NULLIF(max(pf."version"),'1111-11-11T11:11:11.11Z') AS last_forecast_version
+        FROM productfile pf
+        LEFT JOIN product p ON p.id = product_id
+        GROUP BY product_series_id
+    ) AS pf ON pf.product_series_id = a.id
+    WHERE NOT a.deleted
+    order by name
+);
+
 -- v_productfile
 CREATE OR REPLACE VIEW v_productfile AS (
     SELECT p.id           AS product_id,
@@ -116,6 +189,7 @@ CREATE OR REPLACE VIEW v_product_status AS (
 GRANT SELECT ON
     v_acquirablefile,
     v_product,
+    v_product_series,
     v_productfile,
     v_product_status
 TO cumulus_reader;

@@ -13,7 +13,7 @@ CREATE OR REPLACE VIEW v_download AS (
         w.slug             AS watershed_slug,
         w.name             AS watershed_name,
         s.name             AS status,
-        dp.product_id      AS product_id,
+        dp.product_series_id      AS product_series_id,
         f.abbreviation     AS format,
         d.manifest         AS manifest
     FROM download d
@@ -21,7 +21,7 @@ CREATE OR REPLACE VIEW v_download AS (
         INNER JOIN download_status s ON d.status_id = s.id
         INNER JOIN watershed w on w.id = d.watershed_id
         INNER JOIN (
-            SELECT array_agg(product_id) as product_id,
+            SELECT array_agg(product_series_id) as product_series_id,
                     download_id
             FROM download_product
             GROUP BY download_id

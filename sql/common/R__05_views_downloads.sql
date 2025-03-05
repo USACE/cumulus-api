@@ -33,11 +33,12 @@ CREATE OR REPLACE VIEW v_download AS (
 CREATE OR REPLACE VIEW v_download_request AS (
     WITH download_products AS (
         SELECT dp.download_id,
-            dp.product_id,
+            p.id AS product_id,
             d.datetime_start,
             d.datetime_end
         FROM download d
         JOIN download_product dp ON dp.download_id = d.id
+        JOIN product p ON p.product_series_id = dp.product_series_id
     )
     SELECT dss.download_id,
         dss.product_id,
@@ -78,16 +79,17 @@ CREATE OR REPLACE VIEW v_download_request AS (
                    WHEN p.temporal_duration = 0 THEN NULL::timestamp with time zone
                    ELSE f.datetime
                END AS datetime_dss_epart,
-               p.dss_fpart,
+               ps.dss_fpart,
                u.name AS dss_unit,
                a.name AS dss_cpart,
                f.version AS forecast_version
         FROM productfile f
         JOIN download_products dp ON dp.product_id = f.product_id
         JOIN product p ON f.product_id = p.id
-        JOIN unit u ON p.unit_id = u.id
-        JOIN parameter a ON a.id = p.parameter_id
-        JOIN dss_datatype d ON p.dss_datatype_id = d.id
+        JOIN product_series ps ON ps.id = p.product_series_id 
+        JOIN unit u ON ps.unit_id = u.id
+        JOIN parameter a ON a.id = ps.parameter_id
+        JOIN dss_datatype d ON ps.dss_datatype_id = d.id
         -- observed data will use the file datetime
         WHERE (date_part('year', f.version) = '1111' AND f.datetime >= dp.datetime_start AND f.datetime <= dp.datetime_end)
         -- forecast data with an end date < now (looking at forecasts in the past)

@@ -1,3 +1,5 @@
+#!/usr/bin/python3
+
 """main geoprocess worker thread
 
 infinit while loop receives SQS messages and process them

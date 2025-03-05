@@ -1,245 +1,250 @@
 services:
-    cumulusdb:
-        image: postgis/postgis:16-3.5
-        restart: always
-        environment:
-            - POSTGRES_PASSWORD=postgres
-        ports:
-            - '5432:5432'
-    # --------------------------------------
-    elasticmq:
-        build:
-            context: elasticmq
-        ports:
-            - '9324:9324'
-            - '9325:9325'
-        restart: always
-    # --------------------------------------
-    listener:
-        build:
-            context: async_listener
-        environment:
-            - AWS_ACCESS_KEY_ID=x
-            - AWS_SECRET_ACCESS_KEY=x
-            - AWS_REGION=us-east-1
-            - CUMULUS_DBUSER=cumulus_user
-            - CUMULUS_DBPASS=cumulus_pass
-            - CUMULUS_DBNAME=postgres
-            - CUMULUS_DBHOST=cumulusdb
-            - CUMULUS_DBSSLMODE=disable
-            - CUMULUS_ASYNC_ENGINE_PACKAGER=AWSSQS
-            - CUMULUS_ASYNC_ENGINE_PACKAGER_TARGET=local/http://elasticmq:9324/queue/cumulus-packager
-            - CUMULUS_ASYNC_ENGINE_STATISTICS=AWSSQS
-            - CUMULUS_ASYNC_ENGINE_STATISTICS_TARGET=local/http://elasticmq:9324/queue/cumulus-statistics
-            - CUMULUS_ASYNC_ENGINE_GEOPROCESS=AWSSQS
-            - CUMULUS_ASYNC_ENGINE_GEOPROCESS_TARGET=local/http://elasticmq:9324/queue/cumulus-geoprocess
-            - CUMULUS_MIN_RECONN=10s
-            - CUMULUS_MAX_RECONN=1m
-        depends_on:
-            cumulusdb:
-                condition: service_started
-            flyway:
-                condition: service_completed_successfully
-        restart: always
-    # --------------------------------------
-    geoprocess:
-        build:
-            context: async_geoprocess
-            args:
-                # TOGGLE THE BRANCH, COMMIT, RELEASE, ETC. OF BUILD DEPENDENCY YOU'RE WORKING AGAINST
-                # ON `docker compose up --build` BY SETTING CUMULUS_GEOPROC_PIP_URL
-                - CUMULUS_GEOPROC_PIP_URL=git+https://github.com/USACE/cumulus-geoproc@main
-        environment:
-            - AWS_SQS_ENDPOINT=elasticmq:9324
-            - AWS_S3_ENDPOINT=minio:9000
-            - ENDPOINT_URL_SQS=http://elasticmq:9324
-            - ENDPOINT_URL_S3=http://minio:9000
-            - AWS_DEFAULT_REGION=us-east-1
-            - AWS_VIRTUAL_HOSTING=FALSE
-            - AWS_ACCESS_KEY_ID=AKIAIOSFODNN7EXAMPLE
-            - AWS_SECRET_ACCESS_KEY=wJalrXUtnFEMI/K7MDENG/bPxRfiCYEXAMPLEKEY
-            - AWS_HTTPS=NO
-            - APPLICATION_KEY=appkey
-            - USE_SSL=False
-            - QUEUE_NAME=cumulus-geoprocess
-            - CUMULUS_MOCK_S3_UPLOAD=FALSE
-            - CUMULUS_API_URL=http://api/api
-            - HTTP2=False
-            - GDAL_DISABLE_READDIR_ON_OPEN=YES
-            - LOGGER_LEVEL=DEBUG
-        volumes:
-            - ./_volumes/async_geoprocess/tmp:/tmp
-            # local testing purposes
-            # - ./async_geoprocess:/app/async_geoprocess:rw
-        restart: always
-        depends_on:
-            - api
-    # --------------------------------------
-    packager:
-        build:
-            context: async_packager
-        environment:
-            - AWS_SQS_ENDPOINT=elasticmq:9324
-            - AWS_S3_ENDPOINT=minio:9000
-            - ENDPOINT_URL_SQS=http://elasticmq:9324
-            - ENDPOINT_URL_S3=http://minio:9000
-            - AWS_DEFAULT_REGION=us-east-1
-            - AWS_VIRTUAL_HOSTING=FALSE
-            - AWS_ACCESS_KEY_ID=AKIAIOSFODNN7EXAMPLE
-            - AWS_SECRET_ACCESS_KEY=wJalrXUtnFEMI/K7MDENG/bPxRfiCYEXAMPLEKEY
-            - AWS_HTTPS=NO
-            - APPLICATION_KEY=appkey
-            - USE_SSL=False
-            - QUEUE_NAME_PACKAGER=cumulus-packager
-            - CUMULUS_MOCK_S3_UPLOAD=FALSE
-            - CUMULUS_API_URL=http://api/api
-            - HTTP2=False
-            - GDAL_DISABLE_READDIR_ON_OPEN=EMPTY_DIR
-            - LOGGER_LEVEL=INFO
-            - PACKAGER_UPDATE_INTERVAL=5
-            # - CPL_VSIL_CURL_CHUNK_SIZE=20000000
-            # - CPL_CURL_VERBOSE=1
-            # Volume to persist packager created file
-        volumes:
-            - ./_volumes/async_packager/output:/output:rw
-            # local testing purposes
-            # - ./async_packager:/app/async_packager:rw
-        restart: always
-        cpus: 1.0
-        mem_limit: 2048m
-        depends_on:
-            elasticmq:
-                condition: service_started
-    # --------------------------------------
-    # statistics:
-    #   build:
-    #     context: async_statistics
-    #   environment:
-    #     - AWS_REGION=$AWS_REGION
-    #     - AWS_ACCESS_KEY_ID=$AWS_ACCESS_KEY_ID
-    #     - AWS_SECRET_ACCESS_KEY=$AWS_SECRET_ACCESS_KEY
-    #     - CUMULUS_MOCK_S3_UPLOAD=TRUE
-    #     - QUEUE_NAME_STATISTICS=cumulus-statistics
-    #     - CUMULUS_API_URL=http://api:80
-    #     - CUMULUS_DBUSER=cumulus_user
-    #     - CUMULUS_DBPASS=cumulus_pass
-    #     - CUMULUS_DBNAME=postgres
-    #     - CUMULUS_DBHOST=cumulusdb
-    #     - CUMULUS_DBSSLMODE=disable
-    #     - ENDPOINT_URL=http://elasticmq:9324
-    #   restart: always
-    # --------------------------------------
-    api:
-        build:
-            context: api
-        environment:
-            - AWS_ACCESS_KEY_ID=AKIAIOSFODNN7EXAMPLE
-            - AWS_SECRET_ACCESS_KEY=wJalrXUtnFEMI/K7MDENG/bPxRfiCYEXAMPLEKEY
-            - AWS_DEFAULT_REGION=us-east-1
-            - AWS_REGION=us-east-1
-            - CUMULUS_APPLICATION_KEY=appkey
-            - CUMULUS_AUTH_HOST=https://identity-test.cwbi.us
-            - CUMULUS_AUTH_PUBLIC_KEY=
-            # CUMULUS_AUTH_ENVIRONMENT; OPTIONS:  MOCK | DEVELOP | STABLE
-            - CUMULUS_AUTH_ENVIRONMENT=MOCK
-            - CUMULUS_DOWNLOAD_DEFAULT_FORMAT=dss7
-            - CUMULUS_DBUSER=cumulus_user
-            - CUMULUS_DBPASS=cumulus_pass
-            - CUMULUS_DBNAME=postgres
-            - CUMULUS_DBHOST=cumulusdb
-            - CUMULUS_DBSSLMODE=disable
-            - CUMULUS_ASYNC_ENGINE_ACQUISITION=MOCK
-            - CUMULUS_ASYNC_ENGINE_ACQUISITION_TARGET=""
-            - CUMULUS_ASYNC_ENGINE_PACKAGER=AWSSQS
-            - CUMULUS_ASYNC_ENGINE_PACKAGER_TARGET=local/http://localhost:9324/queue/cumulus-packager
-            - CUMULUS_ASYNC_ENGINE_STATISTICS=AWSSQS
-            - CUMULUS_ASYNC_ENGINE_STATISTICS_TARGET=local/http://localhost:9324/queue/cumulus-statistics
-            - CUMULUS_STATIC_HOST=http://localhost
-            - CUMULUS_AWS_S3_REGION=us-east-1
-            - CUMULUS_AWS_S3_BUCKET=castle-data-develop
-            - CUMULUS_AWS_S3_BUCKET_PREFIX=cumulus/ui
-            - CUMULUS_AWS_S3_ENDPOINT=http://minio:9000
-            - CUMULUS_AWS_S3_DISABLE_SSL=True
-            - CUMULUS_AWS_S3_FORCE_PATH_STYLE=True
-            - PG_FEATURESERV_URL=http://featureserv:8080
-        volumes:
-            - ./api/:/go/src/app/:rw
-        ports:
-            - '80:80'
-            - '2345:2345' # expose port to host for Go delve
-        restart: always
-        depends_on:
-            cumulusdb:
-                condition: service_started
-            flyway:
-                condition: service_completed_successfully
-    # --------------------------------------
-    flyway:
-        build:
-            context: sql
-        restart: on-failure
-        command: -connectRetries=60 migrate
-        environment:
-            - FLYWAY_EDITION=community
-            # Exclude Local Seed Data; Uncomment Line Below
-            # - FLYWAY_LOCATIONS=filesystem:/flyway/sql/common,filesystem:/flyway/sql/develop
-            # Include Local Seed Data; Uncomment Line Below (Comment Line Above)
-            # - FLYWAY_LOCATIONS=filesystem:/flyway/sql/common,filesystem:/flyway/sql/develop,filesystem:/flyway/sql/local
-            - FLYWAY_LOCATIONS=filesystem:/flyway/sql/common,filesystem:/flyway/sql/local
-            - FLYWAY_PASSWORD=postgres
-            - FLYWAY_SCHEMAS=cumulus
-            - FLYWAY_URL=jdbc:postgresql://cumulusdb:5432/postgres
-            - FLYWAY_USER=postgres
-            - FLYWAY_PLACEHOLDERS_WRITE_TO_BUCKET=castle-data-develop
-            - FLYWAY_PLACEHOLDERS_APP_USER=cumulus_user
-            - FLYWAY_PLACEHOLDERS_APP_PASS=cumulus_pass
-        depends_on:
-            cumulusdb:
-                condition: service_started
-    # --------------------------------------
-    featureserv:
-        build:
-            context: pg_featureserv
-        container_name: featureserv
-        restart: always
-        environment:
-            # - DATABASE_URL=postgres://cumulus_user:cumulus_pass@cumulusdb:5432/postgres
-            # Individual PG env vars are easier to provide in IaC instead of the DATABASE_URL
-            - PGHOST=cumulusdb
-            - PGPORT=5432
-            - PGUSER=cumulus_user
-            - PGPASSWORD=cumulus_pass
-            - PGDATABASE=postgres
-            - PGTARGETROLE=cumulus_reader #this env var is custom
-            - PGFS_SERVER_HTTPPORT=8080
-            - PGFS_SERVER_HTTPSPORT=8443
-            - PGFS_SERVER_URLBASE=http://localhost/features
-            - PGFS_SERVER_BASEPATH=/features
-            - PGFS_SERVER_DEBUG=true
-            - PGFS_WEBSITE_BASEMAPURL=http://a.tile.openstreetmap.org/{z}/{x}/{y}.png
-        # The API provides a proxy using /features
-        # This port exposure is for direct access/troubleshooting locally
-        ports:
-            - '8080:8080'
-        depends_on:
-            cumulusdb:
-                condition: service_started
-            flyway:
-                condition: service_completed_successfully
-            api:
-                condition: service_started
-    # --------------------------------------
-    # pgadmin:
-    #   image: dpage/pgadmin4
-    #   environment:
-    #     - PGADMIN_DEFAULT_EMAIL=postgres@postgres.com
-    #     - PGADMIN_DEFAULT_PASSWORD=postgres
-    #   ports:
-    #     - "7000:80"
-    #   restart: always
-    # dbdocs:
-    #   image: nginx
-    #   ports:
-    #     - "8123:80"
-    #   volumes:
-    #     - ./docs/db-docs/schemaspy:/usr/share/nginx/html
+  cumulusdb:
+    image: postgis/postgis:16-3.5
+    platform: linux/amd64 # this is the supported architecture
+    restart: always
+    environment:
+      - POSTGRES_PASSWORD=postgres
+    ports:
+      - '5432:5432'
+  # --------------------------------------
+  elasticmq:
+    build:
+      context: elasticmq
+    ports:
+      - '9324:9324'
+      - '9325:9325'
+    restart: always
+  # --------------------------------------
+  listener:
+    build:
+      context: async_listener
+    environment:
+      - AWS_ACCESS_KEY_ID=x
+      - AWS_SECRET_ACCESS_KEY=x
+      - AWS_REGION=us-east-1
+      - CUMULUS_DBUSER=cumulus_user
+      - CUMULUS_DBPASS=cumulus_pass
+      - CUMULUS_DBNAME=postgres
+      - CUMULUS_DBHOST=cumulusdb
+      - CUMULUS_DBSSLMODE=disable
+      - CUMULUS_ASYNC_ENGINE_PACKAGER=AWSSQS
+      - CUMULUS_ASYNC_ENGINE_PACKAGER_TARGET=local/http://elasticmq:9324/queue/cumulus-packager
+      - CUMULUS_ASYNC_ENGINE_STATISTICS=AWSSQS
+      - CUMULUS_ASYNC_ENGINE_STATISTICS_TARGET=local/http://elasticmq:9324/queue/cumulus-statistics
+      - CUMULUS_ASYNC_ENGINE_GEOPROCESS=AWSSQS
+      - CUMULUS_ASYNC_ENGINE_GEOPROCESS_TARGET=local/http://elasticmq:9324/queue/cumulus-geoprocess
+      - CUMULUS_MIN_RECONN=10s
+      - CUMULUS_MAX_RECONN=1m
+    depends_on:
+      cumulusdb:
+        condition: service_started
+      flyway:
+        condition: service_completed_successfully
+    restart: always
+  # --------------------------------------
+  geoprocess:
+    build:
+      context: async_geoprocess
+      args:
+        - GDAL_TAG=ubuntu-full-3.9.1
+        - GEOPROC_PACKAGE=refactor/dockerfile-vulnerabilities:geoproc
+    # entrypoint: sleep infinity # override the Dockerfile entrypoint
+    environment:
+      - AWS_SQS_ENDPOINT=elasticmq:9324
+      - AWS_S3_ENDPOINT=minio:9000
+      - ENDPOINT_URL_SQS=http://elasticmq:9324
+      - ENDPOINT_URL_S3=http://minio:9000
+      - AWS_DEFAULT_REGION=us-east-1
+      - AWS_VIRTUAL_HOSTING=FALSE
+      - AWS_ACCESS_KEY_ID=AKIAIOSFODNN7EXAMPLE
+      - AWS_SECRET_ACCESS_KEY=wJalrXUtnFEMI/K7MDENG/bPxRfiCYEXAMPLEKEY
+      - AWS_HTTPS=NO
+      - APPLICATION_KEY=appkey
+      - USE_SSL=False
+      - QUEUE_NAME=cumulus-geoprocess
+      - CUMULUS_MOCK_S3_UPLOAD=FALSE
+      - CUMULUS_API_URL=http://api/api
+      - HTTP2=False
+      - GDAL_DISABLE_READDIR_ON_OPEN=YES
+      - LOGGER_LEVEL=DEBUG
+    volumes:
+      - ./_volumes/async_geoprocess/tmp:/tmp
+    # local testing purposes
+    # - ./async_geoprocess:/app/async_geoprocess:rw
+    restart: always
+    depends_on:
+      - api
+  # --------------------------------------
+  packager:
+    build:
+      context: async_packager
+      args:
+        - GDAL_TAG:ubuntu-full-3.9.1
+        - TIFFDSS_VERSION=v0.2.2
+    # entrypoint: sleep infinity # override the Dockerfile entrypoint
+    environment:
+      - AWS_SQS_ENDPOINT=elasticmq:9324
+      - AWS_S3_ENDPOINT=minio:9000
+      - ENDPOINT_URL_SQS=http://elasticmq:9324
+      - ENDPOINT_URL_S3=http://minio:9000
+      - AWS_DEFAULT_REGION=us-east-1
+      - AWS_VIRTUAL_HOSTING=FALSE
+      - AWS_ACCESS_KEY_ID=AKIAIOSFODNN7EXAMPLE
+      - AWS_SECRET_ACCESS_KEY=wJalrXUtnFEMI/K7MDENG/bPxRfiCYEXAMPLEKEY
+      - AWS_HTTPS=NO
+      - APPLICATION_KEY=appkey
+      - USE_SSL=False
+      - QUEUE_NAME_PACKAGER=cumulus-packager
+      - CUMULUS_MOCK_S3_UPLOAD=FALSE
+      - CUMULUS_API_URL=http://api/api
+      - HTTP2=False
+      - GDAL_DISABLE_READDIR_ON_OPEN=EMPTY_DIR
+      - LOGGER_LEVEL=INFO
+      - PACKAGER_UPDATE_INTERVAL=5
+      # - CPL_VSIL_CURL_CHUNK_SIZE=20000000
+      # - CPL_CURL_VERBOSE=1
+      # Volume to persist packager created file
+    volumes:
+      - ./_volumes/async_packager/output:/output:rw
+      # local testing purposes
+      # - ./async_packager:/app/async_packager:rw
+    restart: always
+    cpus: 1.0
+    mem_limit: 2048m
+    depends_on:
+      elasticmq:
+        condition: service_started
+  # --------------------------------------
+  # statistics:
+  #   build:
+  #     context: async_statistics
+  #   environment:
+  #     - AWS_REGION=$AWS_REGION
+  #     - AWS_ACCESS_KEY_ID=$AWS_ACCESS_KEY_ID
+  #     - AWS_SECRET_ACCESS_KEY=$AWS_SECRET_ACCESS_KEY
+  #     - CUMULUS_MOCK_S3_UPLOAD=TRUE
+  #     - QUEUE_NAME_STATISTICS=cumulus-statistics
+  #     - CUMULUS_API_URL=http://api:80
+  #     - CUMULUS_DBUSER=cumulus_user
+  #     - CUMULUS_DBPASS=cumulus_pass
+  #     - CUMULUS_DBNAME=postgres
+  #     - CUMULUS_DBHOST=cumulusdb
+  #     - CUMULUS_DBSSLMODE=disable
+  #     - ENDPOINT_URL=http://elasticmq:9324
+  #   restart: always
+  # --------------------------------------
+  api:
+    build:
+      context: api
+    environment:
+      - AWS_ACCESS_KEY_ID=AKIAIOSFODNN7EXAMPLE
+      - AWS_SECRET_ACCESS_KEY=wJalrXUtnFEMI/K7MDENG/bPxRfiCYEXAMPLEKEY
+      - AWS_DEFAULT_REGION=us-east-1
+      - AWS_REGION=us-east-1
+      - CUMULUS_APPLICATION_KEY=appkey
+      - CUMULUS_AUTH_HOST=https://identity-test.cwbi.us
+      - CUMULUS_AUTH_PUBLIC_KEY=
+      # CUMULUS_AUTH_ENVIRONMENT; OPTIONS:  MOCK | DEVELOP | STABLE
+      - CUMULUS_AUTH_ENVIRONMENT=MOCK
+      - CUMULUS_DOWNLOAD_DEFAULT_FORMAT=dss7
+      - CUMULUS_DBUSER=cumulus_user
+      - CUMULUS_DBPASS=cumulus_pass
+      - CUMULUS_DBNAME=postgres
+      - CUMULUS_DBHOST=cumulusdb
+      - CUMULUS_DBSSLMODE=disable
+      - CUMULUS_ASYNC_ENGINE_ACQUISITION=MOCK
+      - CUMULUS_ASYNC_ENGINE_ACQUISITION_TARGET=""
+      - CUMULUS_ASYNC_ENGINE_PACKAGER=AWSSQS
+      - CUMULUS_ASYNC_ENGINE_PACKAGER_TARGET=local/http://localhost:9324/queue/cumulus-packager
+      - CUMULUS_ASYNC_ENGINE_STATISTICS=AWSSQS
+      - CUMULUS_ASYNC_ENGINE_STATISTICS_TARGET=local/http://localhost:9324/queue/cumulus-statistics
+      - CUMULUS_STATIC_HOST=http://localhost
+      - CUMULUS_AWS_S3_REGION=us-east-1
+      - CUMULUS_AWS_S3_BUCKET=castle-data-develop
+      - CUMULUS_AWS_S3_BUCKET_PREFIX=cumulus/ui
+      - CUMULUS_AWS_S3_ENDPOINT=http://minio:9000
+      - CUMULUS_AWS_S3_DISABLE_SSL=True
+      - CUMULUS_AWS_S3_FORCE_PATH_STYLE=True
+      - PG_FEATURESERV_URL=http://featureserv:8080
+    volumes:
+      - ./api/:/go/src/app/:rw
+    ports:
+      - '80:80'
+      - '2345:2345' # expose port to host for Go delve
+    restart: always
+    depends_on:
+      cumulusdb:
+        condition: service_started
+      flyway:
+        condition: service_completed_successfully
+  # --------------------------------------
+  flyway:
+    build:
+      context: sql
+    restart: on-failure
+    command: -connectRetries=60 migrate
+    environment:
+      - FLYWAY_EDITION=community
+      # Exclude Local Seed Data; Uncomment Line Below
+      # - FLYWAY_LOCATIONS=filesystem:/flyway/sql/common,filesystem:/flyway/sql/develop
+      # Include Local Seed Data; Uncomment Line Below (Comment Line Above)
+      # - FLYWAY_LOCATIONS=filesystem:/flyway/sql/common,filesystem:/flyway/sql/develop,filesystem:/flyway/sql/local
+      - FLYWAY_LOCATIONS=filesystem:/flyway/sql/common,filesystem:/flyway/sql/local
+      - FLYWAY_PASSWORD=postgres
+      - FLYWAY_SCHEMAS=cumulus
+      - FLYWAY_URL=jdbc:postgresql://cumulusdb:5432/postgres
+      - FLYWAY_USER=postgres
+      - FLYWAY_PLACEHOLDERS_WRITE_TO_BUCKET=castle-data-develop
+      - FLYWAY_PLACEHOLDERS_APP_USER=cumulus_user
+      - FLYWAY_PLACEHOLDERS_APP_PASS=cumulus_pass
+    depends_on:
+      cumulusdb:
+        condition: service_started
+  # --------------------------------------
+  featureserv:
+    build:
+      context: pg_featureserv
+    container_name: featureserv
+    restart: always
+    environment:
+      # - DATABASE_URL=postgres://cumulus_user:cumulus_pass@cumulusdb:5432/postgres
+      # Individual PG env vars are easier to provide in IaC instead of the DATABASE_URL
+      - PGHOST=cumulusdb
+      - PGPORT=5432
+      - PGUSER=cumulus_user
+      - PGPASSWORD=cumulus_pass
+      - PGDATABASE=postgres
+      - PGTARGETROLE=cumulus_reader #this env var is custom
+      - PGFS_SERVER_HTTPPORT=8080
+      - PGFS_SERVER_HTTPSPORT=8443
+      - PGFS_SERVER_URLBASE=http://localhost/features
+      - PGFS_SERVER_BASEPATH=/features
+      - PGFS_SERVER_DEBUG=true
+      - PGFS_WEBSITE_BASEMAPURL=http://a.tile.openstreetmap.org/{z}/{x}/{y}.png
+    # The API provides a proxy using /features
+    # This port exposure is for direct access/troubleshooting locally
+    ports:
+      - '8080:8080'
+    depends_on:
+      cumulusdb:
+        condition: service_started
+      flyway:
+        condition: service_completed_successfully
+      api:
+        condition: service_started
+  # --------------------------------------
+  # pgadmin:
+  #   image: dpage/pgadmin4
+  #   environment:
+  #     - PGADMIN_DEFAULT_EMAIL=postgres@postgres.com
+  #     - PGADMIN_DEFAULT_PASSWORD=postgres
+  #   ports:
+  #     - "7000:80"
+  #   restart: always
+  # dbdocs:
+  #   image: nginx
+  #   ports:
+  #     - "8123:80"
+  #   volumes:
+  #     - ./docs/db-docs/schemaspy:/usr/share/nginx/html

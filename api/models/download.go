@@ -334,10 +334,10 @@ func GetDownloadMetrics(db *pgxpool.Pool) ([]byte, error) {
 					WITH top_products AS (
 						SELECT t.cnt as count, t.name FROM
 						(
-							SELECT count(d.id) AS cnt, p.name FROM download d 
+							SELECT count(d.id) AS cnt, ps.name FROM download d 
 							JOIN download_product dp ON dp.download_id = d.id
-							JOIN v_product p ON p.id = dp.product_id 
-							GROUP BY p.name
+							JOIN v_product_series ps ON ps.id = dp.product_series_id 
+							GROUP BY ps.name
 						) AS t
 						ORDER BY t.cnt DESC LIMIT 10
 					)

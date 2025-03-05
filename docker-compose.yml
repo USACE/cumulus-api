@@ -1,7 +1,7 @@
 services:
   cumulusdb:
     image: postgis/postgis:16-3.5
-    platform: linux/amd64 # this is the supported architecture
+    platform: linux/amd64 # this is the supported architecture for postgis
     restart: always
     environment:
       - POSTGRES_PASSWORD=postgres
@@ -205,6 +205,7 @@ services:
   featureserv:
     build:
       context: pg_featureserv
+    platform: linux/amd64 # this is the supported architecture for postgis
     container_name: featureserv
     restart: always
     environment:

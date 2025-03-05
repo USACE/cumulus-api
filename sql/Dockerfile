@@ -1,5 +1,5 @@
 # FROM flyway/flyway
-FROM redgate/flyway:latest-alpine
+FROM flyway/flyway:latest-alpine
 
 COPY . /flyway/sql/
 

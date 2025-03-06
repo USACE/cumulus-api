@@ -3,7 +3,6 @@
 import json
 import multiprocessing
 import os
-from pathlib import Path
 import shutil
 import traceback
 from collections import namedtuple
@@ -27,7 +26,6 @@ from cumulus_packager.configurations import (
     WRITE_TO_BUCKET,
 )
 from cumulus_packager.packager import handler
-from cumulus_packager.utils import capi
 from cumulus_packager.utils.boto import s3_upload_file
 
 this = os.path.basename(__file__)
@@ -67,7 +65,9 @@ def handle_message(message):
         if len(PayloadResp.contents) == 0:
             handler.update_status(download_id, handler.PACKAGE_STATUS["FAILED"], 0)
             # TODO: Add new package_status in database to represent EMPTY condition
-            logger.info(f'Empty Contents: No products selected in the request for download ID "{download_id}"')
+            logger.info(
+                f'Empty Contents: No products selected in the request for download ID "{download_id}"'
+            )
         else:
             package_file = handler.handle_message(PayloadResp, dst.name)
 

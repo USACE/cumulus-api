@@ -1,7 +1,9 @@
 ARG GO_VERSION=1.22
 ARG GO_TAG=${GO_VERSION}-alpine
 
-# ~~~~~~~~ builder ~~~~~~~~
+# *~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~
+# builder
+# *~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~
 FROM golang:${GO_TAG} AS builder
 #
 RUN apk update \

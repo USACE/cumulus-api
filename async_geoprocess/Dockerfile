@@ -1,8 +1,10 @@
 ARG GDAL_TAG=ubuntu-full-3.9.1
 ARG GEOPROC_PACKAGE=main:geoproc
 
-# ~~~~~~~~ builder ~~~~~~~~
-FROM ghcr.io/osgeo/gdal:${GDAL_TAG}
+# *~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~
+# builder
+# *~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~
+FROM ghcr.io/osgeo/gdal:${GDAL_TAG} AS builder
 ARG GEOPROC_PACKAGE
 
 # force stdout and stderr to be unbuffered setting to non-empty

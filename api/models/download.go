@@ -35,7 +35,7 @@ type DownloadRequest struct {
 	DatetimeStart time.Time   `json:"datetime_start" db:"datetime_start"`
 	DatetimeEnd   time.Time   `json:"datetime_end" db:"datetime_end"`
 	WatershedID   uuid.UUID   `json:"watershed_id" db:"watershed_id"`
-	ProductID     []uuid.UUID `json:"product_id" db:"product_id"`
+	ProductID     []uuid.UUID `json:"product_id" db:"product_series_id"`
 	Format        *string     `json:"format" db:"format"`
 }
 
@@ -91,7 +91,7 @@ type PackagerContentItem struct {
 
 var listDownloadsSQL = fmt.Sprintf(
 	`SELECT id, sub, datetime_start, datetime_end, progress, ('%s' || '/' || file) as file,
-	   processing_start, processing_end, status_id, watershed_id, watershed_slug, watershed_name, status, product_id, format, manifest
+	   processing_start, processing_end, status_id, watershed_id, watershed_slug, watershed_name, status, product_series_id, format, manifest
 	   FROM v_download
 	`, cfg.StaticHost,
 )

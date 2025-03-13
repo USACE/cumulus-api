@@ -1,0 +1,26 @@
+networks:
+  default:
+    name: cumulus-api_default
+
+services:
+  geoinit:
+    build:
+      context: async_geoprocess_init
+      args:
+        TEST_DATA_TAG: '2025-01-31'
+    entrypoint: sleep infinity # override the Dockerfile entrypoint
+    environment:
+      - AWS_ACCESS_KEY_ID=AKIAIOSFODNN7EXAMPLE
+      - AWS_SECRET_ACCESS_KEY=wJalrXUtnFEMI/K7MDENG/bPxRfiCYEXAMPLEKEY
+      - AWS_DEFAULT_REGION=us-east-1
+      - MINIO_ENDPOINT=http://minio:9000
+      - S3_ACQUIRABLE_PREFIX=cumulus/acquirables
+      - CUMULUS_AWS_S3_BUCKET=castle-data-develop
+      - CUMULUS_STATIC_HOST=http://api
+      - CUMULUS_ACQUIRABLE_FILES=/acquirablefiles
+      - CUMULUS_ACQUIRABLES=/acquirables
+      - CUMULUS_APPLICATION_KEY=appkey
+      - GEOPROC_TEST_DATA=/opt/geoproc/fixtures
+    # depends_on:
+    #   api:
+    #     condition: service_started

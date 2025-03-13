@@ -44,9 +44,9 @@ services:
     build:
       context: async_geoprocess
       args:
-        # TOGGLE THE BRANCH, COMMIT, RELEASE, ETC. OF BUILD DEPENDENCY YOU'RE WORKING AGAINST
-        # ON `docker compose up --build` BY SETTING CUMULUS_GEOPROC_PIP_URL
-        - CUMULUS_GEOPROC_PIP_URL=git+https://github.com/USACE/cumulus-geoproc@main
+        - GDAL_TAG=ubuntu-full-3.9.1
+        - GEOPROC_PACKAGE=develop:geoproc
+    # entrypoint: sleep infinity # override the Dockerfile entrypoint
     environment:
       - AWS_SQS_ENDPOINT=elasticmq:9324
       - AWS_S3_ENDPOINT=minio:9000
@@ -67,8 +67,8 @@ services:
       - LOGGER_LEVEL=DEBUG
     volumes:
       - ./_volumes/async_geoprocess/tmp:/tmp
-      # local testing purposes
-      # - ./async_geoprocess:/app/async_geoprocess:rw
+    # local testing purposes
+    # - ./async_geoprocess:/app/async_geoprocess:rw
     restart: always
     depends_on:
       - api
@@ -76,6 +76,10 @@ services:
   packager:
     build:
       context: async_packager
+      args:
+        - GDAL_TAG:ubuntu-full-3.9.1
+        - TIFFDSS_VERSION=v0.2.2
+    # entrypoint: sleep infinity # override the Dockerfile entrypoint
     environment:
       - AWS_SQS_ENDPOINT=elasticmq:9324
       - AWS_S3_ENDPOINT=minio:9000

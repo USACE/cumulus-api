@@ -79,3 +79,22 @@ func GetProductSeriesAvailability(db *pgxpool.Pool, ID *uuid.UUID) (*Availabilit
 	}
 	return &a, nil
 }
+
+// GetProductSeriesIngestStatus
+func GetProductSeriesIngestStatus(db *pgxpool.Pool) ([]ProductStatus, error) {
+	ps := make([]ProductStatus, 0)
+	productStatusSql := `SELECT 
+		pser.slug AS slug,
+		MAX(ps.latest_product_datetime) AS latest_product_datetime,
+		MIN(ps.acceptable_timedelta)::text AS acceptable_timedelta,
+		MIN(ps.actual_timedelta)::text AS actual_timedelta,
+		BOOL_AND(ps.is_current) AS is_current
+	FROM v_product_status ps
+	JOIN product p ON ps.slug = p.slug
+	JOIN product_series pser ON p.product_series_id = pser.id
+	GROUP BY pser.slug`
+	if err := pgxscan.Select(context.Background(), db, &ps, productStatusSql); err != nil {
+		return make([]ProductStatus, 0), err
+	}
+	return ps, nil
+}

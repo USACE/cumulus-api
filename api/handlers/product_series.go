@@ -3,6 +3,7 @@ package handlers
 import (
 	"net/http"
 
+	"github.com/georgysavva/scany/pgxscan"
 	"github.com/google/uuid"
 	"github.com/labstack/echo/v4"
 
@@ -37,5 +38,20 @@ func GetProductSeriesAvailability(db *pgxpool.Pool) echo.HandlerFunc {
 			return c.JSON(http.StatusBadRequest, err.Error())
 		}
 		return c.JSON(http.StatusOK, a)
+	}
+}
+
+// GetProductSeriesIngestStatus returns a list of product series status
+func GetProductSeriesIngestStatus(db *pgxpool.Pool) echo.HandlerFunc {
+	return func(c echo.Context) error {
+
+		productStatus, err := models.GetProductSeriesIngestStatus(db)
+		if err != nil {
+			if pgxscan.NotFound(err) {
+				return c.JSON(http.StatusNotFound, models.DefaultMessageNotFound)
+			}
+			return c.JSON(http.StatusInternalServerError, models.DefaultMessageInternalServerError)
+		}
+		return c.JSON(http.StatusOK, productStatus)
 	}
 }

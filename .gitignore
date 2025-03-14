@@ -32,7 +32,7 @@ vendor
 
 **/__debug*
 
-tmp/*
+*/tmp/*
 !tmp/README.md
 
 # _volumes directory, used for local containerized development and debugging

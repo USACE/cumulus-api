@@ -104,12 +104,15 @@ func main() {
 		middleware.IsAdmin,
 	)
 
-	// Products
+	// Products (DB Product Series)
+	public.GET("/products", handlers.ListProductSeries(db))
+
+	// Subproducts (DB Products)
 	public.GET("/product_ingest_status", handlers.GetProductIngestStatus(db))
 	public.GET("/product_slugs", handlers.GetProductSlugs(db))
-	public.GET("/products", handlers.ListProductSeries(db))
-	public.GET("/products/:product_id/file-availability", handlers.GetProductFileAvailability(db))
+	public.GET("/subproducts", handlers.ListProducts(db))
 	public.GET("/products/:product_id", handlers.GetProduct(db))
+	public.GET("/products/:product_id/availability", handlers.GetProductAvailability(db))
 	private.POST("/products", handlers.CreateProduct(db),
 		middleware.IsAdmin,
 	)
@@ -122,14 +125,10 @@ func main() {
 	private.POST("/products/:product_id/undelete", handlers.UndeleteProduct(db),
 		middleware.IsAdmin,
 	)
-	// Additional Information About Products
-	public.GET("/products/:product_id/availability", handlers.GetProductAvailability(db))
-	public.GET("/products/:product_id/files", handlers.ListProductfiles(db))
-
-	// Subproducts
-	public.GET("/subproducts", handlers.ListProducts(db))
 
 	// Productfiles
+	public.GET("/products/:product_id/file-availability", handlers.GetProductFileAvailability(db))
+	public.GET("/products/:product_id/files", handlers.ListProductfiles(db))
 	private.POST("/productfiles", handlers.CreateProductfiles(db),
 		middleware.IsAdmin,
 	)

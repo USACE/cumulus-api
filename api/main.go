@@ -107,7 +107,7 @@ func main() {
 	// Products
 	public.GET("/product_ingest_status", handlers.GetProductIngestStatus(db))
 	public.GET("/product_slugs", handlers.GetProductSlugs(db))
-	public.GET("/products", handlers.ListProducts(db))
+	public.GET("/products", handlers.ListProductSeries(db))
 	public.GET("/products/:product_id/file-availability", handlers.GetProductFileAvailability(db))
 	public.GET("/products/:product_id", handlers.GetProduct(db))
 	private.POST("/products", handlers.CreateProduct(db),
@@ -125,6 +125,9 @@ func main() {
 	// Additional Information About Products
 	public.GET("/products/:product_id/availability", handlers.GetProductAvailability(db))
 	public.GET("/products/:product_id/files", handlers.ListProductfiles(db))
+
+	// Subproducts
+	public.GET("/subproducts", handlers.ListProducts(db))
 
 	// Productfiles
 	private.POST("/productfiles", handlers.CreateProductfiles(db),

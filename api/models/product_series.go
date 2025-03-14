@@ -49,3 +49,33 @@ func ListProductSeries(db *pgxpool.Pool) ([]ProductSeries, error) {
 	}
 	return pp, nil
 }
+
+// GetProductSeriesAvailability returns Availability for a product series
+func GetProductSeriesAvailability(db *pgxpool.Pool, ID *uuid.UUID) (*Availability, error) {
+	// https://stackoverflow.com/questions/29023336/generate-series-in-postgres-from-start-and-end-date-in-a-table
+	a := Availability{ProductID: *ID, DateCounts: make([]DateCount, 0)}
+	if err := pgxscan.Select(
+		context.Background(), db, &a.DateCounts,
+		`SELECT series.day                           AS date,
+				COALESCE(SUM(daily_counts.count), 0) AS count
+		FROM (
+			SELECT generate_series(MIN(pf.datetime)::date, MAX(pf.datetime)::date, '1 Day') AS day
+			FROM productfile pf
+			JOIN product p ON pf.product_id = p.id
+			WHERE p.product_series_id = $1
+		) series
+		LEFT OUTER JOIN (
+			SELECT datetime::date as day,
+				   COUNT(*)       as count
+			FROM productfile pf
+			JOIN product p ON pf.product_id = p.id
+			WHERE p.product_series_id = $1
+			GROUP BY day
+		) daily_counts ON daily_counts.day = series.day
+		GROUP BY series.day
+		ORDER BY series.day`, ID,
+	); err != nil {
+		return nil, err
+	}
+	return &a, nil
+}

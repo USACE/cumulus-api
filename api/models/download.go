@@ -257,7 +257,7 @@ func CreateDownload(db *pgxpool.Pool, dr *DownloadRequest) (*Download, error) {
 	for _, pID := range dr.ProductID {
 		if _, err := tx.Exec(
 			context.Background(),
-			`INSERT INTO download_product (product_id, download_id) VALUES ($1, $2)`,
+			`INSERT INTO download_product (product_series_id, download_id) VALUES ($1, $2)`,
 			pID, dID,
 		); err != nil {
 			tx.Rollback(context.Background())

@@ -1,4 +1,6 @@
-INSERT INTO product_tags (tag_id, product_id) VALUES
+INSERT INTO product_tags (tag_id, product_series_id)
+SELECT pt.tag_id::UUID, p.product_series_id
+FROM (VALUES
     ('726039da-2f21-4393-a15c-5f6e7ea41b1f','1c8c130e-0d3c-4ccc-af5b-d2f95379429c'),
     ('726039da-2f21-4393-a15c-5f6e7ea41b1f','5e13560b-7589-474f-9fd5-bc1cf4163fe4'),
     ('726039da-2f21-4393-a15c-5f6e7ea41b1f','a9a74d32-acdb-4fd2-8478-14d7098c50a7'),
@@ -29,8 +31,6 @@ INSERT INTO product_tags (tag_id, product_id) VALUES
     ('2d64c718-e7af-41c0-be53-035af341c464','002125d6-2c90-4c24-9382-10a535d398bb'),
     ('cc93b3f9-fbe1-4b35-8f9c-2d1515961c6a','d0c1d6f4-cf5d-4332-a17e-dd1757c99c94'),
     ('cc93b3f9-fbe1-4b35-8f9c-2d1515961c6a','5317d1c4-c6db-40c2-b527-72f7603be8a0'),
-    ('cc93b3f9-fbe1-4b35-8f9c-2d1515961c6a','b206a00b-9ed6-42e1-a34d-c67d43828810'),
-    ('cc93b3f9-fbe1-4b35-8f9c-2d1515961c6a','dde59007-25ec-4bb4-b5e6-8f0f1fbab853'),
     ('cc93b3f9-fbe1-4b35-8f9c-2d1515961c6a','f48006a5-ad25-4a9f-9b58-639d75763dd7'),
     ('cc93b3f9-fbe1-4b35-8f9c-2d1515961c6a','bbfeadbb-1b54-486c-b975-a67d107540f3'),
     ('cc93b3f9-fbe1-4b35-8f9c-2d1515961c6a','c96f7a1f-e57d-4694-9d09-451cfa949324'),
@@ -40,4 +40,6 @@ INSERT INTO product_tags (tag_id, product_id) VALUES
     ('cc93b3f9-fbe1-4b35-8f9c-2d1515961c6a','0ac60940-35c2-4c0d-8a3b-49c20e455ff5'),
     ('17308048-d207-43dd-b346-c9836073e911','f1b6ac38-bbc9-48c6-bf78-207005ee74fa'),
     ('17308048-d207-43dd-b346-c9836073e911','793e285f-333b-41a3-b4ab-223a7a764668'),
-    ('17308048-d207-43dd-b346-c9836073e911','b50f29f4-547b-4371-9365-60d44eef412e');
+    ('17308048-d207-43dd-b346-c9836073e911','b50f29f4-547b-4371-9365-60d44eef412e')
+) AS pt(tag_id, product_id)
+JOIN product p ON p.id = pt.product_id::UUID;

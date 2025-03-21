@@ -74,6 +74,7 @@ services:
       - api
   # --------------------------------------
   packager:
+    platform: linux/amd64
     build:
       context: async_packager
       args:

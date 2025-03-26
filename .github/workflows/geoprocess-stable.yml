@@ -37,7 +37,7 @@ jobs:
           IMAGE_TAG: ${{ github.sha }}
         run: |
           docker build \
-            --build-arg CUMULUS_GEOPROC_PIP_URL=git+https://github.com/USACE/cumulus-geoproc@main \
+            --build-arg GEOPROC_PACKAGE=main:geoproc \
             -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG -t $ECR_REGISTRY/$ECR_REPOSITORY:stable async_geoprocess
           docker push $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
           docker push $ECR_REGISTRY/$ECR_REPOSITORY:stable

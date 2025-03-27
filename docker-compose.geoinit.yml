@@ -8,7 +8,7 @@ services:
       context: async_geoprocess_init
       args:
         TEST_DATA_TAG: '2025-01-31'
-    entrypoint: sleep infinity # override the Dockerfile entrypoint
+    # entrypoint: sleep infinity # override the Dockerfile entrypoint
     environment:
       - AWS_ACCESS_KEY_ID=AKIAIOSFODNN7EXAMPLE
       - AWS_SECRET_ACCESS_KEY=wJalrXUtnFEMI/K7MDENG/bPxRfiCYEXAMPLEKEY
@@ -21,6 +21,6 @@ services:
       - CUMULUS_ACQUIRABLES=/api/acquirables
       - CUMULUS_APPLICATION_KEY=appkey
       - GEOPROC_TEST_DATA=/opt/geoproc/fixtures
-    depends_on:
-      api:
-        condition: service_started
+    # depends_on:
+    #   api:
+    #     condition: service_started

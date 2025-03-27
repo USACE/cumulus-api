@@ -13,6 +13,7 @@ from botocore.exceptions import ClientError
 
 CUMULUS_STATIC_HOST = os.getenv("CUMULUS_STATIC_HOST")
 CUMULUS_ACQUIRABLE_FILES = os.getenv("CUMULUS_ACQUIRABLE_FILES")
+CUMULUS_ACQUIRABLES = os.getenv("CUMULUS_ACQUIRABLES")
 CUMULUS_APPLICATION_KEY = os.getenv("CUMULUS_APPLICATION_KEY")
 
 S3_ACQUIRABLE_PREFIX = os.getenv("S3_ACQUIRABLE_PREFIX")
@@ -27,7 +28,7 @@ AWS_SECRET_ACCESS_KEY = os.getenv("AWS_SECRET_ACCESS_KEY")
 
 
 def get_acquirables():
-    url = f"{CUMULUS_STATIC_HOST}/api/acquirables"
+    url = f"{CUMULUS_STATIC_HOST}{CUMULUS_ACQUIRABLES}"
     max_retries = 5
     wait_time = 5
     for attempt in range(max_retries):

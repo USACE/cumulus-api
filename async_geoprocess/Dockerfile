@@ -20,19 +20,15 @@ ENV GEOPROC_VENV=${GEOPROC}/venv
 
 ENV PATH=${GEOPROC_VENV}/bin:$PATH
 
-# RUN apt-get update -y && apt-get install -y \
-#   git \
-#   python3-pip \
-#   python3-venv \
-#   python3-dev \
-#   postgresql-server-dev-all \
-#   libhdf5-dev \
-#   zlib1g-dev \
-#   libnetcdf-dev \
-#   && rm -rf /var/lib/apt/lists/*
+# solving possible issue of ATP behind a proxy
+RUN cat <<EOF > /etc/apt/apt.conf.d/99proxy
+Acquire::http::Pipeline-Depth 0;
+Acquire::http::No-Cache true;
+Acquire::BrokenProxy true;
+EOF
 
-
-RUN apt-get -y update \
+RUN apt-get update \
+    && apt-get -y upgrade \
     && apt-get install python3.12-venv -y \
     && apt-get remove python3-pil -y \
     && apt clean

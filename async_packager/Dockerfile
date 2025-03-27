@@ -12,6 +12,13 @@ ENV PACKAGE=async_packager
 ENV TIFFDSS_VERSION=v0.2.2
 ENV TIFFDSS=tiffdss_ubuntu-latest
 
+# solving possible issue of ATP behind a proxy
+RUN cat <<EOF > /etc/apt/apt.conf.d/99proxy
+Acquire::http::Pipeline-Depth 0;
+Acquire::http::No-Cache true;
+Acquire::BrokenProxy true;
+EOF
+
 # update and install other dependencies
 RUN apt-get -y update && \
     apt-get -y upgrade && \
@@ -20,8 +27,8 @@ RUN apt-get -y update && \
     pip install --no-cache-dir --upgrade pip && \
     pip install --no-cache-dir --upgrade setuptools && \
     pip install --no-cache-dir --upgrade wheel && \
-    pip install --no-cache-dir --upgrade pillow && \
-    pip install --no-cache-dir --upgrade numpy==1.26.4
+    pip install --no-cache-dir --upgrade pillow
+    # pip install --no-cache-dir --upgrade numpy
 
 
 RUN mkdir -p /app/${PACKAGE}

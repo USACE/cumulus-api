@@ -44,7 +44,7 @@ jobs:
           ECR_REPOSITORY: cumulus-geoprocess
           IMAGE_TAG: latest
         run: |
-          docker build async_geoprocess \
+          docker build --build-arg GEOPROC_PACKAGE=main:geoproc async_geoprocess \
           --tag $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG \
           --tag $ECR_REGISTRY/$ECR_REPOSITORY:dev 
           docker push $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG

@@ -1,37 +1,57 @@
-FROM ghcr.io/osgeo/gdal:ubuntu-full-3.9.1
+ARG GDAL_TAG=ubuntu-full-3.9.1
+ARG GEOPROC_PACKAGE=main:geoproc
 
-RUN apt-get update -y && apt-get install -y \
-  git \
-  python3-pip \
-  python3-venv \
-  python3-dev \
-  postgresql-server-dev-all \
-  libhdf5-dev \
-  zlib1g-dev \
-  libnetcdf-dev \
-  && rm -rf /var/lib/apt/lists/*
+# *~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~
+# builder
+# *~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~
+FROM ghcr.io/osgeo/gdal:${GDAL_TAG} AS builder
+ARG GEOPROC_PACKAGE
 
-RUN useradd appuser
-
-RUN mkdir -p /app/async_geoprocess
-
-# Cache buster
-RUN echo $(date +%s)
-
-ARG CUMULUS_GEOPROC_PIP_URL=git+https://github.com/USACE/cumulus-geoproc@main
-
+# force stdout and stderr to be unbuffered setting to non-empty
 ENV PYTHONUNBUFFERED=1
+
+# GDAL
 ENV GDAL_DATA=/usr/share/gdal
 
-# pip install the cumulus package
-RUN python3 -m pip install --break-system-packages $CUMULUS_GEOPROC_PIP_URL
+# geoproc
+ENV USERNAME=geoproc
+ENV GEOPROC=/opt/geoproc
+ENV GEOPROC_VENV=${GEOPROC}/venv
 
-WORKDIR /app/async_geoprocess
+ENV PATH=${GEOPROC_VENV}/bin:$PATH
 
-COPY . .
+# solving possible issue of ATP behind a proxy
+RUN cat <<EOF > /etc/apt/apt.conf.d/99proxy
+Acquire::http::Pipeline-Depth 0;
+Acquire::http::No-Cache true;
+Acquire::BrokenProxy true;
+EOF
 
-USER appuser
+RUN apt-get update \
+    && apt-get -y upgrade \
+    && apt-get install python3.12-venv -y \
+    && apt-get remove python3-pil -y \
+    && apt clean
 
-CMD ["python3", "worker.py"]
-# local testing
-# CMD [ "tail", "-f", "/dev/null" ]
+# create the user account
+RUN groupadd -r ${USERNAME} && \
+    useradd -g ${USERNAME} -ms /bin/bash ${USERNAME}
+
+WORKDIR ${GEOPROC}
+
+# get the cumulus-geoproc package
+ADD --keep-git-dir=false --chown=${USERNAME}:${USERNAME} https://github.com/USACE/cumulus-geoproc.git#${GEOPROC_PACKAGE} ${GEOPROC}/pkg
+
+# install package in venv
+RUN python3 -m venv --system-site-packages ${GEOPROC_VENV} \
+    && . activate \
+    && pip install ${GEOPROC}/pkg/
+
+# Cache buster
+# RUN echo $(date +%s)
+
+COPY ./worker.py ./
+
+USER ${USERNAME}:${USERNAME}
+
+ENTRYPOINT ["python3", "worker.py"]

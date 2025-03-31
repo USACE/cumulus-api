@@ -55,3 +55,14 @@ func GetProductSeriesIngestStatus(db *pgxpool.Pool) echo.HandlerFunc {
 		return c.JSON(http.StatusOK, productStatus)
 	}
 }
+
+// GetProductSeriesSlugs returns a map of slug: id for all product series
+func GetProductSeriesSlugs(db *pgxpool.Pool) echo.HandlerFunc {
+	return func(c echo.Context) error {
+		m, err := models.GetProductSeriesSlugs(db)
+		if err != nil {
+			return c.JSON(http.StatusInternalServerError, err.Error())
+		}
+		return c.JSON(http.StatusOK, m)
+	}
+}

@@ -98,3 +98,19 @@ func GetProductSeriesIngestStatus(db *pgxpool.Pool) ([]ProductStatus, error) {
 	}
 	return ps, nil
 }
+
+// GetProductSeriesSlugs
+func GetProductSeriesSlugs(db *pgxpool.Pool) (map[string]uuid.UUID, error) {
+	pp := make([]ProductIdentifiers, 0)
+	if err := pgxscan.Select(
+		context.Background(), db, &pp, `SELECT id, slug FROM v_product_series`,
+	); err != nil {
+		return make(map[string]uuid.UUID), err
+	}
+	// convert array to map
+	m := make(map[string]uuid.UUID)
+	for _, p := range pp {
+		m[p.Slug] = p.ID
+	}
+	return m, nil
+}

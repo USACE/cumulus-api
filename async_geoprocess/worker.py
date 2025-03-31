@@ -40,7 +40,7 @@ def start_worker():
     # initialize product slug list
     try:
         cumulus_api = CumulusAPI(CUMULUS_API_URL, HTTP2)
-        cumulus_api.endpoint = "product_slugs"
+        cumulus_api.endpoint = "subproduct_slugs"
         resp = asyncio.run(cumulus_api.get_(cumulus_api.url))
         PRODUCT_MAP = resp.json()
         logger.debug("Initialize Product Slug -> UUID mapping'%s'" % PRODUCT_MAP)
@@ -69,7 +69,7 @@ def start_worker():
     while True:
         # check for updated product mapping each hour
         if (time.time() - start) > 3600:
-            cumulus_api.endpoint = "product_slugs"
+            cumulus_api.endpoint = "subproduct_slugs"
             resp = asyncio.run(cumulus_api.get_(cumulus_api.url))
             PRODUCT_MAP = resp.json()
             start = time.time()
@@ -127,11 +127,13 @@ def start_worker():
                 processed_ = []
                 for item in processed:
                     try:
-                        processed_.append({
-                            **item,
-                            "acquirablefile_id": acquirablefile_id,
-                            "product_id": PRODUCT_MAP[item["filetype"]],
-                        })
+                        processed_.append(
+                            {
+                                **item,
+                                "acquirablefile_id": acquirablefile_id,
+                                "product_id": PRODUCT_MAP[item["filetype"]],
+                            }
+                        )
                         logger.debug(f"New processed dict item: {processed_[-1]}")
                     except KeyError as ex:
                         logger.warning(f"{type(ex).__name__} - {this} - {ex}")

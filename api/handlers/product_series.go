@@ -24,6 +24,24 @@ func ListProductSeries(db *pgxpool.Pool) echo.HandlerFunc {
 	}
 }
 
+// GetProduct returns a single Product
+func GetProductSeries(db *pgxpool.Pool) echo.HandlerFunc {
+	return func(c echo.Context) error {
+		id, err := uuid.Parse(c.Param("product_id"))
+		if err != nil {
+			return c.JSON(http.StatusBadRequest, models.DefaultMessageBadRequest)
+		}
+		product, err := models.GetProductSeries(db, &id)
+		if err != nil {
+			if pgxscan.NotFound(err) {
+				return c.JSON(http.StatusNotFound, models.DefaultMessageNotFound)
+			}
+			return c.JSON(http.StatusInternalServerError, models.DefaultMessageInternalServerError)
+		}
+		return c.JSON(http.StatusOK, product)
+	}
+}
+
 // GetProductSeriesAvailability returns an Availability object
 func GetProductSeriesAvailability(db *pgxpool.Pool) echo.HandlerFunc {
 	return func(c echo.Context) error {

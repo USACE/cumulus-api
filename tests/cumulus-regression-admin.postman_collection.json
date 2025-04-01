@@ -1,9 +1,9 @@
 {
   "info": {
-    "_postman_id": "00c1f40e-eeab-43a4-94b4-73d1e497aa1f",
+    "_postman_id": "ff11c550-a6d9-4427-9a57-0740b4356526",
     "name": "cumulus-regression-admin",
     "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
-    "_exporter_id": "20040250"
+    "_exporter_id": "42823158"
   },
   "item": [
     {
@@ -1013,6 +1013,7 @@
                   "        \"temporal_resolution\": { \"type\": \"number\" },",
                   "        \"temporal_duration\": { \"type\": \"number\" },",
                   "        \"dss_fpart\": { \"type\": \"string\" },",
+                  "        \"dss_datatype_id\": { \"type\": \"string\" },",
                   "        \"dss_datatype\": { \"type\": \"string\" },",
                   "        \"parameter_id\": { \"type\": \"string\" },",
                   "        \"parameter\": { \"type\": \"string\" },",
@@ -1045,7 +1046,8 @@
                   "});",
                   ""
                 ],
-                "type": "text/javascript"
+                "type": "text/javascript",
+                "packages": {}
               }
             }
           ],
@@ -1053,9 +1055,9 @@
             "method": "GET",
             "header": [],
             "url": {
-              "raw": "{{base_url}}/products/757c809c-dda0-412b-9831-cb9bd0f62d1d",
+              "raw": "{{base_url}}/products/c68f92e7-3d55-4700-9248-ee3c385fa6c8",
               "host": ["{{base_url}}"],
-              "path": ["products", "757c809c-dda0-412b-9831-cb9bd0f62d1d"]
+              "path": ["products", "c68f92e7-3d55-4700-9248-ee3c385fa6c8"]
             }
           },
           "response": []
@@ -2159,6 +2161,81 @@
               "raw": "{{base_url}}/dss/datatypes",
               "host": ["{{base_url}}"],
               "path": ["dss", "datatypes"]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "subproducts",
+      "item": [
+        {
+          "name": "GetSubproduct",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "// validate JSON schema",
+                  "var schema = {",
+                  "    \"type\": \"object\",",
+                  "    \"properties\": {",
+                  "        \"id\": { \"type\": \"string\" },",
+                  "        \"slug\": { \"type\": \"string\" },",
+                  "        \"tags\": {",
+                  "            \"type\": \"array\",",
+                  "            \"items\": { \"type\": \"string\" },",
+                  "        },",
+                  "        \"name\": { \"type\": \"string\" },",
+                  "        \"temporal_resolution\": { \"type\": \"number\" },",
+                  "        \"temporal_duration\": { \"type\": \"number\" },",
+                  "        \"dss_fpart\": { \"type\": \"string\" },",
+                  "        \"dss_datatype_id\": { \"type\": \"string\" },",
+                  "        \"dss_datatype\": { \"type\": \"string\" },",
+                  "        \"parameter_id\": { \"type\": \"string\" },",
+                  "        \"parameter\": { \"type\": \"string\" },",
+                  "        \"unit_id\": { \"type\": \"string\" },",
+                  "        \"unit\": { \"type\": \"string\" },",
+                  "        \"description\": { \"type\": \"string\" },",
+                  "        \"after\": {\"type\": [\"null\", \"string\"]},",
+                  "        \"before\": {\"type\": [\"null\", \"string\"]},",
+                  "        \"last_forecast_version\": {\"type\": [\"null\", \"string\"]},",
+                  "        \"productfile_count\": {\"type\": \"number\"},",
+                  "        \"suite_id\" : { \"type\": \"string\"},",
+                  "        \"suite\" : { \"type\": \"string\"},",
+                  "        \"label\" : { \"type\": [\"null\", \"string\"]}",
+                  "    },",
+                  "    \"required\": [\"id\", \"slug\", \"tags\", \"name\", \"temporal_resolution\", \"temporal_duration\", \"dss_fpart\",",
+                  "                 \"parameter_id\", \"parameter\", \"unit_id\", \"unit\", \"suite_id\", \"suite\", \"description\", \"after\", \"before\", \"last_forecast_version\", \"productfile_count\"",
+                  "    ],",
+                  "    \"additionalProperties\": false",
+                  "}",
+                  "",
+                  "pm.globals.set('PRODUCT_OBJECT', JSON.stringify(schema));",
+                  "",
+                  "// status code is 200",
+                  "pm.test(\"Status code is 200\", function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "// validate schema",
+                  "pm.test(\"Schema validation\", function () {",
+                  "    pm.response.to.have.jsonSchema(schema)",
+                  "});",
+                  ""
+                ],
+                "type": "text/javascript",
+                "packages": {}
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/subproducts/757c809c-dda0-412b-9831-cb9bd0f62d1d",
+              "host": ["{{base_url}}"],
+              "path": ["subproducts", "757c809c-dda0-412b-9831-cb9bd0f62d1d"]
             }
           },
           "response": []

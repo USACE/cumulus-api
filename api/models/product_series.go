@@ -50,6 +50,15 @@ func ListProductSeries(db *pgxpool.Pool) ([]ProductSeries, error) {
 	return pp, nil
 }
 
+// GetProductSeries returns a single product series
+func GetProductSeries(db *pgxpool.Pool, productID *uuid.UUID) (*ProductSeries, error) {
+	var p ProductSeries
+	if err := pgxscan.Get(context.Background(), db, &p, listProductSeriesSQL+" WHERE id = $1", productID); err != nil {
+		return nil, err
+	}
+	return &p, nil
+}
+
 // GetProductSeriesAvailability returns Availability for a product series
 func GetProductSeriesAvailability(db *pgxpool.Pool, ID *uuid.UUID) (*Availability, error) {
 	// https://stackoverflow.com/questions/29023336/generate-series-in-postgres-from-start-and-end-date-in-a-table

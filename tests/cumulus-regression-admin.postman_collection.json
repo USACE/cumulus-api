@@ -1459,7 +1459,8 @@
 									"});",
 									""
 								],
-								"type": "text/javascript"
+								"type": "text/javascript",
+								"packages": {}
 							}
 						}
 					],
@@ -1468,7 +1469,7 @@
 						"header": [],
 						"body": {
 							"mode": "raw",
-							"raw": "{\n    \"label\": \"TEST-LABEL\",\n    \"temporal_resolution\": 200,\n    \"temporal_duration\": 0,\n    \"dss_fpart\": \"INTEGRATION TEST PRODUCT\",\n    \"dss_datatype_id\": \"392f8984-2e4e-47ea-ae24-dad81d87f662\",\n    \"parameter_id\": \"683a55b9-4a94-46b5-9f47-26e66f3037a8\",\n    \"unit_id\": \"e245d39f-3209-4e58-bfb7-4eae94b3f8dd\",\n    \"description\": \"Example Product Description\",\n    \"suite_id\": \"c133e9e7-ddc8-4a98-82d7-880d5db35060\"\n}",
+							"raw": "{\n    \"label\": \"TEST-LABEL\",\n    \"dss_fpart\": \"INTEGRATION TEST PRODUCT\",\n    \"dss_datatype_id\": \"392f8984-2e4e-47ea-ae24-dad81d87f662\",\n    \"parameter_id\": \"683a55b9-4a94-46b5-9f47-26e66f3037a8\",\n    \"unit_id\": \"e245d39f-3209-4e58-bfb7-4eae94b3f8dd\",\n    \"description\": \"Example Product Description\",\n    \"suite_id\": \"c133e9e7-ddc8-4a98-82d7-880d5db35060\"\n}",
 							"options": {
 								"raw": {
 									"language": "json"
@@ -2416,15 +2417,16 @@
 									"        \"productfile_count\": {\"type\": \"number\"},",
 									"        \"suite_id\" : { \"type\": \"string\"},",
 									"        \"suite\" : { \"type\": \"string\"},",
-									"        \"label\" : { \"type\": [\"null\", \"string\"]}",
+									"        \"label\" : { \"type\": [\"null\", \"string\"]},",
+									"        \"product_series_id\" : { \"type\" : \"string\" }",
 									"    },",
 									"    \"required\": [\"id\", \"slug\", \"tags\", \"name\", \"temporal_resolution\", \"temporal_duration\", \"dss_fpart\",",
-									"                 \"parameter_id\", \"parameter\", \"unit_id\", \"unit\", \"suite_id\", \"suite\", \"description\", \"after\", \"before\", \"last_forecast_version\", \"productfile_count\"",
+									"                 \"parameter_id\", \"parameter\", \"unit_id\", \"unit\", \"suite_id\", \"suite\", \"description\", \"after\", \"before\", \"last_forecast_version\", \"productfile_count\", \"product_series_id\"",
 									"    ],",
 									"    \"additionalProperties\": false",
 									"}",
 									"",
-									"pm.globals.set('PRODUCT_OBJECT', JSON.stringify(schema));",
+									"pm.globals.set('SUBPRODUCT_OBJECT', JSON.stringify(schema));",
 									"",
 									"// status code is 200",
 									"pm.test(\"Status code is 200\", function () {",
@@ -2467,10 +2469,10 @@
 									"// schema validator",
 									"var schema = {",
 									"    \"type\": \"array\",",
-									"    \"items\": JSON.parse(pm.globals.get('PRODUCT_OBJECT'))",
+									"    \"items\": JSON.parse(pm.globals.get('SUBPRODUCT_OBJECT'))",
 									"}",
 									"",
-									"pm.globals.set('PRODUCT_ARRAY', JSON.stringify(schema));",
+									"pm.globals.set('SUBPRODUCT_ARRAY', JSON.stringify(schema));",
 									"",
 									"// status code is 200",
 									"pm.test(\"Status code is 200\", function () {",
@@ -2611,6 +2613,55 @@
 								"subproducts",
 								"757c809c-dda0-412b-9831-cb9bd0f62d1d",
 								"availability"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "CreateSubproduct",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"// status code is 201",
+									"pm.test(\"Status code is 201\", function () {",
+									"    pm.response.to.have.status(201);",
+									"});",
+									"",
+									"// schema validation",
+									"pm.test(\"Schema validation\", function () {",
+									"    pm.response.to.have.jsonSchema(",
+									"        JSON.parse(pm.globals.get('SUBPRODUCT_OBJECT'))",
+									"    )",
+									"});",
+									""
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"product_series_id\": \"c68f92e7-3d55-4700-9248-ee3c385fa6c8\",\n    \"temporal_resolution\": 21600,\n    \"temporal_duration\": 0\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{base_url}}/subproducts",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"subproducts"
 							]
 						}
 					},

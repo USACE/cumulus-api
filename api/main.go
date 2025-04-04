@@ -110,6 +110,9 @@ func main() {
 	public.GET("/products", handlers.ListProductSeries(db))
 	public.GET("/products/:product_id", handlers.GetProductSeries(db))
 	public.GET("/products/:product_id/availability", handlers.GetProductSeriesAvailability(db))
+	private.POST("/products", handlers.CreateProductSeries(db),
+		middleware.IsAdmin,
+	)
 
 	// Subproducts (DB Products)
 	public.GET("/subproduct_ingest_status", handlers.GetProductIngestStatus(db))
@@ -117,7 +120,7 @@ func main() {
 	public.GET("/subproducts", handlers.ListProducts(db))
 	public.GET("/subproducts/:product_id", handlers.GetProduct(db))
 	public.GET("/subproducts/:product_id/availability", handlers.GetProductAvailability(db))
-	private.POST("/products", handlers.CreateProduct(db),
+	private.POST("/subproducts", handlers.CreateProduct(db),
 		middleware.IsAdmin,
 	)
 	private.PUT("/products/:product_id", handlers.UpdateProduct(db),

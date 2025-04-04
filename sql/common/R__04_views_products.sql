@@ -49,7 +49,8 @@ CREATE OR REPLACE VIEW v_product AS (
            pf.after                          AS after,
            pf.before                         AS before,
            COALESCE(pf.productfile_count, 0) AS productfile_count,
-           pf.last_forecast_version          AS last_forecast_version
+           pf.last_forecast_version          AS last_forecast_version,
+           a.product_series_id               AS product_series_id
 	FROM product a
 	JOIN product_series ps ON ps.id = a.product_series_id 
 	JOIN unit u ON u.id = ps.unit_id

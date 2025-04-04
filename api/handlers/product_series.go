@@ -84,3 +84,19 @@ func GetProductSeriesSlugs(db *pgxpool.Pool) echo.HandlerFunc {
 		return c.JSON(http.StatusOK, m)
 	}
 }
+
+// CreateProductSeries creates a single new product series
+func CreateProductSeries(db *pgxpool.Pool) echo.HandlerFunc {
+	return func(c echo.Context) error {
+		var n models.ProductSeriesInfo
+		if err := c.Bind(&n); err != nil {
+			return c.JSON(http.StatusBadRequest, models.DefaultMessageBadRequest)
+		}
+		pNew, err := models.CreateProductSeries(db, &n)
+		if err != nil {
+			return c.String(http.StatusInternalServerError, err.Error())
+		}
+		return c.JSON(http.StatusCreated, &pNew)
+
+	}
+}

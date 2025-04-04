@@ -15,25 +15,31 @@ import (
 var listProductsSQL = `SELECT id, slug, name, label, tags, temporal_resolution, temporal_duration,
                               parameter_id, parameter, unit_id, unit, dss_fpart, dss_datatype_id, 
 							  dss_datatype, description, suite_id, suite, after, before, 
-							  productfile_count, last_forecast_version
+							  productfile_count, last_forecast_version, product_series_id
 	                   FROM v_product`
 
-// ProductInfo holds information required to create a product
+// ProductInfo is required data for creating a product
 type ProductInfo struct {
-	Name               string     `json:"name"`
-	TemporalResolution int        `json:"temporal_resolution" db:"temporal_resolution"`
-	TemporalDuration   int        `json:"temporal_duration" db:"temporal_duration"`
-	DssFpart           string     `json:"dss_fpart" db:"dss_fpart"`
-	DssDatatypeID      *uuid.UUID `json:"dss_datatype_id,omitempty" db:"dss_datatype_id"`
-	DssDatatype        string     `json:"dss_datatype" db:"dss_datatype"`
-	ParameterID        uuid.UUID  `json:"parameter_id" db:"parameter_id"`
-	Parameter          string     `json:"parameter"`
-	UnitID             uuid.UUID  `json:"unit_id" db:"unit_id"`
-	Unit               string     `json:"unit"`
-	Description        string     `json:"description"`
-	SuiteID            uuid.UUID  `json:"suite_id" db:"suite_id"`
-	Suite              string     `json:"suite"`
-	Label              string     `json:"label"`
+	ProductSeriesID    uuid.UUID `json:"product_series_id" db:"product_series_id"`
+	TemporalResolution int       `json:"temporal_resolution" db:"temporal_resolution"`
+	TemporalDuration   int       `json:"temporal_duration" db:"temporal_duration"`
+}
+
+// ProductInfoJoin is base product data joined with associated product series info
+type ProductInfoJoin struct {
+	ProductInfo
+	Name          string     `json:"name"`
+	Label         string     `json:"label"`
+	DssFpart      string     `json:"dss_fpart" db:"dss_fpart"`
+	DssDatatypeID *uuid.UUID `json:"dss_datatype_id,omitempty" db:"dss_datatype_id"`
+	DssDatatype   string     `json:"dss_datatype" db:"dss_datatype"`
+	ParameterID   uuid.UUID  `json:"parameter_id" db:"parameter_id"`
+	Parameter     string     `json:"parameter"`
+	UnitID        uuid.UUID  `json:"unit_id" db:"unit_id"`
+	Unit          string     `json:"unit"`
+	Description   string     `json:"description"`
+	SuiteID       uuid.UUID  `json:"suite_id" db:"suite_id"`
+	Suite         string     `json:"suite"`
 }
 
 type ProductIdentifiers struct {
@@ -45,7 +51,7 @@ type ProductIdentifiers struct {
 type Product struct {
 	ProductIdentifiers
 	Tags []uuid.UUID `json:"tags" db:"tags"`
-	ProductInfo
+	ProductInfoJoin
 	CoverageSummary
 }
 
@@ -131,22 +137,26 @@ func GetProduct(db *pgxpool.Pool, productID *uuid.UUID) (*Product, error) {
 
 // CreateProduct creates a single product
 func CreateProduct(db *pgxpool.Pool, p *ProductInfo) (*Product, error) {
+	ps, err := GetProductSeries(db, &p.ProductSeriesID)
+	if err != nil {
+		return nil, err
+	}
 
 	// Helper Function to Build Slug
 	// Slug First Pass is: <Suite Name> <Label || ""> <ParameterName> <TemporalResolution>
 	nameFirstPass := func() (string, error) {
 
 		sql := fmt.Sprintf(
-			`SELECT s.name || ' ' || '%s' || p.name || ' ' || '%d' AS str 
+			`SELECT s.name || ' ' || '%s' || ' ' || p.name || ' ' || '%d' AS str 
 			 FROM parameter p
 			 CROSS JOIN (SELECT name FROM suite where id = $2) s
-			 WHERE p.id = $1`, p.Label, p.TemporalResolution,
+			 WHERE p.id = $1`, ps.Label, p.TemporalResolution,
 		)
 
 		var s struct {
 			Str string
 		}
-		if err := pgxscan.Get(context.Background(), db, &s, sql, p.ParameterID, p.SuiteID); err != nil {
+		if err := pgxscan.Get(context.Background(), db, &s, sql, ps.ParameterID, ps.SuiteID); err != nil {
 			return "", err
 		}
 		return s.Str, nil
@@ -168,9 +178,9 @@ func CreateProduct(db *pgxpool.Pool, p *ProductInfo) (*Product, error) {
 	var pID uuid.UUID
 	if err := pgxscan.Get(
 		context.Background(), db, &pID,
-		`INSERT INTO product (temporal_resolution, temporal_duration, dss_fpart, dss_datatype_id, parameter_id, unit_id, description, suite_id, label, slug) VALUES
-			($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
-		RETURNING id`, p.TemporalResolution, p.TemporalDuration, p.DssFpart, p.DssDatatypeID, p.ParameterID, p.UnitID, p.Description, p.SuiteID, p.Label, slug,
+		`INSERT INTO product (temporal_resolution, temporal_duration, product_series_id, slug) VALUES
+			($1, $2, $3, $4)
+		RETURNING id`, p.TemporalResolution, p.TemporalDuration, ps.ID, slug,
 	); err != nil {
 		return nil, err
 	}

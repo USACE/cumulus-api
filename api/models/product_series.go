@@ -2,6 +2,7 @@ package models
 
 import (
 	"context"
+	"fmt"
 
 	// Postgres Database Driver
 	"github.com/georgysavva/scany/pgxscan"
@@ -10,28 +11,33 @@ import (
 	"github.com/jackc/pgx/v4/pgxpool"
 )
 
-// ProductSeriesInfo holds information required to create a product series
+// ProductSeriesInfo is required data for creating a product series
 type ProductSeriesInfo struct {
-	Name               string     `json:"name"`
-	TemporalResolution *int       `json:"temporal_resolution" db:"temporal_resolution"`
-	TemporalDuration   *int       `json:"temporal_duration" db:"temporal_duration"`
-	DssFpart           string     `json:"dss_fpart" db:"dss_fpart"`
-	DssDatatypeID      *uuid.UUID `json:"dss_datatype_id,omitempty" db:"dss_datatype_id"`
-	DssDatatype        string     `json:"dss_datatype" db:"dss_datatype"`
-	ParameterID        uuid.UUID  `json:"parameter_id" db:"parameter_id"`
-	Parameter          string     `json:"parameter"`
-	UnitID             uuid.UUID  `json:"unit_id" db:"unit_id"`
-	Unit               string     `json:"unit"`
-	Description        string     `json:"description"`
-	SuiteID            uuid.UUID  `json:"suite_id" db:"suite_id"`
-	Suite              string     `json:"suite"`
-	Label              string     `json:"label"`
+	Name          string     `json:"name"`
+	DssFpart      string     `json:"dss_fpart" db:"dss_fpart"`
+	DssDatatypeID *uuid.UUID `json:"dss_datatype_id,omitempty" db:"dss_datatype_id"`
+	DssDatatype   string     `json:"dss_datatype" db:"dss_datatype"`
+	ParameterID   uuid.UUID  `json:"parameter_id" db:"parameter_id"`
+	Parameter     string     `json:"parameter"`
+	UnitID        uuid.UUID  `json:"unit_id" db:"unit_id"`
+	Unit          string     `json:"unit"`
+	Description   string     `json:"description"`
+	SuiteID       uuid.UUID  `json:"suite_id" db:"suite_id"`
+	Suite         string     `json:"suite"`
+	Label         string     `json:"label"`
+}
+
+// ProductSeriesTemporal is temporal data from a series' products
+type ProductSeriesTemporal struct {
+	TemporalResolution *int `json:"temporal_resolution" db:"temporal_resolution"`
+	TemporalDuration   *int `json:"temporal_duration" db:"temporal_duration"`
 }
 
 type ProductSeries struct {
 	ProductIdentifiers
 	Tags []uuid.UUID `json:"tags" db:"tags"`
 	ProductSeriesInfo
+	ProductSeriesTemporal
 	CoverageSummary
 }
 
@@ -122,4 +128,52 @@ func GetProductSeriesSlugs(db *pgxpool.Pool) (map[string]uuid.UUID, error) {
 		m[p.Slug] = p.ID
 	}
 	return m, nil
+}
+
+// CreateProductSeries creates a single product series
+func CreateProductSeries(db *pgxpool.Pool, p *ProductSeriesInfo) (*ProductSeries, error) {
+
+	// Helper Function to Build Slug
+	// Slug First Pass is: <Suite Name> <Label || ""> <ParameterName>
+	nameFirstPass := func() (string, error) {
+
+		sql := fmt.Sprintf(
+			`SELECT s.name || ' ' || '%s' || ' ' || p.name AS str
+			 FROM parameter p
+			 CROSS JOIN (SELECT name FROM suite where id = $2) s
+			 WHERE p.id = $1`, p.Label,
+		)
+
+		var s struct {
+			Str string
+		}
+		if err := pgxscan.Get(context.Background(), db, &s, sql, p.ParameterID, p.SuiteID); err != nil {
+			return "", err
+		}
+		return s.Str, nil
+	}
+
+	// Get Concatenated Name to Use As Input for Slug (First Pass)
+	s, err := nameFirstPass()
+	if err != nil {
+		return nil, err
+	}
+
+	// Assign Slug Based on Product Name; Slug Must Be Table Unique
+	slug, err := NextUniqueSlug(db, "product_series", "slug", s, "", "")
+	if err != nil {
+		return nil, err
+	}
+
+	// Insert Into Database Using New Slug
+	var pID uuid.UUID
+	if err := pgxscan.Get(
+		context.Background(), db, &pID,
+		`INSERT INTO product_series (dss_fpart, dss_datatype_id, parameter_id, unit_id, description, suite_id, label, slug) VALUES
+			($1, $2, $3, $4, $5, $6, $7, $8)
+		RETURNING id`, p.DssFpart, p.DssDatatypeID, p.ParameterID, p.UnitID, p.Description, p.SuiteID, p.Label, slug,
+	); err != nil {
+		return nil, err
+	}
+	return GetProductSeries(db, &pID)
 }

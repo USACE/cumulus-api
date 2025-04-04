@@ -192,3 +192,19 @@ func UpdateProductSeries(db *pgxpool.Pool, p *ProductSeries) (*ProductSeries, er
 	}
 	return GetProductSeries(db, &pID)
 }
+
+// DeleteProductSeries deletes a single product series
+func DeleteProductSeries(db *pgxpool.Pool, pID *uuid.UUID) error {
+	if _, err := db.Exec(context.Background(), `UPDATE product_series SET deleted=true WHERE id=$1`, pID); err != nil {
+		return err
+	}
+	return nil
+}
+
+// UndeleteProduct undeletes a single product series
+func UndeleteProductSeries(db *pgxpool.Pool, pID *uuid.UUID) (*ProductSeries, error) {
+	if _, err := db.Exec(context.Background(), `UPDATE product_series SET deleted=false WHERE id=$1`, pID); err != nil {
+		return nil, err
+	}
+	return GetProductSeries(db, pID)
+}

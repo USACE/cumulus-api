@@ -125,3 +125,34 @@ func UpdateProductSeries(db *pgxpool.Pool) echo.HandlerFunc {
 		return c.JSON(http.StatusOK, pUpdated)
 	}
 }
+
+// DeleteProductSeries deletes a single product series
+func DeleteProductSeries(db *pgxpool.Pool) echo.HandlerFunc {
+	return func(c echo.Context) error {
+		// Product Series ID from Route Params
+		pID, err := uuid.Parse(c.Param("product_id"))
+		if err != nil {
+			return c.String(http.StatusBadRequest, "Malformed ID")
+		}
+		if err := models.DeleteProductSeries(db, &pID); err != nil {
+			return c.String(http.StatusInternalServerError, err.Error())
+		}
+		return c.JSON(http.StatusOK, make(map[string]interface{}))
+	}
+}
+
+// UndeleteProduct un-deletes a single product series
+func UndeleteProductSeries(db *pgxpool.Pool) echo.HandlerFunc {
+	return func(c echo.Context) error {
+		// Product Series ID from Route Params
+		pID, err := uuid.Parse(c.Param("product_id"))
+		if err != nil {
+			return c.JSON(http.StatusBadRequest, models.DefaultMessageBadRequest)
+		}
+		p, err := models.UndeleteProductSeries(db, &pID)
+		if err != nil {
+			return c.JSON(http.StatusInternalServerError, models.DefaultMessageInternalServerError)
+		}
+		return c.JSON(http.StatusOK, p)
+	}
+}

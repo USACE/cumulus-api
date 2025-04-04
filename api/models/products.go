@@ -201,7 +201,7 @@ func UpdateProduct(db *pgxpool.Pool, p *Product) (*Product, error) {
 	return GetProduct(db, &pID)
 }
 
-// DeleteProduct deletes a signle product
+// DeleteProduct deletes a single product
 func DeleteProduct(db *pgxpool.Pool, pID *uuid.UUID) error {
 	if _, err := db.Exec(context.Background(), `UPDATE product SET deleted=true WHERE id=$1`, pID); err != nil {
 		return err

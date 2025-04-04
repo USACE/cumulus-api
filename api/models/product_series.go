@@ -177,3 +177,18 @@ func CreateProductSeries(db *pgxpool.Pool, p *ProductSeriesInfo) (*ProductSeries
 	}
 	return GetProductSeries(db, &pID)
 }
+
+// UpdateProductSeries updates a single product series
+func UpdateProductSeries(db *pgxpool.Pool, p *ProductSeries) (*ProductSeries, error) {
+	var pID uuid.UUID
+	if err := pgxscan.Get(
+		context.Background(), db, &pID,
+		`UPDATE product_series SET dss_fpart=$2, dss_datatype_id=$3,
+		                    	   parameter_id=$4, unit_id=$5, description=$6, suite_id=$7, label=$8
+		 WHERE id = $1
+		 RETURNING id`, p.ID, p.DssFpart, p.DssDatatypeID, p.ParameterID, p.UnitID, p.Description, p.SuiteID, p.Label,
+	); err != nil {
+		return nil, err
+	}
+	return GetProductSeries(db, &pID)
+}

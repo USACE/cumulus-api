@@ -113,6 +113,9 @@ func main() {
 	private.POST("/products", handlers.CreateProductSeries(db),
 		middleware.IsAdmin,
 	)
+	private.PUT("/products/:product_id", handlers.UpdateProductSeries(db),
+		middleware.IsAdmin,
+	)
 
 	// Subproducts (DB Products)
 	public.GET("/subproduct_ingest_status", handlers.GetProductIngestStatus(db))
@@ -123,7 +126,7 @@ func main() {
 	private.POST("/subproducts", handlers.CreateProduct(db),
 		middleware.IsAdmin,
 	)
-	private.PUT("/products/:product_id", handlers.UpdateProduct(db),
+	private.PUT("/subproducts/:product_id", handlers.UpdateProduct(db),
 		middleware.IsAdmin,
 	)
 	private.DELETE("/products/:product_id", handlers.DeleteProduct(db),

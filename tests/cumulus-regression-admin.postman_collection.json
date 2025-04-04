@@ -1548,7 +1548,8 @@
 									"});",
 									""
 								],
-								"type": "text/javascript"
+								"type": "text/javascript",
+								"packages": {}
 							}
 						}
 					],
@@ -1557,7 +1558,7 @@
 						"header": [],
 						"body": {
 							"mode": "raw",
-							"raw": "{\n    \"id\": \"757c809c-dda0-412b-9831-cb9bd0f62d1d\",\n    \"label\": \"UPDATED LABEL\",\n    \"slug\": \"nohrsc-snodas-swe\",\n    \"tags\": [\n        \"57bda84f-ecec-4cd7-b3b1-c0c36f838a05\"\n    ],\n    \"name\": \"New Name for NOHRSC SNODAS SWE\",\n    \"temporal_resolution\": 86400,\n    \"temporal_duration\": 0,\n    \"dss_fpart\": \"SNODAS\",\n    \"dss_datatype_id\": \"f13182ec-8944-494e-b947-994b189d62f2\",\n    \"parameter_id\": \"683a55b9-4a94-46b5-9f47-26e66f3037a8\",\n    \"parameter\": \"SWE\",\n    \"unit_id\": \"e245d39f-3209-4e58-bfb7-4eae94b3f8dd\",\n    \"unit\": \"MM\",\n    \"description\": \"New Description for NOHRSC SNODAS SWE\",\n    \"suite_id\": \"c133e9e7-ddc8-4a98-82d7-880d5db35060\"\n}",
+							"raw": "{\n    \"id\": \"c68f92e7-3d55-4700-9248-ee3c385fa6c8\",\n    \"label\": \"UPDATED LABEL\",\n    \"slug\": \"nohrsc-snodas-swe\",\n    \"tags\": [\n        \"57bda84f-ecec-4cd7-b3b1-c0c36f838a05\"\n    ],\n    \"name\": \"New Name for NOHRSC SNODAS SWE\",\n    \"dss_fpart\": \"SNODAS\",\n    \"dss_datatype_id\": \"f13182ec-8944-494e-b947-994b189d62f2\",\n    \"parameter_id\": \"683a55b9-4a94-46b5-9f47-26e66f3037a8\",\n    \"parameter\": \"SWE\",\n    \"unit_id\": \"e245d39f-3209-4e58-bfb7-4eae94b3f8dd\",\n    \"unit\": \"MM\",\n    \"description\": \"New Description for NOHRSC SNODAS SWE\",\n    \"suite_id\": \"c133e9e7-ddc8-4a98-82d7-880d5db35060\"\n}",
 							"options": {
 								"raw": {
 									"language": "json"
@@ -1565,13 +1566,13 @@
 							}
 						},
 						"url": {
-							"raw": "{{base_url}}/products/757c809c-dda0-412b-9831-cb9bd0f62d1d",
+							"raw": "{{base_url}}/products/c68f92e7-3d55-4700-9248-ee3c385fa6c8",
 							"host": [
 								"{{base_url}}"
 							],
 							"path": [
 								"products",
-								"757c809c-dda0-412b-9831-cb9bd0f62d1d"
+								"c68f92e7-3d55-4700-9248-ee3c385fa6c8"
 							]
 						}
 					},
@@ -2662,6 +2663,56 @@
 							],
 							"path": [
 								"subproducts"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "UpdateSubproduct",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"// status code is 200",
+									"pm.test(\"Status code is 200\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"",
+									"// schema validation",
+									"pm.test(\"Schema validation\", function () {",
+									"    pm.response.to.have.jsonSchema(",
+									"        JSON.parse(pm.globals.get('SUBPRODUCT_OBJECT'))",
+									"    )",
+									"});",
+									""
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"request": {
+						"method": "PUT",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"id\": \"757c809c-dda0-412b-9831-cb9bd0f62d1d\",\n    \"temporal_resolution\": 3600,\n    \"temporal_duration\": 0\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{base_url}}/subproducts/757c809c-dda0-412b-9831-cb9bd0f62d1d",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"subproducts",
+								"757c809c-dda0-412b-9831-cb9bd0f62d1d"
 							]
 						}
 					},

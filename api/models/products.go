@@ -192,10 +192,9 @@ func UpdateProduct(db *pgxpool.Pool, p *Product) (*Product, error) {
 	var pID uuid.UUID
 	if err := pgxscan.Get(
 		context.Background(), db, &pID,
-		`UPDATE product SET temporal_resolution=$2, temporal_duration=$3, dss_fpart=$4, dss_datatype_id=$5,
-		                    parameter_id=$6, unit_id=$7, description=$8, suite_id=$9, label=$10
+		`UPDATE product SET temporal_resolution=$2, temporal_duration=$3
 		 WHERE id = $1
-		 RETURNING id`, p.ID, p.TemporalResolution, p.TemporalDuration, p.DssFpart, p.DssDatatypeID, p.ParameterID, p.UnitID, p.Description, p.SuiteID, p.Label,
+		 RETURNING id`, p.ID, p.TemporalResolution, p.TemporalDuration,
 	); err != nil {
 		return nil, err
 	}

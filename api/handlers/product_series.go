@@ -100,3 +100,28 @@ func CreateProductSeries(db *pgxpool.Pool) echo.HandlerFunc {
 
 	}
 }
+
+// UpdateProductSeries updates a single product series
+func UpdateProductSeries(db *pgxpool.Pool) echo.HandlerFunc {
+	return func(c echo.Context) error {
+		// Product Series ID from Route Params
+		pID, err := uuid.Parse(c.Param("product_id"))
+		if err != nil {
+			return c.String(http.StatusBadRequest, "Malformed ID")
+		}
+		// Product Series ID from Payload
+		var p models.ProductSeries
+		if err := c.Bind(&p); err != nil {
+			return c.JSON(http.StatusBadRequest, models.DefaultMessageBadRequest)
+		}
+		// Compare Product Series ID from Route Params to Product Series ID from Payload
+		if pID != p.ID {
+			return c.JSON(http.StatusBadRequest, models.DefaultMessageBadRequest)
+		}
+		pUpdated, err := models.UpdateProductSeries(db, &p)
+		if err != nil {
+			return c.JSON(http.StatusInternalServerError, models.DefaultMessageInternalServerError)
+		}
+		return c.JSON(http.StatusOK, pUpdated)
+	}
+}

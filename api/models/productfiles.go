@@ -26,14 +26,31 @@ type ProductfileAvailability struct {
 	IsAvailable bool      `json:"is_available"`
 }
 
-// ListProductfiles returns array of productfiles
-func ListProductfiles(db *pgxpool.Pool, ID uuid.UUID, after string, before string) ([]Productfile, error) {
+// ListProductFiles returns array of productfiles for a product
+func ListProductFiles(db *pgxpool.Pool, ID uuid.UUID, after string, before string) ([]Productfile, error) {
 	ff := make([]Productfile, 0)
 	if err := pgxscan.Select(
 		context.Background(), db, &ff,
 		`SELECT product_id, id, datetime, file, version, acquirablefile_id
 	     FROM productfile
 		 WHERE product_id = $1 AND datetime >= $2 AND datetime <= $3`,
+		ID, after, before,
+	); err != nil {
+		return make([]Productfile, 0), err
+	}
+	return ff, nil
+}
+
+// ListProductSeriesFiles returns array of productfiles for a product series
+func ListProductSeriesFiles(db *pgxpool.Pool, ID uuid.UUID, after string, before string) ([]Productfile, error) {
+	ff := make([]Productfile, 0)
+	if err := pgxscan.Select(
+		context.Background(), db, &ff,
+		`SELECT product_id, id, datetime, file, version, acquirablefile_id
+	     FROM productfile
+		 WHERE product_id IN (
+			SELECT id FROM product WHERE product_series_id = $1
+		 ) AND datetime >= $2 AND datetime <= $3`,
 		ID, after, before,
 	); err != nil {
 		return make([]Productfile, 0), err

@@ -109,6 +109,7 @@ func main() {
 	public.GET("/product_slugs", handlers.GetProductSeriesSlugs(db))
 	public.GET("/products", handlers.ListProductSeries(db))
 	public.GET("/products/:product_id", handlers.GetProductSeries(db))
+	public.GET("/products/:product_id/files", handlers.ListProductSeriesFiles(db))
 	public.GET("/products/:product_id/availability", handlers.GetProductSeriesAvailability(db))
 	private.POST("/products", handlers.CreateProductSeries(db),
 		middleware.IsAdmin,
@@ -128,6 +129,7 @@ func main() {
 	public.GET("/subproduct_slugs", handlers.GetProductSlugs(db))
 	public.GET("/subproducts", handlers.ListProducts(db))
 	public.GET("/subproducts/:product_id", handlers.GetProduct(db))
+	public.GET("/subproducts/:product_id/files", handlers.ListProductFiles(db))
 	public.GET("/subproducts/:product_id/availability", handlers.GetProductAvailability(db))
 	private.POST("/subproducts", handlers.CreateProduct(db),
 		middleware.IsAdmin,
@@ -144,7 +146,6 @@ func main() {
 
 	// Productfiles
 	public.GET("/products/:product_id/file-availability", handlers.GetProductFileAvailability(db))
-	public.GET("/products/:product_id/files", handlers.ListProductfiles(db))
 	private.POST("/productfiles", handlers.CreateProductfiles(db),
 		middleware.IsAdmin,
 	)

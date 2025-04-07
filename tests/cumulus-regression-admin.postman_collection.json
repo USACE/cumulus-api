@@ -1230,9 +1230,12 @@
 									"    \"items\": { ",
 									"        \"type\": \"object\",",
 									"        \"properties\": {",
+									"            \"product_id\": { \"type\": \"string\"},",
 									"            \"id\": { \"type\": \"string\"},",
 									"            \"datetime\": { \"type\": \"string\"},",
-									"            \"file\": { \"type\": \"string\"}",
+									"            \"file\": { \"type\": \"string\"},",
+									"            \"version\": { \"type\": \"string\"},",
+									"            \"acquirablefile_id\": { \"type\": \"string\"}",
 									"        },",
 									"        \"required\": [\"id\", \"datetime\", \"file\"],",
 									"        \"additionalProperties\": false",
@@ -1251,7 +1254,8 @@
 									"});",
 									""
 								],
-								"type": "text/javascript"
+								"type": "text/javascript",
+								"packages": {}
 							}
 						}
 					],
@@ -1259,23 +1263,23 @@
 						"method": "GET",
 						"header": [],
 						"url": {
-							"raw": "{{base_url}}/products/757c809c-dda0-412b-9831-cb9bd0f62d1d/files?after=2020-01-01&before=2020-02-01",
+							"raw": "{{base_url}}/products/c68f92e7-3d55-4700-9248-ee3c385fa6c8/files?after=2013-12-30&before=2014-01-02",
 							"host": [
 								"{{base_url}}"
 							],
 							"path": [
 								"products",
-								"757c809c-dda0-412b-9831-cb9bd0f62d1d",
+								"c68f92e7-3d55-4700-9248-ee3c385fa6c8",
 								"files"
 							],
 							"query": [
 								{
 									"key": "after",
-									"value": "2020-01-01"
+									"value": "2013-12-30"
 								},
 								{
 									"key": "before",
-									"value": "2020-02-01"
+									"value": "2014-01-02"
 								}
 							]
 						}
@@ -2518,33 +2522,37 @@
 					"response": []
 				},
 				{
-					"name": "Subproduct Ingest Status",
+					"name": "ListSubproductFiles",
 					"event": [
 						{
 							"listen": "test",
 							"script": {
 								"exec": [
-									"// validate JSON schema",
+									"// schema validator",
 									"var schema = {",
 									"    \"type\": \"array\",",
-									"    \"properties\": {",
-									"        \"slug\": { \"type\": \"string\" },",
-									"        \"latest_product_datetime\": {\"type\": [\"null\", \"string\"]},",
-									"        \"acceptable_timedelta\": {\"type\": [\"null\", \"string\"]},",
-									"        \"actual_timedelta\": {\"type\": [\"null\", \"string\"]},",
-									"        \"is_current\": {\"type\": \"boolean\"}",
-									"    },",
-									"    \"required\": [\"slug\", \"is_current\"],",
-									"    \"additionalProperties\": false",
+									"    \"items\": { ",
+									"        \"type\": \"object\",",
+									"        \"properties\": {",
+									"            \"product_id\": { \"type\": \"string\"},",
+									"            \"id\": { \"type\": \"string\"},",
+									"            \"datetime\": { \"type\": \"string\"},",
+									"            \"file\": { \"type\": \"string\"},",
+									"            \"version\": { \"type\": \"string\"},",
+									"            \"acquirablefile_id\": { \"type\": \"string\"}",
+									"        },",
+									"        \"required\": [\"id\", \"datetime\", \"file\"],",
+									"        \"additionalProperties\": false",
+									"    }",
 									"}",
 									"",
-									"pm.globals.set('PRODUCT_INGEST_OBJECT', JSON.stringify(schema));",
+									"pm.globals.set('PRODUCTFILE_ARRAY', JSON.stringify(schema));",
 									"",
 									"// status code is 200",
 									"pm.test(\"Status code is 200\", function () {",
 									"    pm.response.to.have.status(200);",
 									"});",
-									"// validate schema",
+									"// schema validation",
 									"pm.test(\"Schema validation\", function () {",
 									"    pm.response.to.have.jsonSchema(schema)",
 									"});",
@@ -2559,12 +2567,24 @@
 						"method": "GET",
 						"header": [],
 						"url": {
-							"raw": "{{base_url}}/subproduct_ingest_status",
+							"raw": "{{base_url}}/subproducts/757c809c-dda0-412b-9831-cb9bd0f62d1d/files?after=2013-12-30&before=2014-01-02",
 							"host": [
 								"{{base_url}}"
 							],
 							"path": [
-								"subproduct_ingest_status"
+								"subproducts",
+								"757c809c-dda0-412b-9831-cb9bd0f62d1d",
+								"files"
+							],
+							"query": [
+								{
+									"key": "after",
+									"value": "2013-12-30"
+								},
+								{
+									"key": "before",
+									"value": "2014-01-02"
+								}
 							]
 						}
 					},
@@ -2626,6 +2646,59 @@
 								"subproducts",
 								"757c809c-dda0-412b-9831-cb9bd0f62d1d",
 								"availability"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Subproduct Ingest Status",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"// validate JSON schema",
+									"var schema = {",
+									"    \"type\": \"array\",",
+									"    \"properties\": {",
+									"        \"slug\": { \"type\": \"string\" },",
+									"        \"latest_product_datetime\": {\"type\": [\"null\", \"string\"]},",
+									"        \"acceptable_timedelta\": {\"type\": [\"null\", \"string\"]},",
+									"        \"actual_timedelta\": {\"type\": [\"null\", \"string\"]},",
+									"        \"is_current\": {\"type\": \"boolean\"}",
+									"    },",
+									"    \"required\": [\"slug\", \"is_current\"],",
+									"    \"additionalProperties\": false",
+									"}",
+									"",
+									"pm.globals.set('PRODUCT_INGEST_OBJECT', JSON.stringify(schema));",
+									"",
+									"// status code is 200",
+									"pm.test(\"Status code is 200\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"// validate schema",
+									"pm.test(\"Schema validation\", function () {",
+									"    pm.response.to.have.jsonSchema(schema)",
+									"});",
+									""
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/subproduct_ingest_status",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"subproduct_ingest_status"
 							]
 						}
 					},

@@ -12,8 +12,8 @@ import (
 	"github.com/jackc/pgx/v4/pgxpool"
 )
 
-// ListProductfiles returns an array of Productfiles
-func ListProductfiles(db *pgxpool.Pool) echo.HandlerFunc {
+// ListProductFiles returns an array of Productfiles for a product
+func ListProductFiles(db *pgxpool.Pool) echo.HandlerFunc {
 	return func(c echo.Context) error {
 		// uuid
 		id, err := uuid.Parse(c.Param("product_id"))
@@ -32,7 +32,36 @@ func ListProductfiles(db *pgxpool.Pool) echo.HandlerFunc {
 			)
 		}
 
-		ff, err := models.ListProductfiles(db, id, after, before)
+		ff, err := models.ListProductFiles(db, id, after, before)
+		if err != nil {
+			return c.String(http.StatusInternalServerError, err.Error())
+		}
+
+		return c.JSON(http.StatusOK, ff)
+	}
+}
+
+// ListProductSeriesFiles returns an array of Productfiles for a product series
+func ListProductSeriesFiles(db *pgxpool.Pool) echo.HandlerFunc {
+	return func(c echo.Context) error {
+		// uuid
+		id, err := uuid.Parse(c.Param("product_id"))
+		if err != nil {
+			return c.String(http.StatusBadRequest, "Malformed ID")
+		}
+		// after
+		after := c.QueryParam("after")
+		// before
+		before := c.QueryParam("before")
+
+		if after == "" || before == "" {
+			return c.String(
+				http.StatusBadRequest,
+				"Missing query parameter 'after' or 'before'",
+			)
+		}
+
+		ff, err := models.ListProductSeriesFiles(db, id, after, before)
 		if err != nil {
 			return c.String(http.StatusInternalServerError, err.Error())
 		}

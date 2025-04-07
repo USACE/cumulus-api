@@ -1927,7 +1927,8 @@
 									"    pm.response.to.have.status(201);",
 									"});"
 								],
-								"type": "text/javascript"
+								"type": "text/javascript",
+								"packages": {}
 							}
 						}
 					],
@@ -1936,7 +1937,7 @@
 						"header": [],
 						"body": {
 							"mode": "raw",
-							"raw": "{\n\t\"datetime_start\": \"2020-11-18T06:00:00Z\",\n\t\"datetime_end\": \"2020-12-02T06:00:00Z\",\n\t\"watershed_id\": \"f019ffec-e9d3-48e6-ab74-eaa8fd8065e0\",\n\t\"product_id\": [\n\t\t\"e4fdadc7-5532-4910-9ed7-3c3690305d86\"\n\t]\n}",
+							"raw": "{\n\t\"datetime_start\": \"2020-11-18T06:00:00Z\",\n\t\"datetime_end\": \"2020-12-02T06:00:00Z\",\n\t\"watershed_id\": \"f019ffec-e9d3-48e6-ab74-eaa8fd8065e0\",\n\t\"product_id\": [\n\t\t\"fe54e18b-bab0-4161-ae3d-09e7b13993b2\"\n\t]\n}",
 							"options": {
 								"raw": {
 									"language": "json"

@@ -242,24 +242,3 @@ func GetProductAvailability(db *pgxpool.Pool, ID *uuid.UUID) (*Availability, err
 	}
 	return &a, nil
 }
-
-func TagProduct(db *pgxpool.Pool, productID *uuid.UUID, tagID *uuid.UUID) (*Product, error) {
-	if _, err := db.Exec(
-		context.Background(),
-		`INSERT INTO product_tags (product_id, tag_id) VALUES ($1, $2)
-		 ON CONFLICT ON CONSTRAINT unique_tag_product DO NOTHING`,
-		productID, tagID,
-	); err != nil {
-		return nil, err
-	}
-	return GetProduct(db, productID)
-}
-
-func UntagProduct(db *pgxpool.Pool, productID *uuid.UUID, tagID *uuid.UUID) (*Product, error) {
-	if _, err := db.Exec(
-		context.Background(), `DELETE FROM product_tags WHERE product_id=$1 AND tag_id=$2`, productID, tagID,
-	); err != nil {
-		return nil, err
-	}
-	return GetProduct(db, productID)
-}

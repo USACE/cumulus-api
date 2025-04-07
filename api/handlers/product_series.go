@@ -156,3 +156,45 @@ func UndeleteProductSeries(db *pgxpool.Pool) echo.HandlerFunc {
 		return c.JSON(http.StatusOK, p)
 	}
 }
+
+func TagProductSeries(db *pgxpool.Pool) echo.HandlerFunc {
+	return func(c echo.Context) error {
+		// Product ID
+		pID, err := uuid.Parse(c.Param("product_id"))
+		if err != nil {
+			return c.JSON(http.StatusBadRequest, models.DefaultMessageBadRequest)
+		}
+		// Tag ID
+		tID, err := uuid.Parse(c.Param("tag_id"))
+		if err != nil {
+			return c.JSON(http.StatusBadRequest, models.DefaultMessageBadRequest)
+		}
+		// Tag Product
+		p, err := models.TagProductSeries(db, &pID, &tID)
+		if err != nil {
+			return c.String(http.StatusInternalServerError, err.Error())
+		}
+		return c.JSON(http.StatusOK, &p)
+	}
+}
+
+func UntagProductSeries(db *pgxpool.Pool) echo.HandlerFunc {
+	return func(c echo.Context) error {
+		// Product ID
+		pID, err := uuid.Parse(c.Param("product_id"))
+		if err != nil {
+			return c.JSON(http.StatusBadRequest, models.DefaultMessageBadRequest)
+		}
+		// Tag ID
+		tID, err := uuid.Parse(c.Param("tag_id"))
+		if err != nil {
+			return c.JSON(http.StatusBadRequest, models.DefaultMessageBadRequest)
+		}
+		// Tag Product
+		p, err := models.UntagProductSeries(db, &pID, &tID)
+		if err != nil {
+			return c.JSON(http.StatusInternalServerError, models.DefaultMessageInternalServerError)
+		}
+		return c.JSON(http.StatusOK, &p)
+	}
+}

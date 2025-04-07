@@ -175,10 +175,10 @@ func main() {
 		middleware.IsAdmin,
 	)
 	// Tag or Untag Product
-	private.POST("/products/:product_id/tags/:tag_id", handlers.TagProduct(db),
+	private.POST("/products/:product_id/tags/:tag_id", handlers.TagProductSeries(db),
 		middleware.IsAdmin,
 	)
-	private.DELETE("/products/:product_id/tags/:tag_id", handlers.UntagProduct(db),
+	private.DELETE("/products/:product_id/tags/:tag_id", handlers.UntagProductSeries(db),
 		middleware.IsAdmin,
 	)
 

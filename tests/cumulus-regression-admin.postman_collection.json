@@ -1596,9 +1596,14 @@
 									"        JSON.parse(pm.globals.get('PRODUCT_OBJECT'))",
 									"    )",
 									"});",
+									"",
+									"pm.test(\"Product has tag\", function () {",
+									"    pm.expect(pm.response.json().tags).to.include(\"cc93b3f9-fbe1-4b35-8f9c-2d1515961c6a\");",
+									"});",
 									""
 								],
-								"type": "text/javascript"
+								"type": "text/javascript",
+								"packages": {}
 							}
 						}
 					],
@@ -1615,13 +1620,13 @@
 							}
 						},
 						"url": {
-							"raw": "{{base_url}}/products/757c809c-dda0-412b-9831-cb9bd0f62d1d/tags/cc93b3f9-fbe1-4b35-8f9c-2d1515961c6a",
+							"raw": "{{base_url}}/products/c68f92e7-3d55-4700-9248-ee3c385fa6c8/tags/cc93b3f9-fbe1-4b35-8f9c-2d1515961c6a",
 							"host": [
 								"{{base_url}}"
 							],
 							"path": [
 								"products",
-								"757c809c-dda0-412b-9831-cb9bd0f62d1d",
+								"c68f92e7-3d55-4700-9248-ee3c385fa6c8",
 								"tags",
 								"cc93b3f9-fbe1-4b35-8f9c-2d1515961c6a"
 							]
@@ -1647,9 +1652,13 @@
 									"        JSON.parse(pm.globals.get('PRODUCT_OBJECT'))",
 									"    )",
 									"});",
-									""
+									"",
+									"pm.test(\"Product doesn't have tag\", function () {",
+									"    pm.expect(pm.response.json().tags).to.not.include(\"cc93b3f9-fbe1-4b35-8f9c-2d1515961c6a\");",
+									"});"
 								],
-								"type": "text/javascript"
+								"type": "text/javascript",
+								"packages": {}
 							}
 						}
 					],
@@ -1666,13 +1675,13 @@
 							}
 						},
 						"url": {
-							"raw": "{{base_url}}/products/757c809c-dda0-412b-9831-cb9bd0f62d1d/tags/cc93b3f9-fbe1-4b35-8f9c-2d1515961c6a",
+							"raw": "{{base_url}}/products/c68f92e7-3d55-4700-9248-ee3c385fa6c8/tags/cc93b3f9-fbe1-4b35-8f9c-2d1515961c6a",
 							"host": [
 								"{{base_url}}"
 							],
 							"path": [
 								"products",
-								"757c809c-dda0-412b-9831-cb9bd0f62d1d",
+								"c68f92e7-3d55-4700-9248-ee3c385fa6c8",
 								"tags",
 								"cc93b3f9-fbe1-4b35-8f9c-2d1515961c6a"
 							]

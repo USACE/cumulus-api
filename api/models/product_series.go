@@ -208,3 +208,24 @@ func UndeleteProductSeries(db *pgxpool.Pool, pID *uuid.UUID) (*ProductSeries, er
 	}
 	return GetProductSeries(db, pID)
 }
+
+func TagProductSeries(db *pgxpool.Pool, productID *uuid.UUID, tagID *uuid.UUID) (*ProductSeries, error) {
+	if _, err := db.Exec(
+		context.Background(),
+		`INSERT INTO product_tags (product_series_id, tag_id) VALUES ($1, $2)
+		 ON CONFLICT ON CONSTRAINT unique_tag_product_series DO NOTHING`,
+		productID, tagID,
+	); err != nil {
+		return nil, err
+	}
+	return GetProductSeries(db, productID)
+}
+
+func UntagProductSeries(db *pgxpool.Pool, productID *uuid.UUID, tagID *uuid.UUID) (*ProductSeries, error) {
+	if _, err := db.Exec(
+		context.Background(), `DELETE FROM product_tags WHERE product_series_id=$1 AND tag_id=$2`, productID, tagID,
+	); err != nil {
+		return nil, err
+	}
+	return GetProductSeries(db, productID)
+}

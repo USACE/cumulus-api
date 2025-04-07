@@ -1372,19 +1372,19 @@
 						"method": "GET",
 						"header": [],
 						"url": {
-							"raw": "{{base_url}}/products/ae11dad4-7065-4963-8771-7f5aa1e94b5d/file-availability?date={{currentDateTime}}",
+							"raw": "{{base_url}}/products/c68f92e7-3d55-4700-9248-ee3c385fa6c8/file-availability?date=2014-01-01T12:00:00Z",
 							"host": [
 								"{{base_url}}"
 							],
 							"path": [
 								"products",
-								"ae11dad4-7065-4963-8771-7f5aa1e94b5d",
+								"c68f92e7-3d55-4700-9248-ee3c385fa6c8",
 								"file-availability"
 							],
 							"query": [
 								{
 									"key": "date",
-									"value": "{{currentDateTime}}"
+									"value": "2014-01-01T12:00:00Z"
 								}
 							]
 						}
@@ -2646,6 +2646,50 @@
 								"subproducts",
 								"757c809c-dda0-412b-9831-cb9bd0f62d1d",
 								"availability"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "ListSubproductFileAvailability",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"",
+									"// status code is 200",
+									"pm.test(\"Status code is 200\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"",
+									"",
+									""
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/subproducts/757c809c-dda0-412b-9831-cb9bd0f62d1d/file-availability?date=2014-01-01T12:00:00Z",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"subproducts",
+								"757c809c-dda0-412b-9831-cb9bd0f62d1d",
+								"file-availability"
+							],
+							"query": [
+								{
+									"key": "date",
+									"value": "2014-01-01T12:00:00Z"
+								}
 							]
 						}
 					},

@@ -89,6 +89,39 @@ func GetProductFileAvailability(db *pgxpool.Pool, ID uuid.UUID, interval string,
 	return avail, nil
 }
 
+func GetProductSeriesFileAvailability(db *pgxpool.Pool, ID uuid.UUID, interval string, d time.Time) ([]ProductfileAvailability, error) {
+	avail := make([]ProductfileAvailability, 0)
+	startTime := time.Date(d.Year(), d.Month(), d.Day(), 0, 0, 0, 0, d.Location()).Format(time.RFC3339)
+	endTime := time.Date(d.Year(), d.Month(), d.Day(), 23, 0, 0, 0, d.Location()).Format(time.RFC3339)
+	if err := pgxscan.Select(context.Background(), db, &avail,
+		`WITH hours AS (
+				SELECT generate_series(
+						$1::timestamp,  -- Start of the interval
+						$2::timestamp,  -- End of the interval
+						$3::interval
+				) AS hour
+		)
+		SELECT 
+				h.hour as datetime,
+				CASE 
+						WHEN pf.datetime IS NOT NULL THEN TRUE
+						ELSE FALSE
+				END AS is_available
+		FROM 
+				hours h
+		LEFT JOIN (
+			select * from productfile where product_id in (
+				SELECT id FROM product WHERE product_series_id = $4
+		 	) and datetime >= $5 and datetime <= $6
+		) pf ON date_trunc('hour', pf.datetime) = h.hour
+		ORDER BY 
+				h.hour`, startTime, endTime, interval, ID, startTime, endTime,
+	); err != nil {
+		return make([]ProductfileAvailability, 0), err
+	}
+	return avail, nil
+}
+
 // CreateProductfiles creates productfiles from an array of productfiles
 func CreateProductfiles(db *pgxpool.Pool, ff []Productfile) (int, error) {
 	savedCount := 0

@@ -93,6 +93,11 @@ func main() {
 		})
 	})
 
+	// Identity Provider Configuration Route
+	public.GET("/identity-provider/configuration", func(c echo.Context) error {
+		return handlers.GetIdentityProviderConfiguration(cfg.AuthEnvironment, c)
+	})
+
 	// Proxy to pg_featureserv
 	features := public.Group("/features")
 	features.Use(middleware.PgFeatureservProxy(cfg.PgFeatureservUrl))

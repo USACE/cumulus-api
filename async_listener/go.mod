@@ -1,6 +1,6 @@
 module github.com/USACE/cumulus-api/listener
 
-go 1.22
+go 1.24.2
 
 require (
 	github.com/USACE/go-simple-asyncer v0.0.0-20201015223104-446ae10887a8

@@ -1,5 +1,5 @@
 # FROM flyway/flyway
-FROM flyway/flyway:latest-alpine
+FROM ghcr.io/cwbi-apps/flyway:latest
 
 COPY . /flyway/sql/
 

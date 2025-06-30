@@ -27,7 +27,8 @@ RUN apt-get -y update && \
     pip install --no-cache-dir --upgrade pip && \
     pip install --no-cache-dir --upgrade setuptools && \
     pip install --no-cache-dir --upgrade wheel && \
-    pip install --no-cache-dir --upgrade pillow
+    pip install --no-cache-dir --upgrade pillow && \
+    pip install --no-cache-dir --upgrade hecdss
     # pip install --no-cache-dir --upgrade numpy
 
 

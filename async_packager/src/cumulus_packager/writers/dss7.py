@@ -1,22 +1,21 @@
 """DSS7 package writer"""
 
 import json
-import os
 import sys
 from collections import namedtuple
-from ctypes import c_char_p, c_float, c_int
 from pathlib import Path
 
 import numpy
 import pyplugs
 from codetiming import Timer
-from cumulus_packager import logger
+from cumulus_packager import dssutil, logger
 from cumulus_packager.configurations import PACKAGER_UPDATE_INTERVAL
 from cumulus_packager.packager.handler import PACKAGE_STATUS, update_status
 from osgeo import gdal, osr
 
 from hecdss import HecDss
 from hecdss.gridded_data import GriddedData
+from importlib.metadata import version, PackageNotFoundError
 
 gdal.UseExceptions()
 
@@ -53,8 +52,12 @@ def writer(
         FQPN to dss file
     """
 
+    try:
+        pkg_version = version("hecdss")
+    except Exception:
+        pkg_version = "unknown"
     logger.info(
-        f"Write Records to DSS using TiffDss {os.getenv('TIFFDSS_VERSION')}",
+        f"Write Records to DSS using hecdss {pkg_version}",
     )
 
     # convert the strings back to json objects; needed for pyplugs
@@ -76,11 +79,13 @@ def writer(
         grid_type = 430
     else:
         grid_type_name = "SHG"
-        grid_type = 420
+        grid_type = dssutil.dss_grid_type[grid_type_name]
     logger.info(
         f"grid type name {grid_type_name}",
     )
+    srs_definition = dssutil.spatial_reference_definition[grid_type_name]
     tz_name = "GMT"
+    tz_offset = dssutil.time_zone[tz_name]
     is_interval = 1
 
     dssfilename = Path(dst).joinpath(id).with_suffix(".dss").as_posix()
@@ -90,7 +95,7 @@ def writer(
             dsspathname = f"/{grid_type_name}/{_extent_name}/{TifCfg.dss_cpart}/{TifCfg.dss_dpart}/{TifCfg.dss_epart}/{TifCfg.dss_fpart}/"
 
             try:
-                data_type = TifCfg.dss_datatype
+                data_type = dssutil.data_type[TifCfg.dss_datatype]
                 ds = gdal.Open(f"/vsis3_streaming/{TifCfg.bucket}/{TifCfg.key}")
 
                 # GDAL Warp the Tiff to what we need for DSS
@@ -138,9 +143,11 @@ def writer(
                     numberOfCellsY=ysize,
                     srsName=grid_type_name,
                     srsDefinitionType=1,
+                    srsDefinition=srs_definition,
                     dataUnits=TifCfg.dss_unit,
                     dataSource="INTERNAL",
                     timeZoneID=tz_name,
+                    timeZoneRawOffset=tz_offset,
                     isInterval=is_interval,
                     isTimeStamped=1,
                     cellSize=cellsize,
@@ -158,7 +165,7 @@ def writer(
                 logger.debug(f'Processed "{TifCfg.key}" in {elapsed_time:.4f} seconds')
                 if result != 0:
                     logger.info(
-                        f'TiffDss write record failed for "{TifCfg.key}": {result}'
+                        f'HEC-DSS-PY write record failed for "{TifCfg.key}": {result}'
                     )
 
                 _progress = int(((idx + 1) / gridcount) * 100)

@@ -1,13 +1,13 @@
-#This is a basic workflow to help you get started with Actions
-name: Build Migration Image, Push to Dev
+# This is a basic workflow to help you get started with Actions
+name: Build Geoprocess Image, Push to Prod
 
 # Controls when the action will run. Invokes the workflow on push events but only for the main branch
 on:
   push:
-    branches: [cwbi-dev]
+    branches: [cwbi-prod]
     paths:
-      - .github/workflows/cwbi-dev-build-push-migration.yml
-      - 'sql/**'
+      - .github/workflows/cwbi-prod-build-push-geoproc.yml
+      - 'async_geoprocess/**'
   workflow_dispatch:
 
 env:
@@ -18,7 +18,7 @@ permissions:
   id-token: write # This is required for requesting the JWT
   contents: read # This is required for actions/checkout
 jobs:
-  Build-Push-Migration-to-Dev:
+  Build-Push-GeoProc-to-Prod:
     runs-on: ubuntu-latest
     steps:
       - name: Git clone the repository
@@ -27,7 +27,7 @@ jobs:
         uses: aws-actions/configure-aws-credentials@v4
         with:
           aws-region: us-gov-west-1
-          role-to-assume: arn:aws-us-gov:iam::718787032875:role/github-actions-ecr-cumulus
+          role-to-assume: arn:aws-us-gov:iam::648157167324:role/github-actions-ecr-cumulus
           output-credentials: true
       # Hello from AWS: WhoAmI
       - name: Sts GetCallerIdentity
@@ -41,14 +41,14 @@ jobs:
       - name: Build Image; Push to ECR
         env:
           ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
-          ECR_REPOSITORY: cumulus-migration
+          ECR_REPOSITORY: cumulus-geoprocess
           IMAGE_TAG: latest
         run: |
-          docker build sql \
+          docker build --build-arg GEOPROC_PACKAGE=main:geoproc async_geoprocess \
           --tag $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG \
-          --tag $ECR_REGISTRY/$ECR_REPOSITORY:dev 
+          --tag $ECR_REGISTRY/$ECR_REPOSITORY:prod 
           docker push $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
-          docker push $ECR_REGISTRY/$ECR_REPOSITORY:dev
+          docker push $ECR_REGISTRY/$ECR_REPOSITORY:prod
       - name: ECR Logout
         if: always()
         run: docker logout ${{ steps.login-ecr.outputs.registry }}

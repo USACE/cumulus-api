@@ -1,6 +1,4 @@
-"""DSS7 package writer
-
-"""
+"""DSS7 package writer"""
 
 import json
 import os
@@ -86,7 +84,7 @@ def writer(
     is_interval = 1
 
     dssfilename = Path(dst).joinpath(id).with_suffix(".dss").as_posix()
-    with HecDss.open(dssfilename) as dss:
+    with HecDss(dssfilename) as dss:
         for idx, tif in enumerate(src):
             TifCfg = namedtuple("TifCfg", tif)(**tif)
             dsspathname = f"/{grid_type_name}/{_extent_name}/{TifCfg.dss_cpart}/{TifCfg.dss_dpart}/{TifCfg.dss_epart}/{TifCfg.dss_fpart}/"
@@ -126,7 +124,8 @@ def writer(
                 adfGeoTransform = warp_ds.GetGeoTransform()
                 llx = int(adfGeoTransform[0] / adfGeoTransform[1])
                 lly = int(
-                    (adfGeoTransform[5] * ysize + adfGeoTransform[3]) / adfGeoTransform[1]
+                    (adfGeoTransform[5] * ysize + adfGeoTransform[3])
+                    / adfGeoTransform[1]
                 )
 
                 gd = GriddedData.create(
@@ -138,7 +137,7 @@ def writer(
                     numberOfCellsX=xsize,
                     numberOfCellsY=ysize,
                     srsName=grid_type_name,
-                    srcDefinitionType=1,
+                    srsDefinitionType=1,
                     dataUnits=TifCfg.dss_unit,
                     dataSource="INTERNAL",
                     timeZoneID=tz_name,
@@ -147,7 +146,7 @@ def writer(
                     cellSize=cellsize,
                     xCoordOfGridCellZero=0.0,
                     yCoordOfGridCellZero=0.0,
-                    nullValue = nodata if nodata is not None else 0.0,
+                    nullValue=nodata if nodata is not None else 0.0,
                     data=data,
                 )
 
@@ -158,7 +157,9 @@ def writer(
                 elapsed_time = t.stop()
                 logger.debug(f'Processed "{TifCfg.key}" in {elapsed_time:.4f} seconds')
                 if result != 0:
-                    logger.info(f'TiffDss write record failed for "{TifCfg.key}": {result}')
+                    logger.info(
+                        f'TiffDss write record failed for "{TifCfg.key}": {result}'
+                    )
 
                 _progress = int(((idx + 1) / gridcount) * 100)
                 # Update progress at predefined interval

@@ -9,9 +9,6 @@ ENV GDAL_DISABLE_READDIR_ON_OPEN=EMPTY_DIR
 
 ENV PACKAGE=async_packager
 
-ENV TIFFDSS_VERSION=v0.2.2
-ENV TIFFDSS=tiffdss_ubuntu-latest
-
 # solving possible issue of ATP behind a proxy
 RUN cat <<EOF > /etc/apt/apt.conf.d/99proxy
 Acquire::http::Pipeline-Depth 0;
@@ -40,14 +37,6 @@ COPY . .
 
 # pip install the package and upgrade outdated packages
 RUN pip3 install /app/${PACKAGE}/
-
-# get libtiffdss.so
-RUN curl -L https://github.com/HydrologicEngineeringCenter/tiffdss/releases/download/${TIFFDSS_VERSION}/${TIFFDSS}_${TIFFDSS_VERSION}.tar.gz \
-    --output ${TIFFDSS}_${TIFFDSS_VERSION}.tar.gz && \
-    tar -zxvf ${TIFFDSS}_${TIFFDSS_VERSION}.tar.gz && \
-    mv libtiffdss.so /usr/lib/ && \
-    mv tiffdss /usr/local/bin/ && \
-    rm -f ${TIFFDSS}_${TIFFDSS_VERSION}.tar.gz tiffdss *.o
 
 RUN useradd appuser && \
     mkdir -p -m 775 docs && \

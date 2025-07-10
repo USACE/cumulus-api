@@ -95,6 +95,7 @@ def writer(
             dsspathname = f"/{grid_type_name}/{_extent_name}/{TifCfg.dss_cpart}/{TifCfg.dss_dpart}/{TifCfg.dss_epart}/{TifCfg.dss_fpart}/"
 
             try:
+
                 data_type = dssutil.data_type[TifCfg.dss_datatype]
                 ds = gdal.Open(f"/vsis3_streaming/{TifCfg.bucket}/{TifCfg.key}")
 
@@ -121,7 +122,7 @@ def writer(
                 data = raster.ReadAsArray(resample_alg=gdal.gdalconst.GRIORA_Bilinear)
                 # Flip the dataset up/down because tif and dss have different origins
                 data = numpy.flipud(data)
-                data_flat = data.flatten()
+                # data_flat = data.flatten()
 
                 # GeoTransforma and lower X Y
                 xsize = warp_ds.RasterXSize
@@ -162,7 +163,9 @@ def writer(
                 t.start()
                 result = dss.put(gd)
                 elapsed_time = t.stop()
-                logger.debug(f'Processed "{TifCfg.key}" in {elapsed_time:.4f} seconds')
+                logger.info(
+                    f'DSS put Processed "{TifCfg.key}" in {elapsed_time:.4f} seconds'
+                )
                 if result != 0:
                     logger.info(
                         f'HEC-DSS-PY write record failed for "{TifCfg.key}": {result}'

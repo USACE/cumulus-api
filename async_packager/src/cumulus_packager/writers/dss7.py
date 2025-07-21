@@ -122,7 +122,6 @@ def writer(
                 data = raster.ReadAsArray(resample_alg=gdal.gdalconst.GRIORA_Bilinear)
                 # Flip the dataset up/down because tif and dss have different origins
                 data = numpy.flipud(data)
-                # data_flat = data.flatten()
 
                 # GeoTransforma and lower X Y
                 xsize = warp_ds.RasterXSize
@@ -163,7 +162,7 @@ def writer(
                 t.start()
                 result = dss.put(gd)
                 elapsed_time = t.stop()
-                logger.info(
+                logger.debug(
                     f'DSS put Processed "{TifCfg.key}" in {elapsed_time:.4f} seconds'
                 )
                 if result != 0:

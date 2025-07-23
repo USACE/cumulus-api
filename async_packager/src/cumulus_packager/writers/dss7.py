@@ -122,7 +122,11 @@ def writer(
                 data = raster.ReadAsArray(resample_alg=gdal.gdalconst.GRIORA_Bilinear)
                 # Flip the dataset up/down because tif and dss have different origins
                 data = numpy.flipud(data)
-
+                DSS_UNDEFINED_VALUE = -3.4028234663852886e+38
+                data = numpy.array(data, dtype=numpy.float64)
+                numpy.putmask(
+                    data, data == nodata, numpy.nan
+                )  # Replace nodata with NaN for processing
                 # GeoTransforma and lower X Y
                 xsize = warp_ds.RasterXSize
                 ysize = warp_ds.RasterYSize
@@ -153,7 +157,7 @@ def writer(
                     cellSize=cellsize,
                     xCoordOfGridCellZero=0.0,
                     yCoordOfGridCellZero=0.0,
-                    nullValue=nodata if nodata is not None else 0.0,
+                    nullValue=DSS_UNDEFINED_VALUE,
                     data=data,
                 )
 

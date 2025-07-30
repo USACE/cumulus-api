@@ -1,27 +1,10 @@
-"""Module 'heclib'
+"""Module 'dssutil' for handling DSS grids
 
 Enumerations, constants and functions
 
 """
 
-from ctypes import (
-    CDLL,
-    POINTER,
-    LibraryLoader,
-    Structure,
-    c_char_p,
-    c_float,
-    c_int,
-    c_void_p,
-    pointer,
-)
 from enum import Enum, auto
-
-import numpy
-
-# libtiffdss.so is compiled and put in /usr/lib during image creation
-tiffdss = LibraryLoader(CDLL).LoadLibrary("libtiffdss.so")
-"""ctypes.CDLL: tiff to dss shared object"""
 
 FLOAT_MAX = 3.40282347e38
 UNDEFINED = -FLOAT_MAX
@@ -160,87 +143,3 @@ class TimeZone(Enum):
 
 
 time_zone = {i.name: i.value for i in TimeZone}
-
-
-class zStructSpatialGrid(Structure):
-    _fields_ = [
-        ("structType", c_int),
-        ("pathname", c_char_p),
-        ("_structVersion", c_int),
-        ("_type", c_int),
-        ("_version", c_int),
-        ("_dataUnits", c_char_p),
-        ("_dataType", c_int),
-        ("_dataSource", c_char_p),
-        ("_lowerLeftCellX", c_int),
-        ("_lowerLeftCellY", c_int),
-        ("_numberOfCellsX", c_int),
-        ("_numberOfCellsY", c_int),
-        ("_cellSize", c_float),
-        ("_compressionMethod", c_int),
-        ("_sizeofCompressedElements", c_int),
-        ("_compressionParameters", c_void_p),
-        ("_srsName", c_char_p),
-        ("_srsDefinitionType", c_int),
-        ("_srsDefinition", c_char_p),
-        ("_xCoordOfGridCellZero", c_float),
-        ("_yCoordOfGridCellZero", c_float),
-        ("_nullValue", c_float),
-        ("_timeZoneID", c_char_p),
-        ("_timeZoneRawOffset", c_int),
-        ("_isInterval", c_int),
-        ("_isTimeStamped", c_int),
-        ("_numberOfRanges", c_int),
-        ("_storageDataType", c_int),
-        ("_maxDataValue", c_void_p),
-        ("_minDataValue", c_void_p),
-        ("_meanDataValue", c_void_p),
-        ("_rangeLimitTable", c_void_p),
-        ("_numberEqualOrExceedingRangeLimit", c_int),
-        ("_data", c_void_p),
-    ]
-
-    def __init__(self, *args, **kw):
-        self._nullValue = UNDEFINED
-        super().__init__(*args, **kw)
-
-
-def zwrite_record(
-    dssfilename: str,
-    gridStructStore: zStructSpatialGrid,
-    data_flat: numpy,
-):
-    """Write the data array to DSS record using the 'writeRecord' C function
-
-    Parameters
-    ----------
-    dssfilename : str
-        DSS file name and path
-    gridStructStore : zStructSpatialGrid
-        ctypes structure
-    data_flat : numpy
-        1D numpy array
-    gridStats : GridStats
-        ctypes structure
-
-    Returns
-    -------
-    int
-        Response from the C function
-    """
-    ND_POINTER_1 = numpy.ctypeslib.ndpointer(dtype=numpy.float32, ndim=1, flags="C")
-
-    tiffdss.writeRecord_External.argtypes = (
-        c_char_p,
-        POINTER(zStructSpatialGrid),
-        ND_POINTER_1,
-    )
-    tiffdss.writeRecord_External.restype = c_int
-
-    res = tiffdss.writeRecord_External(
-        c_char_p(dssfilename.encode()),
-        pointer(gridStructStore),
-        data_flat,
-    )
-
-    return res

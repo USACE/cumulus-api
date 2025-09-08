@@ -81,7 +81,6 @@ services:
       context: async_packager
       args:
         - GDAL_TAG:ubuntu-full-3.9.1
-        - TIFFDSS_VERSION=v0.2.2
     # entrypoint: sleep infinity # override the Dockerfile entrypoint
     environment:
       - AWS_SQS_ENDPOINT=elasticmq:9324

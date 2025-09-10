@@ -1,7 +1,9 @@
 package handlers
 
 import (
+	"encoding/json"
 	"net/http"
+	"time"
 
 	"github.com/USACE/cumulus-api/api/config"
 	"github.com/USACE/cumulus-api/api/messages"
@@ -74,12 +76,111 @@ func ListMyDownloads(db *pgxpool.Pool) echo.HandlerFunc {
 // CreateDownload creates record of a new download
 func CreateDownload(db *pgxpool.Pool, cfg *config.Config) echo.HandlerFunc {
 	return func(c echo.Context) error {
-		//need to check if products provided are valid uuids for existing products
-		//sanity check on dates in time windows and geometry??
-		var dr models.DownloadRequest
-		if err := c.Bind(&dr); err != nil {
+		// Parse the raw request to handle GeoJSON
+		var rawRequest map[string]interface{}
+		if err := c.Bind(&rawRequest); err != nil {
 			return c.String(http.StatusBadRequest, err.Error())
 		}
+		
+		// Build the download request
+		var dr models.DownloadRequest
+		
+		// Parse datetime fields
+		if dtStart, ok := rawRequest["datetime_start"].(string); ok {
+			if t, err := time.Parse(time.RFC3339, dtStart); err == nil {
+				dr.DatetimeStart = t
+			} else {
+				return c.JSON(http.StatusBadRequest, messages.NewMessage("Invalid datetime_start format"))
+			}
+		}
+		
+		if dtEnd, ok := rawRequest["datetime_end"].(string); ok {
+			if t, err := time.Parse(time.RFC3339, dtEnd); err == nil {
+				dr.DatetimeEnd = t
+			} else {
+				return c.JSON(http.StatusBadRequest, messages.NewMessage("Invalid datetime_end format"))
+			}
+		}
+		
+		// Parse watershed_id if provided
+		if wid, ok := rawRequest["watershed_id"].(string); ok {
+			if id, err := uuid.Parse(wid); err == nil {
+				dr.WatershedID = &id
+			}
+		}
+		
+		// Parse user_region_id if provided - load the region's GeoJSON
+		if regionID, ok := rawRequest["user_region_id"].(string); ok {
+			if rid, err := uuid.Parse(regionID); err == nil {
+				// Get the user's sub
+				sub, err := GetSub(c)
+				if err != nil {
+					return c.JSON(http.StatusUnauthorized, models.DefaultMessageUnauthorized)
+				}
+				
+				// Fetch the user region
+				region, err := models.GetUserRegion(db, &rid, sub)
+				if err != nil {
+					return c.JSON(http.StatusBadRequest, messages.NewMessage("User region not found or not accessible"))
+				}
+				
+				// Use the region's GeoJSON and name
+				geojsonStr := string(region.GeoJSON)
+				dr.ClipGeoJSON = &geojsonStr
+				dr.ClipRegionName = &region.Name
+			}
+		}
+		
+		// Parse product_id array
+		if products, ok := rawRequest["product_id"].([]interface{}); ok {
+			dr.ProductID = make([]uuid.UUID, 0)
+			for _, p := range products {
+				if pid, ok := p.(string); ok {
+					if id, err := uuid.Parse(pid); err == nil {
+						dr.ProductID = append(dr.ProductID, id)
+					}
+				}
+			}
+		}
+		
+		// Parse format
+		if format, ok := rawRequest["format"].(string); ok {
+			dr.Format = &format
+		}
+		
+		// Parse clip_region_name (if not set from user_region)
+		if dr.ClipRegionName == nil {
+			if name, ok := rawRequest["clip_region_name"].(string); ok {
+				dr.ClipRegionName = &name
+			}
+		}
+		
+		// Parse and convert clip_geojson to string (if not set from user_region)
+		if dr.ClipGeoJSON == nil {
+			if geojson, ok := rawRequest["clip_geojson"]; ok && geojson != nil {
+				geojsonBytes, err := json.Marshal(geojson)
+				if err != nil {
+					return c.JSON(http.StatusBadRequest, messages.NewMessage("Invalid GeoJSON format"))
+				}
+				geojsonStr := string(geojsonBytes)
+				dr.ClipGeoJSON = &geojsonStr
+			}
+		}
+		
+		// Validate that either watershed_id, clip_geojson, or user_region_id was provided
+		if dr.WatershedID == nil && dr.ClipGeoJSON == nil {
+			return c.JSON(
+				http.StatusBadRequest,
+				messages.NewMessage("Either watershed_id, user_region_id, or clip_geojson must be provided"),
+			)
+		}
+		
+		// If both are provided, prefer custom clip region
+		if dr.WatershedID != nil && dr.ClipGeoJSON != nil {
+			// Log or handle as needed - using custom region over watershed
+			dr.WatershedID = nil // Clear watershed ID to use custom region
+		}
+		
 		// If output format unspecified, use default format
 		if dr.Format == nil {
 			dr.Format = &cfg.DownloadDefaultFormat
@@ -109,13 +210,11 @@ func CreateDownload(db *pgxpool.Pool, cfg *config.Config) echo.HandlerFunc {
 	}
 }
 
-// // GetDownload gets a single download
+// GetDownload gets a single download
 func GetDownload(db *pgxpool.Pool) echo.HandlerFunc {
 	return func(c echo.Context) error {
-
 		downloadID, err := uuid.Parse(c.Param("download_id"))
 		if err != nil {
-			//return c.String(http.StatusBadRequest, "Malformed ID")
 			return c.String(http.StatusBadRequest, err.Error())
 		}
 		dl, err := models.GetDownload(db, &downloadID)
@@ -153,10 +252,9 @@ func GetDownloadPackagerRequest(db *pgxpool.Pool) echo.HandlerFunc {
 	}
 }
 
-//UpdateDownload updates the status, progress and datetime_end from the lambda function
+// UpdateDownload updates the status, progress and datetime_end from the lambda function
 func UpdateDownload(db *pgxpool.Pool) echo.HandlerFunc {
 	return func(c echo.Context) error {
-
 		var u models.PackagerInfo
 		if err := c.Bind(&u); err != nil {
 			return c.String(http.StatusBadRequest, err.Error())
@@ -177,10 +275,9 @@ func UpdateDownload(db *pgxpool.Pool) echo.HandlerFunc {
 	}
 }
 
-// // GetDownloadMetrics returns metrics
+// GetDownloadMetrics returns metrics
 func GetDownloadMetrics(db *pgxpool.Pool) echo.HandlerFunc {
 	return func(c echo.Context) error {
-
 		dm, err := models.GetDownloadMetrics(db)
 		if err != nil {
 			return c.String(http.StatusInternalServerError, err.Error())

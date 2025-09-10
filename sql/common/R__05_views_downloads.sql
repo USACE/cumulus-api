@@ -15,11 +15,38 @@ CREATE OR REPLACE VIEW v_download AS (
         s.name             AS status,
         dp.product_id      AS product_id,
         f.abbreviation     AS format,
-        d.manifest         AS manifest
+        d.manifest         AS manifest,
+        d.clip_geojson     AS clip_geojson,
+        d.clip_region_name AS clip_region_name,
+        -- Return either custom clip region bbox or watershed bbox
+        CASE 
+            WHEN d.clip_geojson IS NOT NULL THEN
+                ARRAY[
+                    ST_XMin(ST_Transform(ST_GeomFromGeoJSON(d.clip_geojson), 5070))::FLOAT,
+                    ST_YMin(ST_Transform(ST_GeomFromGeoJSON(d.clip_geojson), 5070))::FLOAT,
+                    ST_XMax(ST_Transform(ST_GeomFromGeoJSON(d.clip_geojson), 5070))::FLOAT,
+                    ST_YMax(ST_Transform(ST_GeomFromGeoJSON(d.clip_geojson), 5070))::FLOAT
+                ]
+            WHEN w.geometry IS NOT NULL THEN
+                ARRAY[
+                    ST_XMin(w.geometry)::FLOAT,
+                    ST_YMin(w.geometry)::FLOAT,
+                    ST_XMax(w.geometry)::FLOAT,
+                    ST_YMax(w.geometry)::FLOAT
+                ]
+            ELSE NULL
+        END AS clip_bbox,
+        -- Return the clip region name
+        CASE
+            WHEN d.clip_geojson IS NOT NULL THEN
+                COALESCE(d.clip_region_name, 'Custom Region')
+            ELSE
+                w.name
+        END AS clip_name
     FROM download d
         INNER JOIN download_format f ON f.id = d.download_format_id
         INNER JOIN download_status s ON d.status_id = s.id
-        INNER JOIN watershed w on w.id = d.watershed_id
+        LEFT JOIN watershed w on w.id = d.watershed_id
         INNER JOIN (
             SELECT array_agg(product_id) as product_id,
                     download_id

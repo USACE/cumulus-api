@@ -32,66 +32,6 @@ CREATE INDEX idx_user_region_geometry ON user_region USING GIST(geometry);
 CREATE INDEX idx_user_region_public ON user_region(is_public) WHERE is_public = TRUE;
 CREATE INDEX idx_user_region_tags ON user_region USING GIN(tags);
 
--- Function to validate GeoJSON before saving
-CREATE OR REPLACE FUNCTION validate_user_region_geojson()
-RETURNS TRIGGER AS $$
-BEGIN
-    -- Validate the GeoJSON
-    IF NEW.geojson IS NULL OR NEW.geojson = '' THEN
-        RAISE EXCEPTION 'GeoJSON cannot be empty';
-    END IF;
-    
-    -- Try to parse it as geometry
-    BEGIN
-        PERFORM ST_GeomFromGeoJSON(NEW.geojson);
-    EXCEPTION
-        WHEN OTHERS THEN
-            RAISE EXCEPTION 'Invalid GeoJSON format: %', SQLERRM;
-    END;
-    
-    -- Validate the geometry
-    IF NOT ST_IsValid(ST_GeomFromGeoJSON(NEW.geojson)) THEN
-        RAISE EXCEPTION 'Invalid geometry in GeoJSON';
-    END IF;
-    
-    -- Update the updated_at timestamp
-    NEW.updated_at = NOW();
-    
-    RETURN NEW;
-END;
-$$ LANGUAGE plpgsql;
-
--- Add trigger for validation
-CREATE TRIGGER validate_user_region_before_insert_update
-    BEFORE INSERT OR UPDATE ON user_region
-    FOR EACH ROW
-    EXECUTE FUNCTION validate_user_region_geojson();
-
--- View for user regions with additional computed fields
-CREATE OR REPLACE VIEW v_user_region AS
-SELECT 
-    ur.id,
-    ur.sub,
-    ur.name,
-    ur.description,
-    ur.geojson,
-    ur.bbox,
-    ur.area_sqkm,
-    ur.created_at,
-    ur.updated_at,
-    ur.is_public,
-    ur.tags,
-    -- Count how many times this region has been used in downloads
-    (SELECT COUNT(*) 
-     FROM download d 
-     WHERE d.sub = ur.sub 
-       AND d.clip_region_name = ur.name) AS usage_count
-FROM user_region ur;
-
--- Grant permissions (commented out if roles don't exist yet)
--- GRANT SELECT ON user_region, v_user_region TO cumulus_reader;
--- GRANT INSERT, UPDATE, DELETE ON user_region TO cumulus_writer;
-
 COMMENT ON TABLE user_region IS 'Stores user-defined geographic regions for reuse in downloads and searches';
 COMMENT ON COLUMN user_region.sub IS 'User who created the region';
 COMMENT ON COLUMN user_region.name IS 'User-friendly name for the region';

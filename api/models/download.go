@@ -26,17 +26,16 @@ type DownloadStatus struct {
 }
 
 // DownloadRequest holds all information from a download request coming from a user
-// TODO; Update DownloadRequest to accept a bbox instead of an explicit WatershedID
-// Could choose to leave WatershedID as optional field for metrics tracking by Watershed
-// TODO; Sub has been changed to a NOT NULL field in the database. Investigate changing *uuid.UUID
-// to uuid.UUID
+// Supports both watershed-based and custom GeoJSON region-based downloads
 type DownloadRequest struct {
-	Sub           *uuid.UUID  `json:"sub" db:"sub"`
-	DatetimeStart time.Time   `json:"datetime_start" db:"datetime_start"`
-	DatetimeEnd   time.Time   `json:"datetime_end" db:"datetime_end"`
-	WatershedID   uuid.UUID   `json:"watershed_id" db:"watershed_id"`
-	ProductID     []uuid.UUID `json:"product_id" db:"product_id"`
-	Format        *string     `json:"format" db:"format"`
+	Sub             *uuid.UUID      `json:"sub" db:"sub"`
+	DatetimeStart   time.Time       `json:"datetime_start" db:"datetime_start"`
+	DatetimeEnd     time.Time       `json:"datetime_end" db:"datetime_end"`
+	WatershedID     *uuid.UUID      `json:"watershed_id,omitempty" db:"watershed_id"`
+	ProductID       []uuid.UUID     `json:"product_id" db:"product_id"`
+	Format          *string         `json:"format" db:"format"`
+	ClipGeoJSON     *string         `json:"clip_geojson,omitempty" db:"clip_geojson"`  // GeoJSON string from database
+	ClipRegionName  *string         `json:"clip_region_name,omitempty" db:"clip_region_name"`
 }
 
 // Download holds all information about a download
@@ -46,8 +45,10 @@ type Download struct {
 	DownloadStatus
 	PackagerInfo
 	// Include Watershed Name and Watershed Slug for Convenience
-	WatershedSlug string `json:"watershed_slug" db:"watershed_slug"`
-	WatershedName string `json:"watershed_name" db:"watershed_name"`
+	WatershedSlug   *string     `json:"watershed_slug,omitempty" db:"watershed_slug"`
+	WatershedName   *string     `json:"watershed_name,omitempty" db:"watershed_name"`
+	ClipBbox        []float64   `json:"clip_bbox,omitempty" db:"clip_bbox"`
+	ClipName        string      `json:"clip_name,omitempty" db:"clip_name"`
 }
 
 // PackagerInfo holds all information Packager provides after a download starts
@@ -91,7 +92,8 @@ type PackagerContentItem struct {
 
 var listDownloadsSQL = fmt.Sprintf(
 	`SELECT id, sub, datetime_start, datetime_end, progress, ('%s' || '/' || file) as file,
-	   processing_start, processing_end, status_id, watershed_id, watershed_slug, watershed_name, status, product_id, format, manifest
+	   processing_start, processing_end, status_id, watershed_id, watershed_slug, watershed_name, 
+	   status, product_id, format, manifest, clip_geojson, clip_region_name, clip_bbox, clip_name
 	   FROM v_download
 	`, cfg.StaticHost,
 )
@@ -180,14 +182,25 @@ func GetDownloadPackagerRequest(db *pgxpool.Pool, downloadID *uuid.UUID) (*Packa
 		)
 		SELECT d.id AS download_id,
 		       json_build_object(
-				   'name', w.name,
-				   'bbox', ARRAY[
-					   ST_XMin(ST_Transform(w.geometry,w.output_srid)),
-					   ST_YMin(ST_Transform(w.geometry,w.output_srid)),
-					   ST_XMax(ST_Transform(w.geometry,w.output_srid)),
-					   ST_YMax(ST_Transform(w.geometry,w.output_srid))
-					],
-					'srid', w.output_srid
+				   'name', CASE 
+				       WHEN d.clip_geojson IS NOT NULL THEN COALESCE(d.clip_region_name, 'Custom Region')
+				       ELSE w.name 
+				   END,
+				   'bbox', CASE
+				       WHEN d.clip_geojson IS NOT NULL THEN ARRAY[
+					       ST_XMin(ST_Transform(ST_GeomFromGeoJSON(d.clip_geojson), COALESCE(w.output_srid, 5070))),
+					       ST_YMin(ST_Transform(ST_GeomFromGeoJSON(d.clip_geojson), COALESCE(w.output_srid, 5070))),
+					       ST_XMax(ST_Transform(ST_GeomFromGeoJSON(d.clip_geojson), COALESCE(w.output_srid, 5070))),
+					       ST_YMax(ST_Transform(ST_GeomFromGeoJSON(d.clip_geojson), COALESCE(w.output_srid, 5070)))
+					   ]
+				       ELSE ARRAY[
+					       ST_XMin(ST_Transform(w.geometry,w.output_srid)),
+					       ST_YMin(ST_Transform(w.geometry,w.output_srid)),
+					       ST_XMax(ST_Transform(w.geometry,w.output_srid)),
+					       ST_YMax(ST_Transform(w.geometry,w.output_srid))
+					   ]
+				   END,
+				   'srid', COALESCE(w.output_srid, 5070)
 			   ) AS extent,
 			   CONCAT(
 				   'cumulus/download/', f.abbreviation,
@@ -197,7 +210,7 @@ func GetDownloadPackagerRequest(db *pgxpool.Pool, downloadID *uuid.UUID) (*Packa
 			   COALESCE(c.contents, '[]'::jsonb) AS contents
 		FROM download d
 		INNER JOIN download_format f ON f.id = d.download_format_id
-		INNER JOIN watershed w ON w.id = d.watershed_id
+		LEFT JOIN watershed w ON w.id = d.watershed_id
 		LEFT JOIN (
 			SELECT download_id,
 			       jsonb_agg(
@@ -237,12 +250,12 @@ func CreateDownload(db *pgxpool.Pool, dr *DownloadRequest) (*Download, error) {
 	// Insert Record of Download
 	rows, err := tx.Query(
 		context.Background(),
-		`INSERT INTO download (download_format_id, datetime_start, datetime_end, status_id, watershed_id, sub)
+		`INSERT INTO download (download_format_id, datetime_start, datetime_end, status_id, watershed_id, sub, clip_geojson, clip_region_name)
 		 VALUES (
 			 (SELECT id FROM download_format WHERE UPPER(abbreviation) = UPPER($1)), $2, $3,
-			 (SELECT id FROM download_status WHERE UPPER(name) = 'INITIATED'), $4, $5
+			 (SELECT id FROM download_status WHERE UPPER(name) = 'INITIATED'), $4, $5, $6, $7
 		 )
-		 RETURNING id`, dr.Format, dr.DatetimeStart, dr.DatetimeEnd, dr.WatershedID, dr.Sub,
+		 RETURNING id`, dr.Format, dr.DatetimeStart, dr.DatetimeEnd, dr.WatershedID, dr.Sub, dr.ClipGeoJSON, dr.ClipRegionName,
 	)
 	if err != nil {
 		tx.Rollback(context.Background())

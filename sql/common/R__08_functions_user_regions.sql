@@ -34,7 +34,7 @@ END;
 $$ LANGUAGE plpgsql;
 
 -- Add trigger for validation
-CREATE TRIGGER validate_user_region_before_insert_update
+CREATE OR REPLACE TRIGGER validate_user_region_before_insert_update
     BEFORE INSERT OR UPDATE ON user_region
     FOR EACH ROW
     EXECUTE FUNCTION validate_user_region_geojson();

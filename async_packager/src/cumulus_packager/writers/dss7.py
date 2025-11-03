@@ -2,6 +2,7 @@
 
 import json
 import logging
+import os
 import sys
 import threading
 from collections import namedtuple
@@ -10,6 +11,7 @@ from queue import Queue, Empty
 from concurrent.futures import ThreadPoolExecutor, as_completed
 
 import numpy
+import psutil
 import pyplugs
 from codetiming import Timer
 from cumulus_packager import dssutil, logger
@@ -33,7 +35,49 @@ gdal.SetConfigOption('VSI_CACHE', 'TRUE')
 gdal.SetConfigOption('VSI_CACHE_SIZE', '100000000')  # 100MB cache
 gdal.SetCacheMax(512 * 1024 * 1024)  # 512MB GDAL block cache
 
-def calculate_optimal_queue_size(bbox_width, bbox_height, available_memory_gb=4.0, max_queue_memory_percent=0.5):
+def get_available_memory_gb():
+    """
+    Get available system memory in GB.
+
+    Returns:
+    --------
+    float : Available memory in GB
+    """
+    try:
+        # Get available memory using psutil
+        available_memory_bytes = psutil.virtual_memory().available
+        available_memory_gb = available_memory_bytes / (1024 ** 3)
+        logger.info(f"Detected available system memory: {available_memory_gb:.2f} GB")
+        return available_memory_gb
+    except Exception as e:
+        logger.warning(f"Failed to detect available memory: {e}. Using default 4.0 GB")
+        return 4.0
+
+def get_optimal_workers():
+    """
+    Get optimal number of worker threads based on available CPU cores.
+    Uses 2x CPU cores since this is an I/O-bound workload (S3 streaming reads).
+
+    Returns:
+    --------
+    int : Optimal number of worker threads
+    """
+    try:
+        # Get CPU count
+        cpu_count = os.cpu_count()
+        if cpu_count is None:
+            logger.warning("Could not detect CPU count. Using default 8 workers")
+            return 8
+
+        # Use 2x CPU count for I/O-bound operations (S3 reads + processing)
+        optimal_workers = cpu_count * 2
+        logger.info(f"Detected {cpu_count} CPU cores, using {optimal_workers} worker threads (2x CPU count)")
+        return optimal_workers
+    except Exception as e:
+        logger.warning(f"Failed to detect CPU count: {e}. Using default 8 workers")
+        return 8
+
+def calculate_optimal_queue_size(bbox_width, bbox_height, available_memory_gb=None, max_queue_memory_percent=0.5):
     """
     Calculate optimal bounded queue size based on bbox dimensions and available memory.
 
@@ -43,15 +87,19 @@ def calculate_optimal_queue_size(bbox_width, bbox_height, available_memory_gb=4.
         Width of bounding box in pixels
     bbox_height : int
         Height of bounding box in pixels
-    available_memory_gb : float
-        Available RAM in GB (default: 8.0 GB conservative estimate)
+    available_memory_gb : float, optional
+        Available RAM in GB (default: None, auto-detects system memory)
     max_queue_memory_percent : float
-        Maximum percentage of available memory to use for queue (default: 0.3 = 30%)
+        Maximum percentage of available memory to use for queue (default: 0.5 = 50%)
 
     Returns:
     --------
     int : Recommended queue size
     """
+    # Auto-detect available memory if not provided
+    if available_memory_gb is None:
+        available_memory_gb = get_available_memory_gb()
+
     # Double type (float64) = 8 bytes per element
     bytes_per_element = 8
 
@@ -221,7 +269,7 @@ def process_single_tiff_gdal(args):
 def process_tiffs_with_bounded_queue(src, _bbox, cellsize, destination_srs, dss,
                                      grid_type, grid_type_name, srs_definition,
                                      _extent_name, tz_name, tz_offset, is_interval,
-                                     id, gridcount, max_workers=8):
+                                     id, gridcount, max_workers=None):
     """
     Process TIFF files using GDAL in parallel with compression and bounded queue.
     Uses parallel compression + precompressed writes for optimal performance.
@@ -260,13 +308,17 @@ def process_tiffs_with_bounded_queue(src, _bbox, cellsize, destination_srs, dss,
         Download ID for progress tracking
     gridcount : int
         Total number of grids for progress calculation
-    max_workers : int
-        Number of parallel worker threads (default: 4)
+    max_workers : int, optional
+        Number of parallel worker threads (default: None, auto-detects CPU cores)
 
     Returns:
     --------
     int : Number of successfully processed files
     """
+    # Auto-detect optimal number of workers if not provided
+    if max_workers is None:
+        max_workers = get_optimal_workers()
+
     try:
         # Estimate bbox dimensions for queue sizing
         first_tif = src[0]

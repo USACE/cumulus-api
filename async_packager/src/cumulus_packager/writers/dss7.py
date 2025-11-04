@@ -37,14 +37,36 @@ gdal.SetCacheMax(512 * 1024 * 1024)  # 512MB GDAL block cache
 
 def get_available_memory_gb():
     """
-    Get available system memory in GB.
+    Get available system memory in GB, respecting Docker container limits.
 
     Returns:
     --------
     float : Available memory in GB
     """
     try:
-        # Get available memory using psutil
+        # Try to read Docker cgroup memory limit first (cgroup v2)
+        cgroup_v2_path = '/sys/fs/cgroup/memory.max'
+        if os.path.exists(cgroup_v2_path):
+            with open(cgroup_v2_path, 'r') as f:
+                limit = f.read().strip()
+                if limit != 'max':
+                    memory_limit_bytes = int(limit)
+                    memory_limit_gb = memory_limit_bytes / (1024 ** 3)
+                    logger.info(f"Detected Docker memory limit (cgroup v2): {memory_limit_gb:.2f} GB")
+                    return memory_limit_gb
+
+        # Try cgroup v1
+        cgroup_v1_path = '/sys/fs/cgroup/memory/memory.limit_in_bytes'
+        if os.path.exists(cgroup_v1_path):
+            with open(cgroup_v1_path, 'r') as f:
+                memory_limit_bytes = int(f.read().strip())
+                # Check if limit is unreasonably high (indicates no limit set)
+                if memory_limit_bytes < (1024 ** 4):  # Less than 1TB
+                    memory_limit_gb = memory_limit_bytes / (1024 ** 3)
+                    logger.info(f"Detected Docker memory limit (cgroup v1): {memory_limit_gb:.2f} GB")
+                    return memory_limit_gb
+
+        # Fall back to psutil if no cgroup limit found
         available_memory_bytes = psutil.virtual_memory().available
         available_memory_gb = available_memory_bytes / (1024 ** 3)
         logger.info(f"Detected available system memory: {available_memory_gb:.2f} GB")
@@ -55,7 +77,8 @@ def get_available_memory_gb():
 
 def get_optimal_workers():
     """
-    Get optimal number of worker threads based on available CPU cores.
+    Get optimal number of worker threads based on available CPU cores,
+    respecting Docker container limits.
     Uses 2x CPU cores since this is an I/O-bound workload (S3 streaming reads).
 
     Returns:
@@ -63,15 +86,43 @@ def get_optimal_workers():
     int : Optimal number of worker threads
     """
     try:
-        # Get CPU count
-        cpu_count = os.cpu_count()
+        cpu_count = None
+
+        # Try to read Docker cgroup CPU quota (cgroup v2)
+        cgroup_v2_max = '/sys/fs/cgroup/cpu.max'
+        if os.path.exists(cgroup_v2_max):
+            with open(cgroup_v2_max, 'r') as f:
+                content = f.read().strip().split()
+                if len(content) == 2 and content[0] != 'max':
+                    quota = int(content[0])
+                    period = int(content[1])
+                    cpu_count = max(1, int(quota / period))
+                    logger.info(f"Detected Docker CPU limit (cgroup v2): {cpu_count} CPU(s)")
+
+        # Try cgroup v1
         if cpu_count is None:
-            logger.warning("Could not detect CPU count. Using default 8 workers")
-            return 8
+            cgroup_v1_quota = '/sys/fs/cgroup/cpu/cpu.cfs_quota_us'
+            cgroup_v1_period = '/sys/fs/cgroup/cpu/cpu.cfs_period_us'
+            if os.path.exists(cgroup_v1_quota) and os.path.exists(cgroup_v1_period):
+                with open(cgroup_v1_quota, 'r') as f:
+                    quota = int(f.read().strip())
+                with open(cgroup_v1_period, 'r') as f:
+                    period = int(f.read().strip())
+                if quota > 0:
+                    cpu_count = max(1, int(quota / period))
+                    logger.info(f"Detected Docker CPU limit (cgroup v1): {cpu_count} CPU(s)")
+
+        # Fall back to system CPU count
+        if cpu_count is None:
+            cpu_count = os.cpu_count()
+            if cpu_count is None:
+                logger.warning("Could not detect CPU count. Using default 8 workers")
+                return 8
+            logger.info(f"Detected {cpu_count} CPU cores (no container limit)")
 
         # Use 2x CPU count for I/O-bound operations (S3 reads + processing)
         optimal_workers = cpu_count * 2
-        logger.info(f"Detected {cpu_count} CPU cores, using {optimal_workers} worker threads (2x CPU count)")
+        logger.info(f"Using {optimal_workers} worker threads (2x CPU count)")
         return optimal_workers
     except Exception as e:
         logger.warning(f"Failed to detect CPU count: {e}. Using default 8 workers")

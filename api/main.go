@@ -73,9 +73,13 @@ func main() {
 		Environment: cfg.AuthEnvironment,
 		Endpoint:    cfg.AWSS3Endpoint,
 		Skipper: func(c echo.Context) bool {
-			return strings.HasPrefix(c.Request().URL.Path, "/api/") || strings.HasPrefix(c.Request().URL.Path, "/features/")
+			return strings.HasPrefix(c.Request().URL.Path, "/api/") ||
+				strings.HasPrefix(c.Request().URL.Path, "/features/") ||
+				strings.HasPrefix(c.Request().URL.Path, "/cumulus/download/")
 		},
 	}))
+
+	e.GET("/cumulus/download/*", handlers.ServeMedia(&awsCfg, &cfg.AWSS3Bucket))
 
 	// API Routes
 	api := e.Group("api")
@@ -249,6 +253,19 @@ func main() {
 	private.POST("/user-regions", handlers.CreateUserRegion(db))
 	private.PUT("/user-regions/:region_id", handlers.UpdateUserRegion(db))
 	private.DELETE("/user-regions/:region_id", handlers.DeleteUserRegion(db))
+
+	// BasinComps Daily Results
+	public.GET("/basincomps-daily/results", handlers.GetBasinCompsResults(db))
+	public.GET("/basincomps-daily/rolling-totals", handlers.GetRollingTotals(db))
+	public.GET("/basincomps-daily/batch-runs", handlers.ListBasinCompsBatchRuns(db))
+
+	// Shapefile Configuration (Admin only)
+	private.GET("/basincomps-daily/configs", handlers.ListShapefileConfigs(db), middleware.IsAdmin)
+	private.GET("/basincomps-daily/configs/:config_name", handlers.GetShapefileConfig(db), middleware.IsAdmin)
+	private.PUT("/basincomps-daily/configs/:config_name", handlers.CreateOrUpdateShapefileConfig(db), middleware.IsAdmin)
+
+	// Manual trigger (Admin only)
+	private.POST("/basincomps-daily/trigger", handlers.TriggerBasinCompsRun(db), middleware.IsAdmin)
 
 	// // Watersheds
 	public.GET("/watersheds", handlers.ListWatersheds(db))

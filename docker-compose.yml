@@ -115,6 +115,43 @@ services:
       elasticmq:
         condition: service_started
   # --------------------------------------
+  basincomps_scheduler:
+    build:
+      context: async_basincomps_scheduler
+    environment:
+      # Database
+      - DB_HOST=cumulusdb
+      - DB_PORT=5432
+      - DB_NAME=postgres
+      - DB_USER=cumulus_user
+      - DB_PASS=cumulus_pass
+      # S3
+      - AWS_S3_ENDPOINT=http://minio:9000
+      - AWS_ACCESS_KEY_ID=AKIAIOSFODNN7EXAMPLE
+      - AWS_SECRET_ACCESS_KEY=wJalrXUtnFEMI/K7MDENG/bPxRfiCYEXAMPLEKEY
+      - S3_BUCKET=castle-data-develop
+      # BasinComps Configuration
+      - BASINCOMPS_ENABLED=true
+      - BASINCOMPS_SCHEDULE=0 0 * * *
+      - BASINCOMPS_SHAPEFILE_PATH=/app/config/subbasins.shp
+      - BASINCOMPS_PRODUCT_SLUGS=aorc,mrms-qpe
+      - BASINCOMPS_OUTPUT_FORMAT=csv
+      - BASINCOMPS_USE_METRIC=true
+      - BASINCOMPS_LOOKBACK_HOURS=24
+      - BASINCOMPS_LOOKAHEAD_HOURS=168
+      - BASINCOMPS_RUN_ON_STARTUP=false
+    volumes:
+      # Mount shapefile from host (user provides the shapefile)
+      - ./async_basincomps_scheduler/app/config:/app/config:ro
+      # Mount source code for faster development (restart vs rebuild)
+      - ./async_basincomps_scheduler/src:/app/src:ro
+    restart: always
+    depends_on:
+      cumulusdb:
+        condition: service_started
+      flyway:
+        condition: service_completed_successfully
+  # --------------------------------------
   # statistics:
   #   build:
   #     context: async_statistics

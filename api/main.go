@@ -241,6 +241,15 @@ func main() {
 	// -- Download Metrics
 	public.GET("/metrics/downloads", handlers.GetDownloadMetrics(db))
 
+	// User Regions
+	private.GET("/user-regions", handlers.ListMyRegions(db))
+	private.GET("/user-regions/public", handlers.ListPublicRegions(db))
+	private.GET("/user-regions/search", handlers.SearchUserRegions(db))
+	private.GET("/user-regions/:region_id", handlers.GetUserRegion(db))
+	private.POST("/user-regions", handlers.CreateUserRegion(db))
+	private.PUT("/user-regions/:region_id", handlers.UpdateUserRegion(db))
+	private.DELETE("/user-regions/:region_id", handlers.DeleteUserRegion(db))
+
 	// // Watersheds
 	public.GET("/watersheds", handlers.ListWatersheds(db))
 	public.GET("/watersheds/:watershed_id", handlers.GetWatershed(db))

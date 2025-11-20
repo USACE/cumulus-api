@@ -38,13 +38,10 @@ RUN apt-get update \
 # install package in venv
 COPY . ${PACKAGER}/pkg
 
-# Copy and install custom hecdss wheel
-COPY hecdss-0.1.28-py3-none-any.whl ${PACKAGER}/
-
 RUN python3 -m venv --system-site-packages ${PACKAGER_VENV} \
     && . activate \
-    && pip install ${PACKAGER}/hecdss-0.1.28-py3-none-any.whl \
-    && pip install ${PACKAGER}/pkg/
+    && pip install ${PACKAGER}/pkg/ \
+    && pip install hecdss
 
 RUN groupadd -r ${USERNAME} && \
     useradd -g ${USERNAME} -ms /bin/bash ${USERNAME}

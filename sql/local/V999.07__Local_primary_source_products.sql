@@ -28,19 +28,3 @@ SELECT
 FROM primary_source_products psp
 WHERE EXISTS (SELECT 1 FROM product WHERE id = psp.product_id)
 ON CONFLICT (tag_id, product_id) DO NOTHING;
-
--- Remove the Primary Source tag from products that are no longer in the list
-DELETE FROM product_tags
-WHERE tag_id = '8a7f4e6b-3c2d-4a9f-b1e5-9d8c7a6f5e4d'::UUID
-AND product_id NOT IN (
-    SELECT unnest(ARRAY[
-        '16d4c494-63e6-4d33-b2da-7be065a6776b'::UUID,
-        '0ac60940-35c2-4c0d-8a3b-49c20e455ff5'::UUID,
-        '5e6ca7ed-007d-4944-93aa-0a7a6116bdcd'::UUID,
-        'd0c1d6f4-cf5d-4332-a17e-dd1757c99c94'::UUID,
-        'f43cb3b8-221a-4ff0-aaa6-5937e54323b6'::UUID,
-        '7e5c7acf-7d2b-4d02-a582-7ddf9b2e3700'::UUID,
-        '517369a5-7fe3-4b0a-9ef6-10f26f327b26'::UUID,
-        '33407c74-cdc2-4ab2-bd9a-3dff99ea02e4'::UUID
-    ])
-);

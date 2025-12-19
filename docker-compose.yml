@@ -48,7 +48,7 @@ services:
       context: async_geoprocess
       args:
         - GDAL_TAG=ubuntu-full-3.9.1
-        - GEOPROC_PACKAGE=develop:geoproc
+        - GEOPROC_PACKAGE=main:geoproc
     # entrypoint: sleep infinity # override the Dockerfile entrypoint
     environment:
       - AWS_SQS_ENDPOINT=elasticmq:9324

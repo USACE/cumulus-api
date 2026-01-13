@@ -418,8 +418,17 @@ def process_tiffs_with_bounded_queue(src, _bbox, cellsize, destination_srs, dss,
                 }
 
                 for future in as_completed(future_to_idx):
-                    result = future.result()
-                    result_queue.put(result)
+                    try:
+                        result = future.result(timeout=300)  # 5 minute timeout per file
+                        result_queue.put(result)
+                    except Exception as e:
+                        idx = future_to_idx[future]
+                        logger.error(f"Worker timeout or error for file {idx}: {e}")
+                        result_queue.put({
+                            'success': False,
+                            'index': idx,
+                            'error': f'Worker timeout or exception: {str(e)}'
+                        })
 
             # Signal completion
             result_queue.put(None)
@@ -447,16 +456,30 @@ def process_tiffs_with_bounded_queue(src, _bbox, cellsize, destination_srs, dss,
                         compressed_size = result['compressed_size']
                         tif_key = result['tif_key']
 
-                        # Write precompressed data to DSS (GriddedData already created in worker)
+                        # Write precompressed data to DSS with timeout protection
                         t = Timer(name="accumuluated", logger=None)
                         t.start()
-                        dss_result = dss.writePrecompressedGrid(gd, compressed_data, compressed_size)
-                        elapsed_time = t.stop()
+                        
+                        # Wrap DSS write in thread with timeout (DSS operations can hang)
+                        with ThreadPoolExecutor(max_workers=1) as write_executor:
+                            write_future = write_executor.submit(
+                                dss.writePrecompressedGrid, gd, compressed_data, compressed_size
+                            )
+                            try:
+                                dss_result = write_future.result(timeout=300)  # 5 minute timeout for DSS write
+                                elapsed_time = t.stop()
 
-                        if dss_result != 0:
-                            logger.warning(f'HEC-DSS-PY write record failed for "{tif_key}": {dss_result}')
-                        elif logger.isEnabledFor(logging.DEBUG):
-                            logger.debug(f'DSS writePrecompressedGrid processed "{tif_key}" in {elapsed_time:.4f}s')
+                                if dss_result != 0:
+                                    logger.warning(f'HEC-DSS-PY write record failed for "{tif_key}": {dss_result}')
+                                elif logger.isEnabledFor(logging.DEBUG):
+                                    logger.debug(f'DSS writePrecompressedGrid processed "{tif_key}" in {elapsed_time:.4f}s')
+                            except Exception as write_error:
+                                elapsed_time = t.stop()
+                                logger.error(f'DSS write timeout or error for "{tif_key}" after {elapsed_time:.2f}s: {write_error}')
+                                # Continue processing remaining files
+                                gd = None
+                                compressed_data = None
+                                continue
 
                         processed_count += 1
 

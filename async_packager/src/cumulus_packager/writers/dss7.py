@@ -79,7 +79,7 @@ def get_optimal_workers():
     """
     Get optimal number of worker threads based on available CPU cores,
     respecting Docker container limits.
-    Uses 2x CPU cores since this is an I/O-bound workload (S3 streaming reads).
+    Uses 4x CPU cores since this is an I/O-bound workload (S3 streaming reads).
 
     Returns:
     --------
@@ -120,9 +120,9 @@ def get_optimal_workers():
                 return 8
             logger.info(f"Detected {cpu_count} CPU cores (no container limit)")
 
-        # Use 2x CPU count for I/O-bound operations (S3 reads + processing)
-        optimal_workers = cpu_count * 2
-        logger.info(f"Using {optimal_workers} worker threads (2x CPU count)")
+        # Use 4x CPU count for I/O-bound operations (S3 reads + processing)
+        optimal_workers = cpu_count * 4
+        logger.info(f"Using {optimal_workers} worker threads (4x CPU count)")
         return optimal_workers
     except Exception as e:
         logger.warning(f"Failed to detect CPU count: {e}. Using default 8 workers")

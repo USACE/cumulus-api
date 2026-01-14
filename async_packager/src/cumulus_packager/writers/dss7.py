@@ -3,6 +3,7 @@
 import json
 import logging
 import os
+import shutil
 import sys
 import threading
 from collections import namedtuple
@@ -34,6 +35,60 @@ gdal.SetConfigOption('CPL_VSIL_CURL_ALLOWED_EXTENSIONS', '.tif,.tiff')
 gdal.SetConfigOption('VSI_CACHE', 'TRUE')
 gdal.SetConfigOption('VSI_CACHE_SIZE', '100000000')  # 100MB cache
 gdal.SetCacheMax(512 * 1024 * 1024)  # 512MB GDAL block cache
+
+
+def log_storage_status(dssfilename: str, label: str = "") -> dict:
+    """
+    Log disk usage and DSS file size for debugging storage issues.
+
+    Parameters:
+    -----------
+    dssfilename : str
+        Path to the DSS file
+    label : str
+        Label for the log message (e.g., "Start", "50%", etc.)
+
+    Returns:
+    --------
+    dict : Storage status info
+    """
+    try:
+        # Get disk usage for /tmp (or wherever the DSS file is located)
+        dss_dir = os.path.dirname(dssfilename) or "/tmp"
+        total, used, free = shutil.disk_usage(dss_dir)
+
+        # Get DSS file size if it exists
+        dss_size = 0
+        if os.path.exists(dssfilename):
+            dss_size = os.path.getsize(dssfilename)
+
+        # Calculate percentages
+        disk_used_pct = (used / total) * 100 if total > 0 else 0
+
+        status = {
+            "disk_total_gb": total / (1024**3),
+            "disk_used_gb": used / (1024**3),
+            "disk_free_gb": free / (1024**3),
+            "disk_used_pct": disk_used_pct,
+            "dss_size_mb": dss_size / (1024**2),
+        }
+
+        logger.info(
+            f"[Storage {label}] "
+            f"Disk: {status['disk_used_gb']:.2f}GB/{status['disk_total_gb']:.2f}GB "
+            f"({status['disk_used_pct']:.1f}% used, {status['disk_free_gb']:.2f}GB free) | "
+            f"DSS file: {status['dss_size_mb']:.1f}MB"
+        )
+
+        # Warn if disk space is getting low
+        if status['disk_free_gb'] < 1.0:
+            logger.warning(f"LOW DISK SPACE WARNING: Only {status['disk_free_gb']:.2f}GB free!")
+
+        return status
+    except Exception as e:
+        logger.warning(f"Could not get storage status: {e}")
+        return {}
+
 
 def get_available_memory_gb():
     """
@@ -320,7 +375,7 @@ def process_single_tiff_gdal(args):
 def process_tiffs_with_bounded_queue(src, _bbox, cellsize, destination_srs, dss,
                                      grid_type, grid_type_name, srs_definition,
                                      _extent_name, tz_name, tz_offset, is_interval,
-                                     id, gridcount, max_workers=None):
+                                     id, gridcount, dssfilename, max_workers=None):
     """
     Process TIFF files using GDAL in parallel with compression and bounded queue.
     Uses parallel compression + precompressed writes for optimal performance.
@@ -489,6 +544,9 @@ def process_tiffs_with_bounded_queue(src, _bbox, cellsize, destination_srs, dss,
                             update_status(id=id, status_id=PACKAGE_STATUS["INITIATED"], progress=_progress)
                             if _progress % PACKAGER_UPDATE_INTERVAL == 0:
                                 logger.info(f'Download ID "{id}" progress: {_progress}% (queue: ~{result_queue.qsize()}/{queue_size})')
+                                # Log storage status every 10% progress
+                                if _progress % 10 == 0:
+                                    log_storage_status(dssfilename, f"{_progress}%")
 
                         # Explicitly free memory after writing to DSS
                         compressed_data = None
@@ -507,6 +565,9 @@ def process_tiffs_with_bounded_queue(src, _bbox, cellsize, destination_srs, dss,
                 break
 
         producer_thread.join()
+
+        # Log final storage status
+        log_storage_status(dssfilename, "END")
 
         logger.info(f"Parallel GDAL with compression: Successfully processed {processed_count}/{len(src)} files")
         return processed_count
@@ -589,6 +650,9 @@ def writer(
     dssfilename = Path(dst).joinpath(id).with_suffix(".dss").as_posix()
 
     with HecDss(dssfilename) as dss:
+        # Log initial storage status
+        log_storage_status(dssfilename, "START")
+
         # Use parallel GDAL processing with compression and precompressed writes for multiple files
         if len(src) > 1:
             logger.info("Using parallel GDAL processing with compression and precompressed writes")
@@ -596,7 +660,7 @@ def writer(
                 src, _bbox, cellsize, destination_srs, dss,
                 grid_type, grid_type_name, srs_definition,
                 _extent_name, tz_name, tz_offset, is_interval,
-                id, gridcount
+                id, gridcount, dssfilename
             )
             _progress = int((processed_count / gridcount) * 100) if processed_count > 0 else 0
         # Single file - process sequentially
@@ -715,6 +779,10 @@ def writer(
         return None
 
     total_time = Timer.timers["accumuluated"]
+
+    # Log final storage status before returning
+    log_storage_status(dssfilename, "COMPLETE")
+
     logger.info(
         f'Total processing time for download ID "{id}" in {total_time:.4f} seconds'
     )

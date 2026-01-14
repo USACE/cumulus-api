@@ -249,24 +249,36 @@ def process_single_tiff_gdal(args):
     dict : Result dictionary with success status, GriddedData object, and compressed data
     """
     import zlib
+    import time
 
     (idx, tif, _bbox, cellsize, destination_srs, grid_type, grid_type_name,
      srs_definition, _extent_name, tz_name, tz_offset, is_interval) = args
+
+    timings = {}  # Track timing for each step
+    step_start = time.time()
 
     try:
         TifCfg = namedtuple("TifCfg", tif)(**tif)
         s3_path = f"/vsis3_streaming/{TifCfg.bucket}/{TifCfg.key}"
 
-        # Open and warp the TIFF with GDAL
+        # Step 1: Open TIFF with GDAL
+        logger.debug(f"[{idx}] GDAL_OPEN: Starting for {TifCfg.key}")
+        t0 = time.time()
         ds = gdal.Open(s3_path)
+        timings['gdal_open'] = time.time() - t0
+        logger.debug(f"[{idx}] GDAL_OPEN: Completed in {timings['gdal_open']:.3f}s")
+
         if ds is None:
+            logger.error(f"[{idx}] GDAL_OPEN: FAILED - ds is None for {TifCfg.key}")
             return {
                 'success': False,
                 'index': idx,
                 'error': f"Failed to open {TifCfg.key}"
             }
 
-        # GDAL Warp the Tiff to what we need for DSS
+        # Step 2: GDAL Warp
+        logger.debug(f"[{idx}] GDAL_WARP: Starting")
+        t0 = time.time()
         warp_ds = gdal.Warp(
             '',  # empty string => no filename, return a Dataset
             ds,
@@ -279,8 +291,11 @@ def process_single_tiff_gdal(args):
             resampleAlg=gdalconst.GRA_Bilinear,
             copyMetadata=False,
         )
+        timings['gdal_warp'] = time.time() - t0
+        logger.debug(f"[{idx}] GDAL_WARP: Completed in {timings['gdal_warp']:.3f}s")
 
         if warp_ds is None:
+            logger.error(f"[{idx}] GDAL_WARP: FAILED - warp_ds is None for {TifCfg.key}")
             ds = None
             return {
                 'success': False,
@@ -288,11 +303,18 @@ def process_single_tiff_gdal(args):
                 'error': f"Failed to warp {TifCfg.key}"
             }
 
-        # Read the warped data
+        # Step 3: Read array from band
+        logger.debug(f"[{idx}] READ_ARRAY: Starting")
+        t0 = time.time()
         band = warp_ds.GetRasterBand(1)
         nodata = band.GetNoDataValue()
         data = band.ReadAsArray().astype(numpy.float32, copy=False)
+        timings['read_array'] = time.time() - t0
+        logger.debug(f"[{idx}] READ_ARRAY: Completed in {timings['read_array']:.3f}s, shape={data.shape}")
 
+        # Step 4: Data transformations
+        logger.debug(f"[{idx}] DATA_TRANSFORM: Starting")
+        t0 = time.time()
         # Flip the dataset up/down because tif and dss have different origins
         data = numpy.flipud(data)
 
@@ -306,21 +328,33 @@ def process_single_tiff_gdal(args):
         adfGeoTransform = warp_ds.GetGeoTransform()
         llx = int(adfGeoTransform[0] / adfGeoTransform[1])
         lly = int((adfGeoTransform[5] * ysize + adfGeoTransform[3]) / adfGeoTransform[1])
+        timings['data_transform'] = time.time() - t0
+        logger.debug(f"[{idx}] DATA_TRANSFORM: Completed in {timings['data_transform']:.3f}s")
 
-        # Clean up GDAL objects
+        # Step 5: Clean up GDAL objects
+        logger.debug(f"[{idx}] GDAL_CLEANUP: Starting")
+        t0 = time.time()
         band = None
         warp_ds = None
         ds = None
+        timings['gdal_cleanup'] = time.time() - t0
+        logger.debug(f"[{idx}] GDAL_CLEANUP: Completed in {timings['gdal_cleanup']:.3f}s")
 
-        # Prepare data for DSS
+        # Step 6: Prepare data for DSS
+        logger.debug(f"[{idx}] DSS_PREP: Starting")
+        t0 = time.time()
         DSS_UNDEFINED_VALUE = -3.4028234663852886e+38
         data[numpy.isnan(data)] = DSS_UNDEFINED_VALUE
 
         # Create DSS pathname
         data_type = dssutil.data_type[TifCfg.dss_datatype]
         dsspathname = f"/{grid_type_name}/{_extent_name}/{TifCfg.dss_cpart}/{TifCfg.dss_dpart}/{TifCfg.dss_epart}/{TifCfg.dss_fpart}/"
+        timings['dss_prep'] = time.time() - t0
+        logger.debug(f"[{idx}] DSS_PREP: Completed in {timings['dss_prep']:.3f}s")
 
-        # Create GriddedData object (in parallel worker)
+        # Step 7: Create GriddedData object
+        logger.debug(f"[{idx}] GRIDDATA_CREATE: Starting")
+        t0 = time.time()
         gd = GriddedData.create(
             path=dsspathname,
             type=grid_type,
@@ -344,13 +378,22 @@ def process_single_tiff_gdal(args):
             nullValue=DSS_UNDEFINED_VALUE,
             data=data,
         )
+        timings['griddata_create'] = time.time() - t0
+        logger.debug(f"[{idx}] GRIDDATA_CREATE: Completed in {timings['griddata_create']:.3f}s")
 
         gd.data = None  # Free data reference in GriddedData
 
-        # Compress the grid data (parallel compression in worker process)
+        # Step 8: Compress the grid data
+        logger.debug(f"[{idx}] COMPRESS: Starting")
+        t0 = time.time()
         raw_bytes = data.astype(numpy.float32).tobytes()
         compressed_data = zlib.compress(raw_bytes)
         compressed_size = len(compressed_data)
+        timings['compress'] = time.time() - t0
+        logger.debug(f"[{idx}] COMPRESS: Completed in {timings['compress']:.3f}s, size={compressed_size} bytes")
+
+        total_time = time.time() - step_start
+        logger.debug(f"[{idx}] WORKER_COMPLETE: Total={total_time:.3f}s, Timings={timings}")
 
         return {
             'success': True,
@@ -358,17 +401,20 @@ def process_single_tiff_gdal(args):
             'tif_key': TifCfg.key,
             'gd': gd,
             'compressed_data': compressed_data,
-            'compressed_size': compressed_size
+            'compressed_size': compressed_size,
+            'timings': timings
         }
 
     except Exception as e:
-        logger.error(f"Error processing TIFF {idx}: {e}")
+        total_time = time.time() - step_start
+        logger.error(f"[{idx}] WORKER_ERROR: Error after {total_time:.3f}s processing TIFF: {e}")
         import traceback
         logger.error(traceback.format_exc())
         return {
             'success': False,
             'index': idx,
-            'error': str(e)
+            'error': str(e),
+            'timings': timings
         }
 
 
@@ -421,6 +467,54 @@ def process_tiffs_with_bounded_queue(src, _bbox, cellsize, destination_srs, dss,
     --------
     int : Number of successfully processed files
     """
+    import time
+
+    # Shared state for watchdog
+    watchdog_state = {
+        'phase': 'INIT',
+        'last_activity': time.time(),
+        'processed_count': 0,
+        'current_file': None,
+        'current_step': None,
+        'stop_watchdog': False,
+    }
+
+    def watchdog():
+        """Periodically log state to help diagnose hangs."""
+        import time
+        while not watchdog_state['stop_watchdog']:
+            time.sleep(30)  # Log every 30 seconds
+            if watchdog_state['stop_watchdog']:
+                break
+
+            idle_time = time.time() - watchdog_state['last_activity']
+            mem = psutil.virtual_memory()
+            mem_used_gb = mem.used / (1024**3)
+            mem_total_gb = mem.total / (1024**3)
+            mem_pct = mem.percent
+
+            logger.info(
+                f"[WATCHDOG] Phase: {watchdog_state['phase']} | "
+                f"Processed: {watchdog_state['processed_count']}/{gridcount} | "
+                f"Current: {watchdog_state['current_file']} | "
+                f"Step: {watchdog_state['current_step']} | "
+                f"Idle: {idle_time:.1f}s | "
+                f"Memory: {mem_used_gb:.1f}GB/{mem_total_gb:.1f}GB ({mem_pct:.1f}%)"
+            )
+
+            if idle_time > 120:  # Warn if no activity for 2 minutes
+                logger.warning(f"[WATCHDOG] No activity for {idle_time:.1f}s - possible hang!")
+                # Log thread info
+                import sys
+                logger.warning(f"[WATCHDOG] Active threads: {threading.active_count()}")
+                for t in threading.enumerate():
+                    logger.warning(f"[WATCHDOG]   Thread: {t.name} (alive={t.is_alive()}, daemon={t.daemon})")
+
+    # Start watchdog thread
+    watchdog_thread = threading.Thread(target=watchdog, name="Watchdog", daemon=True)
+    watchdog_thread.start()
+    logger.info("[MAIN] Watchdog thread started")
+
     # Auto-detect optimal number of workers if not provided
     if max_workers is None:
         max_workers = get_optimal_workers()
@@ -458,6 +552,11 @@ def process_tiffs_with_bounded_queue(src, _bbox, cellsize, destination_srs, dss,
 
         # Producer function: reads TIFFs in parallel and puts results in queue
         def producer():
+            import time
+            logger.info(f"[PRODUCER] Starting with {max_workers} workers for {len(src)} files")
+            producer_start = time.time()
+            completed_count = 0
+
             with ThreadPoolExecutor(max_workers=max_workers) as executor:
                 # Prepare arguments for parallel processing (includes all GriddedData parameters)
                 tasks = [
@@ -467,18 +566,35 @@ def process_tiffs_with_bounded_queue(src, _bbox, cellsize, destination_srs, dss,
                 ]
 
                 # Submit all tasks and process as they complete
+                logger.info(f"[PRODUCER] Submitting {len(tasks)} tasks to executor")
                 future_to_idx = {
                     executor.submit(process_single_tiff_gdal, task): task[0]
                     for task in tasks
                 }
+                logger.info(f"[PRODUCER] All tasks submitted, waiting for completion")
 
                 for future in as_completed(future_to_idx):
+                    idx = future_to_idx[future]
                     try:
+                        logger.debug(f"[PRODUCER] Waiting for result from worker {idx}")
+                        t0 = time.time()
                         result = future.result(timeout=300)  # 5 minute timeout per file
+                        wait_time = time.time() - t0
+                        logger.debug(f"[PRODUCER] Got result from worker {idx} in {wait_time:.3f}s")
+
+                        logger.debug(f"[PRODUCER] Putting result {idx} into queue (queue size: {result_queue.qsize()}/{queue_size})")
+                        t0 = time.time()
                         result_queue.put(result)
+                        put_time = time.time() - t0
+                        logger.debug(f"[PRODUCER] Put result {idx} into queue in {put_time:.3f}s")
+
+                        completed_count += 1
+                        if completed_count % 50 == 0:
+                            elapsed = time.time() - producer_start
+                            logger.info(f"[PRODUCER] Progress: {completed_count}/{len(src)} tasks completed in {elapsed:.1f}s")
+
                     except Exception as e:
-                        idx = future_to_idx[future]
-                        logger.error(f"Worker timeout or error for file {idx}: {e}")
+                        logger.error(f"[PRODUCER] Worker timeout or error for file {idx}: {e}")
                         result_queue.put({
                             'success': False,
                             'index': idx,
@@ -486,22 +602,47 @@ def process_tiffs_with_bounded_queue(src, _bbox, cellsize, destination_srs, dss,
                         })
 
             # Signal completion
+            producer_elapsed = time.time() - producer_start
+            logger.info(f"[PRODUCER] All workers completed in {producer_elapsed:.1f}s, sending completion signal")
             result_queue.put(None)
+            logger.info(f"[PRODUCER] Thread exiting")
 
         # Start producer thread
+        logger.info("[CONSUMER] Starting producer thread")
         producer_thread = threading.Thread(target=producer)
         producer_thread.start()
 
         # Consumer (main thread): write pre-created, precompressed GriddedData objects to DSS
-        logger.info(f"Processing {len(src)} files with parallel compression and precompressed writes (queue size: {queue_size}, workers: {max_workers})")
+        logger.info(f"[CONSUMER] Processing {len(src)} files with parallel compression and precompressed writes (queue size: {queue_size}, workers: {max_workers})")
+
+        import time
+        consumer_start = time.time()
+        last_activity = time.time()
+        watchdog_state['phase'] = 'CONSUMING'
 
         while True:
             try:
+                watchdog_state['current_step'] = 'QUEUE_WAIT'
+                watchdog_state['last_activity'] = time.time()
+                queue_wait_start = time.time()
+                logger.debug(f"[CONSUMER] Waiting for result from queue (processed: {processed_count}, queue size: ~{result_queue.qsize()})")
                 result = result_queue.get(timeout=300)  # 5 minute timeout
+                queue_wait_time = time.time() - queue_wait_start
+                last_activity = time.time()
+                watchdog_state['last_activity'] = last_activity
+
+                if queue_wait_time > 10:
+                    logger.warning(f"[CONSUMER] Long queue wait: {queue_wait_time:.1f}s")
+                else:
+                    logger.debug(f"[CONSUMER] Got result from queue in {queue_wait_time:.3f}s")
 
                 # None signals completion
                 if result is None:
+                    logger.info("[CONSUMER] Received completion signal from producer")
                     break
+
+                result_idx = result.get('index', 'unknown')
+                watchdog_state['current_file'] = f"idx={result_idx}"
 
                 if result['success']:
                     try:
@@ -510,40 +651,71 @@ def process_tiffs_with_bounded_queue(src, _bbox, cellsize, destination_srs, dss,
                         compressed_data = result['compressed_data']
                         compressed_size = result['compressed_size']
                         tif_key = result['tif_key']
+                        watchdog_state['current_file'] = tif_key
+
+                        logger.debug(f"[CONSUMER] [{result_idx}] Starting DSS write for {tif_key}")
+                        watchdog_state['current_step'] = 'DSS_WRITE'
 
                         # Write precompressed data to DSS with timeout protection
                         t = Timer(name="accumuluated", logger=None)
                         t.start()
-                        
+
                         # Wrap DSS write in thread with timeout (DSS operations can hang)
+                        logger.debug(f"[CONSUMER] [{result_idx}] Creating write executor")
+                        write_executor_start = time.time()
                         with ThreadPoolExecutor(max_workers=1) as write_executor:
+                            logger.debug(f"[CONSUMER] [{result_idx}] Submitting writePrecompressedGrid")
                             write_future = write_executor.submit(
                                 dss.writePrecompressedGrid, gd, compressed_data, compressed_size
                             )
                             try:
+                                logger.debug(f"[CONSUMER] [{result_idx}] Waiting for DSS write result (timeout=300s)")
+                                dss_write_start = time.time()
                                 dss_result = write_future.result(timeout=300)  # 5 minute timeout for DSS write
+                                dss_write_time = time.time() - dss_write_start
                                 elapsed_time = t.stop()
 
+                                if dss_write_time > 5:
+                                    logger.warning(f"[CONSUMER] [{result_idx}] Slow DSS write: {dss_write_time:.2f}s for {tif_key}")
+                                else:
+                                    logger.debug(f"[CONSUMER] [{result_idx}] DSS write completed in {dss_write_time:.3f}s")
+
                                 if dss_result != 0:
-                                    logger.warning(f'HEC-DSS-PY write record failed for "{tif_key}": {dss_result}')
+                                    logger.warning(f'[CONSUMER] [{result_idx}] HEC-DSS-PY write record failed for "{tif_key}": {dss_result}')
                                 elif logger.isEnabledFor(logging.DEBUG):
-                                    logger.debug(f'DSS writePrecompressedGrid processed "{tif_key}" in {elapsed_time:.4f}s')
+                                    logger.debug(f'[CONSUMER] [{result_idx}] DSS writePrecompressedGrid processed "{tif_key}" in {elapsed_time:.4f}s')
                             except Exception as write_error:
                                 elapsed_time = t.stop()
-                                logger.error(f'DSS write timeout or error for "{tif_key}" after {elapsed_time:.2f}s: {write_error}')
+                                logger.error(f'[CONSUMER] [{result_idx}] DSS write timeout or error for "{tif_key}" after {elapsed_time:.2f}s: {write_error}')
+                                import traceback
+                                logger.error(traceback.format_exc())
                                 # Continue processing remaining files
                                 gd = None
                                 compressed_data = None
                                 continue
 
+                        write_executor_time = time.time() - write_executor_start
+                        logger.debug(f"[CONSUMER] [{result_idx}] Write executor completed in {write_executor_time:.3f}s")
+
                         processed_count += 1
+                        watchdog_state['processed_count'] = processed_count
+                        watchdog_state['last_activity'] = time.time()
 
                         # Update progress
                         _progress = int((processed_count / gridcount) * 100)
                         if processed_count % PACKAGER_UPDATE_INTERVAL == 0 or processed_count == gridcount:
+                            watchdog_state['current_step'] = 'STATUS_UPDATE'
+                            logger.debug(f"[CONSUMER] [{result_idx}] Updating status: {_progress}%")
+                            status_update_start = time.time()
                             update_status(id=id, status_id=PACKAGE_STATUS["INITIATED"], progress=_progress)
+                            status_update_time = time.time() - status_update_start
+                            watchdog_state['last_activity'] = time.time()
+                            if status_update_time > 2:
+                                logger.warning(f"[CONSUMER] [{result_idx}] Slow status update: {status_update_time:.2f}s")
+
                             if _progress % PACKAGER_UPDATE_INTERVAL == 0:
-                                logger.info(f'Download ID "{id}" progress: {_progress}% (queue: ~{result_queue.qsize()}/{queue_size})')
+                                consumer_elapsed = time.time() - consumer_start
+                                logger.info(f'[CONSUMER] Download ID "{id}" progress: {_progress}% (queue: ~{result_queue.qsize()}/{queue_size}, elapsed: {consumer_elapsed:.1f}s)')
                                 # Log storage status every 10% progress
                                 if _progress % 10 == 0:
                                     log_storage_status(dssfilename, f"{_progress}%")
@@ -551,28 +723,49 @@ def process_tiffs_with_bounded_queue(src, _bbox, cellsize, destination_srs, dss,
                         # Explicitly free memory after writing to DSS
                         compressed_data = None
                         gd = None
+                        watchdog_state['current_step'] = 'COMPLETE'
+                        logger.debug(f"[CONSUMER] [{result_idx}] Processing complete")
 
                     except Exception as e:
-                        logger.error(f"Error writing to DSS for file {result['index']}: {e}")
+                        logger.error(f"[CONSUMER] Error writing to DSS for file {result_idx}: {e}")
                         import traceback
                         logger.error(traceback.format_exc())
                         continue
                 else:
-                    logger.error(f"Error processing file {result['index']}: {result.get('error', 'Unknown error')}")
+                    logger.error(f"[CONSUMER] Error processing file {result_idx}: {result.get('error', 'Unknown error')}")
 
             except Empty:
-                logger.error("Timeout waiting for results from queue")
+                idle_time = time.time() - last_activity
+                logger.error(f"[CONSUMER] TIMEOUT waiting for results from queue after {idle_time:.1f}s idle")
+                logger.error(f"[CONSUMER] Producer thread alive: {producer_thread.is_alive()}")
+                logger.error(f"[CONSUMER] Queue size: {result_queue.qsize()}")
                 break
 
-        producer_thread.join()
+        watchdog_state['phase'] = 'JOINING'
+        logger.info(f"[CONSUMER] Waiting for producer thread to join")
+        join_start = time.time()
+        producer_thread.join(timeout=60)
+        join_time = time.time() - join_start
+        if producer_thread.is_alive():
+            logger.error(f"[CONSUMER] Producer thread did not terminate after {join_time:.1f}s")
+        else:
+            logger.info(f"[CONSUMER] Producer thread joined in {join_time:.3f}s")
+
+        # Stop watchdog
+        watchdog_state['stop_watchdog'] = True
+        watchdog_state['phase'] = 'COMPLETE'
+        logger.info("[MAIN] Stopping watchdog thread")
 
         # Log final storage status
         log_storage_status(dssfilename, "END")
 
-        logger.info(f"Parallel GDAL with compression: Successfully processed {processed_count}/{len(src)} files")
+        total_elapsed = time.time() - consumer_start
+        logger.info(f"Parallel GDAL with compression: Successfully processed {processed_count}/{len(src)} files in {total_elapsed:.1f}s")
         return processed_count
 
     except Exception as e:
+        watchdog_state['stop_watchdog'] = True
+        watchdog_state['phase'] = 'ERROR'
         logger.error(f"Parallel GDAL processing failed: {e}")
         import traceback
         logger.error(traceback.format_exc())

@@ -26,15 +26,16 @@ from importlib.metadata import version, PackageNotFoundError
 
 gdal.UseExceptions()
 
-# Configure GDAL for optimal S3 streaming performance
+# Configure GDAL for S3 streaming
+# Disable all caching - each file is processed exactly once, so caching provides
+# no benefit but accumulates memory in GDAL's C memory space over hundreds of files
 gdal.SetConfigOption('GDAL_HTTP_MAX_RETRY', '3')
 gdal.SetConfigOption('GDAL_HTTP_RETRY_DELAY', '1')
 gdal.SetConfigOption('CPL_VSIL_CURL_CHUNK_SIZE', '10485760')  # 10MB chunks
 gdal.SetConfigOption('GDAL_DISABLE_READDIR_ON_OPEN', 'EMPTY_DIR')
 gdal.SetConfigOption('CPL_VSIL_CURL_ALLOWED_EXTENSIONS', '.tif,.tiff')
-gdal.SetConfigOption('VSI_CACHE', 'TRUE')
-gdal.SetConfigOption('VSI_CACHE_SIZE', '100000000')  # 100MB cache
-gdal.SetCacheMax(512 * 1024 * 1024)  # 512MB GDAL block cache
+gdal.SetConfigOption('VSI_CACHE', 'FALSE')  # Disable VSI cache - prevents memory accumulation
+gdal.SetCacheMax(0)  # Disable GDAL block cache - not needed for single-pass processing
 
 
 def log_storage_status(dssfilename: str, label: str = "") -> dict:

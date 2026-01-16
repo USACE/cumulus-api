@@ -1,5 +1,6 @@
 """DSS7 package writer"""
 
+import gc
 import json
 import logging
 import os
@@ -387,11 +388,19 @@ def process_single_tiff_gdal(args):
         # Step 8: Compress the grid data
         logger.debug(f"[{idx}] COMPRESS: Starting")
         t0 = time.time()
-        raw_bytes = data.astype(numpy.float32).tobytes()
+        # data is already float32, no need for .astype() which creates an unnecessary copy
+        # Ensure C-contiguous memory layout for efficient tobytes()
+        if not data.flags['C_CONTIGUOUS']:
+            data = numpy.ascontiguousarray(data)
+        raw_bytes = data.tobytes()
         compressed_data = zlib.compress(raw_bytes)
+        del raw_bytes  # Explicitly free the raw bytes buffer
         compressed_size = len(compressed_data)
         timings['compress'] = time.time() - t0
         logger.debug(f"[{idx}] COMPRESS: Completed in {timings['compress']:.3f}s, size={compressed_size} bytes")
+
+        # Step 9: Clean up data array to free memory before returning
+        del data
 
         total_time = time.time() - step_start
         logger.debug(f"[{idx}] WORKER_COMPLETE: Total={total_time:.3f}s, Timings={timings}")
@@ -724,6 +733,12 @@ def process_tiffs_with_bounded_queue(src, _bbox, cellsize, destination_srs, dss,
                         # Explicitly free memory after writing to DSS
                         compressed_data = None
                         gd = None
+
+                        # Periodic garbage collection to return memory to OS
+                        # Important for large grids (like APRFC) that use significant memory per iteration
+                        if processed_count % 50 == 0:
+                            gc.collect()
+
                         watchdog_state['current_step'] = 'COMPLETE'
                         logger.debug(f"[CONSUMER] [{result_idx}] Processing complete")
 

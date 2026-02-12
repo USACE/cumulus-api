@@ -46,7 +46,7 @@ func GetProductFileAvailability(db *pgxpool.Pool, ID uuid.UUID, interval string,
 	startTime := time.Date(d.Year(), d.Month(), d.Day(), 0, 0, 0, 0, d.Location()).Format(time.RFC3339)
 	endTime := time.Date(d.Year(), d.Month(), d.Day(), 23, 0, 0, 0, d.Location()).Format(time.RFC3339)
 
-	if interval == "24 hours" || interval == "1 day" {
+	if interval == "24 Hour" {
 		if err := pgxscan.Select(context.Background(), db, &avail,
 			`SELECT datetime, TRUE as is_available
 			FROM productfile

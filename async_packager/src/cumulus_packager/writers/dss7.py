@@ -6,7 +6,7 @@ import logging
 import os
 import sys
 import threading
-from collections import namedtuple
+from collections import defaultdict, namedtuple
 from pathlib import Path
 from queue import Queue, Empty
 from concurrent.futures import ThreadPoolExecutor, as_completed
@@ -200,6 +200,9 @@ def process_single_tiff_gdal(args):
     (idx, tif, _bbox, cellsize, destination_srs, grid_type, grid_type_name,
      srs_definition, _extent_name, tz_name, tz_offset, is_interval) = args
 
+    # Extract product_id early for error reporting
+    product_id = tif.get('product_id', 'UNKNOWN')
+
     try:
         TifCfg = namedtuple("TifCfg", tif)(**tif)
         s3_path = f"/vsis3_streaming/{TifCfg.bucket}/{TifCfg.key}"
@@ -210,6 +213,7 @@ def process_single_tiff_gdal(args):
             return {
                 'success': False,
                 'index': idx,
+                'product_id': product_id,
                 'error': f"Failed to open {TifCfg.key}"
             }
 
@@ -232,6 +236,7 @@ def process_single_tiff_gdal(args):
             return {
                 'success': False,
                 'index': idx,
+                'product_id': product_id,
                 'error': f"Failed to warp {TifCfg.key}"
             }
 
@@ -309,6 +314,7 @@ def process_single_tiff_gdal(args):
         return {
             'success': True,
             'index': idx,
+            'product_id': product_id,
             'tif_key': TifCfg.key,
             'gd': gd,
             'compressed_data': compressed_data,
@@ -322,6 +328,7 @@ def process_single_tiff_gdal(args):
         return {
             'success': False,
             'index': idx,
+            'product_id': product_id,
             'error': str(e)
         }
 
@@ -373,11 +380,18 @@ def process_tiffs_with_bounded_queue(src, _bbox, cellsize, destination_srs, dss,
 
     Returns:
     --------
-    int : Number of successfully processed files
+    tuple : (processed_count, product_stats) where processed_count is total files
+            attempted and product_stats is {product_id: {"expected": N, "successful": M}}
     """
     # Auto-detect optimal number of workers if not provided
     if max_workers is None:
         max_workers = get_optimal_workers()
+
+    # Build expected counts per product
+    expected_counts = defaultdict(int)
+    for tif in src:
+        expected_counts[tif.get('product_id', 'UNKNOWN')] += 1
+    success_counts = defaultdict(int)
 
     try:
         # Estimate bbox dimensions for queue sizing
@@ -455,6 +469,7 @@ def process_tiffs_with_bounded_queue(src, _bbox, cellsize, destination_srs, dss,
                         compressed_data = result['compressed_data']
                         compressed_size = result['compressed_size']
                         tif_key = result['tif_key']
+                        _product_id = result.get('product_id', 'UNKNOWN')
 
                         # Write precompressed data to DSS (GriddedData already created in worker)
                         t = Timer(name="accumuluated", logger=None)
@@ -464,8 +479,10 @@ def process_tiffs_with_bounded_queue(src, _bbox, cellsize, destination_srs, dss,
 
                         if dss_result != 0:
                             logger.warning(f'HEC-DSS-PY write record failed for "{tif_key}": {dss_result}')
-                        elif logger.isEnabledFor(logging.DEBUG):
-                            logger.debug(f'DSS writePrecompressedGrid processed "{tif_key}" in {elapsed_time:.4f}s')
+                        else:
+                            if logger.isEnabledFor(logging.DEBUG):
+                                logger.debug(f'DSS writePrecompressedGrid processed "{tif_key}" in {elapsed_time:.4f}s')
+                            success_counts[_product_id] += 1
 
                         processed_count += 1
 
@@ -489,9 +506,11 @@ def process_tiffs_with_bounded_queue(src, _bbox, cellsize, destination_srs, dss,
                         logger.error(f"Error writing to DSS for file {result['index']}: {e}")
                         import traceback
                         logger.error(traceback.format_exc())
+                        processed_count += 1
                         continue
                 else:
                     logger.error(f"Error processing file {result['index']}: {result.get('error', 'Unknown error')}")
+                    processed_count += 1
 
             except Empty:
                 logger.error("Timeout waiting for results from queue")
@@ -499,14 +518,24 @@ def process_tiffs_with_bounded_queue(src, _bbox, cellsize, destination_srs, dss,
 
         producer_thread.join()
 
-        logger.info(f"Parallel GDAL with compression: Successfully processed {processed_count}/{len(src)} files")
-        return processed_count
+        total_successful = sum(success_counts.values())
+        logger.info(f"Parallel GDAL with compression: Successfully wrote {total_successful}/{len(src)} files")
+
+        product_stats = {
+            pid: {"expected": expected_counts[pid], "successful": success_counts.get(pid, 0)}
+            for pid in expected_counts
+        }
+        return processed_count, product_stats
 
     except Exception as e:
         logger.error(f"Parallel GDAL processing failed: {e}")
         import traceback
         logger.error(traceback.format_exc())
-        return 0
+        product_stats = {
+            pid: {"expected": expected_counts[pid], "successful": 0}
+            for pid in expected_counts
+        }
+        return 0, product_stats
 
 
 @pyplugs.register
@@ -537,8 +566,9 @@ def writer(
 
     Returns
     -------
-    str
-        FQPN to dss file
+    dict or None
+        {"file": FQPN to dss file, "product_stats": {product_id: {"expected": N, "successful": M}}}
+        or None if no files were processed
     """
 
     try:
@@ -579,11 +609,17 @@ def writer(
 
     dssfilename = Path(dst).joinpath(id).with_suffix(".dss").as_posix()
 
+    # Build expected counts per product for single-file path
+    expected_counts = defaultdict(int)
+    for tif in src:
+        expected_counts[tif.get('product_id', 'UNKNOWN')] += 1
+    success_counts = defaultdict(int)
+
     with HecDss(dssfilename) as dss:
         # Use parallel GDAL processing with compression and precompressed writes for multiple files
         if len(src) > 1:
             logger.info("Using parallel GDAL processing with compression and precompressed writes")
-            processed_count = process_tiffs_with_bounded_queue(
+            processed_count, product_stats = process_tiffs_with_bounded_queue(
                 src, _bbox, cellsize, destination_srs, dss,
                 grid_type, grid_type_name, srs_definition,
                 _extent_name, tz_name, tz_offset, is_interval,
@@ -662,14 +698,17 @@ def writer(
                     t.start()
                     result = dss.put(gd)
                     elapsed_time = t.stop()
-                    if logger.isEnabledFor(logging.DEBUG):
-                        logger.debug(
-                            f'DSS put Processed "{TifCfg.key}" in {elapsed_time:.4f} seconds'
-                        )
                     if result != 0:
                         logger.info(
                             f'HEC-DSS-PY write record failed for "{TifCfg.key}": {result}'
                         )
+                    else:
+                        if logger.isEnabledFor(logging.DEBUG):
+                            logger.debug(
+                                f'DSS put Processed "{TifCfg.key}" in {elapsed_time:.4f} seconds'
+                            )
+                        _product_id = tif.get('product_id', 'UNKNOWN')
+                        success_counts[_product_id] += 1
 
                     _progress = int(((idx + 1) / gridcount) * 100)
                     # Update progress at predefined interval
@@ -698,6 +737,13 @@ def writer(
                     warp_ds = None
                     ds = None
 
+    # Build product_stats for single-file path (multi-file path already has it)
+    if len(src) == 1:
+        product_stats = {
+            pid: {"expected": expected_counts[pid], "successful": success_counts.get(pid, 0)}
+            for pid in expected_counts
+        }
+
     # If no progress was made for any items in the payload (ex: all tifs could not be projected properly),
     # don't return a dssfilename
     if _progress == 0:
@@ -710,4 +756,4 @@ def writer(
         f'Total processing time for download ID "{id}" in {total_time:.4f} seconds'
     )
 
-    return dssfilename
+    return {"file": dssfilename, "product_stats": product_stats}

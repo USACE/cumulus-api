@@ -4,7 +4,7 @@
 """
 import json
 import os
-from collections import namedtuple
+from collections import defaultdict, namedtuple
 from tarfile import TarFile
 
 import pyplugs
@@ -46,8 +46,9 @@ def writer(
 
     Returns
     -------
-    str
-        FQPN to dss file
+    dict or None
+        {"file": FQPN to tar.gz file, "product_stats": {product_id: {"expected": N, "successful": M}}}
+        or None if packaging failed
     """
     # convert the strings back to json objects; needed for pyplugs
     src = json.loads(src)
@@ -107,4 +108,13 @@ def writer(
         ds = None
         tar.close()
 
-    return tarfilename
+    # All-or-nothing: if we reached here, every file was processed
+    expected_counts = defaultdict(int)
+    for tif in src:
+        expected_counts[tif.get('product_id', 'UNKNOWN')] += 1
+    product_stats = {
+        pid: {"expected": count, "successful": count}
+        for pid, count in expected_counts.items()
+    }
+
+    return {"file": tarfilename, "product_stats": product_stats}

@@ -68,6 +68,7 @@ type PackagerRequest struct {
 	Contents   []PackagerContentItem `json:"contents"`
 	Format     string                `json:"format"`
 	Extent     Extent                `json:"extent"`
+	ProductIDs []uuid.UUID           `json:"product_ids"`
 }
 
 // Extent is a name and a bounding box
@@ -210,7 +211,8 @@ func GetDownloadPackagerRequest(db *pgxpool.Pool, downloadID *uuid.UUID) (*Packa
 				   '/download_', d.id, '.', f.extension
 				) AS output_key,
 			   f.abbreviation AS format,
-			   COALESCE(c.contents, '[]'::jsonb) AS contents
+			   COALESCE(c.contents, '[]'::jsonb) AS contents,
+			   ARRAY(SELECT product_id FROM download_product WHERE download_id = $1) AS product_ids
 		FROM download d
 		INNER JOIN download_format f ON f.id = d.download_format_id
 		LEFT JOIN watershed w ON w.id = d.watershed_id

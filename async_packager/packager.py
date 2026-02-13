@@ -76,11 +76,17 @@ def handle_message(message):
                 package_file = writer_result["file"]
                 product_stats = writer_result["product_stats"]
 
+                # Fill in products that had 0 files in contents
+                for pid in PayloadResp.product_ids:
+                    if str(pid) not in product_stats:
+                        product_stats[str(pid)] = {"expected": 0, "successful": 0}
+
                 # Determine status from per-product stats
                 total_expected = sum(ps["expected"] for ps in product_stats.values())
                 total_successful = sum(ps["successful"] for ps in product_stats.values())
+                all_products_have_data = all(ps["expected"] > 0 for ps in product_stats.values())
 
-                if total_successful == total_expected:
+                if total_successful == total_expected and all_products_have_data:
                     status_key = "SUCCESS"
                 else:
                     status_key = "PARTIAL_SUCCESS"

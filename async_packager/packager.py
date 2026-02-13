@@ -105,8 +105,8 @@ def handle_message(message):
                         # Manifest JSON with per-product stats
                         {
                             "size_bytes": os.path.getsize(package_file),
-                            "filecount": total_successful,
-                            "filecount_expected": total_expected,
+                            "filecount": total_expected,
+                            "filecount_successful": total_successful,
                             "product_stats": product_stats,
                         },
                     )

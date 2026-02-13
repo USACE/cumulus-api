@@ -68,7 +68,7 @@ type PackagerRequest struct {
 	Contents   []PackagerContentItem `json:"contents"`
 	Format     string                `json:"format"`
 	Extent     Extent                `json:"extent"`
-	ProductIDs []uuid.UUID           `json:"product_ids"`
+	ProductIDs []uuid.UUID           `json:"product_ids" db:"product_ids"`
 }
 
 // Extent is a name and a bounding box

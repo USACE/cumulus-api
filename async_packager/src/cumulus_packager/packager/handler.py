@@ -26,6 +26,7 @@ __all__ = [
 PACKAGE_STATUS = {
     "FAILED": "a553101e-8c51-4ddd-ac2e-b011ed54389b",
     "INITIATED": "94727878-7a50-41f8-99eb-a80eb82f737a",
+    "PARTIAL_SUCCESS": "b9e8fac1-0cd4-4645-91b2-36b83524549f",
     "SUCCESS": "3914f0bd-2290-42b1-bc24-41479b3a846f",
 }
 

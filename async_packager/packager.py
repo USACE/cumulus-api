@@ -34,6 +34,7 @@ this = os.path.basename(__file__)
 
 
 def handle_message(message):
+    package_file = None
     try:
         logger.info("%(spacer)s new message %(spacer)s" % {"spacer": "*" * 20})
 
@@ -69,11 +70,23 @@ def handle_message(message):
             # TODO: Add new package_status in database to represent EMPTY condition
             logger.info(f'Empty Contents: No products selected in the request for download ID "{download_id}"')
         else:
-            package_file = handler.handle_message(PayloadResp, dst.name)
+            writer_result = handler.handle_message(PayloadResp, dst.name)
 
-            if package_file:
+            if writer_result:
+                package_file = writer_result["file"]
+                product_stats = writer_result["product_stats"]
+
+                # Determine status from per-product stats
+                total_expected = sum(ps["expected"] for ps in product_stats.values())
+                total_successful = sum(ps["successful"] for ps in product_stats.values())
+
+                if total_successful == total_expected:
+                    status_key = "SUCCESS"
+                else:
+                    status_key = "PARTIAL_SUCCESS"
+
                 # Upload File to S3
-                logger.debug(f'Packaging successful for download ID "{download_id}"')
+                logger.debug(f'Packaging {status_key.lower()} for download ID "{download_id}" ({total_successful}/{total_expected} files)')
                 t1 = Timer(logger=None)
                 t1.start()
                 s3_upload_worked = s3_upload_file(
@@ -86,13 +99,15 @@ def handle_message(message):
                     )
                     handler.update_status(
                         download_id,
-                        handler.PACKAGE_STATUS["SUCCESS"],
+                        handler.PACKAGE_STATUS[status_key],
                         100,
                         PayloadResp.output_key,
-                        # Manifest JSON
+                        # Manifest JSON with per-product stats
                         {
                             "size_bytes": os.path.getsize(package_file),
-                            "filecount": len(PayloadResp.contents),
+                            "filecount": total_expected,
+                            "filecount_successful": total_successful,
+                            "product_stats": product_stats,
                         },
                     )
                 else:
@@ -101,7 +116,7 @@ def handle_message(message):
                     )
             else:
                 logger.critical(
-                    f'Failed to package or upload "{package_file}" to S3 download ID "{download_id}"'
+                    f'Failed to package or upload to S3 download ID "{download_id}"'
                 )
 
     except Exception as ex:

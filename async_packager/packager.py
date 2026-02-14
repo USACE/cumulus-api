@@ -35,6 +35,7 @@ this = os.path.basename(__file__)
 
 def handle_message(message):
     package_file = None
+    dst = None
     try:
         logger.info("%(spacer)s new message %(spacer)s" % {"spacer": "*" * 20})
 
@@ -135,9 +136,9 @@ def handle_message(message):
         handler.update_status(download_id, handler.PACKAGE_STATUS["FAILED"], 50)
     finally:
         package_file = None
-        if os.path.exists(dst.name):
+        if dst is not None and os.path.exists(dst.name):
             shutil.rmtree(dst.name, ignore_errors=True)
-        dst = None
+            dst = None
         message.delete()
 
     return 0

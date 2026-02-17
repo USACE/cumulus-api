@@ -57,6 +57,14 @@ def handle_message(message):
         if resp.status_code != 200:
             raise Exception(resp)
 
+        # get the full download record to retrieve the requested product_id list
+        dl_resp = requests.request(
+            "GET",
+            url=f"{CUMULUS_API_URL}/downloads/{download_id}",
+            params={"key": APPLICATION_KEY},
+        )
+        requested_product_ids = dl_resp.json().get("product_id", []) if dl_resp.status_code == 200 else []
+
         # create a temporary directory and release in final exception
         dst = TemporaryDirectory()
         logger.debug(f"Temporary Directory: {dst.name}")
@@ -78,7 +86,7 @@ def handle_message(message):
                 product_stats = writer_result["product_stats"]
 
                 # Fill in products that had 0 files in contents
-                for pid in PayloadResp.product_ids:
+                for pid in requested_product_ids:
                     if str(pid) not in product_stats:
                         product_stats[str(pid)] = {"expected": 0, "successful": 0}
 

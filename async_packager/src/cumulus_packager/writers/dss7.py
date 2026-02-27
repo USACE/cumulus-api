@@ -444,6 +444,10 @@ def process_tiffs_with_bounded_queue(src, _bbox, cellsize, destination_srs, dss,
                     result = future.result()
                     result_queue.put(result)
 
+                    # Remove completed future to free its internal result reference
+                    # Without this, all N futures + their results stay alive in the dict
+                    del future_to_idx[future]
+
             # Signal completion
             result_queue.put(None)
 

@@ -34,6 +34,8 @@ this = os.path.basename(__file__)
 
 
 def handle_message(message):
+    package_file = None
+    dst = None
     try:
         logger.info("%(spacer)s new message %(spacer)s" % {"spacer": "*" * 20})
 
@@ -55,6 +57,14 @@ def handle_message(message):
         if resp.status_code != 200:
             raise Exception(resp)
 
+        # get the full download record to retrieve the requested product_id list
+        dl_resp = requests.request(
+            "GET",
+            url=f"{CUMULUS_API_URL}/downloads/{download_id}",
+            params={"key": APPLICATION_KEY},
+        )
+        requested_product_ids = dl_resp.json().get("product_id", []) if dl_resp.status_code == 200 else []
+
         # create a temporary directory and release in final exception
         dst = TemporaryDirectory()
         logger.debug(f"Temporary Directory: {dst.name}")
@@ -69,11 +79,29 @@ def handle_message(message):
             # TODO: Add new package_status in database to represent EMPTY condition
             logger.info(f'Empty Contents: No products selected in the request for download ID "{download_id}"')
         else:
-            package_file = handler.handle_message(PayloadResp, dst.name)
+            writer_result = handler.handle_message(PayloadResp, dst.name)
 
-            if package_file:
+            if writer_result:
+                package_file = writer_result["file"]
+                product_stats = writer_result["product_stats"]
+
+                # Fill in products that had 0 files in contents
+                for pid in requested_product_ids:
+                    if str(pid) not in product_stats:
+                        product_stats[str(pid)] = {"expected": 0, "successful": 0}
+
+                # Determine status from per-product stats
+                total_expected = sum(ps["expected"] for ps in product_stats.values())
+                total_successful = sum(ps["successful"] for ps in product_stats.values())
+                all_products_have_data = all(ps["expected"] > 0 for ps in product_stats.values())
+
+                if total_successful == total_expected and all_products_have_data:
+                    status_key = "SUCCESS"
+                else:
+                    status_key = "PARTIAL_SUCCESS"
+
                 # Upload File to S3
-                logger.debug(f'Packaging successful for download ID "{download_id}"')
+                logger.debug(f'Packaging {status_key.lower()} for download ID "{download_id}" ({total_successful}/{total_expected} files)')
                 t1 = Timer(logger=None)
                 t1.start()
                 s3_upload_worked = s3_upload_file(
@@ -86,13 +114,15 @@ def handle_message(message):
                     )
                     handler.update_status(
                         download_id,
-                        handler.PACKAGE_STATUS["SUCCESS"],
+                        handler.PACKAGE_STATUS[status_key],
                         100,
                         PayloadResp.output_key,
-                        # Manifest JSON
+                        # Manifest JSON with per-product stats
                         {
                             "size_bytes": os.path.getsize(package_file),
-                            "filecount": len(PayloadResp.contents),
+                            "filecount": total_expected,
+                            "filecount_successful": total_successful,
+                            "product_stats": product_stats,
                         },
                     )
                 else:
@@ -101,7 +131,7 @@ def handle_message(message):
                     )
             else:
                 logger.critical(
-                    f'Failed to package or upload "{package_file}" to S3 download ID "{download_id}"'
+                    f'Failed to package or upload to S3 download ID "{download_id}"'
                 )
 
     except Exception as ex:
@@ -114,9 +144,9 @@ def handle_message(message):
         handler.update_status(download_id, handler.PACKAGE_STATUS["FAILED"], 50)
     finally:
         package_file = None
-        if os.path.exists(dst.name):
+        if dst is not None and os.path.exists(dst.name):
             shutil.rmtree(dst.name, ignore_errors=True)
-        dst = None
+            dst = None
         message.delete()
 
     return 0

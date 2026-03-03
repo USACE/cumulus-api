@@ -80,5 +80,6 @@ PRODUCT_FILE_VERSION: str = os.getenv(
 )
 
 LOGGER_LEVEL: str = os.getenv("LOGGER_LEVEL", default="INFO")
+
 # How often to send status updates
 PACKAGER_UPDATE_INTERVAL = int(os.getenv("PACKAGER_UPDATE_INTERVAL", default=5))

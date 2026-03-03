@@ -4,8 +4,21 @@
 
 from ctypes import CDLL, LibraryLoader
 import logging
+import sys
 
 from cumulus_packager.configurations import LOGGER_LEVEL
+
+
+# ------------------------- #
+# Custom handler that flushes immediately after each log
+# This ensures logs are not lost if process is killed (OOM, segfault, etc.)
+# ------------------------- #
+class FlushingStreamHandler(logging.StreamHandler):
+    """StreamHandler that flushes after every emit to prevent log loss on crash."""
+
+    def emit(self, record):
+        super().emit(record)
+        self.flush()
 
 
 # ------------------------- #
@@ -31,7 +44,9 @@ class package_logger(logging.Logger):
             "%Y-%m-%dT%H:%M:%S",
         )
 
-        ch = logging.StreamHandler()
+        # Use FlushingStreamHandler to ensure logs are written immediately
+        # This prevents log loss when process is killed (OOM, segfault, SIGKILL)
+        ch = FlushingStreamHandler(sys.stderr)
 
         ch.setFormatter(formatter)
         self.addHandler(ch)

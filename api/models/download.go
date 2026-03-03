@@ -80,6 +80,7 @@ type Extent struct {
 // PackagerContentItem is a single item for Packager to include in output file
 // Note: Previously called DownloadContentItem
 type PackagerContentItem struct {
+	ProductID   string `json:"product_id" db:"product_id"`
 	Bucket      string `json:"bucket"`
 	Key         string `json:"key"`
 	DssDatatype string `json:"dss_datatype" db:"dss_datatype"`
@@ -146,6 +147,7 @@ func GetDownloadPackagerRequest(db *pgxpool.Pool, downloadID *uuid.UUID) (*Packa
 		context.Background(), db, &pr,
 		`WITH download_contents AS (
 			SELECT download_id,
+			       product_id,
 			       key,
 		           bucket,
 			       dss_datatype,
@@ -168,6 +170,7 @@ func GetDownloadPackagerRequest(db *pgxpool.Pool, downloadID *uuid.UUID) (*Packa
 		    	)
 		    UNION
 		    SELECT download_id,
+			       product_id,
 			       key,
 		           bucket,
 		           dss_datatype,
@@ -215,6 +218,7 @@ func GetDownloadPackagerRequest(db *pgxpool.Pool, downloadID *uuid.UUID) (*Packa
 			SELECT download_id,
 			       jsonb_agg(
 					   jsonb_build_object(
+						   'product_id',   product_id,
 						   'key',          key,
 						   'bucket',       bucket,
 						   'dss_datatype', dss_datatype,

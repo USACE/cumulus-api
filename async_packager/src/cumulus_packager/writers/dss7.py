@@ -1,11 +1,12 @@
 """DSS7 package writer"""
 
+import gc
 import json
 import logging
 import os
 import sys
 import threading
-from collections import namedtuple
+from collections import defaultdict, namedtuple
 from pathlib import Path
 from queue import Queue, Empty
 from concurrent.futures import ThreadPoolExecutor, as_completed
@@ -25,15 +26,16 @@ from importlib.metadata import version, PackageNotFoundError
 
 gdal.UseExceptions()
 
-# Configure GDAL for optimal S3 streaming performance
+# Configure GDAL for S3 streaming
+# Disable all caching - each file is processed exactly once, so caching provides
+# no benefit but accumulates memory in GDAL's C memory space over hundreds of files
 gdal.SetConfigOption('GDAL_HTTP_MAX_RETRY', '3')
 gdal.SetConfigOption('GDAL_HTTP_RETRY_DELAY', '1')
 gdal.SetConfigOption('CPL_VSIL_CURL_CHUNK_SIZE', '10485760')  # 10MB chunks
 gdal.SetConfigOption('GDAL_DISABLE_READDIR_ON_OPEN', 'EMPTY_DIR')
 gdal.SetConfigOption('CPL_VSIL_CURL_ALLOWED_EXTENSIONS', '.tif,.tiff')
-gdal.SetConfigOption('VSI_CACHE', 'TRUE')
-gdal.SetConfigOption('VSI_CACHE_SIZE', '100000000')  # 100MB cache
-gdal.SetCacheMax(512 * 1024 * 1024)  # 512MB GDAL block cache
+gdal.SetConfigOption('VSI_CACHE', 'FALSE')  # Disable VSI cache - prevents memory accumulation
+gdal.SetCacheMax(0)  # Disable GDAL block cache - not needed for single-pass processing
 
 def get_available_memory_gb():
     """
@@ -79,7 +81,7 @@ def get_optimal_workers():
     """
     Get optimal number of worker threads based on available CPU cores,
     respecting Docker container limits.
-    Uses 2x CPU cores since this is an I/O-bound workload (S3 streaming reads).
+    Uses 4x CPU cores since this is an I/O-bound workload (S3 streaming reads).
 
     Returns:
     --------
@@ -120,9 +122,9 @@ def get_optimal_workers():
                 return 8
             logger.info(f"Detected {cpu_count} CPU cores (no container limit)")
 
-        # Use 2x CPU count for I/O-bound operations (S3 reads + processing)
-        optimal_workers = cpu_count * 2
-        logger.info(f"Using {optimal_workers} worker threads (2x CPU count)")
+        # Use 4x CPU count for I/O-bound operations (S3 reads + processing)
+        optimal_workers = cpu_count * 4
+        logger.info(f"Using {optimal_workers} worker threads (4x CPU count)")
         return optimal_workers
     except Exception as e:
         logger.warning(f"Failed to detect CPU count: {e}. Using default 8 workers")
@@ -198,6 +200,9 @@ def process_single_tiff_gdal(args):
     (idx, tif, _bbox, cellsize, destination_srs, grid_type, grid_type_name,
      srs_definition, _extent_name, tz_name, tz_offset, is_interval) = args
 
+    # Extract product_id early for error reporting
+    product_id = tif.get('product_id', 'UNKNOWN')
+
     try:
         TifCfg = namedtuple("TifCfg", tif)(**tif)
         s3_path = f"/vsis3_streaming/{TifCfg.bucket}/{TifCfg.key}"
@@ -208,6 +213,7 @@ def process_single_tiff_gdal(args):
             return {
                 'success': False,
                 'index': idx,
+                'product_id': product_id,
                 'error': f"Failed to open {TifCfg.key}"
             }
 
@@ -230,6 +236,7 @@ def process_single_tiff_gdal(args):
             return {
                 'success': False,
                 'index': idx,
+                'product_id': product_id,
                 'error': f"Failed to warp {TifCfg.key}"
             }
 
@@ -293,13 +300,21 @@ def process_single_tiff_gdal(args):
         gd.data = None  # Free data reference in GriddedData
 
         # Compress the grid data (parallel compression in worker process)
-        raw_bytes = data.astype(numpy.float32).tobytes()
+        # Ensure C-contiguous memory layout for efficient tobytes()
+        if not data.flags['C_CONTIGUOUS']:
+            data = numpy.ascontiguousarray(data)
+        raw_bytes = data.tobytes()
         compressed_data = zlib.compress(raw_bytes)
+        del raw_bytes  # Explicitly free the raw bytes buffer
         compressed_size = len(compressed_data)
+
+        # Clean up data array to free memory before returning
+        del data
 
         return {
             'success': True,
             'index': idx,
+            'product_id': product_id,
             'tif_key': TifCfg.key,
             'gd': gd,
             'compressed_data': compressed_data,
@@ -313,6 +328,7 @@ def process_single_tiff_gdal(args):
         return {
             'success': False,
             'index': idx,
+            'product_id': product_id,
             'error': str(e)
         }
 
@@ -364,11 +380,18 @@ def process_tiffs_with_bounded_queue(src, _bbox, cellsize, destination_srs, dss,
 
     Returns:
     --------
-    int : Number of successfully processed files
+    tuple : (processed_count, product_stats) where processed_count is total files
+            attempted and product_stats is {product_id: {"expected": N, "successful": M}}
     """
     # Auto-detect optimal number of workers if not provided
     if max_workers is None:
         max_workers = get_optimal_workers()
+
+    # Build expected counts per product
+    expected_counts = defaultdict(int)
+    for tif in src:
+        expected_counts[tif.get('product_id', 'UNKNOWN')] += 1
+    success_counts = defaultdict(int)
 
     try:
         # Estimate bbox dimensions for queue sizing
@@ -421,6 +444,10 @@ def process_tiffs_with_bounded_queue(src, _bbox, cellsize, destination_srs, dss,
                     result = future.result()
                     result_queue.put(result)
 
+                    # Remove completed future to free its internal result reference
+                    # Without this, all N futures + their results stay alive in the dict
+                    del future_to_idx[future]
+
             # Signal completion
             result_queue.put(None)
 
@@ -446,6 +473,7 @@ def process_tiffs_with_bounded_queue(src, _bbox, cellsize, destination_srs, dss,
                         compressed_data = result['compressed_data']
                         compressed_size = result['compressed_size']
                         tif_key = result['tif_key']
+                        _product_id = result.get('product_id', 'UNKNOWN')
 
                         # Write precompressed data to DSS (GriddedData already created in worker)
                         t = Timer(name="accumuluated", logger=None)
@@ -455,8 +483,10 @@ def process_tiffs_with_bounded_queue(src, _bbox, cellsize, destination_srs, dss,
 
                         if dss_result != 0:
                             logger.warning(f'HEC-DSS-PY write record failed for "{tif_key}": {dss_result}')
-                        elif logger.isEnabledFor(logging.DEBUG):
-                            logger.debug(f'DSS writePrecompressedGrid processed "{tif_key}" in {elapsed_time:.4f}s')
+                        else:
+                            if logger.isEnabledFor(logging.DEBUG):
+                                logger.debug(f'DSS writePrecompressedGrid processed "{tif_key}" in {elapsed_time:.4f}s')
+                            success_counts[_product_id] += 1
 
                         processed_count += 1
 
@@ -471,13 +501,20 @@ def process_tiffs_with_bounded_queue(src, _bbox, cellsize, destination_srs, dss,
                         compressed_data = None
                         gd = None
 
+                        # Periodic garbage collection to return memory to OS
+                        # Important for large grids that use significant memory per iteration
+                        if processed_count % 50 == 0:
+                            gc.collect()
+
                     except Exception as e:
                         logger.error(f"Error writing to DSS for file {result['index']}: {e}")
                         import traceback
                         logger.error(traceback.format_exc())
+                        processed_count += 1
                         continue
                 else:
                     logger.error(f"Error processing file {result['index']}: {result.get('error', 'Unknown error')}")
+                    processed_count += 1
 
             except Empty:
                 logger.error("Timeout waiting for results from queue")
@@ -485,14 +522,24 @@ def process_tiffs_with_bounded_queue(src, _bbox, cellsize, destination_srs, dss,
 
         producer_thread.join()
 
-        logger.info(f"Parallel GDAL with compression: Successfully processed {processed_count}/{len(src)} files")
-        return processed_count
+        total_successful = sum(success_counts.values())
+        logger.info(f"Parallel GDAL with compression: Successfully wrote {total_successful}/{len(src)} files")
+
+        product_stats = {
+            pid: {"expected": expected_counts[pid], "successful": success_counts.get(pid, 0)}
+            for pid in expected_counts
+        }
+        return processed_count, product_stats
 
     except Exception as e:
         logger.error(f"Parallel GDAL processing failed: {e}")
         import traceback
         logger.error(traceback.format_exc())
-        return 0
+        product_stats = {
+            pid: {"expected": expected_counts[pid], "successful": 0}
+            for pid in expected_counts
+        }
+        return 0, product_stats
 
 
 @pyplugs.register
@@ -523,8 +570,9 @@ def writer(
 
     Returns
     -------
-    str
-        FQPN to dss file
+    dict or None
+        {"file": FQPN to dss file, "product_stats": {product_id: {"expected": N, "successful": M}}}
+        or None if no files were processed
     """
 
     try:
@@ -565,11 +613,17 @@ def writer(
 
     dssfilename = Path(dst).joinpath(id).with_suffix(".dss").as_posix()
 
+    # Build expected counts per product for single-file path
+    expected_counts = defaultdict(int)
+    for tif in src:
+        expected_counts[tif.get('product_id', 'UNKNOWN')] += 1
+    success_counts = defaultdict(int)
+
     with HecDss(dssfilename) as dss:
         # Use parallel GDAL processing with compression and precompressed writes for multiple files
         if len(src) > 1:
             logger.info("Using parallel GDAL processing with compression and precompressed writes")
-            processed_count = process_tiffs_with_bounded_queue(
+            processed_count, product_stats = process_tiffs_with_bounded_queue(
                 src, _bbox, cellsize, destination_srs, dss,
                 grid_type, grid_type_name, srs_definition,
                 _extent_name, tz_name, tz_offset, is_interval,
@@ -648,14 +702,17 @@ def writer(
                     t.start()
                     result = dss.put(gd)
                     elapsed_time = t.stop()
-                    if logger.isEnabledFor(logging.DEBUG):
-                        logger.debug(
-                            f'DSS put Processed "{TifCfg.key}" in {elapsed_time:.4f} seconds'
-                        )
                     if result != 0:
                         logger.info(
                             f'HEC-DSS-PY write record failed for "{TifCfg.key}": {result}'
                         )
+                    else:
+                        if logger.isEnabledFor(logging.DEBUG):
+                            logger.debug(
+                                f'DSS put Processed "{TifCfg.key}" in {elapsed_time:.4f} seconds'
+                            )
+                        _product_id = tif.get('product_id', 'UNKNOWN')
+                        success_counts[_product_id] += 1
 
                     _progress = int(((idx + 1) / gridcount) * 100)
                     # Update progress at predefined interval
@@ -684,6 +741,13 @@ def writer(
                     warp_ds = None
                     ds = None
 
+    # Build product_stats for single-file path (multi-file path already has it)
+    if len(src) == 1:
+        product_stats = {
+            pid: {"expected": expected_counts[pid], "successful": success_counts.get(pid, 0)}
+            for pid in expected_counts
+        }
+
     # If no progress was made for any items in the payload (ex: all tifs could not be projected properly),
     # don't return a dssfilename
     if _progress == 0:
@@ -696,4 +760,4 @@ def writer(
         f'Total processing time for download ID "{id}" in {total_time:.4f} seconds'
     )
 
-    return dssfilename
+    return {"file": dssfilename, "product_stats": product_stats}

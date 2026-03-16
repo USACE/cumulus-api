@@ -1,6 +1,12 @@
-FROM golang:1.24.2-alpine AS builder
+ARG TAG=1.26
+
+FROM golang:${TAG}-alpine AS builder
 # Install Git
-RUN apk update && apk add --no-cache ca-certificates
+
+RUN apk update && \
+    apk upgrade && \
+    apk add --no-cache ca-certificates
+
 # Copy In Source Code
 WORKDIR /go/src/app
 COPY . .
@@ -8,6 +14,7 @@ COPY . .
 # Install Dependencies
 RUN go mod download && \
     go mod verify
+
 # Build
 RUN GOOS=linux GOARCH=amd64 CGO_ENABLED=0 \
     go build -ldflags="-w -s" -o /go/bin/cumulus-api

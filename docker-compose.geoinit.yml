@@ -7,7 +7,7 @@ services:
     build:
       context: async_geoprocess_init
       args:
-        TEST_DATA_TAG: '2025-01-31'
+        TEST_DATA_TAG: "2025-11-04"
     # entrypoint: sleep infinity # override the Dockerfile entrypoint
     environment:
       - AWS_ACCESS_KEY_ID=AKIAIOSFODNN7EXAMPLE
@@ -15,7 +15,7 @@ services:
       - AWS_DEFAULT_REGION=us-east-1
       - MINIO_ENDPOINT=http://minio:9000
       - S3_ACQUIRABLE_PREFIX=cumulus/acquirables
-      - CUMULUS_AWS_S3_BUCKET=castle-data-develop
+      - CUMULUS_AWS_S3_BUCKET=cumulus-dev
       - CUMULUS_STATIC_HOST=http://api
       - CUMULUS_ACQUIRABLE_FILES=/api/acquirablefiles
       - CUMULUS_ACQUIRABLES=/api/acquirables

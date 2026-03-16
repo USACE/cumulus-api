@@ -9,7 +9,6 @@ import (
 	"strings"
 
 	"github.com/aws/aws-sdk-go-v2/aws"
-	"github.com/aws/aws-sdk-go-v2/config"
 	"github.com/aws/aws-sdk-go-v2/service/s3"
 	"github.com/labstack/echo/v4"
 )
@@ -20,9 +19,18 @@ type (
 		// the middleware.
 		Skipper func(c echo.Context) bool
 
+		// Aws Configuration
+		// Required.
+		AwsConfig aws.Config
+
 		// S3 bucket.
 		// Required.
 		Bucket string `yaml:"bucket"`
+
+		// Allows you to enable the client to use path-style addressing, i.e.,
+		// https://s3.amazonaws.com/BUCKET/KEY . By default, the S3 client will use virtual
+		// hosted bucket addressing when possible( https://BUCKET.s3.amazonaws.com/KEY ).
+		UsePathStyle bool
 
 		// Prefix limits the response to keys that begin with the specified prefix.
 		// Optional. Default value "/"
@@ -98,22 +106,10 @@ func S3StaticWithConfig(staticConfig S3StaticConfig) echo.MiddlewareFunc {
 			key := path.Join(staticConfig.Prefix, path.Clean("/"+staticConfig.Index))
 
 			// load aws config and get a client
-			cfg, err := config.LoadDefaultConfig(context.Background())
-			if staticConfig.Environment == "MOCK" {
-				cfg, err = config.LoadDefaultConfig(context.Background(),
-					config.WithEndpointResolverWithOptions(
-						aws.EndpointResolverWithOptionsFunc(
-							func(service, region string, options ...any) (aws.Endpoint, error) {
-								return aws.Endpoint{
-									URL:               staticConfig.Endpoint,
-									HostnameImmutable: true,
-								}, nil
-							}),
-					),
-				)
-			}
-
-			client := s3.NewFromConfig(cfg)
+			client := s3.NewFromConfig(staticConfig.AwsConfig,
+				func(o *s3.Options) {
+					o.UsePathStyle = staticConfig.UsePathStyle
+				})
 
 			// first, check if the bucket exists and we have permission to access
 			_, err = client.HeadBucket(context.Background(), &s3.HeadBucketInput{Bucket: &staticConfig.Bucket})

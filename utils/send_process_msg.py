@@ -1,23 +1,23 @@
 """Local development testing products
-    Sending a message to the SQS queue for the geoprocessor
-    Products should be under the following directory structure:
+Sending a message to the SQS queue for the geoprocessor
+Products should be under the following directory structure:
 
-        <repo dir>/data/cumulus/acquirables/<acquirable slug>/<product>
+    <repo dir>/data/cumulus/acquirables/<acquirable slug>/<product>
 
-    Raises
-    ------
-    Exception
-        None.  Never errors. :)
+Raises
+------
+Exception
+    None.  Never errors. :)
 
-    Usage
-    -----
-    Example: Send message for all files
-        >>> python send_process_msg.py
+Usage
+-----
+Example: Send message for all files
+    >>> python send_process_msg.py
 
-    Example: Send message for files using filter that contain 'Pass1'
-        >>> python send_process_msg.py -f .*Pass1.*
+Example: Send message for files using filter that contain 'Pass1'
+    >>> python send_process_msg.py -f .*Pass1.*
 
-    Adding switch '-n' will 'dry-run' each execution printing the message(s)
+Adding switch '-n' will 'dry-run' each execution printing the message(s)
 """
 
 import os
@@ -68,7 +68,7 @@ parser.add_argument(
     "-b",
     "--bucket",
     action="append",
-    default=["castle-data-develop"],
+    default=["cumulus-dev"],
     help='AWS (minio) bucket name; default="%(default)s"',
 )
 parser.add_argument("-f", "--filter", help="Regex filter string for filenames")

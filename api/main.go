@@ -14,15 +14,16 @@ import (
 	_ "github.com/jackc/pgx/v4"
 	"github.com/jackc/pgx/v4/pgxpool"
 
-	"github.com/USACE/cumulus-api/api/config"
+	_config "github.com/USACE/cumulus-api/api/config"
 	"github.com/USACE/cumulus-api/api/handlers"
-	"github.com/USACE/cumulus-api/api/middleware"
+	_middleware "github.com/USACE/cumulus-api/api/middleware"
 
+	"github.com/aws/aws-sdk-go-v2/config"
 	"github.com/labstack/echo-contrib/prometheus"
 )
 
 // Connection returns a database connection from configuration parameters
-func Connection(cfg *config.Config) *pgxpool.Pool {
+func Connection(cfg *_config.Config) *pgxpool.Pool {
 
 	poolConfig, err := pgxpool.ParseConfig(
 		fmt.Sprintf(
@@ -50,28 +51,31 @@ func Connection(cfg *config.Config) *pgxpool.Pool {
 func main() {
 
 	// Environment Variable Config
-	cfg, err := config.GetConfig()
+	cfg, err := _config.GetConfig()
 	if err != nil {
 		log.Fatal(err.Error())
 	}
 
 	// AWS Config
-	awsCfg := cfg.AWSConfig()
+	// awsCfg := cfg.AWSConfig()
+	awsCfg, err := config.LoadDefaultConfig(context.TODO())
 
 	// Database
 	db := Connection(cfg)
 
 	e := echo.New()
 	// Middleware for All Routes
-	e.Use(middleware.CORS, middleware.GZIP)
+	e.Use(_middleware.CORS, _middleware.GZIP)
 
 	// Middleware to serve static content from s3
 	// Make sure it is last in the middleware chain
-	e.Use(middleware.S3StaticWithConfig(middleware.S3StaticConfig{
-		Bucket:      cfg.AWSS3Bucket,
-		Prefix:      cfg.AWSS3BucketPrefix,
-		Environment: cfg.AuthEnvironment,
-		Endpoint:    cfg.AWSS3Endpoint,
+	e.Use(_middleware.S3StaticWithConfig(_middleware.S3StaticConfig{
+		Bucket:       cfg.AWSS3Bucket,
+		Prefix:       cfg.AWSS3BucketPrefix,
+		Environment:  cfg.AuthEnvironment,
+		Endpoint:     cfg.AWSS3Endpoint,
+		AwsConfig:    awsCfg,
+		UsePathStyle: cfg.AWSS3ForcePathStyle,
 		Skipper: func(c echo.Context) bool {
 			return strings.HasPrefix(c.Request().URL.Path, "/api/") || strings.HasPrefix(c.Request().URL.Path, "/features/")
 		},
@@ -90,21 +94,21 @@ func main() {
 	log.Printf("AUTH_ENVIRONMENT: %s", cfg.AuthEnvironment)
 	switch strings.ToUpper(cfg.AuthEnvironment) {
 	case "MOCK":
-		private.Use(middleware.JWTMock)
+		private.Use(_middleware.JWTMock)
 	case "DEVELOP":
-		private.Use(middleware.JWTDevelop)
+		private.Use(_middleware.JWTDevelop)
 	case "STABLE":
-		private.Use(middleware.JWTStable)
+		private.Use(_middleware.JWTStable)
 	case "TEST":
-		private.Use(middleware.JWTTest)
+		private.Use(_middleware.JWTTest)
 	case "PROD":
-		private.Use(middleware.JWTProd)
+		private.Use(_middleware.JWTProd)
 	default:
 		log.Fatalf("Unknown AUTH_ENVIRONMENT Variable: %s", cfg.AuthEnvironment)
 	}
 
 	// Key Authentication Middleware
-	private.Use(middleware.KeyAuth(cfg.ApplicationKey), middleware.AttachUserInfo)
+	private.Use(_middleware.KeyAuth(cfg.ApplicationKey), _middleware.AttachUserInfo)
 
 	// Health Check
 	public.GET("/health", func(c echo.Context) error {
@@ -121,13 +125,13 @@ func main() {
 
 	// Proxy to pg_featureserv
 	features := e.Group("/features")
-	features.Use(middleware.PgFeatureservProxy(cfg.PgFeatureservUrl))
+	features.Use(_middleware.PgFeatureservProxy(cfg.PgFeatureservUrl))
 
 	// Acquirables
 	public.GET("/acquirables", handlers.ListAcquirables(db))
 	private.GET("/acquirables/:acquirable_id/files", handlers.ListAcquirablefiles(db))
 	private.POST("/acquirablefiles", handlers.CreateAcquirablefiles(db),
-		middleware.IsAdmin,
+		_middleware.IsAdmin,
 	)
 
 	// Offices
@@ -140,16 +144,16 @@ func main() {
 	public.GET("/products/:product_id/file-availability", handlers.GetProductFileAvailability(db))
 	public.GET("/products/:product_id", handlers.GetProduct(db))
 	private.POST("/products", handlers.CreateProduct(db),
-		middleware.IsAdmin,
+		_middleware.IsAdmin,
 	)
 	private.PUT("/products/:product_id", handlers.UpdateProduct(db),
-		middleware.IsAdmin,
+		_middleware.IsAdmin,
 	)
 	private.DELETE("/products/:product_id", handlers.DeleteProduct(db),
-		middleware.IsAdmin,
+		_middleware.IsAdmin,
 	)
 	private.POST("/products/:product_id/undelete", handlers.UndeleteProduct(db),
-		middleware.IsAdmin,
+		_middleware.IsAdmin,
 	)
 	// Additional Information About Products
 	public.GET("/products/:product_id/availability", handlers.GetProductAvailability(db))
@@ -157,53 +161,53 @@ func main() {
 
 	// Productfiles
 	private.POST("/productfiles", handlers.CreateProductfiles(db),
-		middleware.IsAdmin,
+		_middleware.IsAdmin,
 	)
 
 	// Suites
 	public.GET("/suites", handlers.ListSuites(db))
 	public.GET("/suites/:suite_id", handlers.GetSuite(db))
 	private.POST("/suites", handlers.CreateSuite(db),
-		middleware.IsAdmin,
+		_middleware.IsAdmin,
 	)
 	private.PUT("/suites/:suite_id", handlers.UpdateSuite(db),
-		middleware.IsAdmin,
+		_middleware.IsAdmin,
 	)
 	private.DELETE("/suites/:suite_id", handlers.DeleteSuite(db),
-		middleware.IsAdmin,
+		_middleware.IsAdmin,
 	)
 
 	// Tags
 	public.GET("/tags", handlers.ListTags(db))
 	public.GET("/tags/:tag_id", handlers.GetTag(db))
 	private.POST("/tags", handlers.CreateTag(db),
-		middleware.IsAdmin,
+		_middleware.IsAdmin,
 	)
 	private.PUT("/tags/:tag_id", handlers.UpdateTag(db),
-		middleware.IsAdmin,
+		_middleware.IsAdmin,
 	)
 	private.DELETE("/tags/:tag_id", handlers.DeleteTag(db),
-		middleware.IsAdmin,
+		_middleware.IsAdmin,
 	)
 	// Tag or Untag Product
 	private.POST("/products/:product_id/tags/:tag_id", handlers.TagProduct(db),
-		middleware.IsAdmin,
+		_middleware.IsAdmin,
 	)
 	private.DELETE("/products/:product_id/tags/:tag_id", handlers.UntagProduct(db),
-		middleware.IsAdmin,
+		_middleware.IsAdmin,
 	)
 
 	// Units
 	public.GET("/units", handlers.ListUnits(db))
 	public.GET("/units/:unit_id", handlers.GetUnit(db))
 	private.POST("/units", handlers.CreateUnit(db),
-		middleware.IsAdmin,
+		_middleware.IsAdmin,
 	)
 	private.PUT("/units/:unit_id", handlers.UpdateUnit(db),
-		middleware.IsAdmin,
+		_middleware.IsAdmin,
 	)
 	private.DELETE("/units/:unit_id", handlers.DeleteUnit(db),
-		middleware.IsAdmin,
+		_middleware.IsAdmin,
 	)
 
 	// DSS Specific Information
@@ -213,21 +217,21 @@ func main() {
 	public.GET("/parameters", handlers.ListParameters(db))
 	public.GET("/parameters/:parameter_id", handlers.GetParameter(db))
 	private.POST("/parameters", handlers.CreateParameter(db),
-		middleware.IsAdmin,
+		_middleware.IsAdmin,
 	)
 	private.PUT("/parameters/:parameter_id", handlers.UpdateParameter(db),
-		middleware.IsAdmin,
+		_middleware.IsAdmin,
 	)
 	private.DELETE("/parameters/:parameter_id", handlers.DeleteParameter(db),
-		middleware.IsAdmin,
+		_middleware.IsAdmin,
 	)
 
 	// Downloads
-	public.GET("/cumulus/download/*", handlers.ServeMedia(&awsCfg, &cfg.AWSS3Bucket)) // Serve Downloads
+	public.GET("/cumulus/download/*", handlers.ServeMedia(awsCfg, *cfg)) // Serve Downloads
 	// List Downloads
-	private.GET("/downloads", handlers.ListAdminDownloads(db), middleware.IsAdmin)
+	private.GET("/downloads", handlers.ListAdminDownloads(db), _middleware.IsAdmin)
 	// Create Download (Anonymous)
-	public.POST("/deprecated/anonymous_downloads", handlers.CreateDownload(db, cfg), middleware.AttachAnonymousUserInfo) // deprecated
+	public.POST("/deprecated/anonymous_downloads", handlers.CreateDownload(db, cfg), _middleware.AttachAnonymousUserInfo) // deprecated
 	private.POST("/downloads", handlers.CreateDownload(db, cfg))
 	public.GET("/downloads/:download_id", handlers.GetDownload(db))
 	// Create Download (Authenticated)
@@ -254,16 +258,16 @@ func main() {
 	public.GET("/watersheds", handlers.ListWatersheds(db))
 	public.GET("/watersheds/:watershed_id", handlers.GetWatershed(db))
 	private.POST("/watersheds", handlers.CreateWatershed(db),
-		middleware.IsAdmin,
+		_middleware.IsAdmin,
 	)
 	private.PUT("/watersheds/:watershed_id", handlers.UpdateWatershed(db),
-		middleware.IsAdmin,
+		_middleware.IsAdmin,
 	)
 	private.DELETE("/watersheds/:watershed_id", handlers.DeleteWatershed(db),
-		middleware.IsAdmin,
+		_middleware.IsAdmin,
 	)
 	private.POST("/watersheds/:watershed_id/undelete", handlers.UndeleteWatershed(db),
-		middleware.IsAdmin,
+		_middleware.IsAdmin,
 	)
 
 	// My Watersheds
@@ -281,10 +285,10 @@ func main() {
 	// private.POST("/watersheds/:watershed_id/area_groups/:area_group_id/products/:product_id/statistics/enable", handlers.EnableAreaGroupProductStatistics(db))
 	// private.POST("/watersheds/:watershed_id/area_groups/:area_group_id/products/:product_id/statistics/disable", handlers.DisableAreaGroupProductStatistics(db))
 
-	// Create Prometheus server and Middleware
+	// Create Prometheus server and middleware
 	eProm := echo.New()
 	eProm.HideBanner = true
-	prom := prometheus.NewPrometheus("cumulus_api", middleware.MetricsUrlSkipper)
+	prom := prometheus.NewPrometheus("cumulus_api", _middleware.MetricsUrlSkipper)
 
 	// Scrape metrics from Main Server
 	e.Use(prom.HandlerFunc)

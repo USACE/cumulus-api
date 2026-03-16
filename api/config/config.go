@@ -3,7 +3,7 @@ package config
 import (
 	"log"
 
-	"github.com/aws/aws-sdk-go/aws"
+	// "github.com/aws/aws-sdk-go/aws"
 
 	"github.com/kelseyhightower/envconfig"
 )
@@ -15,6 +15,7 @@ type Config struct {
 	DBName                       string
 	DBHost                       string
 	DBSSLMode                    string
+	UsePathStyle                 bool   `envconfig:"USE_PATH_STYLE" default:"false"`
 	AuthEnvironment              string `envconfig:"AUTH_ENVIRONMENT" default:"DEVELOP"`
 	DownloadDefaultFormat        string `envconfig:"DOWNLOAD_DEFAULT_FORMAT" default:"dss7"`
 	AsyncEngineAcquisition       string `envconfig:"ASYNC_ENGINE_ACQUISITION"`
@@ -34,18 +35,18 @@ type Config struct {
 	PgFeatureservUrl             string `envconfig:"PG_FEATURESERV_URL"`
 }
 
-func (cfg Config) AWSConfig() aws.Config {
+// func (cfg Config) AWSConfig() aws.Config {
 
-	a := aws.NewConfig().WithRegion(cfg.AWSS3Region)
+// 	a := aws.NewConfig().WithRegion(cfg.AWSS3Region)
 
-	// Used for "minio" during development
-	a.WithDisableSSL(cfg.AWSS3DisableSSL)
-	a.WithS3ForcePathStyle(cfg.AWSS3ForcePathStyle)
-	if cfg.AWSS3Endpoint != "" {
-		a.WithEndpoint(cfg.AWSS3Endpoint)
-	}
-	return *a
-}
+// 	// Used for "minio" during development
+// 	a.WithDisableSSL(cfg.AWSS3DisableSSL)
+// 	a.WithS3ForcePathStyle(cfg.AWSS3ForcePathStyle)
+// 	if cfg.AWSS3Endpoint != "" {
+// 		a.WithEndpoint(cfg.AWSS3Endpoint)
+// 	}
+// 	return *a
+// }
 
 // GetConfig returns environment variable config
 func GetConfig() (*Config, error) {

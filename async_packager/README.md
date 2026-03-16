@@ -32,7 +32,7 @@ flowchart LR
     "output_key": "cumulus/download/dss7/download_a01fdb6e-c496-4ebf-a354-b11b0847523b.dss",
     "contents": [
         {
-            "bucket": "castle-data-develop",
+            "bucket": "cumulus-dev",
             "key": "cumulus/products/cbrfc-mpe/xmrg0526202206z.tif",
             "dss_datatype": "PER-CUM",
             "dss_fpart": "CBRFC-MPE",
@@ -42,7 +42,7 @@ flowchart LR
             "dss_unit": "MM"
         },
         {
-            "bucket": "castle-data-develop",
+            "bucket": "cumulus-dev",
             "key": "cumulus/products/cbrfc-mpe/xmrg0526202207z.tif",
             "dss_datatype": "PER-CUM",
             "dss_fpart": "CBRFC-MPE",
@@ -52,7 +52,7 @@ flowchart LR
             "dss_unit": "MM"
         },
         {
-            "bucket": "castle-data-develop",
+            "bucket": "cumulus-dev",
             "key": "cumulus/products/cbrfc-mpe/xmrg0526202208z.tif",
             "dss_datatype": "PER-CUM",
             "dss_fpart": "CBRFC-MPE",

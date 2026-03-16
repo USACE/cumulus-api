@@ -1,6 +1,4 @@
-"""Initialize package with configuations
-"""
-
+"""Initialize package with configuations"""
 
 import os
 
@@ -26,7 +24,9 @@ AWS_S3_ENDPOINT: str = os.getenv("minio:9000", default=None)
 
 # Use SSL setting to 'True' as default if env var unset from docker-compose
 # client and resource use_ssl default=True; ignored is endpoint_url defined
-USE_SSL: bool = bool(1) if os.getenv("USE_SSL", default="True").lower() == "true" else bool(0)
+USE_SSL: bool = (
+    bool(1) if os.getenv("USE_SSL", default="True").lower() == "true" else bool(0)
+)
 
 # ------------------------- #
 # SQS Configuration
@@ -38,7 +38,7 @@ MAX_Q_MESSAGES: int = os.getenv("MAX_Q_MESSAGES", default=10)
 # ------------------------- #
 # S3 Configuration
 # ------------------------- #
-WRITE_TO_BUCKET: str = os.getenv("WRITE_TO_BUCKET", default="castle-data-develop")
+WRITE_TO_BUCKET: str = os.getenv("WRITE_TO_BUCKET", default="cumulus-dev")
 
 
 # ------------------------- #
@@ -62,12 +62,17 @@ GDAL_DISABLE_READDIR_ON_OPEN: str = os.getenv(
 # MOCK File Uploads to S3 (i.e. print) or actually upload
 
 # Set to env var from docker-compose and default to 'False' is unset
-CUMULUS_MOCK_S3_UPLOAD: bool = bool(0) if os.getenv("CUMULUS_MOCK_S3_UPLOAD", default="False").lower() == "false" else bool(1)
-
+CUMULUS_MOCK_S3_UPLOAD: bool = (
+    bool(0)
+    if os.getenv("CUMULUS_MOCK_S3_UPLOAD", default="False").lower() == "false"
+    else bool(1)
+)
 
 
 # HTTP protocol used in httpx
-HTTP2: bool = bool(0) if os.getenv("HTTP2", default="False").lower() == "false" else bool(1)
+HTTP2: bool = (
+    bool(0) if os.getenv("HTTP2", default="False").lower() == "false" else bool(1)
+)
 
 # Cumulus products key
 CUMULUS_PRODUCTS_BASEKEY: str = os.getenv(

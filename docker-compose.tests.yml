@@ -1,13 +1,11 @@
-version: "3"
-
 services:
   cumulusdb:
-    image: postgis/postgis:13-3.1
+    image: postgis/postgis:16-3.5
     restart: always
     environment:
-        - POSTGRES_PASSWORD=postgres
+      - POSTGRES_PASSWORD=postgres
     ports:
-        - "5432:5432"
+      - "5432:5432"
   api:
     build:
       context: api
@@ -16,6 +14,7 @@ services:
       - AWS_SECRET_ACCESS_KEY=wJalrXUtnFEMI/K7MDENG/bPxRfiCYEXAMPLEKEY
       - AWS_DEFAULT_REGION=us-east-1
       - AWS_REGION=us-east-1
+      - USE_PATH_STYLE=true
       - CUMULUS_APPLICATION_KEY=appkey
       # CUMULUS_AUTH_ENVIRONMENT; OPTIONS:  MOCK | DEVELOP | STABLE
       - CUMULUS_AUTH_ENVIRONMENT=MOCK
@@ -33,7 +32,7 @@ services:
       - CUMULUS_ASYNC_ENGINE_STATISTICS_TARGET=local/http://localhost:9324/queue/cumulus-statistics
       - CUMULUS_STATIC_HOST=http://localhost
       - CUMULUS_AWS_S3_REGION=us-east-1
-      - CUMULUS_AWS_S3_BUCKET=castle-data-develop
+      - CUMULUS_AWS_S3_BUCKET=cumulus-dev
       - CUMULUS_AWS_S3_ENDPOINT=http://minio:9000
       - CUMULUS_AWS_S3_DISABLE_SSL=True
       - CUMULUS_AWS_S3_FORCE_PATH_STYLE=True
@@ -48,7 +47,7 @@ services:
         condition: service_completed_successfully
   flyway:
     build:
-      context: sql  
+      context: sql
     restart: on-failure
     command: -connectRetries=60 migrate
     environment:

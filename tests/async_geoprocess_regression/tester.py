@@ -71,7 +71,7 @@ def lookup_product_slug_by_acquirablefile_id(acquirablefile_id):
             return p["file"].split("/")[-2]
 
 
-BUCKET = "castle-data-develop"
+BUCKET = "cumulus-dev"
 print(f"Getting db records in time window {FILES_START_DATE} to {FILES_START_END}")
 acquirablefiles = get_acquirablefiles(get_acquirables())
 products_dir = "/tmp/cumulus/products"
@@ -88,7 +88,7 @@ for af in acquirablefiles:
             "acquirablefile_id": af["id"],
             "acquirable_id": af["acquirable_id"],
             "acquirable_slug": acquirable_slug,
-            "bucket": "castle-data-develop",
+            "bucket": "cumulus-dev",
             "key": af["file"],
         },
     }

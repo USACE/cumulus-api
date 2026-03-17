@@ -1,4 +1,4 @@
 /* Config for Develop */
+INSERT INTO config(config_name , config_value)
+    VALUES ('write_to_bucket' , 'caste-data-develop');
 
-INSERT INTO config (config_name, config_value) VALUES
-('write_to_bucket', 'cumulus-dev');

@@ -30,7 +30,7 @@ INCOMING_FILE_TO_COGS_MESSAGE = {
         "acquirablefile_id": "11a69c52-3a59-4c50-81a6-eba26e6573d4",
         "acquirable_id": "2429db9a-9872-488a-b7e3-de37afc52ca4",
         "acquirable_slug": "cbrfc-mpe",
-        "bucket": "cumulus-dev",
+        "bucket": "caste-data-develop",
         "key": "cumulus/acquirables/ncep-mrms-v12-multisensor-qpe-01h-pass1/MRMS_MultiSensor_QPE_01H_Pass1_00.00_20211113-160000.grib2.gz",
     },
 }

@@ -68,7 +68,7 @@ parser.add_argument(
     "-b",
     "--bucket",
     action="append",
-    default=["cumulus-dev"],
+    default=["caste-data-develop"],
     help='AWS (minio) bucket name; default="%(default)s"',
 )
 parser.add_argument("-f", "--filter", help="Regex filter string for filenames")

@@ -38,7 +38,7 @@ MAX_Q_MESSAGES: int = os.getenv("MAX_Q_MESSAGES", default=10)
 # ------------------------- #
 # S3 Configuration
 # ------------------------- #
-WRITE_TO_BUCKET: str = os.getenv("WRITE_TO_BUCKET", default="cumulus-dev")
+WRITE_TO_BUCKET: str = os.getenv("WRITE_TO_BUCKET", default="caste-data-develop")
 
 
 # ------------------------- #

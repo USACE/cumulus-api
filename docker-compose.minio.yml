@@ -4,8 +4,7 @@ networks:
 
 services: 
   minio:
-    # image: minio/minio:RELEASE.2025-04-22T22-12-26Z
-    image: minio/minio
+    image: minio/minio:RELEASE.2025-04-22T22-12-26Z
     environment:
       - MINIO_ROOT_USER=AKIAIOSFODNN7EXAMPLE
       - MINIO_ROOT_PASSWORD=wJalrXUtnFEMI/K7MDENG/bPxRfiCYEXAMPLEKEY
@@ -17,19 +16,18 @@ services:
   # inspired by https://github.com/minio/minio/issues/4769
   # and         https://gist.github.com/haxoza/22afe7cc4a9da7e8bdc09aad393a99cc    
   minio_init:
-    # image: minio/mc:RELEASE.2025-04-16T18-13-26Z
-    image: minio/mc
+    image: minio/mc:RELEASE.2025-04-16T18-13-26Z
     depends_on:
       - minio
-    entrypoint:
-      - /bin/sh
-      - -c
-      - |
-        echo 'sleeping for 5 seconds while minio starts...'
-        sleep 5
-        /usr/bin/mc alias set minio http://minio:9000 AKIAIOSFODNN7EXAMPLE wJalrXUtnFEMI/K7MDENG/bPxRfiCYEXAMPLEKEY
-        /usr/bin/mc mb minio/cumulus-dev minio/cwbi-airflow-dev
-        /usr/bin/mc policy set public minio/cumulus-dev minio/cwbi-airflow-dev
-        /usr/bin/mc cp --recursive /media/cumulus/ minio/cumulus-dev/cumulus/
+    entrypoint: >
+      /bin/sh -c "
+      echo 'sleeping for 10 seconds while minio starts...';
+      sleep 10;
+      /usr/bin/mc config host add minio http://minio:9000 AKIAIOSFODNN7EXAMPLE wJalrXUtnFEMI/K7MDENG/bPxRfiCYEXAMPLEKEY;
+      /usr/bin/mc mb minio/castle-data-develop minio/cwbi-airflow-dev;
+      /usr/bin/mc policy set public minio/castle-data-develop minio/cwbi-airflow-dev;
+      /usr/bin/mc cp --recursive /media/cumulus/ minio/castle-data-develop/cumulus/;
+      exit 0;
+      "
     volumes:
       - ./_volumes/minio:/media

@@ -59,6 +59,9 @@ func main() {
 	// AWS Config
 	// awsCfg := cfg.AWSConfig()
 	awsCfg, err := config.LoadDefaultConfig(context.TODO())
+	if err != nil {
+		log.Fatal(err.Error())
+	}
 
 	// Database
 	db := Connection(cfg)
@@ -75,7 +78,7 @@ func main() {
 		Environment:  cfg.AuthEnvironment,
 		Endpoint:     cfg.AWSS3Endpoint,
 		AwsConfig:    awsCfg,
-		UsePathStyle: cfg.AWSS3ForcePathStyle,
+		UsePathStyle: cfg.UsePathStyle,
 		Skipper: func(c echo.Context) bool {
 			return strings.HasPrefix(c.Request().URL.Path, "/api/") || strings.HasPrefix(c.Request().URL.Path, "/features/")
 		},

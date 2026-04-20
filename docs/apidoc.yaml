@@ -1,17 +1,19 @@
 openapi: 3.0.2
 info:
   title: Cumulus REST API
-  version: 1.0.0
+  version: 2.0.0
   description: Realtime processing engine and REST API to support hydrologic modeling
   contact:
     name: Cumulus API Support
     url: 'https://github.com/USACE/cumulus/issues'
 servers:
-  - url: 'https://cumulus-api.corps.cloud'
-    description: Stable API
-  - url: 'https://develop-cumulus-api.corps.cloud'
-    description: Development API
-  - url: 'http://localhost'
+  - url: 'https://cumulus.cwbi.mil/api'
+    description: GovCloud Production API
+  - url: 'https://cumulus-test.cwbi.us/api'
+    description: GovCloud Test API
+  - url: 'https://cumulus.dev.cwbi.us/api'
+    description: GovCloud Development API
+  - url: 'http://localhost/api'
     description: Local Development API
 components:
   schemas:
@@ -69,7 +71,7 @@ components:
           status_id: 4e949624-bc0f-439e-a9f2-25a23938812c
           status: SUCCESS
           progress: 100
-          file: 'https://cumulus-api.corps.cloud/path/to/file.dss'
+          file: 'https://cumulus.cwbi.mil/api/cumulus/download/path/to/file.dss'
           processing_start: '2022-03-01T14:15:22Z'
           processing_end: '2022-03-01T14:45:50Z'
           watershed_slug: genesee-river
@@ -90,6 +92,7 @@ components:
         watershed_id:
           type: string
           format: uuid
+          nullable: true
         product_id:
           type: array
           items:
@@ -114,8 +117,27 @@ components:
           nullable: true
         watershed_slug:
           type: string
+          nullable: true
         watershed_name:
           type: string
+          nullable: true
+        format:
+          type: string
+          nullable: true
+        clip_geojson:
+          type: string
+          nullable: true
+        clip_region_name:
+          type: string
+          nullable: true
+        clip_bbox:
+          type: array
+          items:
+            type: number
+          nullable: true
+        clip_name:
+          type: string
+          nullable: true
     downloadRequest:
       type: object
       x-examples:
@@ -145,10 +167,18 @@ components:
             type: string
             format: uuid
             default: 64756f41-75e2-40ce-b91a-fda5aeb441fc
+        format:
+          type: string
+          description: Output format (e.g. dss7)
+        clip_geojson:
+          type: string
+          description: GeoJSON string to clip results
+        clip_region_name:
+          type: string
+          description: Name of the clip region
       required:
         - datetime_start
         - datetime_end
-        - watershed_id
         - product_id
     dssDatatype:
       type: object
@@ -197,6 +227,27 @@ components:
           type: string
         description:
           type: string
+        suite_id:
+          type: string
+          format: uuid
+        suite:
+          type: string
+        label:
+          type: string
+        after:
+          type: string
+          format: date-time
+          nullable: true
+        before:
+          type: string
+          format: date-time
+          nullable: true
+        productfile_count:
+          type: integer
+        last_forecast_version:
+          type: string
+          format: date-time
+          nullable: true
     products:
       type: array
       items:
@@ -207,15 +258,47 @@ components:
         id:
           type: string
           format: uuid
+        product_id:
+          type: string
+          format: uuid
         datetime:
           type: string
           format: date-time
         file:
           type: string
+        version:
+          type: string
+          format: date-time
+          nullable: true
     productfiles:
       type: array
       items:
         $ref: '#/components/schemas/productfile'
+    productStatus:
+      type: object
+      properties:
+        slug:
+          type: string
+        latest_product_datetime:
+          type: string
+          format: date-time
+          nullable: true
+        acceptable_timedelta:
+          type: string
+          nullable: true
+        actual_timedelta:
+          type: string
+          nullable: true
+        is_current:
+          type: boolean
+    productFileAvailability:
+      type: object
+      properties:
+        datetime:
+          type: string
+          format: date-time
+        is_available:
+          type: boolean
     tag:
       type: object
       properties:
@@ -232,6 +315,116 @@ components:
       type: array
       items:
         $ref: '#/components/schemas/tag'
+    suite:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        name:
+          type: string
+        slug:
+          type: string
+        description:
+          type: string
+    suites:
+      type: array
+      items:
+        $ref: '#/components/schemas/suite'
+    unit:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        name:
+          type: string
+        abbreviation:
+          type: string
+    units:
+      type: array
+      items:
+        $ref: '#/components/schemas/unit'
+    parameter:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        name:
+          type: string
+    parameters:
+      type: array
+      items:
+        $ref: '#/components/schemas/parameter'
+    office:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        symbol:
+          type: string
+        name:
+          type: string
+    offices:
+      type: array
+      items:
+        $ref: '#/components/schemas/office'
+    userRegion:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        sub:
+          type: string
+          format: uuid
+        name:
+          type: string
+        description:
+          type: string
+          nullable: true
+        geojson:
+          type: object
+        bbox:
+          type: array
+          items:
+            type: number
+        area_sqkm:
+          type: number
+        created_at:
+          type: string
+          format: date-time
+        updated_at:
+          type: string
+          format: date-time
+        is_public:
+          type: boolean
+        tags:
+          type: array
+          items:
+            type: string
+        usage_count:
+          type: integer
+    userRegionInput:
+      type: object
+      properties:
+        name:
+          type: string
+        description:
+          type: string
+        geojson:
+          type: object
+        is_public:
+          type: boolean
+        tags:
+          type: array
+          items:
+            type: string
+      required:
+        - name
+        - geojson
   examples:
     createProductRequest:
       value:
@@ -290,24 +483,84 @@ components:
       in: query
       description: Internal Use Only
 x-tagGroups:
+  - name: System
+    tags:
+      - System
   - name: Products
     tags:
       - Acquirables
       - Products
+      - Suites
       - Tags
+      - Units
+      - Parameters
+      - DSS
+      - Offices
   - name: Downloads
     tags:
       - Downloads
       - My Downloads
+      - Metrics
   - name: Watersheds
     tags:
       - Watersheds
       - My Watersheds
-      - Role Management
-  - name: Account Management
+  - name: Regions
     tags:
-      - Accounts
+      - User Regions
 paths:
+  /health:
+    get:
+      tags:
+        - System
+      summary: Health Check
+      description: Returns the health status and version of the API
+      responses:
+        '200':
+          description: Health Status
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                  version:
+                    type: string
+      operationId: health-check
+  /identity-provider/configuration:
+    get:
+      tags:
+        - System
+      summary: Identity Provider Configuration
+      description: Returns Keycloak OIDC endpoints for the current auth environment
+      responses:
+        '200':
+          description: Identity Provider Configuration
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  token_endpoint:
+                    type: string
+                  well_known_endpoint:
+                    type: string
+      operationId: get-identity-provider-configuration
+  /acquirables:
+    get:
+      tags:
+        - Acquirables
+      summary: List Acquirables
+      description: List all acquirables
+      responses:
+        '200':
+          description: Array of Acquirables
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/acquirables'
+      operationId: list-acquirables
   /acquirablefiles:
     post:
       tags:
@@ -360,75 +613,10 @@ paths:
           content:
             application/json:
               schema:
-                type: array
-                description: ''
-                minItems: 1
-                uniqueItems: true
-                x-examples:
-                  example-1:
-                    - id: 17fd4f85-01ea-4242-85b6-19d7220bac73
-                      datetime: '2022-03-01T12:30:00Z'
-                      file: 'https://api.rsgis.dev/cumulus/acquirables/prism-ppt-early/PRISM_ppt_early_4kmD2_20220301_bil.zip'
-                      create_date: '2022-03-02T12:30:04.215549Z'
-                      process_date: null
-                      acquirable_id: 099916d1-83af-48ed-85d7-6688ae96023d
-                    - id: d72dbabf-9ab5-4c4b-8dff-fac8d05c6ebe
-                      datetime: '2022-02-28T12:30:00Z'
-                      file: 'https://api.rsgis.dev/cumulus/acquirables/prism-ppt-early/PRISM_ppt_early_4kmD2_20220228_bil.zip'
-                      create_date: '2022-03-01T12:30:05.59972Z'
-                      process_date: null
-                      acquirable_id: 099916d1-83af-48ed-85d7-6688ae96023d
-                    - id: e276881d-989b-4ff4-8f0c-c8f16460f8bb
-                      datetime: '2022-03-02T12:30:00Z'
-                      file: 'https://api.rsgis.dev/cumulus/acquirables/prism-ppt-early/PRISM_ppt_early_4kmD2_20220302_bil.zip'
-                      create_date: '2022-03-03T12:30:05.578263Z'
-                      process_date: null
-                      acquirable_id: 099916d1-83af-48ed-85d7-6688ae96023d
-                    - id: 8c6a5416-4f29-41de-9470-441b66ba9830
-                      datetime: '2022-03-03T12:30:00Z'
-                      file: 'https://api.rsgis.dev/cumulus/acquirables/prism-ppt-early/PRISM_ppt_early_4kmD2_20220303_bil.zip'
-                      create_date: '2022-03-04T12:30:05.353424Z'
-                      process_date: null
-                      acquirable_id: 099916d1-83af-48ed-85d7-6688ae96023d
-                    - id: e1ae26db-d04a-4121-8783-8ad1eac4a63b
-                      datetime: '2022-03-04T12:30:00Z'
-                      file: 'https://api.rsgis.dev/cumulus/acquirables/prism-ppt-early/PRISM_ppt_early_4kmD2_20220304_bil.zip'
-                      create_date: '2022-03-05T12:30:05.297617Z'
-                      process_date: null
-                      acquirable_id: 099916d1-83af-48ed-85d7-6688ae96023d
-                items:
-                  type: object
-                  properties:
-                    id:
-                      type: string
-                      minLength: 1
-                      format: uuid
-                    datetime:
-                      type: string
-                      minLength: 1
-                      format: date-time
-                    file:
-                      type: string
-                      minLength: 1
-                    create_date:
-                      type: string
-                      minLength: 1
-                      format: date-time
-                    process_date:
-                      type: string
-                      format: date-time
-                    acquirable_id:
-                      type: string
-                      minLength: 1
-                      format: uuid
-                  required:
-                    - id
-                    - datetime
-                    - file
-                    - create_date
-                    - acquirable_id
+                $ref: '#/components/schemas/acquirablefiles'
       operationId: list-acquirable-files
-      x-internal: true
+      security:
+        - Bearer: []
     parameters:
       - schema:
           type: string
@@ -439,10 +627,25 @@ paths:
         in: path
         required: true
         description: Acquirable UUID
+  /offices:
+    get:
+      tags:
+        - Offices
+      summary: List Offices
+      description: List all offices
+      responses:
+        '200':
+          description: Array of Offices
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/offices'
+      operationId: list-offices
   /dss/datatypes:
     get:
       tags:
         - DSS
+      summary: List DSS Datatypes
       description: List DSS Datatypes
       responses:
         '200':
@@ -699,6 +902,191 @@ paths:
         in: path
         required: true
         description: Product UUID
+  '/products/{product_id}/file-availability':
+    get:
+      tags:
+        - Products
+      summary: Get Product File Availability
+      description: Get file availability for a single product
+      parameters:
+        - name: product_id
+          in: path
+          required: true
+          description: The ID of the product
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Product File Availability
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/productFileAvailability'
+      operationId: get-product-file-availability
+    parameters:
+      - schema:
+          type: string
+          format: uuid
+        name: product_id
+        in: path
+        required: true
+        description: Product UUID
+  /product_ingest_status:
+    get:
+      tags:
+        - Products
+      summary: Get Product Ingest Status
+      description: Get the ingest status for all products
+      responses:
+        '200':
+          description: Array of Product Ingest Statuses
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/productStatus'
+      operationId: get-product-ingest-status
+  /product_slugs:
+    get:
+      tags:
+        - Products
+      summary: Get Product Slugs
+      description: Get a list of all product slugs
+      responses:
+        '200':
+          description: Array of Product Slugs
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    id:
+                      type: string
+                      format: uuid
+                    slug:
+                      type: string
+      operationId: get-product-slugs
+  /productfiles:
+    post:
+      tags:
+        - Products
+      summary: Create Productfiles
+      description: Create productfile records
+      responses:
+        '201':
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/productfile'
+      operationId: create-productfiles
+      security:
+        - Bearer: []
+      x-internal: true
+  /suites:
+    get:
+      tags:
+        - Suites
+      summary: List Suites
+      description: List all product suites
+      responses:
+        '200':
+          description: Array of Suites
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/suites'
+      operationId: list-suites
+    post:
+      tags:
+        - Suites
+      summary: Create Suite
+      description: Create a new product suite
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                name:
+                  type: string
+                description:
+                  type: string
+      responses:
+        '201':
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/suite'
+      operationId: create-suite
+      security:
+        - Bearer: []
+  '/suites/{suite_id}':
+    parameters:
+      - name: suite_id
+        in: path
+        required: true
+        description: Suite ID
+        schema:
+          type: string
+          format: uuid
+    get:
+      tags:
+        - Suites
+      summary: Get Suite
+      description: Get a single product suite
+      responses:
+        '200':
+          description: A Single Suite
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/suite'
+      operationId: get-suite
+    put:
+      tags:
+        - Suites
+      summary: Update Suite
+      description: Update a product suite
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/suite'
+      responses:
+        '200':
+          description: Updated Suite
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/suite'
+      operationId: update-suite
+      security:
+        - Bearer: []
+    delete:
+      tags:
+        - Suites
+      summary: Delete Suite
+      description: Delete a product suite
+      responses:
+        '200':
+          description: Empty Object
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/empty_object'
+      operationId: delete-suite
+      security:
+        - Bearer: []
   /tags:
     get:
       tags:
@@ -731,10 +1119,23 @@ paths:
       - name: tag_id
         in: path
         required: true
-        description: The ID of the tag to update or delete
+        description: The ID of the tag
         schema:
           type: string
           format: uuid
+    get:
+      tags:
+        - Tags
+      summary: Get Tag
+      description: Get a single tag
+      responses:
+        '200':
+          description: A Single Tag
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/tag'
+      operationId: get-tag
     put:
       tags:
         - Tags
@@ -828,7 +1229,218 @@ paths:
       operationId: remove-tag-from-product
       security:
         - Bearer: []
+  /units:
+    get:
+      tags:
+        - Units
+      summary: List Units
+      description: List all units
+      responses:
+        '200':
+          description: Array of Units
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/units'
+      operationId: list-units
+    post:
+      tags:
+        - Units
+      summary: Create Unit
+      description: Create a new unit
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                name:
+                  type: string
+                abbreviation:
+                  type: string
+      responses:
+        '201':
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/unit'
+      operationId: create-unit
+      security:
+        - Bearer: []
+  '/units/{unit_id}':
+    parameters:
+      - name: unit_id
+        in: path
+        required: true
+        description: Unit ID
+        schema:
+          type: string
+          format: uuid
+    get:
+      tags:
+        - Units
+      summary: Get Unit
+      description: Get a single unit
+      responses:
+        '200':
+          description: A Single Unit
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/unit'
+      operationId: get-unit
+    put:
+      tags:
+        - Units
+      summary: Update Unit
+      description: Update a unit
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/unit'
+      responses:
+        '200':
+          description: Updated Unit
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/unit'
+      operationId: update-unit
+      security:
+        - Bearer: []
+    delete:
+      tags:
+        - Units
+      summary: Delete Unit
+      description: Delete a unit
+      responses:
+        '200':
+          description: Empty Object
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/empty_object'
+      operationId: delete-unit
+      security:
+        - Bearer: []
+  /parameters:
+    get:
+      tags:
+        - Parameters
+      summary: List Parameters
+      description: List all parameters
+      responses:
+        '200':
+          description: Array of Parameters
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/parameters'
+      operationId: list-parameters
+    post:
+      tags:
+        - Parameters
+      summary: Create Parameter
+      description: Create a new parameter
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                name:
+                  type: string
+      responses:
+        '201':
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/parameter'
+      operationId: create-parameter
+      security:
+        - Bearer: []
+  '/parameters/{parameter_id}':
+    parameters:
+      - name: parameter_id
+        in: path
+        required: true
+        description: Parameter ID
+        schema:
+          type: string
+          format: uuid
+    get:
+      tags:
+        - Parameters
+      summary: Get Parameter
+      description: Get a single parameter
+      responses:
+        '200':
+          description: A Single Parameter
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/parameter'
+      operationId: get-parameter
+    put:
+      tags:
+        - Parameters
+      summary: Update Parameter
+      description: Update a parameter
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/parameter'
+      responses:
+        '200':
+          description: Updated Parameter
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/parameter'
+      operationId: update-parameter
+      security:
+        - Bearer: []
+    delete:
+      tags:
+        - Parameters
+      summary: Delete Parameter
+      description: Delete a parameter
+      responses:
+        '200':
+          description: Empty Object
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/empty_object'
+      operationId: delete-parameter
+      security:
+        - Bearer: []
   /downloads:
+    get:
+      tags:
+        - Downloads
+      summary: List All Downloads (Admin)
+      description: List all downloads (admin only)
+      responses:
+        '200':
+          description: Array of Downloads
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/download'
+      operationId: list-admin-downloads
+      security:
+        - Bearer: []
     post:
       tags:
         - Downloads
@@ -841,7 +1453,7 @@ paths:
             schema:
               $ref: '#/components/schemas/downloadRequest'
             examples:
-              download-example-rquest:
+              download-example-request:
                 value:
                   datetime_start: '2020-12-01T01:00:00Z'
                   datetime_end: '2020-12-15T01:00:00Z'
@@ -874,10 +1486,6 @@ paths:
                     processing_end: null
                     watershed_slug: genesee-river
                     watershed_name: Genesee River
-            application/xml:
-              schema:
-                type: object
-                properties: {}
       parameters: []
       security:
         - Bearer: []
@@ -915,7 +1523,7 @@ paths:
                     status_id: 4e949624-bc0f-439e-a9f2-25a23938812c
                     status: SUCCESS
                     progress: 100
-                    file: 'https://cumulus-api.corps.cloud/path/to/file.dss'
+                    file: 'https://cumulus.cwbi.mil/api/cumulus/download/path/to/file.dss'
                     processing_start: '2022-03-01T14:15:22Z'
                     processing_end: '2022-03-01T14:45:50Z'
                     watershed_slug: genesee-river
@@ -962,6 +1570,27 @@ paths:
                 type: object
       operationId: packager-download-request
       x-internal: true
+  /deprecated/anonymous_downloads:
+    post:
+      tags:
+        - Downloads
+      summary: Anonymous Download (Deprecated)
+      description: Create an anonymous download request. This endpoint is deprecated.
+      deprecated: true
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/downloadRequest'
+      responses:
+        '201':
+          description: Download Object
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/download'
+      operationId: create-anonymous-download
   /my_downloads:
     post:
       tags:
@@ -995,8 +1624,49 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/download'
+                type: array
+                items:
+                  $ref: '#/components/schemas/download'
       operationId: list-my-downloads
+      security:
+        - Bearer: []
+  /metrics/downloads:
+    get:
+      tags:
+        - Metrics
+      summary: Download Metrics
+      description: Returns download metrics including counts and top watersheds
+      responses:
+        '200':
+          description: Download Metrics
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  count:
+                    type: object
+                    properties:
+                      total:
+                        type: integer
+                      days_1:
+                        type: integer
+                      days_7:
+                        type: integer
+                      days_30:
+                        type: integer
+                  top_watersheds:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        count:
+                          type: integer
+                        watershed_name:
+                          type: string
+                        office:
+                          type: string
+      operationId: get-download-metrics
   /watersheds:
     get:
       tags:
@@ -1063,6 +1733,8 @@ paths:
                 type: object
       operationId: update-watershed
       description: Update Single Watershed
+      security:
+        - Bearer: []
     delete:
       tags:
         - Watersheds
@@ -1076,6 +1748,8 @@ paths:
                 type: object
       operationId: delete-watershed
       description: Delete Watershed
+      security:
+        - Bearer: []
   '/watersheds/{watershed_id}/undelete':
     parameters:
       - name: watershed_id
@@ -1100,6 +1774,37 @@ paths:
       operationId: undo-watershed-delete
       security:
         - Bearer: []
+  '/watersheds/{watershed_id}/area_groups/{area_group_id}/areas':
+    parameters:
+      - name: watershed_id
+        in: path
+        required: true
+        description: Watershed ID
+        schema:
+          type: string
+          format: uuid
+      - name: area_group_id
+        in: path
+        required: true
+        description: Area Group ID
+        schema:
+          type: string
+          format: uuid
+    get:
+      tags:
+        - Watersheds
+      summary: List Area Group Areas
+      description: List areas for a specific area group within a watershed
+      responses:
+        '200':
+          description: Array of Areas
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: object
+      operationId: list-area-group-areas
   /my_watersheds:
     get:
       tags:
@@ -1117,6 +1822,8 @@ paths:
                   type: object
       operationId: list-my-watersheds
       deprecated: true
+      security:
+        - Bearer: []
   '/my_watersheds/{watershed_id}':
     parameters:
       - name: watershed_id
@@ -1158,11 +1865,161 @@ paths:
       deprecated: true
       security:
         - Bearer: []
+  /user-regions:
+    get:
+      tags:
+        - User Regions
+      summary: List My Regions
+      description: List all regions for the authenticated user
+      responses:
+        '200':
+          description: Array of User Regions
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/userRegion'
+      operationId: list-my-regions
+      security:
+        - Bearer: []
+    post:
+      tags:
+        - User Regions
+      summary: Create Region
+      description: Create a new user region
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/userRegionInput'
+      responses:
+        '201':
+          description: Created Region
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/userRegion'
+        '409':
+          description: A region with this name already exists
+      operationId: create-user-region
+      security:
+        - Bearer: []
+  /user-regions/public:
+    get:
+      tags:
+        - User Regions
+      summary: List Public Regions
+      description: List all public regions
+      responses:
+        '200':
+          description: Array of Public User Regions
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/userRegion'
+      operationId: list-public-regions
+      security:
+        - Bearer: []
+  /user-regions/search:
+    get:
+      tags:
+        - User Regions
+      summary: Search Regions
+      description: Search for regions by name or tags
+      parameters:
+        - name: q
+          in: query
+          required: true
+          description: Search query
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Array of Matching User Regions
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/userRegion'
+      operationId: search-user-regions
+      security:
+        - Bearer: []
+  '/user-regions/{region_id}':
+    parameters:
+      - name: region_id
+        in: path
+        required: true
+        description: Region ID
+        schema:
+          type: string
+          format: uuid
+    get:
+      tags:
+        - User Regions
+      summary: Get Region
+      description: Get a single user region
+      responses:
+        '200':
+          description: A Single User Region
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/userRegion'
+      operationId: get-user-region
+      security:
+        - Bearer: []
+    put:
+      tags:
+        - User Regions
+      summary: Update Region
+      description: Update an existing user region
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/userRegionInput'
+      responses:
+        '200':
+          description: Updated Region
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/userRegion'
+        '409':
+          description: A region with this name already exists
+      operationId: update-user-region
+      security:
+        - Bearer: []
+    delete:
+      tags:
+        - User Regions
+      summary: Delete Region
+      description: Delete a user region
+      responses:
+        '204':
+          description: Region Deleted
+      operationId: delete-user-region
+      security:
+        - Bearer: []
 tags:
+  - name: System
   - name: Acquirables
   - name: Downloads
+  - name: DSS
+  - name: Metrics
   - name: My Downloads
   - name: My Watersheds
+  - name: Offices
+  - name: Parameters
   - name: Products
+  - name: Suites
   - name: Tags
+  - name: Units
+  - name: User Regions
   - name: Watersheds

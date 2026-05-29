@@ -33,17 +33,14 @@ from cumulus_packager.utils.boto import s3_upload_file
 this = os.path.basename(__file__)
 
 
-def handle_message(message):
+def handle_message(message_body):
     package_file = None
     dst = None
     try:
         logger.info("%(spacer)s new message %(spacer)s" % {"spacer": "*" * 20})
-
-        # parse message to payload as json object and get the download id
-        message_body = message.body
         logger.debug(f"{message_body=}")
 
-        download_id = json.loads(message.body)["id"]
+        download_id = json.loads(message_body)["id"]
         logger.debug(f"Download ID: {download_id}")
 
         # get the payload from the download endpoint with the download_id
@@ -147,7 +144,6 @@ def handle_message(message):
         if dst is not None and os.path.exists(dst.name):
             shutil.rmtree(dst.name, ignore_errors=True)
             dst = None
-        message.delete()
 
     return 0
 
@@ -176,6 +172,7 @@ if __name__ == "__main__":
             MaxNumberOfMessages=MAX_Q_MESSAGES, WaitTimeSeconds=WAIT_TIME_SECONDS
         )
         for message in messages:
-            p = multiprocessing.Process(target=handle_message, args=(message,))
+            p = multiprocessing.Process(target=handle_message, args=(message.body,))
             p.start()
             p.join()
+            message.delete()

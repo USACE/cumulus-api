@@ -29,7 +29,7 @@ EOF
 
 RUN apt-get update \
     && apt-get -y upgrade \
-    && apt-get install python3.12-venv -y \
+    && apt-get install python3-venv -y \
     && apt-get remove python3-pil -y \
     && apt clean
 

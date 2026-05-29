@@ -1,4 +1,4 @@
-ARG GDAL_TAG=ubuntu-full-3.9.1
+ARG GDAL_TAG=ubuntu-full-3.13.0
 ARG GEOPROC_PACKAGE=main:geoproc
 
 # *~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~
@@ -45,6 +45,7 @@ ADD --keep-git-dir=false --chown=${USERNAME}:${USERNAME} https://github.com/USAC
 # install package in venv
 RUN python3 -m venv --system-site-packages ${GEOPROC_VENV} \
     && . activate \
+    && pip install --upgrade pip \
     && pip install ${GEOPROC}/pkg/
 
 # Cache buster

@@ -31,7 +31,7 @@ EOF
 # update and install other dependencies
 RUN apt-get update \
     && apt-get -y upgrade \
-    && apt-get install -y python3.12-venv \
+    && apt-get install -y python3-venv \
     && apt-get remove python3-pil -y \
     && apt clean
 

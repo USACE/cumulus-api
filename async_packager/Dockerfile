@@ -1,5 +1,5 @@
 # Packager
-ARG GDAL_TAG=ubuntu-full-3.9.1
+ARG GDAL_TAG=ubuntu-full-3.13.0
 
 
 FROM ghcr.io/osgeo/gdal:${GDAL_TAG} AS builder
@@ -31,7 +31,7 @@ EOF
 # update and install other dependencies
 RUN apt-get update \
     && apt-get -y upgrade \
-    && apt-get install -y python3.12-venv \
+    && apt-get install -y python3-venv \
     && apt-get remove python3-pil -y \
     && apt clean
 
@@ -40,6 +40,7 @@ COPY . ${PACKAGER}/pkg
 
 RUN python3 -m venv --system-site-packages ${PACKAGER_VENV} \
     && . activate \
+    && pip install --upgrade pip \
     && pip install ${PACKAGER}/pkg/ \
     && pip install hecdss
 

@@ -1,14 +1,14 @@
 package handlers
 
 import (
+	"context"
 	"net/http"
 	"net/url"
 	"path/filepath"
 	"strings"
 
-	"github.com/aws/aws-sdk-go/aws"
-	"github.com/aws/aws-sdk-go/aws/session"
-	"github.com/aws/aws-sdk-go/service/s3"
+	"github.com/aws/aws-sdk-go-v2/aws"
+	"github.com/aws/aws-sdk-go-v2/service/s3"
 	"github.com/labstack/echo/v4"
 )
 
@@ -29,8 +29,9 @@ func ServeMedia(awsCfg *aws.Config, bucket *string) echo.HandlerFunc {
 			return c.String(http.StatusBadRequest, err.Error())
 		}
 
-		_client := s3.New(session.New(awsCfg))
-		output, err := _client.GetObject(&s3.GetObjectInput{Bucket: bucket, Key: aws.String(path)})
+		// _client := s3.New(session.New(awsCfg))
+		_client := s3.NewFromConfig(*awsCfg)
+		output, err := _client.GetObject(context.Background(), &s3.GetObjectInput{Bucket: bucket, Key: aws.String(path)})
 		if err != nil {
 			return c.String(500, err.Error())
 		}

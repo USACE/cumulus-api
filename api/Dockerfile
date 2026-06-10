@@ -1,4 +1,10 @@
-FROM golang:1.26.3-alpine AS builder
+ARG GO_VERSION=1.26
+ARG GO_TAG=${GO_VERSION}-alpine
+
+# *~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~
+# builder
+# *~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~
+FROM golang:${GO_TAG} AS builder
 # Install Git
 RUN apk update && apk add --no-cache ca-certificates
 # Copy In Source Code
@@ -21,7 +27,7 @@ RUN GOOS=linux GOARCH=amd64 CGO_ENABLED=0 \
 FROM scratch
 COPY --from=builder /go/bin/cumulus-api /go/bin/cumulus-api
 COPY --from=builder /etc/ssl/certs/ca-certificates.crt \
-                    /etc/ssl/certs/ca-certificates.crt
+    /etc/ssl/certs/ca-certificates.crt
 # COPY --from=builder /etc_passwd /etc/passwd
 
 # Run as the new non-root by default

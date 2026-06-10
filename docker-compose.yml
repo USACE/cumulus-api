@@ -179,6 +179,7 @@ services:
         condition: service_completed_successfully
   # --------------------------------------
   flyway:
+    platform: linux/amd64
     build:
       context: sql
     restart: on-failure

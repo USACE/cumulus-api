@@ -4,7 +4,7 @@ import (
 	"net/http"
 
 	"github.com/USACE/cumulus-api/api/models"
-	"github.com/jackc/pgx/v4/pgxpool"
+	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/labstack/echo/v4"
 )
 

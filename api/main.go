@@ -8,13 +8,14 @@ import (
 	"strings"
 	"time"
 
+	"github.com/aws/aws-sdk-go-v2/config"
 	"github.com/labstack/echo/v4"
 	"golang.org/x/net/http2"
 
-	_ "github.com/jackc/pgx/v4"
-	"github.com/jackc/pgx/v4/pgxpool"
+	_ "github.com/jackc/pgx/v5"
+	"github.com/jackc/pgx/v5/pgxpool"
 
-	"github.com/USACE/cumulus-api/api/config"
+	_config "github.com/USACE/cumulus-api/api/config"
 	"github.com/USACE/cumulus-api/api/handlers"
 	"github.com/USACE/cumulus-api/api/middleware"
 
@@ -22,7 +23,7 @@ import (
 )
 
 // Connection returns a database connection from configuration parameters
-func Connection(cfg *config.Config) *pgxpool.Pool {
+func Connection(cfg *_config.Config) *pgxpool.Pool {
 
 	poolConfig, err := pgxpool.ParseConfig(
 		fmt.Sprintf(
@@ -39,7 +40,7 @@ func Connection(cfg *config.Config) *pgxpool.Pool {
 	// set the application name in pg_stat_activity to identify the connection
 	poolConfig.ConnConfig.RuntimeParams["application_name"] = "cumulus-api"
 
-	db, err := pgxpool.ConnectConfig(context.Background(), poolConfig)
+	db, err := pgxpool.NewWithConfig(context.Background(), poolConfig)
 	if err != nil {
 		log.Panic(err.Error())
 	}
@@ -50,13 +51,18 @@ func Connection(cfg *config.Config) *pgxpool.Pool {
 func main() {
 
 	// Environment Variable Config
-	cfg, err := config.GetConfig()
+	cfg, err := _config.GetConfig()
 	if err != nil {
 		log.Fatal(err.Error())
 	}
 
 	// AWS Config
-	awsCfg := cfg.AWSConfig()
+	cfg.AwsConfig, err = config.LoadDefaultConfig(
+		context.Background(),
+		func(o *config.LoadOptions) error {
+			o.Region = cfg.AWSS3Region
+			return nil
+		})
 
 	// Database
 	db := Connection(cfg)
@@ -223,7 +229,7 @@ func main() {
 	)
 
 	// Downloads
-	public.GET("/cumulus/download/*", handlers.ServeMedia(&awsCfg, &cfg.AWSS3Bucket)) // Serve Downloads
+	public.GET("/cumulus/download/*", handlers.ServeMedia(&cfg.AwsConfig, &cfg.AWSS3Bucket)) // Serve Downloads
 	// List Downloads
 	private.GET("/downloads", handlers.ListAdminDownloads(db), middleware.IsAdmin)
 	// Create Download (Anonymous)

@@ -1,5 +1,5 @@
 # Packager
-ARG GDAL_TAG=ubuntu-full-3.13.0
+ARG GDAL_TAG=ubuntu-full-3.13.1
 
 
 FROM ghcr.io/osgeo/gdal:${GDAL_TAG} AS builder

@@ -7,9 +7,9 @@ import (
 
 	"github.com/USACE/cumulus-api/api/config"
 
-	"github.com/georgysavva/scany/pgxscan"
+	"github.com/georgysavva/scany/v2/pgxscan"
 	"github.com/google/uuid"
-	"github.com/jackc/pgx/v4/pgxpool"
+	"github.com/jackc/pgx/v5/pgxpool"
 )
 
 // Environment Variable Config
@@ -28,14 +28,14 @@ type DownloadStatus struct {
 // DownloadRequest holds all information from a download request coming from a user
 // Supports both watershed-based and custom GeoJSON region-based downloads
 type DownloadRequest struct {
-	Sub             *uuid.UUID      `json:"sub" db:"sub"`
-	DatetimeStart   time.Time       `json:"datetime_start" db:"datetime_start"`
-	DatetimeEnd     time.Time       `json:"datetime_end" db:"datetime_end"`
-	WatershedID     *uuid.UUID      `json:"watershed_id,omitempty" db:"watershed_id"`
-	ProductID       []uuid.UUID     `json:"product_id" db:"product_id"`
-	Format          *string         `json:"format" db:"format"`
-	ClipGeoJSON     *string         `json:"clip_geojson,omitempty" db:"clip_geojson"`  // GeoJSON string from database
-	ClipRegionName  *string         `json:"clip_region_name,omitempty" db:"clip_region_name"`
+	Sub            *uuid.UUID  `json:"sub" db:"sub"`
+	DatetimeStart  time.Time   `json:"datetime_start" db:"datetime_start"`
+	DatetimeEnd    time.Time   `json:"datetime_end" db:"datetime_end"`
+	WatershedID    *uuid.UUID  `json:"watershed_id,omitempty" db:"watershed_id"`
+	ProductID      []uuid.UUID `json:"product_id" db:"product_id"`
+	Format         *string     `json:"format" db:"format"`
+	ClipGeoJSON    *string     `json:"clip_geojson,omitempty" db:"clip_geojson"` // GeoJSON string from database
+	ClipRegionName *string     `json:"clip_region_name,omitempty" db:"clip_region_name"`
 }
 
 // Download holds all information about a download
@@ -45,10 +45,10 @@ type Download struct {
 	DownloadStatus
 	PackagerInfo
 	// Include Watershed Name and Watershed Slug for Convenience
-	WatershedSlug   *string     `json:"watershed_slug,omitempty" db:"watershed_slug"`
-	WatershedName   *string     `json:"watershed_name,omitempty" db:"watershed_name"`
-	ClipBbox        []float64   `json:"clip_bbox,omitempty" db:"clip_bbox"`
-	ClipName        string      `json:"clip_name,omitempty" db:"clip_name"`
+	WatershedSlug *string   `json:"watershed_slug,omitempty" db:"watershed_slug"`
+	WatershedName *string   `json:"watershed_name,omitempty" db:"watershed_name"`
+	ClipBbox      []float64 `json:"clip_bbox,omitempty" db:"clip_bbox"`
+	ClipName      string    `json:"clip_name,omitempty" db:"clip_name"`
 }
 
 // PackagerInfo holds all information Packager provides after a download starts

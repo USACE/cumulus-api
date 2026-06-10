@@ -8,8 +8,8 @@ import (
 
 	"github.com/USACE/cumulus-api/api/models"
 
-	_ "github.com/jackc/pgx/v4"
-	"github.com/jackc/pgx/v4/pgxpool"
+	_ "github.com/jackc/pgx/v5"
+	"github.com/jackc/pgx/v5/pgxpool"
 )
 
 // ListProductfiles returns an array of Productfiles

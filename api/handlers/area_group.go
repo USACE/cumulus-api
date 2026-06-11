@@ -6,7 +6,7 @@ import (
 	"github.com/USACE/cumulus-api/api/models"
 
 	"github.com/google/uuid"
-	"github.com/jackc/pgx/v4/pgxpool"
+	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/jmoiron/sqlx"
 	"github.com/labstack/echo/v4"
 )

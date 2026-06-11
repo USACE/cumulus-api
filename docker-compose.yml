@@ -165,6 +165,9 @@ services:
       - CUMULUS_AWS_S3_ENDPOINT=http://minio:9000
       - CUMULUS_AWS_S3_DISABLE_SSL=True
       - CUMULUS_AWS_S3_FORCE_PATH_STYLE=True
+      # Global (S3-scoped) endpoint picked up by aws-sdk-go-v2 LoadDefaultConfig.
+      # Unset in prod so the SDK uses real S3. http:// disables TLS for MinIO.
+      - AWS_ENDPOINT_URL_S3=http://minio:9000
       - PG_FEATURESERV_URL=http://featureserv:8080
     volumes:
       - ./api/:/go/src/app/:rw

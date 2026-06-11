@@ -8,7 +8,7 @@ import os
 # Container env vars
 # ------------------------- #
 APPLICATION_KEY: str = os.getenv("APPLICATION_KEY", default="appkey")
-CUMULUS_API_URL: str = os.getenv("CUMULUS_API_URL", default="http://api:80")
+CUMULUS_API_URL: str = os.getenv("CUMULUS_API_URL", default="http://api:80/api")
 
 # ------------------------- #
 # AWS Credentials/Configuration

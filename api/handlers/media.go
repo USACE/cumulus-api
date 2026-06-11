@@ -22,22 +22,18 @@ func cleanFilepath(rawPath string) (string, error) {
 	return filepath.Clean("/" + p), nil
 }
 
-func ServeMedia(awsCfg *aws.Config, bucket *string, endpoint string, forcePathStyle, disableSSL bool) echo.HandlerFunc {
+func ServeMedia(awsCfg *aws.Config, bucket *string, forcePathStyle bool) echo.HandlerFunc {
 	return func(c echo.Context) error {
 		path, err := cleanFilepath(c.Request().RequestURI)
 		if err != nil {
 			return c.String(http.StatusBadRequest, err.Error())
 		}
 
-		_client := s3.NewFromConfig(*awsCfg, func(o *s3.Options) {
-			o.UsePathStyle = forcePathStyle // was a.WithS3ForcePathStyle(...)
-			if endpoint != "" {             // was: if cfg.AWSS3Endpoint != "" { a.WithEndpoint(...) }
-				o.BaseEndpoint = aws.String(endpoint)
-			}
-			if disableSSL { // was a.WithDisableSSL(...)
-				o.EndpointOptions.DisableHTTPS = true
-			}
-		})
+		_client := s3.NewFromConfig(
+			*awsCfg,
+			func(o *s3.Options) {
+				o.UsePathStyle = forcePathStyle // was a.WithS3ForcePathStyle(...)
+			})
 		output, err := _client.GetObject(context.Background(), &s3.GetObjectInput{Bucket: bucket, Key: aws.String(path)})
 		if err != nil {
 			return c.String(500, err.Error())

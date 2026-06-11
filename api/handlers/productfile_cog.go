@@ -59,7 +59,7 @@ func ListProductfilesCOG(db *pgxpool.Pool) echo.HandlerFunc {
 // Content-Range/Accept-Ranges so a GDAL /vsicurl/ client can read tiles directly
 // (no full download). HEAD returns size + range support for /vsicurl/ probing.
 // Every request is authenticated (private route) and logged for metering.
-func StreamProductfileCOG(db *pgxpool.Pool, awsCfg *aws.Config, endpoint string, forcePathStyle, disableSSL bool) echo.HandlerFunc {
+func StreamProductfileCOG(db *pgxpool.Pool, awsCfg *aws.Config, forcePathStyle bool) echo.HandlerFunc {
 	return func(c echo.Context) error {
 		pfID, err := uuid.Parse(c.Param("productfile_id"))
 		if err != nil {
@@ -72,14 +72,10 @@ func StreamProductfileCOG(db *pgxpool.Pool, awsCfg *aws.Config, endpoint string,
 		}
 
 		ctx := c.Request().Context()
+		// Endpoint/scheme come from the environment (AWS_ENDPOINT_URL_S3) via
+		// awsCfg; only path-style addressing still needs to be set per-client.
 		client := s3.NewFromConfig(*awsCfg, func(o *s3.Options) {
 			o.UsePathStyle = forcePathStyle
-			if endpoint != "" {
-				o.BaseEndpoint = aws.String(endpoint)
-			}
-			if disableSSL {
-				o.EndpointOptions.DisableHTTPS = true
-			}
 		})
 
 		// HEAD: metadata only (size + range support) for /vsicurl/ probing.

@@ -26,6 +26,39 @@ type ProductfileAvailability struct {
 	IsAvailable bool      `json:"is_available"`
 }
 
+// ProductfileCOG is a productfile exposed as a directly-readable, Range-capable
+// COG proxy URL (served by StreamProductfileCOG) instead of a raw S3 key.
+type ProductfileCOG struct {
+	ID       uuid.UUID  `json:"id"`
+	Datetime time.Time  `json:"datetime"`
+	Version  *time.Time `json:"version"`
+	CogURL   string     `json:"cog_url"`
+}
+
+// ProductfileObject is the S3 bucket + key backing a single productfile.
+type ProductfileObject struct {
+	Key    string `json:"key" db:"key"`
+	Bucket string `json:"bucket" db:"bucket"`
+}
+
+// GetProductfileObject returns the S3 bucket and key for a productfile id.
+// The bucket mirrors the download view: the 'write_to_bucket' config value; the
+// key is the productfile.file column.
+func GetProductfileObject(db *pgxpool.Pool, ID uuid.UUID) (*ProductfileObject, error) {
+	var obj ProductfileObject
+	if err := pgxscan.Get(
+		context.Background(), db, &obj,
+		`SELECT f.file AS key,
+		        (SELECT config.config_value FROM config WHERE config.config_name::text = 'write_to_bucket'::text) AS bucket
+		 FROM productfile f
+		 WHERE f.id = $1`,
+		ID,
+	); err != nil {
+		return nil, err
+	}
+	return &obj, nil
+}
+
 // ListProductfiles returns array of productfiles
 func ListProductfiles(db *pgxpool.Pool, ID uuid.UUID, after string, before string) ([]Productfile, error) {
 	ff := make([]Productfile, 0)

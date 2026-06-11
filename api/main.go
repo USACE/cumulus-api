@@ -162,8 +162,8 @@ func main() {
 	public.GET("/products/:product_id/files", handlers.ListProductfiles(db))
 	// Direct, Range-capable COG access (authenticated + metered) for desktop clients
 	private.GET("/products/:product_id/cog-files", handlers.ListProductfilesCOG(db))
-	private.GET("/products/:product_id/cog/:productfile_id", handlers.StreamProductfileCOG(db, &awsCfg))
-	private.HEAD("/products/:product_id/cog/:productfile_id", handlers.StreamProductfileCOG(db, &awsCfg))
+	private.GET("/products/:product_id/cog/:productfile_id", handlers.StreamProductfileCOG(db, &cfg.AwsConfig, cfg.AWSS3Endpoint, cfg.AWSS3ForcePathStyle, cfg.AWSS3DisableSSL))
+	private.HEAD("/products/:product_id/cog/:productfile_id", handlers.StreamProductfileCOG(db, &cfg.AwsConfig, cfg.AWSS3Endpoint, cfg.AWSS3ForcePathStyle, cfg.AWSS3DisableSSL))
 
 	// Productfiles
 	private.POST("/productfiles", handlers.CreateProductfiles(db),

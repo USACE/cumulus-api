@@ -158,7 +158,7 @@ services:
       - CUMULUS_ASYNC_ENGINE_PACKAGER_TARGET=local/http://localhost:9324/queue/cumulus-packager
       - CUMULUS_ASYNC_ENGINE_STATISTICS=AWSSQS
       - CUMULUS_ASYNC_ENGINE_STATISTICS_TARGET=local/http://localhost:9324/queue/cumulus-statistics
-      - CUMULUS_STATIC_HOST=http://localhost
+      - CUMULUS_STATIC_HOST=http://localhost/api
       - CUMULUS_AWS_S3_REGION=us-east-1
       - CUMULUS_AWS_S3_BUCKET=castle-data-develop
       - CUMULUS_AWS_S3_BUCKET_PREFIX=cumulus/ui
@@ -169,7 +169,7 @@ services:
     volumes:
       - ./api/:/go/src/app/:rw
     ports:
-      - '8080:80'
+      - '80:80'
       - '2345:2345' # expose port to host for Go delve
     restart: always
     depends_on:
@@ -202,38 +202,38 @@ services:
       cumulusdb:
         condition: service_started
   # --------------------------------------
-  # featureserv:
-  #   build:
-  #     context: pg_featureserv
-  #   platform: linux/amd64 # this is the supported architecture for postgis
-  #   container_name: featureserv
-  #   restart: always
-  #   environment:
-  #     # - DATABASE_URL=postgres://cumulus_user:cumulus_pass@cumulusdb:5432/postgres
-  #     # Individual PG env vars are easier to provide in IaC instead of the DATABASE_URL
-  #     - PGHOST=cumulusdb
-  #     - PGPORT=5432
-  #     - PGUSER=cumulus_user
-  #     - PGPASSWORD=cumulus_pass
-  #     - PGDATABASE=postgres
-  #     - PGTARGETROLE=cumulus_reader #this env var is custom
-  #     - PGFS_SERVER_HTTPPORT=8080
-  #     - PGFS_SERVER_HTTPSPORT=8443
-  #     - PGFS_SERVER_URLBASE=http://localhost/features
-  #     - PGFS_SERVER_BASEPATH=/features
-  #     - PGFS_SERVER_DEBUG=true
-  #     - PGFS_WEBSITE_BASEMAPURL=http://a.tile.openstreetmap.org/{z}/{x}/{y}.png
-  #   # The API provides a proxy using /features
-  #   # This port exposure is for direct access/troubleshooting locally
-  #   ports:
-  #     - '8080:8080'
-  #   depends_on:
-  #     cumulusdb:
-  #       condition: service_started
-  #     flyway:
-  #       condition: service_completed_successfully
-  #     api:
-  #       condition: service_started
+  featureserv:
+    build:
+      context: pg_featureserv
+    platform: linux/amd64 # this is the supported architecture for postgis
+    container_name: featureserv
+    restart: always
+    environment:
+      # - DATABASE_URL=postgres://cumulus_user:cumulus_pass@cumulusdb:5432/postgres
+      # Individual PG env vars are easier to provide in IaC instead of the DATABASE_URL
+      - PGHOST=cumulusdb
+      - PGPORT=5432
+      - PGUSER=cumulus_user
+      - PGPASSWORD=cumulus_pass
+      - PGDATABASE=postgres
+      - PGTARGETROLE=cumulus_reader #this env var is custom
+      - PGFS_SERVER_HTTPPORT=8080
+      - PGFS_SERVER_HTTPSPORT=8443
+      - PGFS_SERVER_URLBASE=http://localhost/features
+      - PGFS_SERVER_BASEPATH=/features
+      - PGFS_SERVER_DEBUG=true
+      - PGFS_WEBSITE_BASEMAPURL=http://a.tile.openstreetmap.org/{z}/{x}/{y}.png
+    # The API provides a proxy using /features
+    # This port exposure is for direct access/troubleshooting locally
+    ports:
+      - '8080:8080'
+    depends_on:
+      cumulusdb:
+        condition: service_started
+      flyway:
+        condition: service_completed_successfully
+      api:
+        condition: service_started
   # --------------------------------------
   # pgadmin:
   #   image: dpage/pgadmin4

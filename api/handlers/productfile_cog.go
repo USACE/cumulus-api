@@ -5,17 +5,16 @@ import (
 	"log"
 	"net/http"
 
-	"github.com/aws/aws-sdk-go/aws"
-	"github.com/aws/aws-sdk-go/aws/session"
-	"github.com/aws/aws-sdk-go/service/s3"
+	"github.com/aws/aws-sdk-go-v2/aws"
+	"github.com/aws/aws-sdk-go-v2/service/s3"
 	"github.com/google/uuid"
 	"github.com/labstack/echo/v4"
 
 	"github.com/USACE/cumulus-api/api/middleware"
 	"github.com/USACE/cumulus-api/api/models"
 
-	_ "github.com/jackc/pgx/v4"
-	"github.com/jackc/pgx/v4/pgxpool"
+	_ "github.com/jackc/pgx/v5"
+	"github.com/jackc/pgx/v5/pgxpool"
 )
 
 // ListProductfilesCOG returns the productfiles for a product over a time range as
@@ -60,7 +59,7 @@ func ListProductfilesCOG(db *pgxpool.Pool) echo.HandlerFunc {
 // Content-Range/Accept-Ranges so a GDAL /vsicurl/ client can read tiles directly
 // (no full download). HEAD returns size + range support for /vsicurl/ probing.
 // Every request is authenticated (private route) and logged for metering.
-func StreamProductfileCOG(db *pgxpool.Pool, awsCfg *aws.Config) echo.HandlerFunc {
+func StreamProductfileCOG(db *pgxpool.Pool, awsCfg *aws.Config, endpoint string, forcePathStyle, disableSSL bool) echo.HandlerFunc {
 	return func(c echo.Context) error {
 		pfID, err := uuid.Parse(c.Param("productfile_id"))
 		if err != nil {
@@ -72,11 +71,20 @@ func StreamProductfileCOG(db *pgxpool.Pool, awsCfg *aws.Config) echo.HandlerFunc
 			return c.String(http.StatusNotFound, "Productfile not found")
 		}
 
-		client := s3.New(session.New(awsCfg))
+		ctx := c.Request().Context()
+		client := s3.NewFromConfig(*awsCfg, func(o *s3.Options) {
+			o.UsePathStyle = forcePathStyle
+			if endpoint != "" {
+				o.BaseEndpoint = aws.String(endpoint)
+			}
+			if disableSSL {
+				o.EndpointOptions.DisableHTTPS = true
+			}
+		})
 
 		// HEAD: metadata only (size + range support) for /vsicurl/ probing.
 		if c.Request().Method == http.MethodHead {
-			head, err := client.HeadObject(&s3.HeadObjectInput{Bucket: &obj.Bucket, Key: &obj.Key})
+			head, err := client.HeadObject(ctx, &s3.HeadObjectInput{Bucket: &obj.Bucket, Key: &obj.Key})
 			if err != nil {
 				return c.String(http.StatusInternalServerError, err.Error())
 			}
@@ -94,7 +102,7 @@ func StreamProductfileCOG(db *pgxpool.Pool, awsCfg *aws.Config) echo.HandlerFunc
 			in.Range = aws.String(rangeHeader)
 		}
 
-		out, err := client.GetObject(in)
+		out, err := client.GetObject(ctx, in)
 		if err != nil {
 			return c.String(http.StatusInternalServerError, err.Error())
 		}

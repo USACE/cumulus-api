@@ -8,7 +8,9 @@ import (
 	"strings"
 	"time"
 
+	awshttp "github.com/aws/aws-sdk-go-v2/aws/transport/http"
 	"github.com/aws/aws-sdk-go-v2/config"
+	"github.com/aws/aws-sdk-go-v2/service/s3"
 	"github.com/labstack/echo/v4"
 	"golang.org/x/net/http2"
 
@@ -63,6 +65,20 @@ func main() {
 			o.Region = cfg.AWSS3Region
 			return nil
 		})
+
+	// One shared S3 client for the COG proxy. SDK v2 already shares the credential provider + HTTP
+	// client via the config, but building the client once (no per-request allocation) and widening
+	// the idle-connection pool lets the high request concurrency of a COG import reuse keep-alive
+	// connections to S3 instead of re-handshaking. Safe for concurrent use; credentials auto-refresh.
+	cogHTTPClient := awshttp.NewBuildableClient().WithTransportOptions(func(t *http.Transport) {
+		t.MaxIdleConns = 200
+		t.MaxIdleConnsPerHost = 100
+		t.IdleConnTimeout = 90 * time.Second
+	})
+	cogS3Client := s3.NewFromConfig(cfg.AwsConfig, func(o *s3.Options) {
+		o.UsePathStyle = cfg.AWSS3ForcePathStyle
+		o.HTTPClient = cogHTTPClient
+	})
 
 	// Database
 	db := Connection(cfg)
@@ -162,8 +178,8 @@ func main() {
 	public.GET("/products/:product_id/files", handlers.ListProductfiles(db))
 	// Direct, Range-capable COG access (authenticated + metered) for desktop clients
 	private.GET("/products/:product_id/cog-files", handlers.ListProductfilesCOG(db))
-	private.GET("/products/:product_id/cog/:productfile_id", handlers.StreamProductfileCOG(db, &cfg.AwsConfig, cfg.AWSS3ForcePathStyle))
-	private.HEAD("/products/:product_id/cog/:productfile_id", handlers.StreamProductfileCOG(db, &cfg.AwsConfig, cfg.AWSS3ForcePathStyle))
+	private.GET("/products/:product_id/cog/:productfile_id", handlers.StreamProductfileCOG(db, cogS3Client))
+	private.HEAD("/products/:product_id/cog/:productfile_id", handlers.StreamProductfileCOG(db, cogS3Client))
 
 	// Productfiles
 	private.POST("/productfiles", handlers.CreateProductfiles(db),

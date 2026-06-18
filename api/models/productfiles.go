@@ -2,6 +2,7 @@ package models
 
 import (
 	"context"
+	"sync"
 	"time"
 
 	// Postgres Database Driver
@@ -57,6 +58,88 @@ func GetProductfileObject(db *pgxpool.Pool, ID uuid.UUID) (*ProductfileObject, e
 		return nil, err
 	}
 	return &obj, nil
+}
+
+// --- Cached productfile -> {bucket, key} lookup ------------------------------------------------
+//
+// The COG proxy (StreamProductfileCOG) resolves the S3 bucket+key on EVERY Range request, and a
+// single client import fires thousands of them. The mapping is immutable for a given productfile id
+// (its file column never changes, and write_to_bucket is a process-constant config value), so it is
+// safe to memoize — keeping the 15-connection Postgres pool out of the per-read hot path.
+
+// productfileCacheMax bounds the in-memory key cache so a long-running process can't grow without
+// limit. Entries are ~an id + a short key string; the cap is ~tens of MB.
+const productfileCacheMax = 200000
+
+var (
+	pfCacheMu     sync.RWMutex
+	pfCacheBucket string
+	pfCacheKeys   = make(map[uuid.UUID]string)
+)
+
+// GetProductfileObjectCached returns the S3 bucket+key for a productfile id, memoized. On a miss it
+// falls back to the database (one cheap scalar query); the write_to_bucket bucket is read once and
+// reused. Safe for concurrent use.
+func GetProductfileObjectCached(db *pgxpool.Pool, ID uuid.UUID) (*ProductfileObject, error) {
+	pfCacheMu.RLock()
+	key, keyOK := pfCacheKeys[ID]
+	bucket := pfCacheBucket
+	pfCacheMu.RUnlock()
+
+	if keyOK && bucket != "" {
+		return &ProductfileObject{Bucket: bucket, Key: key}, nil
+	}
+
+	// Resolve the bucket once (immutable config value).
+	if bucket == "" {
+		b, err := getWriteToBucket(db)
+		if err != nil {
+			return nil, err
+		}
+		bucket = b
+		pfCacheMu.Lock()
+		pfCacheBucket = b
+		pfCacheMu.Unlock()
+	}
+
+	// Resolve + cache the key (immutable per id). A rare concurrent double-miss just queries twice
+	// and stores the same value — harmless.
+	if !keyOK {
+		k, err := getProductfileKey(db, ID)
+		if err != nil {
+			return nil, err
+		}
+		key = k
+		pfCacheMu.Lock()
+		// Bound memory over a long uptime. Entries are immutable and cheap to repopulate, so a crude
+		// drop-all on overflow is safe (subsequent reads simply re-query).
+		if len(pfCacheKeys) >= productfileCacheMax {
+			pfCacheKeys = make(map[uuid.UUID]string)
+		}
+		pfCacheKeys[ID] = k
+		pfCacheMu.Unlock()
+	}
+
+	return &ProductfileObject{Bucket: bucket, Key: key}, nil
+}
+
+func getWriteToBucket(db *pgxpool.Pool) (string, error) {
+	var bucket string
+	err := db.QueryRow(
+		context.Background(),
+		`SELECT config_value FROM config WHERE config_name::text = 'write_to_bucket'::text`,
+	).Scan(&bucket)
+	return bucket, err
+}
+
+func getProductfileKey(db *pgxpool.Pool, ID uuid.UUID) (string, error) {
+	var key string
+	err := db.QueryRow(
+		context.Background(),
+		`SELECT file FROM productfile WHERE id = $1`,
+		ID,
+	).Scan(&key)
+	return key, err
 }
 
 // ListProductfiles returns array of productfiles

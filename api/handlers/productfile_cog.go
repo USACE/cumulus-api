@@ -59,24 +59,21 @@ func ListProductfilesCOG(db *pgxpool.Pool) echo.HandlerFunc {
 // Content-Range/Accept-Ranges so a GDAL /vsicurl/ client can read tiles directly
 // (no full download). HEAD returns size + range support for /vsicurl/ probing.
 // Every request is authenticated (private route) and logged for metering.
-func StreamProductfileCOG(db *pgxpool.Pool, awsCfg *aws.Config, forcePathStyle bool) echo.HandlerFunc {
+func StreamProductfileCOG(db *pgxpool.Pool, client *s3.Client) echo.HandlerFunc {
 	return func(c echo.Context) error {
 		pfID, err := uuid.Parse(c.Param("productfile_id"))
 		if err != nil {
 			return c.String(http.StatusBadRequest, "Malformed productfile ID")
 		}
 
-		obj, err := models.GetProductfileObject(db, pfID)
+		// Memoized lookup — the productfile -> bucket/key mapping is immutable, so this avoids a
+		// Postgres query on every Range request (one client import fires thousands).
+		obj, err := models.GetProductfileObjectCached(db, pfID)
 		if err != nil {
 			return c.String(http.StatusNotFound, "Productfile not found")
 		}
 
 		ctx := c.Request().Context()
-		// Endpoint/scheme come from the environment (AWS_ENDPOINT_URL_S3) via
-		// awsCfg; only path-style addressing still needs to be set per-client.
-		client := s3.NewFromConfig(*awsCfg, func(o *s3.Options) {
-			o.UsePathStyle = forcePathStyle
-		})
 
 		// HEAD: metadata only (size + range support) for /vsicurl/ probing.
 		if c.Request().Method == http.MethodHead {

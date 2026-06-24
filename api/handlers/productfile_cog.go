@@ -36,7 +36,9 @@ func ListProductfilesCOG(db *pgxpool.Pool) echo.HandlerFunc {
 			)
 		}
 
-		ff, err := models.ListProductfiles(db, id, after, before)
+		// One COG per valid time: for forecast products this keeps only the latest issue/version of
+		// each timestep (not every forecast cycle), so the importer gets one band per timestamp.
+		ff, err := models.ListProductfilesLatestVersion(db, id, after, before)
 		if err != nil {
 			return c.String(http.StatusInternalServerError, err.Error())
 		}

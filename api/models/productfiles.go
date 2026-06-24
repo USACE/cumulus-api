@@ -157,6 +157,32 @@ func ListProductfiles(db *pgxpool.Pool, ID uuid.UUID, after string, before strin
 	return ff, nil
 }
 
+// ListProductfilesLatestVersion returns ONE productfile per valid time over the range — the latest
+// forecast version for each datetime. A forecast product stores many issue-cycle versions of the
+// same valid time (version = the real reference/issue time), which would otherwise yield several
+// COGs per timestep; DISTINCT ON (datetime) ORDER BY version DESC keeps only the most-recent issue
+// for each. Observed products use the '1111-11-11..' sentinel version (one row per datetime already),
+// so this is effectively a pass-through for them. This is what the COG importer wants: one COG per
+// timestep, not every version.
+//
+// Note: bounded by the datetime range, but an index on (product_id, datetime, version DESC) would
+// make the DISTINCT ON cheap if this is ever run over very wide ranges.
+func ListProductfilesLatestVersion(db *pgxpool.Pool, ID uuid.UUID, after string, before string) ([]Productfile, error) {
+	ff := make([]Productfile, 0)
+	if err := pgxscan.Select(
+		context.Background(), db, &ff,
+		`SELECT DISTINCT ON (datetime)
+		        product_id, id, datetime, file, version, acquirablefile_id
+		 FROM productfile
+		 WHERE product_id = $1 AND datetime >= $2 AND datetime <= $3
+		 ORDER BY datetime, version DESC`,
+		ID, after, before,
+	); err != nil {
+		return make([]Productfile, 0), err
+	}
+	return ff, nil
+}
+
 func GetProductFileAvailability(db *pgxpool.Pool, ID uuid.UUID, interval string, d time.Time) ([]ProductfileAvailability, error) {
 	avail := make([]ProductfileAvailability, 0)
 	startTime := time.Date(d.Year(), d.Month(), d.Day(), 0, 0, 0, 0, d.Location()).Format(time.RFC3339)

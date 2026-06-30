@@ -5,10 +5,10 @@ import (
 	"encoding/json"
 	"time"
 
-	"github.com/georgysavva/scany/pgxscan"
+	"github.com/georgysavva/scany/v2/pgxscan"
 	"github.com/google/uuid"
-	"github.com/jackc/pgx/v4"
-	"github.com/jackc/pgx/v4/pgxpool"
+	"github.com/jackc/pgx/v5"
+	"github.com/jackc/pgx/v5/pgxpool"
 )
 
 // UserRegion represents a user-defined geographic region
@@ -87,13 +87,13 @@ func GetUserRegion(db *pgxpool.Pool, id *uuid.UUID, sub *uuid.UUID) (*UserRegion
 // CreateUserRegion creates a new user region
 func CreateUserRegion(db *pgxpool.Pool, sub *uuid.UUID, input *UserRegionInput) (*UserRegion, error) {
 	var regionID uuid.UUID
-	
+
 	sql := `
 		INSERT INTO user_region (sub, name, description, geojson, is_public, tags)
 		VALUES ($1, $2, $3, $4, $5, $6)
 		RETURNING id
 	`
-	
+
 	err := db.QueryRow(
 		context.Background(),
 		sql,
@@ -104,11 +104,11 @@ func CreateUserRegion(db *pgxpool.Pool, sub *uuid.UUID, input *UserRegionInput) 
 		input.IsPublic,
 		input.Tags,
 	).Scan(&regionID)
-	
+
 	if err != nil {
 		return nil, err
 	}
-	
+
 	return GetUserRegion(db, &regionID, sub)
 }
 
@@ -124,7 +124,7 @@ func UpdateUserRegion(db *pgxpool.Pool, id *uuid.UUID, sub *uuid.UUID, input *Us
 		    updated_at = NOW()
 		WHERE id = $1 AND sub = $2
 	`
-	
+
 	_, err := db.Exec(
 		context.Background(),
 		sql,
@@ -136,27 +136,27 @@ func UpdateUserRegion(db *pgxpool.Pool, id *uuid.UUID, sub *uuid.UUID, input *Us
 		input.IsPublic,
 		input.Tags,
 	)
-	
+
 	if err != nil {
 		return nil, err
 	}
-	
+
 	return GetUserRegion(db, id, sub)
 }
 
 // DeleteUserRegion deletes a user region
 func DeleteUserRegion(db *pgxpool.Pool, id *uuid.UUID, sub *uuid.UUID) error {
 	sql := `DELETE FROM user_region WHERE id = $1 AND sub = $2`
-	
+
 	result, err := db.Exec(context.Background(), sql, id, sub)
 	if err != nil {
 		return err
 	}
-	
+
 	if result.RowsAffected() == 0 {
 		return pgx.ErrNoRows
 	}
-	
+
 	return nil
 }
 

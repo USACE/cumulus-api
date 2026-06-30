@@ -5,14 +5,14 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/georgysavva/scany/pgxscan"
+	"github.com/georgysavva/scany/v2/pgxscan"
 	"github.com/google/uuid"
 	"github.com/labstack/echo/v4"
 
 	"github.com/USACE/cumulus-api/api/models"
 
-	_ "github.com/jackc/pgx/v4"
-	"github.com/jackc/pgx/v4/pgxpool"
+	_ "github.com/jackc/pgx/v5"
+	"github.com/jackc/pgx/v5/pgxpool"
 )
 
 // GetProductSlugs returns a map of slug: id for all products

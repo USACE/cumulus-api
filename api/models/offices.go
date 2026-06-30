@@ -3,9 +3,9 @@ package models
 import (
 	"context"
 
-	"github.com/georgysavva/scany/pgxscan"
+	"github.com/georgysavva/scany/v2/pgxscan"
 	"github.com/google/uuid"
-	"github.com/jackc/pgx/v4/pgxpool"
+	"github.com/jackc/pgx/v5/pgxpool"
 )
 
 type Office struct {
@@ -24,6 +24,6 @@ FROM
 	office o
 	`
 	var oo []Office
-	err = pgxscan.Select(context.TODO(), db, &oo, sql)
+	err = pgxscan.Select(context.Background(), db, &oo, sql)
 	return oo, err
 }

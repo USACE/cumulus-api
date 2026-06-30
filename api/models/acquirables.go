@@ -4,12 +4,12 @@ import (
 	"context"
 	"time"
 
-	"github.com/georgysavva/scany/pgxscan"
+	"github.com/georgysavva/scany/v2/pgxscan"
 	"github.com/google/uuid"
-	"github.com/jackc/pgx/v4/pgxpool"
+	"github.com/jackc/pgx/v5/pgxpool"
 )
 
-//Acquirable is like a product, but not
+// Acquirable is like a product, but not
 type Acquirable struct {
 	ID   uuid.UUID `json:"id"`
 	Name string    `json:"name"`

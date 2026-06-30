@@ -8,13 +8,16 @@ import (
 	"strings"
 	"time"
 
+	awshttp "github.com/aws/aws-sdk-go-v2/aws/transport/http"
+	"github.com/aws/aws-sdk-go-v2/config"
+	"github.com/aws/aws-sdk-go-v2/service/s3"
 	"github.com/labstack/echo/v4"
 	"golang.org/x/net/http2"
 
-	_ "github.com/jackc/pgx/v4"
-	"github.com/jackc/pgx/v4/pgxpool"
+	_ "github.com/jackc/pgx/v5"
+	"github.com/jackc/pgx/v5/pgxpool"
 
-	"github.com/USACE/cumulus-api/api/config"
+	_config "github.com/USACE/cumulus-api/api/config"
 	"github.com/USACE/cumulus-api/api/handlers"
 	"github.com/USACE/cumulus-api/api/middleware"
 
@@ -22,7 +25,7 @@ import (
 )
 
 // Connection returns a database connection from configuration parameters
-func Connection(cfg *config.Config) *pgxpool.Pool {
+func Connection(cfg *_config.Config) *pgxpool.Pool {
 
 	poolConfig, err := pgxpool.ParseConfig(
 		fmt.Sprintf(
@@ -39,7 +42,7 @@ func Connection(cfg *config.Config) *pgxpool.Pool {
 	// set the application name in pg_stat_activity to identify the connection
 	poolConfig.ConnConfig.RuntimeParams["application_name"] = "cumulus-api"
 
-	db, err := pgxpool.ConnectConfig(context.Background(), poolConfig)
+	db, err := pgxpool.NewWithConfig(context.Background(), poolConfig)
 	if err != nil {
 		log.Panic(err.Error())
 	}
@@ -50,13 +53,32 @@ func Connection(cfg *config.Config) *pgxpool.Pool {
 func main() {
 
 	// Environment Variable Config
-	cfg, err := config.GetConfig()
+	cfg, err := _config.GetConfig()
 	if err != nil {
 		log.Fatal(err.Error())
 	}
 
 	// AWS Config
-	awsCfg := cfg.AWSConfig()
+	cfg.AwsConfig, err = config.LoadDefaultConfig(
+		context.Background(),
+		func(o *config.LoadOptions) error {
+			o.Region = cfg.AWSS3Region
+			return nil
+		})
+
+	// One shared S3 client for the COG proxy. SDK v2 already shares the credential provider + HTTP
+	// client via the config, but building the client once (no per-request allocation) and widening
+	// the idle-connection pool lets the high request concurrency of a COG import reuse keep-alive
+	// connections to S3 instead of re-handshaking. Safe for concurrent use; credentials auto-refresh.
+	cogHTTPClient := awshttp.NewBuildableClient().WithTransportOptions(func(t *http.Transport) {
+		t.MaxIdleConns = 200
+		t.MaxIdleConnsPerHost = 100
+		t.IdleConnTimeout = 90 * time.Second
+	})
+	cogS3Client := s3.NewFromConfig(cfg.AwsConfig, func(o *s3.Options) {
+		o.UsePathStyle = cfg.AWSS3ForcePathStyle
+		o.HTTPClient = cogHTTPClient
+	})
 
 	// Database
 	db := Connection(cfg)
@@ -154,6 +176,10 @@ func main() {
 	// Additional Information About Products
 	public.GET("/products/:product_id/availability", handlers.GetProductAvailability(db))
 	public.GET("/products/:product_id/files", handlers.ListProductfiles(db))
+	// Direct, Range-capable COG access (authenticated + metered) for desktop clients
+	private.GET("/products/:product_id/cog-files", handlers.ListProductfilesCOG(db))
+	private.GET("/products/:product_id/cog/:productfile_id", handlers.StreamProductfileCOG(db, cogS3Client))
+	private.HEAD("/products/:product_id/cog/:productfile_id", handlers.StreamProductfileCOG(db, cogS3Client))
 
 	// Productfiles
 	private.POST("/productfiles", handlers.CreateProductfiles(db),
@@ -222,8 +248,11 @@ func main() {
 		middleware.IsAdmin,
 	)
 
-	// Downloads
-	public.GET("/cumulus/download/*", handlers.ServeMedia(&awsCfg, &cfg.AWSS3Bucket)) // Serve Downloads
+	// Serve Downloads
+	public.GET("/cumulus/download/*", handlers.ServeMedia(
+		&cfg.AwsConfig, &cfg.AWSS3Bucket, cfg.AWSS3ForcePathStyle,
+	))
+
 	// List Downloads
 	private.GET("/downloads", handlers.ListAdminDownloads(db), middleware.IsAdmin)
 	// Create Download (Anonymous)

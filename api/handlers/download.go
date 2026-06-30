@@ -9,7 +9,7 @@ import (
 	"github.com/USACE/cumulus-api/api/messages"
 	"github.com/USACE/cumulus-api/api/models"
 	"github.com/google/uuid"
-	"github.com/jackc/pgx/v4/pgxpool"
+	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/labstack/echo/v4"
 )
 
@@ -47,7 +47,7 @@ func ListDownloads(db *pgxpool.Pool) echo.HandlerFunc {
 	}
 }
 
-//ListAdminDownloads returns downloads for admin
+// ListAdminDownloads returns downloads for admin
 func ListAdminDownloads(db *pgxpool.Pool) echo.HandlerFunc {
 	return func(c echo.Context) error {
 		dd, err := models.ListAdminDownloads(db)
@@ -81,10 +81,10 @@ func CreateDownload(db *pgxpool.Pool, cfg *config.Config) echo.HandlerFunc {
 		if err := c.Bind(&rawRequest); err != nil {
 			return c.String(http.StatusBadRequest, err.Error())
 		}
-		
+
 		// Build the download request
 		var dr models.DownloadRequest
-		
+
 		// Parse datetime fields
 		if dtStart, ok := rawRequest["datetime_start"].(string); ok {
 			if t, err := time.Parse(time.RFC3339, dtStart); err == nil {
@@ -93,7 +93,7 @@ func CreateDownload(db *pgxpool.Pool, cfg *config.Config) echo.HandlerFunc {
 				return c.JSON(http.StatusBadRequest, messages.NewMessage("Invalid datetime_start format"))
 			}
 		}
-		
+
 		if dtEnd, ok := rawRequest["datetime_end"].(string); ok {
 			if t, err := time.Parse(time.RFC3339, dtEnd); err == nil {
 				dr.DatetimeEnd = t
@@ -101,14 +101,14 @@ func CreateDownload(db *pgxpool.Pool, cfg *config.Config) echo.HandlerFunc {
 				return c.JSON(http.StatusBadRequest, messages.NewMessage("Invalid datetime_end format"))
 			}
 		}
-		
+
 		// Parse watershed_id if provided
 		if wid, ok := rawRequest["watershed_id"].(string); ok {
 			if id, err := uuid.Parse(wid); err == nil {
 				dr.WatershedID = &id
 			}
 		}
-		
+
 		// Parse user_region_id if provided - load the region's GeoJSON
 		if regionID, ok := rawRequest["user_region_id"].(string); ok {
 			if rid, err := uuid.Parse(regionID); err == nil {
@@ -117,20 +117,20 @@ func CreateDownload(db *pgxpool.Pool, cfg *config.Config) echo.HandlerFunc {
 				if err != nil {
 					return c.JSON(http.StatusUnauthorized, models.DefaultMessageUnauthorized)
 				}
-				
+
 				// Fetch the user region
 				region, err := models.GetUserRegion(db, &rid, sub)
 				if err != nil {
 					return c.JSON(http.StatusBadRequest, messages.NewMessage("User region not found or not accessible"))
 				}
-				
+
 				// Use the region's GeoJSON and name
 				geojsonStr := string(region.GeoJSON)
 				dr.ClipGeoJSON = &geojsonStr
 				dr.ClipRegionName = &region.Name
 			}
 		}
-		
+
 		// Parse product_id array
 		if products, ok := rawRequest["product_id"].([]interface{}); ok {
 			dr.ProductID = make([]uuid.UUID, 0)
@@ -142,19 +142,19 @@ func CreateDownload(db *pgxpool.Pool, cfg *config.Config) echo.HandlerFunc {
 				}
 			}
 		}
-		
+
 		// Parse format
 		if format, ok := rawRequest["format"].(string); ok {
 			dr.Format = &format
 		}
-		
+
 		// Parse clip_region_name (if not set from user_region)
 		if dr.ClipRegionName == nil {
 			if name, ok := rawRequest["clip_region_name"].(string); ok {
 				dr.ClipRegionName = &name
 			}
 		}
-		
+
 		// Parse and convert clip_geojson to string (if not set from user_region)
 		if dr.ClipGeoJSON == nil {
 			if geojson, ok := rawRequest["clip_geojson"]; ok && geojson != nil {
@@ -166,7 +166,7 @@ func CreateDownload(db *pgxpool.Pool, cfg *config.Config) echo.HandlerFunc {
 				dr.ClipGeoJSON = &geojsonStr
 			}
 		}
-		
+
 		// Validate that either watershed_id, clip_geojson, or user_region_id was provided
 		if dr.WatershedID == nil && dr.ClipGeoJSON == nil {
 			return c.JSON(
@@ -174,13 +174,13 @@ func CreateDownload(db *pgxpool.Pool, cfg *config.Config) echo.HandlerFunc {
 				messages.NewMessage("Either watershed_id, user_region_id, or clip_geojson must be provided"),
 			)
 		}
-		
+
 		// If both are provided, prefer custom clip region
 		if dr.WatershedID != nil && dr.ClipGeoJSON != nil {
 			// Log or handle as needed - using custom region over watershed
 			dr.WatershedID = nil // Clear watershed ID to use custom region
 		}
-		
+
 		// If output format unspecified, use default format
 		if dr.Format == nil {
 			dr.Format = &cfg.DownloadDefaultFormat

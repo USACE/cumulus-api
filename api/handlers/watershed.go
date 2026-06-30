@@ -3,14 +3,14 @@ package handlers
 import (
 	"net/http"
 
-	"github.com/georgysavva/scany/pgxscan"
+	"github.com/georgysavva/scany/v2/pgxscan"
 	"github.com/google/uuid"
-	"github.com/jackc/pgx/v4/pgxpool"
+	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/labstack/echo/v4"
 
 	"github.com/USACE/cumulus-api/api/models"
 
-	_ "github.com/jackc/pgx/v4"
+	_ "github.com/jackc/pgx/v5"
 )
 
 // ListWatersheds returns an array of Watersheds

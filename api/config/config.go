@@ -3,13 +3,14 @@ package config
 import (
 	"log"
 
-	"github.com/aws/aws-sdk-go/aws"
+	"github.com/aws/aws-sdk-go-v2/aws"
 
 	"github.com/kelseyhightower/envconfig"
 )
 
 // Config holds application configuration variables
 type Config struct {
+	AwsConfig                    aws.Config
 	DBUser                       string
 	DBPass                       string
 	DBName                       string
@@ -34,18 +35,18 @@ type Config struct {
 	PgFeatureservUrl             string `envconfig:"PG_FEATURESERV_URL"`
 }
 
-func (cfg Config) AWSConfig() aws.Config {
+// func (cfg Config) AWSConfig() aws.Config {
 
-	a := aws.NewConfig().WithRegion(cfg.AWSS3Region)
+// 	a := aws.NewConfig().WithRegion(cfg.AWSS3Region)
 
-	// Used for "minio" during development
-	a.WithDisableSSL(cfg.AWSS3DisableSSL)
-	a.WithS3ForcePathStyle(cfg.AWSS3ForcePathStyle)
-	if cfg.AWSS3Endpoint != "" {
-		a.WithEndpoint(cfg.AWSS3Endpoint)
-	}
-	return *a
-}
+// 	// Used for "minio" during development
+// 	a.WithDisableSSL(cfg.AWSS3DisableSSL)
+// 	a.WithS3ForcePathStyle(cfg.AWSS3ForcePathStyle)
+// 	if cfg.AWSS3Endpoint != "" {
+// 		a.WithEndpoint(cfg.AWSS3Endpoint)
+// 	}
+// 	return *a
+// }
 
 // GetConfig returns environment variable config
 func GetConfig() (*Config, error) {

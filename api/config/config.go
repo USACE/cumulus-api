@@ -26,6 +26,7 @@ type Config struct {
 	AsyncEngineStatisticsTarget  string `envconfig:"ASYNC_ENGINE_STATISTICS_TARGET"`
 	StaticHost                   string `envconfig:"STATIC_HOST"`
 	ApplicationKey               string `envconfig:"APPLICATION_KEY"`
+	DownloadLinkSecret           string `envconfig:"DOWNLOAD_LINK_SECRET"`
 	AWSS3Endpoint                string `envconfig:"AWS_S3_ENDPOINT"`
 	AWSS3Region                  string `envconfig:"AWS_S3_REGION"`
 	AWSS3DisableSSL              bool   `envconfig:"AWS_S3_DISABLE_SSL"`

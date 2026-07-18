@@ -1,10 +1,15 @@
 -- Always re-apply when running migrations: ${flyway:timestamp}
+-- Dropped and recreated (not just CREATE OR REPLACE) because this revision
+-- renames a column (file -> raw_file) and inserts new columns mid-list;
+-- CREATE OR REPLACE VIEW only allows appending columns, so it would error on
+-- any existing deployment. Nothing depends on v_download, so no CASCADE.
+DROP VIEW IF EXISTS v_download;
 CREATE OR REPLACE VIEW v_download AS (
     SELECT d.id            AS id,
         d.datetime_start   AS datetime_start,
         d.datetime_end     AS datetime_end,
         d.progress         AS progress,
-        d.file             AS file,
+        d.file             AS raw_file,
         d.processing_start AS processing_start,
         d.processing_end   AS processing_end,
         d.status_id        AS status_id,
@@ -18,6 +23,9 @@ CREATE OR REPLACE VIEW v_download AS (
         d.manifest         AS manifest,
         d.clip_geojson     AS clip_geojson,
         d.clip_region_name AS clip_region_name,
+        d.size_bytes       AS size_bytes,
+        d.retrieval_count  AS retrieval_count,
+        d.last_retrieved_at AS last_retrieved_at,
         -- Return either custom clip region bbox or watershed bbox
         CASE 
             WHEN d.clip_geojson IS NOT NULL THEN

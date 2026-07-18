@@ -142,6 +142,7 @@ services:
       - AWS_DEFAULT_REGION=us-east-1
       - AWS_REGION=us-east-1
       - CUMULUS_APPLICATION_KEY=appkey
+      - CUMULUS_DOWNLOAD_LINK_SECRET=devsecret
       - CUMULUS_AUTH_HOST=https://identity-test.cwbi.us
       - CUMULUS_AUTH_PUBLIC_KEY=
       # CUMULUS_AUTH_ENVIRONMENT; OPTIONS:  MOCK | DEVELOP | STABLE

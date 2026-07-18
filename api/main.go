@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"log"
 	"net/http"
+	"os"
 	"strings"
 	"time"
 
@@ -57,10 +58,14 @@ func main() {
 	if err != nil {
 		log.Fatal(err.Error())
 	}
-	// An empty secret would make every signed download link forgeable with a
-	// known (empty) HMAC key -- fail loudly instead of silently degrading.
+	// Download links are HMAC-signed; an empty key would make them forgeable.
+	// GetConfig falls back to ApplicationKey when no dedicated secret is set, so
+	// warn (to nudge setting a real one) but only fail if BOTH are empty.
+	if os.Getenv("CUMULUS_DOWNLOAD_LINK_SECRET") == "" {
+		log.Println("WARNING: CUMULUS_DOWNLOAD_LINK_SECRET not set; signing download links with APPLICATION_KEY as a temporary fallback. Configure a dedicated secret.")
+	}
 	if cfg.DownloadLinkSecret == "" {
-		log.Fatal("CUMULUS_DOWNLOAD_LINK_SECRET must be set")
+		log.Fatal("neither CUMULUS_DOWNLOAD_LINK_SECRET nor CUMULUS_APPLICATION_KEY is set; cannot sign download links")
 	}
 
 	// AWS Config

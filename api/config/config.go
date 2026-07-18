@@ -55,6 +55,13 @@ func GetConfig() (*Config, error) {
 	if err := envconfig.Process("cumulus", &cfg); err != nil {
 		log.Fatal(err.Error())
 	}
+	// Fallback for download-link signing: if no dedicated secret is configured,
+	// reuse ApplicationKey (already present in every environment) so signed
+	// links keep working without an infra change. Setting a dedicated
+	// CUMULUS_DOWNLOAD_LINK_SECRET later transparently takes precedence.
+	if cfg.DownloadLinkSecret == "" {
+		cfg.DownloadLinkSecret = cfg.ApplicationKey
+	}
 	return &cfg, nil
 }
 

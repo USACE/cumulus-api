@@ -2,7 +2,9 @@ package models
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
+	"strings"
 	"time"
 
 	"github.com/USACE/cumulus-api/api/config"
@@ -49,6 +51,11 @@ type Download struct {
 	WatershedName *string   `json:"watershed_name,omitempty" db:"watershed_name"`
 	ClipBbox      []float64 `json:"clip_bbox,omitempty" db:"clip_bbox"`
 	ClipName      string    `json:"clip_name,omitempty" db:"clip_name"`
+	// RawFile is the untouched S3 key (not exposed to clients); File is derived
+	// from it as a short-lived signed URL by attachSignedFileLink(s).
+	RawFile         *string    `json:"-" db:"raw_file"`
+	RetrievalCount  int64      `json:"retrieval_count" db:"retrieval_count"`
+	LastRetrievedAt *time.Time `json:"last_retrieved_at,omitempty" db:"last_retrieved_at"`
 }
 
 // PackagerInfo holds all information Packager provides after a download starts
@@ -59,6 +66,7 @@ type PackagerInfo struct {
 	ProcessingStart time.Time  `json:"processing_start" db:"processing_start"`
 	ProcessingEnd   *time.Time `json:"processing_end" db:"processing_end"`
 	Manifest        *JSONB     `json:"manifest"`
+	SizeBytes       *int64     `json:"size_bytes,omitempty" db:"size_bytes"`
 }
 
 // PackagerRequest holds all information sent to Packager necessary to package files
@@ -91,13 +99,35 @@ type PackagerContentItem struct {
 	DssUnit     string `json:"dss_unit" db:"dss_unit"`
 }
 
-var listDownloadsSQL = fmt.Sprintf(
-	`SELECT id, sub, datetime_start, datetime_end, progress, ('%s' || '/' || file) as file,
-	   processing_start, processing_end, status_id, watershed_id, watershed_slug, watershed_name, 
-	   status, product_id, format, manifest, clip_geojson, clip_region_name, clip_bbox, clip_name
+var listDownloadsSQL = `SELECT id, sub, datetime_start, datetime_end, progress, raw_file,
+	   processing_start, processing_end, status_id, watershed_id, watershed_slug, watershed_name,
+	   status, product_id, format, manifest, clip_geojson, clip_region_name, clip_bbox, clip_name,
+	   size_bytes, retrieval_count, last_retrieved_at
 	   FROM v_download
-	`, cfg.StaticHost,
-)
+	`
+
+// downloadLinkTTL bounds how long a signed download-file URL stays valid after
+// being issued in an API response. Links are only handed out through
+// authenticated endpoints, so a client can always re-fetch a fresh one.
+const downloadLinkTTL = 24 * time.Hour
+
+// attachSignedFileLink replaces d.File (if a completed file exists) with a
+// short-lived signed URL to the file-serving endpoint. d.RawFile, the actual
+// S3 key, is left untouched for server-side use (e.g. ServeDownloadFile).
+func attachSignedFileLink(d *Download) {
+	if d == nil || d.RawFile == nil {
+		return
+	}
+	exp, sig := SignDownloadLink(cfg.DownloadLinkSecret, d.ID, downloadLinkTTL)
+	url := fmt.Sprintf("%s/downloads/%s/file?exp=%d&sig=%s", cfg.StaticHost, d.ID, exp, sig)
+	d.File = &url
+}
+
+func attachSignedFileLinks(dd []Download) {
+	for i := range dd {
+		attachSignedFileLink(&dd[i])
+	}
+}
 
 // ListDownloads returns all downloads from the database
 func ListDownloads(db *pgxpool.Pool) ([]Download, error) {
@@ -105,6 +135,7 @@ func ListDownloads(db *pgxpool.Pool) ([]Download, error) {
 	if err := pgxscan.Select(context.Background(), db, &dd, listDownloadsSQL); err != nil {
 		return make([]Download, 0), err
 	}
+	attachSignedFileLinks(dd)
 	return dd, nil
 }
 
@@ -114,6 +145,7 @@ func ListMyDownloads(db *pgxpool.Pool, sub *uuid.UUID) ([]Download, error) {
 	if err := pgxscan.Select(context.Background(), db, &dd, listDownloadsSQL+" WHERE sub = $1", sub); err != nil {
 		return make([]Download, 0), err
 	}
+	attachSignedFileLinks(dd)
 	return dd, nil
 }
 
@@ -123,6 +155,7 @@ func ListAdminDownloads(db *pgxpool.Pool) ([]Download, error) {
 	if err := pgxscan.Select(context.Background(), db, &dd, listDownloadsSQL+" ORDER BY processing_start DESC LIMIT 50"); err != nil {
 		return make([]Download, 0), err
 	}
+	attachSignedFileLinks(dd)
 	return dd, nil
 }
 
@@ -132,6 +165,7 @@ func GetDownload(db *pgxpool.Pool, downloadID *uuid.UUID) (*Download, error) {
 	if err := pgxscan.Get(context.Background(), db, &d, listDownloadsSQL+" WHERE id = $1", downloadID); err != nil {
 		return nil, err
 	}
+	attachSignedFileLink(&d)
 	return &d, nil
 }
 
@@ -300,8 +334,15 @@ func UpdateDownload(db *pgxpool.Pool, downloadID *uuid.UUID, info *PackagerInfo)
 	}
 
 	UpdateProgressSetComplete := func() error {
-		sql := `UPDATE download set progress = $2, file = $3, processing_end = CURRENT_TIMESTAMP, manifest = $4 WHERE id = $1`
-		if _, err := db.Exec(context.Background(), sql, downloadID, info.Progress, info.File, info.Manifest); err != nil {
+		sizeBytes := info.SizeBytes
+		if sizeBytes == nil && info.Manifest != nil {
+			if v, ok := (*info.Manifest)["size_bytes"].(float64); ok {
+				sb := int64(v)
+				sizeBytes = &sb
+			}
+		}
+		sql := `UPDATE download set progress = $2, file = $3, processing_end = CURRENT_TIMESTAMP, manifest = $4, size_bytes = $5 WHERE id = $1`
+		if _, err := db.Exec(context.Background(), sql, downloadID, info.Progress, info.File, info.Manifest, sizeBytes); err != nil {
 			return err
 		}
 		return nil
@@ -373,4 +414,469 @@ func GetDownloadMetrics(db *pgxpool.Pool) ([]byte, error) {
 	// 	return nil, err
 	// }
 	// return &d, nil
+}
+
+// IncrementDownloadRetrieval records a single fetch of a download's completed file.
+func IncrementDownloadRetrieval(db *pgxpool.Pool, downloadID *uuid.UUID) error {
+	_, err := db.Exec(context.Background(),
+		`UPDATE download SET retrieval_count = retrieval_count + 1, last_retrieved_at = now() WHERE id = $1`,
+		downloadID,
+	)
+	return err
+}
+
+// DownloadUsage is one row of the admin usage report: per-user aggregate
+// download activity, joined against the display-name cache when available.
+type DownloadUsage struct {
+	Sub               uuid.UUID  `json:"sub" db:"sub"`
+	DisplayName       string     `json:"display_name" db:"display_name"`
+	PreferredUsername *string    `json:"preferred_username" db:"preferred_username"`
+	Email             *string    `json:"email" db:"email"`
+	RequestCount      int64      `json:"request_count" db:"request_count"`
+	RetrievalCount    int64      `json:"retrieval_count" db:"retrieval_count"`
+	// TotalBytesPackaged is the size of every package produced for this user
+	// (sum of size_bytes), regardless of whether it was ever downloaded.
+	TotalBytesPackaged int64 `json:"total_bytes_packaged" db:"total_bytes_packaged"`
+	// TotalBytesDownloaded is bytes actually transferred to the user
+	// (sum of size_bytes * retrieval_count).
+	TotalBytesDownloaded int64      `json:"total_bytes_downloaded" db:"total_bytes_downloaded"`
+	LastDownloadAt       *time.Time `json:"last_download_at" db:"last_download_at"`
+}
+
+// DownloadUsageFilter controls sorting, text search, and time-range filtering
+// for ListDownloadUsage.
+type DownloadUsageFilter struct {
+	Sort   string // "downloaded"/"gb" (default), "packaged", "requests", or "retrievals"
+	Order  string // "asc" or "desc" (default)
+	Q      string // substring match against username/email/name/sub
+	After  *time.Time
+	Before *time.Time
+	Limit  int
+}
+
+// completedDownloadStatuses are the only statuses counted as real usage --
+// FAILED produced nothing, and INITIATED means Packager never finished (or
+// never started), so neither represents an actual download.
+var completedDownloadStatuses = []string{"SUCCESS", "PARTIAL SUCCESS"}
+
+// ListDownloadUsage returns per-user download usage aggregates for the admin
+// usage report, aggregated from the raw download table (not v_download, which
+// fans out one row per product per download and would inflate the counts).
+func ListDownloadUsage(db *pgxpool.Pool, f DownloadUsageFilter) ([]DownloadUsage, error) {
+	sortCol := "total_bytes_downloaded"
+	switch f.Sort {
+	case "requests":
+		sortCol = "request_count"
+	case "retrievals":
+		sortCol = "retrieval_count"
+	case "packaged":
+		sortCol = "total_bytes_packaged"
+	case "downloaded", "gb":
+		sortCol = "total_bytes_downloaded"
+	}
+	order := "DESC"
+	if strings.EqualFold(f.Order, "asc") {
+		order = "ASC"
+	}
+
+	sql := fmt.Sprintf(`
+		SELECT
+			d.sub,
+			COALESCE(ud.preferred_username, ud.email, ud.name, d.sub::text) AS display_name,
+			ud.preferred_username, ud.email,
+			COUNT(*) AS request_count,
+			COALESCE(SUM(d.retrieval_count), 0)::bigint AS retrieval_count,
+			-- Bytes produced (all packages) vs bytes actually transferred (a
+			-- package fetched N times moved N * its size; never-fetched = 0).
+			-- ::bigint because SUM over BIGINT returns numeric; cast for a clean int64 scan.
+			COALESCE(SUM(d.size_bytes), 0)::bigint AS total_bytes_packaged,
+			COALESCE(SUM(d.size_bytes * d.retrieval_count), 0)::bigint AS total_bytes_downloaded,
+			MAX(d.processing_start) AS last_download_at
+		FROM download d
+		JOIN download_status s ON s.id = d.status_id
+		LEFT JOIN user_directory ud ON ud.sub = d.sub
+		WHERE s.name = ANY($5)
+		  AND ($1::timestamptz IS NULL OR d.processing_start >= $1)
+		  AND ($2::timestamptz IS NULL OR d.processing_start <= $2)
+		  AND ($3::text IS NULL OR d.sub::text ILIKE '%%' || $3 || '%%'
+		       OR ud.preferred_username ILIKE '%%' || $3 || '%%'
+		       OR ud.email ILIKE '%%' || $3 || '%%' OR ud.name ILIKE '%%' || $3 || '%%')
+		GROUP BY d.sub, ud.preferred_username, ud.email, ud.name
+		ORDER BY %s %s
+		LIMIT $4`, sortCol, order)
+
+	var q *string
+	if f.Q != "" {
+		q = &f.Q
+	}
+
+	uu := make([]DownloadUsage, 0)
+	if err := pgxscan.Select(context.Background(), db, &uu, sql, f.After, f.Before, q, f.Limit, completedDownloadStatuses); err != nil {
+		return make([]DownloadUsage, 0), err
+	}
+	return uu, nil
+}
+
+// ProductUsage is one row of the admin "top products downloaded" report,
+// aggregated across all users (user-agnostic).
+type ProductUsage struct {
+	ProductID      uuid.UUID  `json:"product_id" db:"product_id"`
+	ProductName    string     `json:"product_name" db:"product_name"`
+	ProductSlug    string     `json:"product_slug" db:"product_slug"`
+	RequestCount   int64      `json:"request_count" db:"request_count"`
+	LastDownloadAt *time.Time `json:"last_download_at" db:"last_download_at"`
+}
+
+// ProductUsageFilter controls sort order, text search, and time-range
+// filtering for ListProductUsage. There is deliberately no size/GB metric:
+// a single download can bundle multiple products into one package, and
+// Packager only reports total package size, not a per-product breakdown, so
+// per-product bytes can't be attributed accurately. Only request_count
+// (how many download jobs included the product) is meaningful today.
+type ProductUsageFilter struct {
+	Order  string // "asc" or "desc" (default)
+	Q      string // substring match against product name/slug
+	After  *time.Time
+	Before *time.Time
+	Limit  int
+}
+
+// ListProductUsage returns the most-downloaded products, independent of which
+// users downloaded them. Counts download jobs that included the product
+// (via download_product), regardless of how many other products shared that
+// same package.
+func ListProductUsage(db *pgxpool.Pool, f ProductUsageFilter) ([]ProductUsage, error) {
+	order := "DESC"
+	if strings.EqualFold(f.Order, "asc") {
+		order = "ASC"
+	}
+
+	sql := fmt.Sprintf(`
+		SELECT
+			p.id AS product_id,
+			p.name AS product_name,
+			p.slug AS product_slug,
+			COUNT(*) AS request_count,
+			MAX(d.processing_start) AS last_download_at
+		FROM download d
+		JOIN download_status s ON s.id = d.status_id
+		JOIN download_product dp ON dp.download_id = d.id
+		JOIN v_product p ON p.id = dp.product_id
+		WHERE s.name = ANY($5)
+		  AND ($1::timestamptz IS NULL OR d.processing_start >= $1)
+		  AND ($2::timestamptz IS NULL OR d.processing_start <= $2)
+		  AND ($3::text IS NULL OR p.name ILIKE '%%' || $3 || '%%' OR p.slug ILIKE '%%' || $3 || '%%')
+		GROUP BY p.id, p.name, p.slug
+		ORDER BY request_count %s
+		LIMIT $4`, order)
+
+	var q *string
+	if f.Q != "" {
+		q = &f.Q
+	}
+
+	pp := make([]ProductUsage, 0)
+	if err := pgxscan.Select(context.Background(), db, &pp, sql, f.After, f.Before, q, f.Limit, completedDownloadStatuses); err != nil {
+		return make([]ProductUsage, 0), err
+	}
+	return pp, nil
+}
+
+// UsageFilter is the shared filter for the admin analytics endpoints
+// (GetUsageSummary / GetUsageTimeseries). Every field is optional: an empty
+// slice or nil time means "no constraint on this dimension". Within a single
+// dimension the values are OR'd (any of these users); across dimensions they
+// are AND'd (this user AND this product). Extents match against the coalesced
+// clip name -- a watershed name or a custom region name.
+type UsageFilter struct {
+	Users    []uuid.UUID
+	Products []uuid.UUID
+	Extents  []string
+	After    *time.Time
+	Before   *time.Time
+	// Limit caps each breakdown to its top-N rows (by request_count) plus a
+	// single aggregated "Other" row. <= 0 means uncapped (return every row) --
+	// used by the CSV export. The breakdown charts send the default so a
+	// deployment with thousands of users doesn't ship thousands of rows per
+	// request when only the top few are plotted.
+	Limit int
+}
+
+// DefaultSummaryLimit is the per-breakdown top-N used when no limit is given.
+// Chosen to match the categorical chart palette (8 hues) + an "Other" slot.
+const DefaultSummaryLimit = 8
+
+// UsageTotals is the filtered grand total across the whole download set.
+type UsageTotals struct {
+	RequestCount    int64 `json:"request_count"`
+	RetrievalCount  int64 `json:"retrieval_count"`
+	BytesDownloaded int64 `json:"bytes_downloaded"`
+	BytesPackaged   int64 `json:"bytes_packaged"`
+}
+
+// UsageBreakdown is one row of a per-dimension breakdown (a product, an extent,
+// or a user). Name is the display label; the "Other" bucket uses name "Other".
+type UsageBreakdown struct {
+	Name            string `json:"name"`
+	RequestCount    int64  `json:"request_count"`
+	RetrievalCount  int64  `json:"retrieval_count"`
+	BytesDownloaded int64  `json:"bytes_downloaded"`
+}
+
+// UsageSummary is the analytics summary response: filtered totals plus the
+// three breakdowns, each already capped to top-N + "Other" (unless uncapped).
+type UsageSummary struct {
+	Totals    UsageTotals      `json:"totals"`
+	ByUser    []UsageBreakdown `json:"by_user"`
+	ByProduct []UsageBreakdown `json:"by_product"`
+	ByExtent  []UsageBreakdown `json:"by_extent"`
+}
+
+// capBreakdown keeps the first `limit` rows (already ordered by request_count
+// DESC in SQL) and folds the remainder into a single "Other" row, summing each
+// metric. limit <= 0 returns rows unchanged. This is what keeps the response
+// small: the tail is aggregated server-side rather than shipped row by row.
+func capBreakdown(rows []UsageBreakdown, limit int) []UsageBreakdown {
+	// Return as-is when there's at most one row past the cap: folding a single
+	// tail row into "Other" saves no payload and just hides its name.
+	if limit <= 0 || len(rows) <= limit+1 {
+		return rows
+	}
+	other := UsageBreakdown{Name: "Other"}
+	for _, r := range rows[limit:] {
+		other.RequestCount += r.RequestCount
+		other.RetrievalCount += r.RetrievalCount
+		other.BytesDownloaded += r.BytesDownloaded
+	}
+	return append(rows[:limit:limit], other)
+}
+
+// nilIfEmptyUUIDs / nilIfEmptyStrings return a typed nil for empty slices so
+// the query binds SQL NULL (skipping the filter) instead of an empty array,
+// which would make `col = ANY('{}')` match nothing and hide every row.
+func nilIfEmptyUUIDs(s []uuid.UUID) interface{} {
+	if len(s) == 0 {
+		return nil
+	}
+	return s
+}
+
+func nilIfEmptyStrings(s []string) interface{} {
+	if len(s) == 0 {
+		return nil
+	}
+	return s
+}
+
+// usageFilterCTE is the common `filtered` CTE both analytics queries build on:
+// the set of completed downloads matching the filter, one row per download,
+// with the extent name resolved without touching v_download's geometry work.
+// Bind order: $1 after, $2 before, $3 users, $4 products, $5 extents,
+// $6 statuses.
+const usageFilterCTE = `
+	WITH filtered AS (
+		SELECT
+			d.id, d.sub, d.size_bytes, d.retrieval_count, d.processing_start,
+			CASE
+				WHEN d.clip_geojson IS NOT NULL THEN COALESCE(d.clip_region_name, 'Custom Region')
+				ELSE w.name
+			END AS extent
+		FROM download d
+		JOIN download_status s ON s.id = d.status_id
+		LEFT JOIN watershed w ON w.id = d.watershed_id
+		WHERE s.name = ANY($6)
+		  AND ($1::timestamptz IS NULL OR d.processing_start >= $1)
+		  AND ($2::timestamptz IS NULL OR d.processing_start <= $2)
+		  AND ($3::uuid[] IS NULL OR d.sub = ANY($3))
+		  AND ($5::text[] IS NULL OR (CASE
+				WHEN d.clip_geojson IS NOT NULL THEN COALESCE(d.clip_region_name, 'Custom Region')
+				ELSE w.name END) = ANY($5))
+		  AND ($4::uuid[] IS NULL OR EXISTS (
+				SELECT 1 FROM download_product dp
+				WHERE dp.download_id = d.id AND dp.product_id = ANY($4)))
+	)`
+
+// GetUsageSummary returns the totals plus per-product, per-extent, and
+// per-user breakdowns for the filtered download set, as a single JSON object:
+//
+//	{ totals: {...}, by_product: [...], by_extent: [...], by_user: [...] }
+//
+// bytes_downloaded is size_bytes * retrieval_count (bytes actually
+// transferred); bytes_packaged is size_bytes (bytes produced). Product
+// bytes are per-package, not per-product -- a package's full size is
+// attributed to every product it contains, since Packager reports only a
+// total (see ProductUsageFilter).
+func GetUsageSummary(db *pgxpool.Pool, f UsageFilter) (*UsageSummary, error) {
+	sql := usageFilterCTE + `
+	SELECT json_build_object(
+		'totals', (
+			SELECT json_build_object(
+				'request_count',    COUNT(*),
+				'retrieval_count',  COALESCE(SUM(retrieval_count), 0),
+				'bytes_downloaded', COALESCE(SUM(size_bytes * retrieval_count), 0),
+				'bytes_packaged',   COALESCE(SUM(size_bytes), 0)
+			) FROM filtered
+		),
+		'by_product', COALESCE((
+			SELECT json_agg(r) FROM (
+				SELECT
+					p.id   AS product_id,
+					p.name AS name,
+					COUNT(*) AS request_count,
+					COALESCE(SUM(f.retrieval_count), 0)                  AS retrieval_count,
+					COALESCE(SUM(f.size_bytes * f.retrieval_count), 0)   AS bytes_downloaded
+				FROM filtered f
+				JOIN download_product dp ON dp.download_id = f.id
+				JOIN v_product p ON p.id = dp.product_id
+				GROUP BY p.id, p.name
+				ORDER BY request_count DESC
+			) r
+		), '[]'::json),
+		'by_extent', COALESCE((
+			SELECT json_agg(r) FROM (
+				SELECT
+					COALESCE(extent, 'Unknown') AS name,
+					COUNT(*) AS request_count,
+					COALESCE(SUM(retrieval_count), 0)                AS retrieval_count,
+					COALESCE(SUM(size_bytes * retrieval_count), 0)   AS bytes_downloaded
+				FROM filtered
+				GROUP BY extent
+				ORDER BY request_count DESC
+			) r
+		), '[]'::json),
+		'by_user', COALESCE((
+			SELECT json_agg(r) FROM (
+				SELECT
+					f.sub AS sub,
+					COALESCE(ud.preferred_username, ud.email, ud.name, f.sub::text) AS name,
+					COUNT(*) AS request_count,
+					COALESCE(SUM(f.retrieval_count), 0)                AS retrieval_count,
+					COALESCE(SUM(f.size_bytes * f.retrieval_count), 0) AS bytes_downloaded
+				FROM filtered f
+				LEFT JOIN user_directory ud ON ud.sub = f.sub
+				GROUP BY f.sub, ud.preferred_username, ud.email, ud.name
+				ORDER BY request_count DESC
+			) r
+		), '[]'::json)
+	)`
+
+	// Postgres does the grouping and ordering; the tail-folding cap is done in
+	// Go (see capBreakdown) since it's simpler than window functions here and
+	// the DB->API row count isn't the concern -- the browser payload is.
+	var j []byte
+	if err := pgxscan.Get(
+		context.Background(), db, &j, sql,
+		f.After, f.Before, nilIfEmptyUUIDs(f.Users), nilIfEmptyUUIDs(f.Products),
+		nilIfEmptyStrings(f.Extents), completedDownloadStatuses,
+	); err != nil {
+		return nil, err
+	}
+
+	var summary UsageSummary
+	if err := json.Unmarshal(j, &summary); err != nil {
+		return nil, err
+	}
+	summary.ByUser = capBreakdown(summary.ByUser, f.Limit)
+	summary.ByProduct = capBreakdown(summary.ByProduct, f.Limit)
+	summary.ByExtent = capBreakdown(summary.ByExtent, f.Limit)
+	return &summary, nil
+}
+
+// GetUsageTimeseries returns request volume bucketed over time for the
+// filtered set, gap-filled so empty buckets come back as zero. interval is
+// "day", "week", or "month".
+//
+// Only request_count and bytes_packaged are reported, both keyed on
+// processing_start (the download's creation time) and therefore accurate to
+// the bucket. Retrievals/bytes_downloaded are deliberately absent: the schema
+// stores a retrieval counter and only the last-fetched timestamp, so fetches
+// can't be bucketed by when they happened. A per-fetch download_retrieval
+// event table would be required to add a true downloads-over-time series.
+func GetUsageTimeseries(db *pgxpool.Pool, f UsageFilter, interval string) ([]UsageTimeseriesPoint, error) {
+	// Whitelist the interval -- it is interpolated into the SQL (date_trunc and
+	// the generate_series step can't be bound as parameters), so it must never
+	// come from raw client input.
+	unit := "day"
+	switch interval {
+	case "week":
+		unit = "week"
+	case "month":
+		unit = "month"
+	case "day", "":
+		unit = "day"
+	default:
+		return nil, fmt.Errorf("invalid interval")
+	}
+
+	sql := fmt.Sprintf(usageFilterCTE+`,
+	bounds AS (
+		SELECT
+			date_trunc('%[1]s', COALESCE($1::timestamptz, MIN(processing_start))) AS lo,
+			date_trunc('%[1]s', COALESCE($2::timestamptz, MAX(processing_start))) AS hi
+		FROM filtered
+	),
+	buckets AS (
+		SELECT generate_series(lo, hi, interval '1 %[1]s') AS bucket
+		FROM bounds
+		WHERE lo IS NOT NULL AND hi IS NOT NULL
+	),
+	agg AS (
+		SELECT
+			date_trunc('%[1]s', processing_start) AS bucket,
+			COUNT(*) AS request_count,
+			COALESCE(SUM(size_bytes), 0)::bigint AS bytes_packaged
+		FROM filtered
+		GROUP BY 1
+	)
+	SELECT
+		b.bucket AS bucket,
+		COALESCE(a.request_count, 0)  AS request_count,
+		COALESCE(a.bytes_packaged, 0) AS bytes_packaged
+	FROM buckets b
+	LEFT JOIN agg a ON a.bucket = b.bucket
+	ORDER BY b.bucket`, unit)
+
+	pts := make([]UsageTimeseriesPoint, 0)
+	if err := pgxscan.Select(
+		context.Background(), db, &pts, sql,
+		f.After, f.Before, nilIfEmptyUUIDs(f.Users), nilIfEmptyUUIDs(f.Products),
+		nilIfEmptyStrings(f.Extents), completedDownloadStatuses,
+	); err != nil {
+		return make([]UsageTimeseriesPoint, 0), err
+	}
+	return pts, nil
+}
+
+// UsageTimeseriesPoint is one time bucket of the analytics timeline.
+type UsageTimeseriesPoint struct {
+	Bucket        time.Time `json:"bucket" db:"bucket"`
+	RequestCount  int64     `json:"request_count" db:"request_count"`
+	BytesPackaged int64     `json:"bytes_packaged" db:"bytes_packaged"`
+}
+
+// UsageUser is one entry for the analytics user selector: a downloading user
+// with a display name resolved from the directory cache.
+type UsageUser struct {
+	Sub         uuid.UUID `json:"sub" db:"sub"`
+	DisplayName string    `json:"display_name" db:"display_name"`
+}
+
+// ListUsageUsers returns the distinct users who have completed downloads, for
+// populating the analytics user filter. Ordered by display name.
+func ListUsageUsers(db *pgxpool.Pool) ([]UsageUser, error) {
+	sql := `
+		SELECT DISTINCT
+			d.sub,
+			COALESCE(ud.preferred_username, ud.email, ud.name, d.sub::text) AS display_name
+		FROM download d
+		JOIN download_status s ON s.id = d.status_id
+		LEFT JOIN user_directory ud ON ud.sub = d.sub
+		WHERE s.name = ANY($1)
+		ORDER BY display_name`
+
+	uu := make([]UsageUser, 0)
+	if err := pgxscan.Select(context.Background(), db, &uu, sql, completedDownloadStatuses); err != nil {
+		return make([]UsageUser, 0), err
+	}
+	return uu, nil
 }

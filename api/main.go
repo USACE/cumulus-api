@@ -57,6 +57,11 @@ func main() {
 	if err != nil {
 		log.Fatal(err.Error())
 	}
+	// An empty secret would make every signed download link forgeable with a
+	// known (empty) HMAC key -- fail loudly instead of silently degrading.
+	if cfg.DownloadLinkSecret == "" {
+		log.Fatal("CUMULUS_DOWNLOAD_LINK_SECRET must be set")
+	}
 
 	// AWS Config
 	cfg.AwsConfig, err = config.LoadDefaultConfig(
@@ -126,7 +131,7 @@ func main() {
 	}
 
 	// Key Authentication Middleware
-	private.Use(middleware.KeyAuth(cfg.ApplicationKey), middleware.AttachUserInfo)
+	private.Use(middleware.KeyAuth(cfg.ApplicationKey), middleware.AttachUserInfo(db))
 
 	// Health Check
 	public.GET("/health", func(c echo.Context) error {
@@ -248,17 +253,27 @@ func main() {
 		middleware.IsAdmin,
 	)
 
-	// Serve Downloads
-	public.GET("/cumulus/download/*", handlers.ServeMedia(
-		&cfg.AwsConfig, &cfg.AWSS3Bucket, cfg.AWSS3ForcePathStyle,
+	// Serve Downloads (signature-gated: see ServeDownloadFile, since the
+	// frontend triggers this via window.open and can't attach a bearer JWT)
+	public.GET("/downloads/:download_id/file", handlers.ServeDownloadFile(
+		db, &cfg.AwsConfig, &cfg.AWSS3Bucket, cfg.AWSS3ForcePathStyle, cfg.DownloadLinkSecret,
 	))
 
 	// List Downloads
 	private.GET("/downloads", handlers.ListAdminDownloads(db), middleware.IsAdmin)
+	// Admin Usage Report
+	private.GET("/downloads/usage", handlers.ListDownloadUsage(db), middleware.IsAdmin)
+	private.GET("/downloads/usage/products", handlers.ListProductUsage(db), middleware.IsAdmin)
+	// Admin Analytics (filtered totals/breakdowns, timeline, user selector)
+	private.GET("/downloads/usage/summary", handlers.GetUsageSummary(db), middleware.IsAdmin)
+	private.GET("/downloads/usage/timeseries", handlers.GetUsageTimeseries(db), middleware.IsAdmin)
+	private.GET("/downloads/usage/users", handlers.ListUsageUsers(db), middleware.IsAdmin)
 	// Create Download (Anonymous)
 	public.POST("/deprecated/anonymous_downloads", handlers.CreateDownload(db, cfg), middleware.AttachAnonymousUserInfo) // deprecated
 	private.POST("/downloads", handlers.CreateDownload(db, cfg))
-	public.GET("/downloads/:download_id", handlers.GetDownload(db))
+	// Auth required: this returns a freshly-signed download link, so it must not
+	// be reachable anonymously. Packager calls it with ?key=APPLICATION_KEY.
+	private.GET("/downloads/:download_id", handlers.GetDownload(db))
 	// Create Download (Authenticated)
 	private.POST("/my_downloads", handlers.CreateDownload(db, cfg))
 	private.GET("/my_downloads", handlers.ListMyDownloads(db))

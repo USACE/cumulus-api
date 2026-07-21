@@ -45,11 +45,14 @@ func GetWatershed(db *pgxpool.Pool) echo.HandlerFunc {
 // CreateWatershed creates a new watershed
 func CreateWatershed(db *pgxpool.Pool) echo.HandlerFunc {
 	return func(c echo.Context) error {
-		var w models.Watershed
-		if err := c.Bind(&w); err != nil {
+		var in models.WatershedInput
+		if err := c.Bind(&in); err != nil {
 			return c.String(http.StatusBadRequest, err.Error())
 		}
-		newWatershed, err := models.CreateWatershed(db, &w)
+		if in.Name == "" {
+			return c.String(http.StatusBadRequest, "watershed name is required")
+		}
+		newWatershed, err := models.CreateWatershed(db, &in)
 		if err != nil {
 			return c.String(http.StatusInternalServerError, err.Error())
 		}
@@ -57,25 +60,27 @@ func CreateWatershed(db *pgxpool.Pool) echo.HandlerFunc {
 	}
 }
 
-// UpdateWatershed creates a new watershed
+// UpdateWatershed updates a watershed's name, office assignment, and extent
 func UpdateWatershed(db *pgxpool.Pool) echo.HandlerFunc {
 	return func(c echo.Context) error {
-		// Watershed Slug from route params
+		// Watershed ID from route params
 		wID, err := uuid.Parse(c.Param("watershed_id"))
 		if err != nil {
 			return c.String(http.StatusBadRequest, err.Error())
 		}
 		// Payload
-		var w models.Watershed
-		if err := c.Bind(&w); err != nil {
+		var in models.WatershedInput
+		if err := c.Bind(&in); err != nil {
 			return c.String(http.StatusBadRequest, err.Error())
 		}
-		// Check route params v. payload
-		if wID != w.ID {
-			return c.String(http.StatusBadRequest, "watershed_id in URL does not match request body")
+		if in.Name == "" {
+			return c.String(http.StatusBadRequest, "watershed name is required")
 		}
-		wUpdated, err := models.UpdateWatershed(db, &w)
+		wUpdated, err := models.UpdateWatershed(db, &wID, &in)
 		if err != nil {
+			if pgxscan.NotFound(err) {
+				return c.JSON(http.StatusNotFound, models.DefaultMessageNotFound)
+			}
 			return c.String(http.StatusInternalServerError, err.Error())
 		}
 		return c.JSON(http.StatusCreated, wUpdated)

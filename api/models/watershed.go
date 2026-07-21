@@ -2,6 +2,7 @@ package models
 
 import (
 	"context"
+	"encoding/json"
 
 	"github.com/georgysavva/scany/v2/pgxscan"
 	"github.com/google/uuid"
@@ -10,20 +11,43 @@ import (
 
 // Watershed is a watershed struct
 type Watershed struct {
-	ID           uuid.UUID   `json:"id"`
-	OfficeSymbol *string     `json:"office_symbol" db:"office_symbol"`
-	Slug         string      `json:"slug"`
-	Name         string      `json:"name"`
-	AreaGroups   []uuid.UUID `json:"area_groups" db:"area_groups"`
-	Bbox         []float64   `json:"bbox" db:"bbox"`
+	ID           uuid.UUID       `json:"id"`
+	OfficeSymbol *string         `json:"office_symbol" db:"office_symbol"`
+	OfficeID     *uuid.UUID      `json:"office_id" db:"office_id"`
+	Slug         string          `json:"slug"`
+	Name         string          `json:"name"`
+	AreaGroups   []uuid.UUID     `json:"area_groups" db:"area_groups"`
+	GeoJSON      json.RawMessage `json:"geojson" db:"geojson"`
+	Bbox         []float64       `json:"bbox" db:"bbox"`
 }
 
-// WatershedSQL includes common fields selected to build a watershed
+// WatershedInput is the payload for creating/updating a watershed
+type WatershedInput struct {
+	Name     string          `json:"name"`
+	OfficeID *uuid.UUID      `json:"office_id"`
+	GeoJSON  json.RawMessage `json:"geojson"`
+}
+
+// geojsonArg returns a *string suitable for passing raw GeoJSON to postgres,
+// or nil when no geometry was provided (so existing geometry is left untouched).
+func geojsonArg(raw json.RawMessage) *string {
+	if len(raw) == 0 || string(raw) == "null" {
+		return nil
+	}
+	s := string(raw)
+	return &s
+}
+
+// WatershedSQL includes common fields selected to build a watershed.
+// office_id and geojson are computed on request so the underlying view is
+// left unchanged; geometry is reprojected to EPSG:4326 for web-map display.
 const WatershedSQL = `SELECT w.id,
                              w.office_symbol,
+                             (SELECT o.id FROM office o WHERE o.symbol = w.office_symbol) AS office_id,
                              w.slug,
                              w.name,
                              w.area_groups,
+                             ST_AsGeoJSON(ST_Transform(w.geometry, 4326)) AS geojson,
 	                         ARRAY[
 								 ST_XMin(w.geometry),
 								 ST_Ymin(w.geometry),
@@ -64,26 +88,41 @@ func GetDownloadWatershed(db *pgxpool.Pool, downloadID *uuid.UUID) (*Watershed, 
 	return &w, nil
 }
 
-// CreateWatershed creates a new watershed
-func CreateWatershed(db *pgxpool.Pool, w *Watershed) (*Watershed, error) {
-	slug, err := NextUniqueSlug(db, "watershed", "slug", w.Name, "", "")
+// CreateWatershed creates a new watershed. GeoJSON (EPSG:4326) is optional and,
+// when provided, is reprojected to the stored SRID (EPSG:5070).
+func CreateWatershed(db *pgxpool.Pool, in *WatershedInput) (*Watershed, error) {
+	slug, err := NextUniqueSlug(db, "watershed", "slug", in.Name, "", "")
 	if err != nil {
 		return nil, err
 	}
-	var wNew Watershed
-	if err := pgxscan.Get(
-		context.Background(), db, &wNew,
-		`INSERT INTO watershed (name, slug) VALUES ($1,$2) RETURNING id, name, slug`, &w.Name, slug,
-	); err != nil {
+	var wID uuid.UUID
+	sql := `INSERT INTO watershed (name, slug, office_id, geometry)
+	        VALUES ($1, $2, $3,
+	            CASE WHEN $4::text IS NULL THEN NULL
+	                 ELSE ST_Transform(ST_SetSRID(ST_GeomFromGeoJSON($4), 4326), 5070) END)
+	        RETURNING id`
+	if err := db.QueryRow(
+		context.Background(), sql, in.Name, slug, in.OfficeID, geojsonArg(in.GeoJSON),
+	).Scan(&wID); err != nil {
 		return nil, err
 	}
-	return &wNew, nil
+	return GetWatershed(db, &wID)
 }
 
-// UpdateWatershed updates a watershed
-func UpdateWatershed(db *pgxpool.Pool, w *Watershed) (*Watershed, error) {
+// UpdateWatershed updates a watershed's name, office assignment and (optionally)
+// its extent. A nil/empty geojson leaves the existing geometry untouched.
+func UpdateWatershed(db *pgxpool.Pool, watershedID *uuid.UUID, in *WatershedInput) (*Watershed, error) {
 	var wID uuid.UUID
-	if err := pgxscan.Get(context.Background(), db, &wID, `UPDATE watershed SET name=$1 WHERE id=$2 RETURNING id`, &w.Name, &w.ID); err != nil {
+	sql := `UPDATE watershed SET
+	            name = $2,
+	            office_id = $3,
+	            geometry = CASE WHEN $4::text IS NULL THEN geometry
+	                            ELSE ST_Transform(ST_SetSRID(ST_GeomFromGeoJSON($4), 4326), 5070) END
+	        WHERE id = $1
+	        RETURNING id`
+	if err := pgxscan.Get(
+		context.Background(), db, &wID, sql, watershedID, in.Name, in.OfficeID, geojsonArg(in.GeoJSON),
+	); err != nil {
 		return nil, err
 	}
 	return GetWatershed(db, &wID)

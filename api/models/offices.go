@@ -24,6 +24,6 @@ FROM
 	office o
 	`
 	var oo []Office
-	err = pgxscan.Select(context.Background(), db, &oo, sql)
+	err := pgxscan.Select(context.Background(), db, &oo, sql)
 	return oo, err
 }

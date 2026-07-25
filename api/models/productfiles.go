@@ -161,7 +161,8 @@ func ListProductfiles(db *pgxpool.Pool, ID uuid.UUID, after string, before strin
 // forecast version for each datetime. A forecast product stores many issue-cycle versions of the
 // same valid time (version = the real reference/issue time), which would otherwise yield several
 // COGs per timestep; DISTINCT ON (datetime) ORDER BY version DESC keeps only the most-recent issue
-// for each. Observed products use the '1111-11-11..' sentinel version (one row per datetime already),
+// for each. Observed products use a year-1111 sentinel version (one row per datetime already; note
+// there are several distinct sentinel values in production, so test the year/range, not equality),
 // so this is effectively a pass-through for them. This is what the COG importer wants: one COG per
 // timestep, not every version.
 //

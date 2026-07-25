@@ -447,7 +447,9 @@ func GetDownloadPackagerRequest(db *pgxpool.Pool) echo.HandlerFunc {
 		if err != nil {
 			return c.String(http.StatusBadRequest, err.Error())
 		}
-		dpr, err := models.GetDownloadPackagerRequest(db, &downloadID)
+		// Request context so a packager that gives up (or a proxy that 504s) cancels the query
+		// instead of leaving it running against the connection pool.
+		dpr, err := models.GetDownloadPackagerRequest(c.Request().Context(), db, &downloadID)
 		if err != nil {
 			return c.String(http.StatusInternalServerError, err.Error())
 		}

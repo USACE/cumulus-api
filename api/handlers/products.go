@@ -26,10 +26,13 @@ func GetProductSlugs(db *pgxpool.Pool) echo.HandlerFunc {
 	}
 }
 
-// ListProducts returns a list of all products
-func ListProducts(db *pgxpool.Pool) echo.HandlerFunc {
+// ListProducts returns a list of all products, served from an in-memory cache
+// that is refreshed in the background (see Cache). The underlying v_product
+// query aggregates the full productfile table, so keeping it off the
+// per-request path is what prevents it from saturating the database.
+func ListProducts(cache *Cache[[]models.Product]) echo.HandlerFunc {
 	return func(c echo.Context) error {
-		products, err := models.ListProducts(db)
+		products, err := cache.Get()
 		if err != nil {
 			return c.String(http.StatusInternalServerError, err.Error())
 		}
@@ -82,11 +85,12 @@ func GetProductFileAvailability(db *pgxpool.Pool) echo.HandlerFunc {
 	}
 }
 
-// GetProductIngestStatus returns a list of product status
-func GetProductIngestStatus(db *pgxpool.Pool) echo.HandlerFunc {
+// GetProductIngestStatus returns a list of product status, served from an
+// in-memory cache refreshed in the background (see Cache). Backed by
+// v_product_status, which aggregates the full productfile table.
+func GetProductIngestStatus(cache *Cache[[]models.ProductStatus]) echo.HandlerFunc {
 	return func(c echo.Context) error {
-
-		productStatus, err := models.GetProductIngestStatus(db)
+		productStatus, err := cache.Get()
 		if err != nil {
 			if pgxscan.NotFound(err) {
 				return c.JSON(http.StatusNotFound, models.DefaultMessageNotFound)

@@ -93,6 +93,15 @@ func main() {
 	// Database
 	db := Connection(cfg)
 
+	// /products and /product_ingest_status are backed by v_product and
+	// v_product_status, whose per-product rollups scan the whole productfile
+	// table. Serve them from in-memory caches refreshed in the background so
+	// each scan runs once per interval instead of on every request.
+	productCache := handlers.NewProductCache(db, 3*time.Minute)
+	productCache.Start()
+	productStatusCache := handlers.NewProductStatusCache(db, 3*time.Minute)
+	productStatusCache.Start()
+
 	e := echo.New()
 	// Middleware for All Routes
 	e.Use(middleware.CORS, middleware.GZIP)
@@ -166,9 +175,9 @@ func main() {
 	public.GET("/offices", handlers.ListOffices(db))
 
 	// Products
-	public.GET("/product_ingest_status", handlers.GetProductIngestStatus(db))
+	public.GET("/product_ingest_status", handlers.GetProductIngestStatus(productStatusCache))
 	public.GET("/product_slugs", handlers.GetProductSlugs(db))
-	public.GET("/products", handlers.ListProducts(db))
+	public.GET("/products", handlers.ListProducts(productCache))
 	public.GET("/products/:product_id/file-availability", handlers.GetProductFileAvailability(db))
 	public.GET("/products/:product_id", handlers.GetProduct(db))
 	private.POST("/products", handlers.CreateProduct(db),

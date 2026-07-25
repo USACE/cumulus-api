@@ -169,17 +169,50 @@ func GetDownload(db *pgxpool.Pool, downloadID *uuid.UUID) (*Download, error) {
 	return &d, nil
 }
 
+// packagerRequestTimeout bounds the packager payload query. It reads v_download_request, which
+// scans productfile; without a deadline a slow plan pins one of the pool's connections until the
+// client's TCP session dies, and the pool is only 15 wide. Failing fast surfaces the problem as a
+// 500 the packager logs instead of a silent stall.
+const packagerRequestTimeout = 45 * time.Second
+
 // GetDownloadPackagerRequest retrieves the information packager needs to package a download
 // Beware of [NULL] (https://stackoverflow.com/questions/37922340/why-postgresql-json-agg-function-does-not-return-an-empty-array)
-func GetDownloadPackagerRequest(db *pgxpool.Pool, downloadID *uuid.UUID) (*PackagerRequest, error) {
+func GetDownloadPackagerRequest(ctx context.Context, db *pgxpool.Pool, downloadID *uuid.UUID) (*PackagerRequest, error) {
 
 	pr := PackagerRequest{
 		Contents: make([]PackagerContentItem, 0),
 	}
 
-	if err = pgxscan.Get(
-		context.Background(), db, &pr,
-		`WITH download_contents AS (
+	ctx, cancel := context.WithTimeout(ctx, packagerRequestTimeout)
+	defer cancel()
+
+	// 'req' is the download's slice of v_download_request, evaluated ONCE and reused by both
+	// branches below. This previously re-expanded the view inside a correlated IN (...) subquery,
+	// which -- because it was correlated AND carried a LIMIT -- the planner could not flatten into a
+	// semi-join, so it re-scanned productfile once per candidate row.
+	//
+	// 'forecast' reproduces that subquery's "latest 2 issue cycles per product" with a window
+	// function over the single scan. dense_rank (not row_number) is what matches the original
+	// SELECT DISTINCT ... ORDER BY forecast_version DESC LIMIT 2: two distinct *versions*, all rows
+	// belonging to each. The original correlated the range bound on r.datetime_start/r.datetime_end
+	// as well as r.product_id, but those two come from the download record and so are constant for a
+	// given download_id -- product_id was the only real partition key.
+	if err := pgxscan.Get(
+		ctx, db, &pr,
+		`WITH req AS MATERIALIZED (
+			SELECT * FROM v_download_request WHERE download_id = $1
+		),
+		forecast AS (
+			SELECT r.*,
+			       dense_rank() OVER (
+			           PARTITION BY r.product_id
+			           ORDER BY r.forecast_version DESC
+			       ) AS vrank
+			FROM req r
+			WHERE r.forecast_version >= '1900-01-01'::timestamptz
+			    AND r.forecast_version BETWEEN r.datetime_start - interval '24 hours' AND r.datetime_end
+		),
+		download_contents AS (
 			SELECT download_id,
 			       product_id,
 			       key,
@@ -190,19 +223,11 @@ func GetDownloadPackagerRequest(db *pgxpool.Pool, downloadID *uuid.UUID) (*Packa
 			       dss_epart,
 			       dss_fpart,
 			       dss_unit
-		    FROM v_download_request r
-		    WHERE download_id = $1
-		        AND date_part('year', r.forecast_version) != '1111'
-		    	AND r.forecast_version in (
-		    		SELECT DISTINCT forecast_version
-		    		FROM v_download_request r2
-		    		WHERE r2.download_id = $1
-					    AND r2.product_id = r.product_id
-		    			AND r2.forecast_version BETWEEN r.datetime_start - interval '24 hours' AND r.datetime_end
-		    		ORDER BY r2.forecast_version DESC
-		    		LIMIT 2
-		    	)
-		    UNION
+		    FROM forecast
+		    WHERE vrank <= 2
+		    -- UNION ALL, not UNION: the two branches are disjoint by construction (non-sentinel
+		    -- vs sentinel version), so deduplicating across them only buys a sort.
+		    UNION ALL
 		    SELECT download_id,
 			       product_id,
 			       key,
@@ -213,9 +238,10 @@ func GetDownloadPackagerRequest(db *pgxpool.Pool, downloadID *uuid.UUID) (*Packa
 		           dss_epart,
 		           dss_fpart,
 		           dss_unit
-		    FROM v_download_request
-		    WHERE download_id = $1 AND date_part('year', forecast_version) = '1111'
-		    ORDER BY dss_fpart, key
+		    FROM req
+		    -- Sentinel test as a range, not equality: there are multiple distinct year-1111
+		    -- sentinel values in production. See the note in R__05_views_downloads.sql.
+		    WHERE forecast_version < '1900-01-01'::timestamptz
 		)
 		SELECT d.id AS download_id,
 		       json_build_object(
@@ -250,6 +276,8 @@ func GetDownloadPackagerRequest(db *pgxpool.Pool, downloadID *uuid.UUID) (*Packa
 		LEFT JOIN watershed w ON w.id = d.watershed_id
 		LEFT JOIN (
 			SELECT download_id,
+			       -- ORDER BY belongs on the aggregate: it used to sit on the download_contents CTE,
+			       -- where aggregate input order is not guaranteed to survive.
 			       jsonb_agg(
 					   jsonb_build_object(
 						   'product_id',   product_id,
@@ -262,6 +290,7 @@ func GetDownloadPackagerRequest(db *pgxpool.Pool, downloadID *uuid.UUID) (*Packa
 						   'dss_fpart',    dss_fpart,
 						   'dss_unit',     dss_unit
 					   )
+					   ORDER BY dss_fpart, key
 				   ) AS contents
 			FROM download_contents
 			GROUP BY download_id

@@ -123,12 +123,24 @@ CREATE OR REPLACE VIEW v_download_request AS (
         JOIN unit u ON p.unit_id = u.id
         JOIN parameter a ON a.id = p.parameter_id
         JOIN dss_datatype d ON p.dss_datatype_id = d.id
+        -- Observed rows carry a year-1111 sentinel in 'version'; forecast rows carry the real
+        -- issue/reference time. The test is written as a range against 1900 rather than
+        -- date_part('year', f.version) = '1111' so it is sargable: wrapping the column in a
+        -- function makes it opaque to unique_product_version_datetime (product_id, version,
+        -- datetime), which then restricts on product_id only and filters every row of the
+        -- product's history. As a range it uses the version key too.
+        --
+        -- A range is also required for correctness -- there is NOT one sentinel value. Production
+        -- holds at least three distinct year-1111 values (1111-11-04 11:04:09.11+00 on the
+        -- majority of rows, 1111-11-11 11:11:11.11+00, and 1111-11-03 23:52:58+00), so matching
+        -- the nominal sentinel by equality would misclassify most observed rows as forecasts.
+        -- Nothing below 1900 is a real forecast issue time, so the cutoff is safe.
         -- observed data will use the file datetime
-        WHERE (date_part('year', f.version) = '1111' AND f.datetime >= dp.datetime_start AND f.datetime <= dp.datetime_end)
+        WHERE (f.version < '1900-01-01'::timestamptz AND f.datetime >= dp.datetime_start AND f.datetime <= dp.datetime_end)
         -- forecast data with an end date < now (looking at forecasts in the past)
-        OR (dp.datetime_end < now() AND date_part('year', f.version) != '1111' AND f.version between dp.datetime_end - interval '24 hours' and dp.datetime_end)
+        OR (dp.datetime_end < now() AND f.version >= '1900-01-01'::timestamptz AND f.version between dp.datetime_end - interval '24 hours' and dp.datetime_end)
         -- forecast data with an end date >= now (looking at current latest forecasts)
-        OR (dp.datetime_end >= now() AND date_part('year', f.version) != '1111' AND f.version between now() - interval '18 hours' and now())
+        OR (dp.datetime_end >= now() AND f.version >= '1900-01-01'::timestamptz AND f.version between now() - interval '18 hours' and now())
         ORDER BY f.product_id, f.version, f.datetime
     ) dss
 );

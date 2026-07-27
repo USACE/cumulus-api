@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"log"
 	"net/http"
-	"os"
 	"strings"
 	"time"
 
@@ -58,16 +57,6 @@ func main() {
 	if err != nil {
 		log.Fatal(err.Error())
 	}
-	// Download links are HMAC-signed; an empty key would make them forgeable.
-	// GetConfig falls back to ApplicationKey when no dedicated secret is set, so
-	// warn (to nudge setting a real one) but only fail if BOTH are empty.
-	if os.Getenv("CUMULUS_DOWNLOAD_LINK_SECRET") == "" {
-		log.Println("WARNING: CUMULUS_DOWNLOAD_LINK_SECRET not set; signing download links with APPLICATION_KEY as a temporary fallback. Configure a dedicated secret.")
-	}
-	if cfg.DownloadLinkSecret == "" {
-		log.Fatal("neither CUMULUS_DOWNLOAD_LINK_SECRET nor CUMULUS_APPLICATION_KEY is set; cannot sign download links")
-	}
-
 	// AWS Config
 	cfg.AwsConfig, err = config.LoadDefaultConfig(
 		context.Background(),
@@ -267,11 +256,19 @@ func main() {
 		middleware.IsAdmin,
 	)
 
-	// Serve Downloads (signature-gated: see ServeDownloadFile, since the
-	// frontend triggers this via window.open and can't attach a bearer JWT)
-	public.GET("/downloads/:download_id/file", handlers.ServeDownloadFile(
-		db, &cfg.AwsConfig, &cfg.AWSS3Bucket, cfg.AWSS3ForcePathStyle, cfg.DownloadLinkSecret,
-	))
+	// Serve Downloads (age-gated rather than auth-gated: see ServeDownloadFile.
+	// The frontend triggers this via window.open and HEC-RTS fetches it with no
+	// credentials, so neither can attach a bearer JWT.)
+	//
+	// Two routes, one handler. The :filename form is what attachFileLink issues,
+	// so browsers and RTS derive "download_<id>.dss" from the path; the bare
+	// /file form keeps links issued before that change working. The filename is
+	// cosmetic -- the handler resolves the S3 key from the download row.
+	serveDownloadFile := handlers.ServeDownloadFile(
+		db, &cfg.AwsConfig, &cfg.AWSS3Bucket, cfg.AWSS3ForcePathStyle,
+	)
+	public.GET("/downloads/:download_id/file", serveDownloadFile)
+	public.GET("/downloads/:download_id/file/:filename", serveDownloadFile)
 
 	// List Downloads
 	private.GET("/downloads", handlers.ListAdminDownloads(db), middleware.IsAdmin)
@@ -285,9 +282,16 @@ func main() {
 	// Create Download (Anonymous)
 	public.POST("/deprecated/anonymous_downloads", handlers.CreateDownload(db, cfg), middleware.AttachAnonymousUserInfo) // deprecated
 	private.POST("/downloads", handlers.CreateDownload(db, cfg))
-	// Auth required: this returns a freshly-signed download link, so it must not
-	// be reachable anonymously. Packager calls it with ?key=APPLICATION_KEY.
-	private.GET("/downloads/:download_id", handlers.GetDownload(db))
+	// Public: this is the status-poll endpoint for an async packaging job, and
+	// HEC-RTS polls it with no credentials (CumulusManagerGridDao builds its
+	// monitoring connection without a token provider, unlike the one it uses to
+	// start the job). Making it private broke the RTS Cumulus extract entirely.
+	//
+	// The download link it returns is no longer a capability worth guarding: it
+	// expires a fixed 48h after packaging regardless of how often it is fetched,
+	// so an anonymous caller holding a download id gets exactly what the owner
+	// already has and cannot renew it. See attachFileLink.
+	public.GET("/downloads/:download_id", handlers.GetDownload(db))
 	// Create Download (Authenticated)
 	private.POST("/my_downloads", handlers.CreateDownload(db, cfg))
 	private.GET("/my_downloads", handlers.ListMyDownloads(db))

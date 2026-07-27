@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"path"
 	"strings"
 	"time"
 
@@ -52,7 +53,7 @@ type Download struct {
 	ClipBbox      []float64 `json:"clip_bbox,omitempty" db:"clip_bbox"`
 	ClipName      string    `json:"clip_name,omitempty" db:"clip_name"`
 	// RawFile is the untouched S3 key (not exposed to clients); File is derived
-	// from it as a short-lived signed URL by attachSignedFileLink(s).
+	// from it as a file-serving URL by attachFileLink(s).
 	RawFile         *string    `json:"-" db:"raw_file"`
 	RetrievalCount  int64      `json:"retrieval_count" db:"retrieval_count"`
 	LastRetrievedAt *time.Time `json:"last_retrieved_at,omitempty" db:"last_retrieved_at"`
@@ -106,27 +107,51 @@ var listDownloadsSQL = `SELECT id, sub, datetime_start, datetime_end, progress, 
 	   FROM v_download
 	`
 
-// downloadLinkTTL bounds how long a signed download-file URL stays valid after
-// being issued in an API response. Links are only handed out through
-// authenticated endpoints, so a client can always re-fetch a fresh one.
-const downloadLinkTTL = 24 * time.Hour
+// downloadLinkLifetime is how long after the packager finishes that a download's
+// file stays fetchable. Expiry is measured from processing_end, not from when
+// the link was handed out, so a link is NOT renewable: re-requesting the
+// download returns the same URL with the same deadline. Past it the user
+// re-requests the package, which is cheap relative to keeping every historical
+// package reachable forever.
+const downloadLinkLifetime = 48 * time.Hour
 
-// attachSignedFileLink replaces d.File (if a completed file exists) with a
-// short-lived signed URL to the file-serving endpoint. d.RawFile, the actual
-// S3 key, is left untouched for server-side use (e.g. ServeDownloadFile).
-func attachSignedFileLink(d *Download) {
+// attachFileLink replaces d.File (if a completed file exists) with the URL of
+// the file-serving endpoint. d.RawFile, the actual S3 key, is left untouched for
+// server-side use (see ServeDownloadFile).
+//
+// The package filename is the last path segment rather than a query parameter
+// because clients derive the local filename from the URL path: browsers fall
+// back to it when Content-Disposition carries no filename, and HEC-RTS splits
+// the path itself (CumulusManagerGridDao.getStagingFilePath). A URL ending in
+// "/file" made both write a name-less "file" instead of "download_<id>.dss".
+//
+// There is deliberately no signature. Expiry is a property of the download row,
+// which ServeDownloadFile reads anyway, and the link is derived entirely from
+// the download id -- which the caller must already hold to get here. An HMAC
+// over values the server owns, issued to anyone who asks, would prove nothing
+// the id does not.
+func attachFileLink(d *Download) {
 	if d == nil || d.RawFile == nil {
 		return
 	}
-	exp, sig := SignDownloadLink(cfg.DownloadLinkSecret, d.ID, downloadLinkTTL)
-	url := fmt.Sprintf("%s/downloads/%s/file?exp=%d&sig=%s", cfg.StaticHost, d.ID, exp, sig)
+	url := fmt.Sprintf("%s/downloads/%s/file/%s", cfg.StaticHost, d.ID, path.Base(*d.RawFile))
 	d.File = &url
 }
 
-func attachSignedFileLinks(dd []Download) {
+func attachFileLinks(dd []Download) {
 	for i := range dd {
-		attachSignedFileLink(&dd[i])
+		attachFileLink(&dd[i])
 	}
+}
+
+// FileLinkExpired reports whether the download's package has aged past
+// downloadLinkLifetime and should no longer be served. A download with no
+// processing_end never completed, so it has nothing to serve either.
+func (d *Download) FileLinkExpired() bool {
+	if d.ProcessingEnd == nil {
+		return true
+	}
+	return time.Since(*d.ProcessingEnd) > downloadLinkLifetime
 }
 
 // ListDownloads returns all downloads from the database
@@ -135,7 +160,7 @@ func ListDownloads(db *pgxpool.Pool) ([]Download, error) {
 	if err := pgxscan.Select(context.Background(), db, &dd, listDownloadsSQL); err != nil {
 		return make([]Download, 0), err
 	}
-	attachSignedFileLinks(dd)
+	attachFileLinks(dd)
 	return dd, nil
 }
 
@@ -145,7 +170,7 @@ func ListMyDownloads(db *pgxpool.Pool, sub *uuid.UUID) ([]Download, error) {
 	if err := pgxscan.Select(context.Background(), db, &dd, listDownloadsSQL+" WHERE sub = $1", sub); err != nil {
 		return make([]Download, 0), err
 	}
-	attachSignedFileLinks(dd)
+	attachFileLinks(dd)
 	return dd, nil
 }
 
@@ -155,7 +180,7 @@ func ListAdminDownloads(db *pgxpool.Pool) ([]Download, error) {
 	if err := pgxscan.Select(context.Background(), db, &dd, listDownloadsSQL+" ORDER BY processing_start DESC LIMIT 50"); err != nil {
 		return make([]Download, 0), err
 	}
-	attachSignedFileLinks(dd)
+	attachFileLinks(dd)
 	return dd, nil
 }
 
@@ -165,7 +190,7 @@ func GetDownload(db *pgxpool.Pool, downloadID *uuid.UUID) (*Download, error) {
 	if err := pgxscan.Get(context.Background(), db, &d, listDownloadsSQL+" WHERE id = $1", downloadID); err != nil {
 		return nil, err
 	}
-	attachSignedFileLink(&d)
+	attachFileLink(&d)
 	return &d, nil
 }
 

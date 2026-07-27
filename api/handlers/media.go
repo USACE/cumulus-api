@@ -1,8 +1,9 @@
 package handlers
 
 import (
+	"fmt"
 	"net/http"
-	"strconv"
+	"path"
 
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/service/s3"
@@ -14,27 +15,32 @@ import (
 )
 
 // ServeDownloadFile streams a completed download's package to the client.
-// Unlike a bearer-JWT-gated route, this must work with a plain browser
-// navigation (the frontend calls window.open on the link), so access is
-// controlled by a short-lived HMAC signature (exp/sig query params) rather
-// than an Authorization header. The S3 key is always resolved server-side
-// from the download row -- never taken from client input -- and each
-// successful fetch increments that download's retrieval_count.
-func ServeDownloadFile(db *pgxpool.Pool, awsCfg *aws.Config, bucket *string, forcePathStyle bool, linkSecret string) echo.HandlerFunc {
+//
+// This must work with a plain browser navigation (the frontend calls
+// window.open on the link) and with HEC-RTS, which fetches the link with no
+// credentials, so the route carries no auth. What bounds access instead is the
+// package's age: a download stops being fetchable downloadLinkLifetime after the
+// packager finished with it, and there is no way to extend that -- the deadline
+// comes from the download row, so re-requesting the link yields the same one.
+// Users re-run the packager to get a fresh package.
+//
+// The S3 key is always resolved server-side from the download row, never from
+// client input: the :filename path segment exists only so browsers and RTS
+// derive a sensible local filename, and is not read here. Each successful fetch
+// increments that download's retrieval_count.
+func ServeDownloadFile(db *pgxpool.Pool, awsCfg *aws.Config, bucket *string, forcePathStyle bool) echo.HandlerFunc {
 	return func(c echo.Context) error {
 		downloadID, err := uuid.Parse(c.Param("download_id"))
 		if err != nil {
 			return c.String(http.StatusBadRequest, "invalid download id")
 		}
 
-		exp, err := strconv.ParseInt(c.QueryParam("exp"), 10, 64)
-		if err != nil || !models.ValidDownloadLink(linkSecret, downloadID, exp, c.QueryParam("sig")) {
-			return c.String(http.StatusForbidden, "link expired or invalid")
-		}
-
 		d, err := models.GetDownload(db, &downloadID)
 		if err != nil || d.RawFile == nil {
 			return c.String(http.StatusNotFound, "not found")
+		}
+		if d.FileLinkExpired() {
+			return c.String(http.StatusGone, "this download has expired; request the package again")
 		}
 
 		client := s3.NewFromConfig(*awsCfg, func(o *s3.Options) {
@@ -49,7 +55,13 @@ func ServeDownloadFile(db *pgxpool.Pool, awsCfg *aws.Config, bucket *string, for
 			c.Logger().Errorf("failed to record download retrieval for %s: %v", downloadID, err)
 		}
 
-		c.Response().Header().Set(echo.HeaderContentDisposition, "attachment")
+		// Name the attachment explicitly. Browsers otherwise fall back to the last
+		// path segment, which is how a link ending in "/file" produced a download
+		// literally named "file".
+		c.Response().Header().Set(
+			echo.HeaderContentDisposition,
+			fmt.Sprintf("attachment; filename=%q", path.Base(*d.RawFile)),
+		)
 		return c.Stream(http.StatusOK, "application/octet-stream", output.Body)
 	}
 }

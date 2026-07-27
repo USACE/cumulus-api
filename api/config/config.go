@@ -26,7 +26,6 @@ type Config struct {
 	AsyncEngineStatisticsTarget  string `envconfig:"ASYNC_ENGINE_STATISTICS_TARGET"`
 	StaticHost                   string `envconfig:"STATIC_HOST"`
 	ApplicationKey               string `envconfig:"APPLICATION_KEY"`
-	DownloadLinkSecret           string `envconfig:"DOWNLOAD_LINK_SECRET"`
 	AWSS3Endpoint                string `envconfig:"AWS_S3_ENDPOINT"`
 	AWSS3Region                  string `envconfig:"AWS_S3_REGION"`
 	AWSS3DisableSSL              bool   `envconfig:"AWS_S3_DISABLE_SSL"`
@@ -54,13 +53,6 @@ func GetConfig() (*Config, error) {
 	var cfg Config
 	if err := envconfig.Process("cumulus", &cfg); err != nil {
 		log.Fatal(err.Error())
-	}
-	// Fallback for download-link signing: if no dedicated secret is configured,
-	// reuse ApplicationKey (already present in every environment) so signed
-	// links keep working without an infra change. Setting a dedicated
-	// CUMULUS_DOWNLOAD_LINK_SECRET later transparently takes precedence.
-	if cfg.DownloadLinkSecret == "" {
-		cfg.DownloadLinkSecret = cfg.ApplicationKey
 	}
 	return &cfg, nil
 }

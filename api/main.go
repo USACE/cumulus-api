@@ -42,6 +42,23 @@ func Connection(cfg *_config.Config) *pgxpool.Pool {
 	// set the application name in pg_stat_activity to identify the connection
 	poolConfig.ConnConfig.RuntimeParams["application_name"] = "cumulus-api"
 
+	// Server-side ceilings on how long one connection can be tied up. These are
+	// the backstop for the ~95 model queries still issued with
+	// context.Background(): those ignore client disconnects entirely, so without
+	// a GUC nothing bounds them and a slow query holds its connection out of a
+	// 15-connection pool until it finishes on its own.
+	//
+	// idle_in_transaction covers what statement_timeout cannot -- a session
+	// sitting inside an open transaction (CreateDownload holds one) is running no
+	// statement, so statement_timeout never fires, yet it pins the connection and
+	// holds back vacuum.
+	if cfg.DBStatementTimeout != "" {
+		poolConfig.ConnConfig.RuntimeParams["statement_timeout"] = cfg.DBStatementTimeout
+	}
+	if cfg.DBIdleInTxTimeout != "" {
+		poolConfig.ConnConfig.RuntimeParams["idle_in_transaction_session_timeout"] = cfg.DBIdleInTxTimeout
+	}
+
 	db, err := pgxpool.NewWithConfig(context.Background(), poolConfig)
 	if err != nil {
 		log.Panic(err.Error())
@@ -117,7 +134,11 @@ func main() {
 	}))
 
 	// API Routes
-	api := e.Group("api")
+	//
+	// The deadline is attached at group creation, not via api.Use(): echo copies
+	// a group's middleware slice when a subgroup is created, so anything added
+	// after `public`/`private` exist below would never reach their routes.
+	api := e.Group("api", middleware.RequestTimeout(cfg.RequestTimeout, middleware.SkipStreamingRoutes))
 
 	// Public Routes
 	public := api.Group("")
@@ -363,6 +384,17 @@ func main() {
 	go func() { eProm.Logger.Fatal(eProm.Start(":9090")) }()
 
 	// Start main API server
+	//
+	// ReadHeaderTimeout only -- deliberately not ReadTimeout. net/http arms the
+	// header deadline on the raw connection and then replaces it with the
+	// ReadTimeout deadline before invoking the handler; when ReadTimeout is 0 that
+	// replacement clears the deadline outright. Since h2c hijacks the connection
+	// and hands it to http2.Server, a non-zero ReadTimeout would leave a stale
+	// read deadline armed on a connection whose deadlines http2 now manages
+	// itself, killing otherwise healthy long-lived HTTP/2 connections at the
+	// timeout mark. Idle connections are already bounded by http2 IdleTimeout.
+	e.Server.ReadHeaderTimeout = 10 * time.Second
+
 	s := &http2.Server{
 		MaxConcurrentStreams: 250,     // http2 default 250
 		MaxReadFrameSize:     1048576, // http2 default 1048576

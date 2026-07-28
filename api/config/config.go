@@ -2,6 +2,7 @@ package config
 
 import (
 	"log"
+	"time"
 
 	"github.com/aws/aws-sdk-go-v2/aws"
 
@@ -33,6 +34,17 @@ type Config struct {
 	AWSS3Bucket                  string `envconfig:"AWS_S3_BUCKET"`
 	AWSS3BucketPrefix            string `envconfig:"AWS_S3_BUCKET_PREFIX"`
 	PgFeatureservUrl             string `envconfig:"PG_FEATURESERV_URL"`
+
+	// Timeouts. Every value below is a ceiling on how long one request can pin a
+	// resource; they are env-tunable because the right number depends on how slow
+	// the admin analytics aggregations actually run in a given environment.
+	//
+	// DBStatementTimeout / DBIdleInTxTimeout are Postgres GUCs, applied per
+	// connection at startup, and are expressed in Postgres interval syntax
+	// ("60s", "2min"). Setting either to "0" disables it.
+	DBStatementTimeout string        `envconfig:"DB_STATEMENT_TIMEOUT" default:"60s"`
+	DBIdleInTxTimeout  string        `envconfig:"DB_IDLE_IN_TX_TIMEOUT" default:"60s"`
+	RequestTimeout     time.Duration `envconfig:"REQUEST_TIMEOUT" default:"55s"`
 }
 
 // func (cfg Config) AWSConfig() aws.Config {

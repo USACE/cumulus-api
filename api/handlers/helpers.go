@@ -6,6 +6,7 @@ import (
 	"strings"
 
 	"github.com/USACE/cumulus-api/api/middleware"
+	"github.com/USACE/cumulus-api/api/models"
 	"github.com/google/uuid"
 	"github.com/labstack/echo/v4"
 )
@@ -16,6 +17,20 @@ func GetSub(c echo.Context) (*uuid.UUID, error) {
 		return nil, errors.New("Could not unmarshal userInfo")
 	}
 	return userInfo.Sub, nil
+}
+
+// GetUserIdentity returns the display-name claims attached by AttachUserInfo.
+// Returns nil when there are none (application-key or anonymous requests).
+func GetUserIdentity(c echo.Context) *models.UserIdentity {
+	userInfo, ok := c.Get("userInfo").(middleware.UserInfo)
+	if !ok {
+		return nil
+	}
+	return &models.UserIdentity{
+		PreferredUsername: userInfo.PreferredUsername,
+		Email:             userInfo.Email,
+		Name:              userInfo.Name,
+	}
 }
 
 // GetIdentityProviderConfiguration returns the Keycloak configuration based on the auth environment and realm

@@ -404,7 +404,7 @@ func CreateDownload(db *pgxpool.Pool, cfg *config.Config) echo.HandlerFunc {
 			)
 		}
 
-		d, err := models.CreateDownload(db, &dr)
+		d, err := models.CreateDownload(db, &dr, GetUserIdentity(c))
 		if err != nil {
 			return c.String(http.StatusInternalServerError, err.Error())
 		}

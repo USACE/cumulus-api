@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"log"
 	"path"
 	"strings"
 	"time"
@@ -329,7 +330,11 @@ func GetDownloadPackagerRequest(ctx context.Context, db *pgxpool.Pool, downloadI
 }
 
 // CreateDownload creates a download record in
-func CreateDownload(db *pgxpool.Pool, dr *DownloadRequest) (*Download, error) {
+// ident carries the requesting user's display-name claims and may be nil
+// (application-key or anonymous requests). When present it refreshes that
+// user's user_directory row, which is the only thing admin usage reporting
+// needs a directory entry for -- see UpsertUserDirectory.
+func CreateDownload(db *pgxpool.Pool, dr *DownloadRequest, ident *UserIdentity) (*Download, error) {
 
 	// TRANSACTION
 	//////////////
@@ -367,6 +372,21 @@ func CreateDownload(db *pgxpool.Pool, dr *DownloadRequest) (*Download, error) {
 		); err != nil {
 			tx.Rollback(context.Background())
 			return nil, err
+		}
+	}
+	// Refresh this user's display name. Wrapped in a savepoint (pgx implements a
+	// nested Begin as SAVEPOINT) so that a failure here -- most plausibly missing
+	// grants on user_directory, which is why R__10_grants_user_directory.sql
+	// exists -- degrades to a stale display name instead of failing the user's
+	// download.
+	if dr.Sub != nil && !ident.IsEmpty() {
+		if sp, spErr := tx.Begin(context.Background()); spErr != nil {
+			log.Printf("user_directory savepoint failed for sub %s: %v", *dr.Sub, spErr)
+		} else if err := UpsertUserDirectory(context.Background(), sp, *dr.Sub, ident); err != nil {
+			log.Printf("user_directory upsert failed for sub %s: %v", *dr.Sub, err)
+			sp.Rollback(context.Background())
+		} else if err := sp.Commit(context.Background()); err != nil {
+			log.Printf("user_directory savepoint commit failed for sub %s: %v", *dr.Sub, err)
 		}
 	}
 	if err := tx.Commit(context.Background()); err != nil {

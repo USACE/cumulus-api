@@ -5,7 +5,7 @@ import (
 	"time"
 
 	"github.com/google/uuid"
-	"github.com/jackc/pgx/v5/pgxpool"
+	"github.com/jackc/pgx/v5"
 )
 
 // UserDirectory is a display-name cache keyed by sub, populated from JWT
@@ -18,13 +18,32 @@ type UserDirectory struct {
 	LastSeen          time.Time `json:"last_seen" db:"last_seen"`
 }
 
+// UserIdentity holds the display-name claims read off a request's JWT, for
+// recording alongside a download. Any field may be nil if the claim was absent.
+type UserIdentity struct {
+	PreferredUsername *string
+	Email             *string
+	Name              *string
+}
+
+// IsEmpty reports whether there is nothing worth writing to user_directory --
+// true for application-key and anonymous requests, which carry no claims.
+func (u *UserIdentity) IsEmpty() bool {
+	return u == nil || (u.PreferredUsername == nil && u.Email == nil && u.Name == nil)
+}
+
 // UpsertUserDirectory records/refreshes the display-name fields for a sub.
 // Non-nil fields overwrite; nil fields leave the existing stored value alone.
-// The caller passes a context so the best-effort background refresh can be
-// bounded with a timeout (avoids piling up connection-blocked goroutines if
-// the DB is slow).
-func UpsertUserDirectory(ctx context.Context, db *pgxpool.Pool, sub uuid.UUID, preferredUsername, email, name *string) error {
-	_, err := db.Exec(ctx,
+//
+// This runs inside the caller's transaction and is deliberately only called
+// when a user requests a download package -- downloads are orders of magnitude
+// rarer than authenticated requests, and the previous per-request version
+// starved the pgxpool connection pool under sustained auth traffic (305db09).
+func UpsertUserDirectory(ctx context.Context, tx pgx.Tx, sub uuid.UUID, ident *UserIdentity) error {
+	if ident.IsEmpty() {
+		return nil
+	}
+	_, err := tx.Exec(ctx,
 		`INSERT INTO user_directory (sub, preferred_username, email, name, last_seen)
 		 VALUES ($1, $2, $3, $4, now())
 		 ON CONFLICT (sub) DO UPDATE SET
@@ -32,7 +51,7 @@ func UpsertUserDirectory(ctx context.Context, db *pgxpool.Pool, sub uuid.UUID, p
 		     email              = COALESCE(EXCLUDED.email, user_directory.email),
 		     name               = COALESCE(EXCLUDED.name, user_directory.name),
 		     last_seen          = now()`,
-		sub, preferredUsername, email, name,
+		sub, ident.PreferredUsername, ident.Email, ident.Name,
 	)
 	return err
 }

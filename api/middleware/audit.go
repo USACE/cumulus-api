@@ -18,6 +18,21 @@ type UserInfo struct {
 	Sub     *uuid.UUID `json:"sub"`
 	Roles   []string   `json:"roles"`
 	IsAdmin bool       `json:"is_admin"`
+	// Display-name claims carried through from the JWT. Not identity or auth;
+	// they are recorded to user_directory when the user requests a download
+	// package so admin usage reports can show something friendlier than a bare
+	// sub. Nil for application-key and anonymous requests.
+	PreferredUsername *string `json:"preferred_username,omitempty"`
+	Email             *string `json:"email,omitempty"`
+	Name              *string `json:"name,omitempty"`
+}
+
+// claimStr returns claims[key] as *string, or nil if absent/not a string.
+func claimStr(claims jwt.MapClaims, key string) *string {
+	if v, ok := claims[key].(string); ok && v != "" {
+		return &v
+	}
+	return nil
 }
 
 func AttachAnonymousUserInfo(next echo.HandlerFunc) echo.HandlerFunc {
@@ -58,11 +73,18 @@ func AttachUserInfo(db *pgxpool.Pool) echo.MiddlewareFunc {
 			// Cumulus Specific
 			cumulusResourceAccess := resourceAccess["cumulus"].(map[string]interface{})
 			cumulusRoles := cumulusResourceAccess["roles"].([]interface{})
-			// Attach Role Info
+			// Attach Role Info, plus the display-name claims. Reading claims is
+			// free; nothing here touches the database. The user_directory write
+			// happens once per download request (see models.CreateDownload), not
+			// once per authenticated request -- doing it per request saturated the
+			// connection pool in prod (see hotfix 305db09).
 			userInfo := UserInfo{
-				Sub:     &sub,
-				Roles:   make([]string, 0),
-				IsAdmin: false,
+				Sub:               &sub,
+				Roles:             make([]string, 0),
+				IsAdmin:           false,
+				PreferredUsername: claimStr(claims, "preferred_username"),
+				Email:             claimStr(claims, "email"),
+				Name:              claimStr(claims, "name"),
 			}
 			for _, r := range cumulusRoles {
 				rStr, ok := r.(string)

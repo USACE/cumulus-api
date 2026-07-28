@@ -58,25 +58,32 @@ func main() {
 		log.Fatal(err.Error())
 	}
 	// AWS Config
-	cfg.AwsConfig, err = config.LoadDefaultConfig(
-		context.Background(),
-		func(o *config.LoadOptions) error {
-			o.Region = cfg.AWSS3Region
-			return nil
-		})
-
-	// One shared S3 client for the COG proxy. SDK v2 already shares the credential provider + HTTP
-	// client via the config, but building the client once (no per-request allocation) and widening
-	// the idle-connection pool lets the high request concurrency of a COG import reuse keep-alive
-	// connections to S3 instead of re-handshaking. Safe for concurrent use; credentials auto-refresh.
-	cogHTTPClient := awshttp.NewBuildableClient().WithTransportOptions(func(t *http.Transport) {
+	//
+	// One HTTP transport for every AWS client in the process. SDK v2 threads the
+	// HTTP client through aws.Config, so widening the idle-connection pool here
+	// means COG streaming, download serving and static asset requests all reuse
+	// keep-alive connections to S3 instead of re-handshaking TLS per request.
+	// Attaching it to the config (rather than one client) also lets credential
+	// refreshes -- IMDS/STS -- ride the same pool.
+	awsHTTPClient := awshttp.NewBuildableClient().WithTransportOptions(func(t *http.Transport) {
 		t.MaxIdleConns = 200
 		t.MaxIdleConnsPerHost = 100
 		t.IdleConnTimeout = 90 * time.Second
 	})
-	cogS3Client := s3.NewFromConfig(cfg.AwsConfig, func(o *s3.Options) {
+	cfg.AwsConfig, err = config.LoadDefaultConfig(
+		context.Background(),
+		config.WithRegion(cfg.AWSS3Region),
+		config.WithHTTPClient(awsHTTPClient),
+	)
+	if err != nil {
+		log.Fatalf("unable to load AWS config: %s", err.Error())
+	}
+
+	// One shared S3 client. Building it once (no per-request allocation) keeps the
+	// credential cache and connection pool warm across requests; the client is
+	// safe for concurrent use and refreshes credentials on its own.
+	s3Client := s3.NewFromConfig(cfg.AwsConfig, func(o *s3.Options) {
 		o.UsePathStyle = cfg.AWSS3ForcePathStyle
-		o.HTTPClient = cogHTTPClient
 	})
 
 	// Database
@@ -98,10 +105,12 @@ func main() {
 	// Middleware to serve static content from s3
 	// Make sure it is last in the middleware chain
 	e.Use(middleware.S3StaticWithConfig(middleware.S3StaticConfig{
-		Bucket:      cfg.AWSS3Bucket,
-		Prefix:      cfg.AWSS3BucketPrefix,
-		Environment: cfg.AuthEnvironment,
-		Endpoint:    cfg.AWSS3Endpoint,
+		AwsConfig:    cfg.AwsConfig,
+		UsePathStyle: cfg.AWSS3ForcePathStyle,
+		Bucket:       cfg.AWSS3Bucket,
+		Prefix:       cfg.AWSS3BucketPrefix,
+		Environment:  cfg.AuthEnvironment,
+		Endpoint:     cfg.AWSS3Endpoint,
 		Skipper: func(c echo.Context) bool {
 			return strings.HasPrefix(c.Request().URL.Path, "/api/") || strings.HasPrefix(c.Request().URL.Path, "/features/")
 		},
@@ -186,8 +195,8 @@ func main() {
 	public.GET("/products/:product_id/files", handlers.ListProductfiles(db))
 	// Direct, Range-capable COG access (authenticated + metered) for desktop clients
 	private.GET("/products/:product_id/cog-files", handlers.ListProductfilesCOG(db))
-	private.GET("/products/:product_id/cog/:productfile_id", handlers.StreamProductfileCOG(db, cogS3Client))
-	private.HEAD("/products/:product_id/cog/:productfile_id", handlers.StreamProductfileCOG(db, cogS3Client))
+	private.GET("/products/:product_id/cog/:productfile_id", handlers.StreamProductfileCOG(db, s3Client))
+	private.HEAD("/products/:product_id/cog/:productfile_id", handlers.StreamProductfileCOG(db, s3Client))
 
 	// Productfiles
 	private.POST("/productfiles", handlers.CreateProductfiles(db),
@@ -264,9 +273,7 @@ func main() {
 	// so browsers and RTS derive "download_<id>.dss" from the path; the bare
 	// /file form keeps links issued before that change working. The filename is
 	// cosmetic -- the handler resolves the S3 key from the download row.
-	serveDownloadFile := handlers.ServeDownloadFile(
-		db, &cfg.AwsConfig, &cfg.AWSS3Bucket, cfg.AWSS3ForcePathStyle,
-	)
+	serveDownloadFile := handlers.ServeDownloadFile(db, s3Client, &cfg.AWSS3Bucket)
 	public.GET("/downloads/:download_id/file", serveDownloadFile)
 	public.GET("/downloads/:download_id/file/:filename", serveDownloadFile)
 

@@ -28,7 +28,7 @@ import (
 // client input: the :filename path segment exists only so browsers and RTS
 // derive a sensible local filename, and is not read here. Each successful fetch
 // increments that download's retrieval_count.
-func ServeDownloadFile(db *pgxpool.Pool, awsCfg *aws.Config, bucket *string, forcePathStyle bool) echo.HandlerFunc {
+func ServeDownloadFile(db *pgxpool.Pool, s3Client *s3.Client, bucket *string) echo.HandlerFunc {
 	return func(c echo.Context) error {
 		downloadID, err := uuid.Parse(c.Param("download_id"))
 		if err != nil {
@@ -43,10 +43,7 @@ func ServeDownloadFile(db *pgxpool.Pool, awsCfg *aws.Config, bucket *string, for
 			return c.String(http.StatusGone, "this download has expired; request the package again")
 		}
 
-		client := s3.NewFromConfig(*awsCfg, func(o *s3.Options) {
-			o.UsePathStyle = forcePathStyle
-		})
-		output, err := client.GetObject(c.Request().Context(), &s3.GetObjectInput{Bucket: bucket, Key: aws.String(*d.RawFile)})
+		output, err := s3Client.GetObject(c.Request().Context(), &s3.GetObjectInput{Bucket: bucket, Key: aws.String(*d.RawFile)})
 		if err != nil {
 			return c.String(http.StatusNotFound, "not found")
 		}

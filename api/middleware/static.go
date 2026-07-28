@@ -1,7 +1,6 @@
 package middleware
 
 import (
-	"context"
 	"log"
 	"net/http"
 	"net/url"
@@ -9,7 +8,6 @@ import (
 	"strings"
 
 	"github.com/aws/aws-sdk-go-v2/aws"
-	"github.com/aws/aws-sdk-go-v2/config"
 	"github.com/aws/aws-sdk-go-v2/service/s3"
 	"github.com/labstack/echo/v4"
 )
@@ -19,6 +17,17 @@ type (
 		// Skipper defines a function to skip middleware. Returning true skips processing
 		// the middleware.
 		Skipper func(c echo.Context) bool
+
+		// AwsConfig is the process-wide AWS configuration. Supplying it here lets
+		// the middleware build its S3 client once at startup instead of resolving
+		// credentials on every request.
+		// Required.
+		AwsConfig aws.Config
+
+		// UsePathStyle enables path-style addressing
+		// (https://s3.amazonaws.com/BUCKET/KEY) instead of the default virtual
+		// hosted-bucket form (https://BUCKET.s3.amazonaws.com/KEY).
+		UsePathStyle bool
 
 		// S3 bucket.
 		// Required.
@@ -53,6 +62,15 @@ func DefaultSkipper(echo.Context) bool {
 	return false
 }
 
+// objectKey joins the configured prefix with a request path and strips any
+// leading slash. aws-sdk-go-v2 sends keys verbatim, so "/index.html" names a
+// different (and almost certainly absent) object than "index.html" on real S3 --
+// a mismatch that hides locally because MinIO tolerates it. The default Prefix
+// of "/" makes path.Join produce exactly that leading-slash form.
+func objectKey(prefix, p string) string {
+	return strings.TrimPrefix(path.Join(prefix, path.Clean("/"+p)), "/")
+}
+
 // S3Satic
 func S3Satic(S3StaticConfig S3StaticConfig) echo.MiddlewareFunc {
 	c := DefaultS3StaticConfig
@@ -78,88 +96,75 @@ func S3StaticWithConfig(staticConfig S3StaticConfig) echo.MiddlewareFunc {
 		staticConfig.Prefix = strings.TrimPrefix(staticConfig.Prefix, "/")
 	}
 
+	// Build the S3 client once, at middleware construction. The previous version
+	// called config.LoadDefaultConfig and s3.NewFromConfig inside the request
+	// handler, so every static asset request built a fresh credential provider
+	// with an empty cache -- forcing a credential lookup (an IMDS/STS round trip
+	// on EC2/ECS) before any S3 call could even be signed -- and allocated a new
+	// connection pool that was discarded at the end of the request.
+	client := s3.NewFromConfig(staticConfig.AwsConfig, func(o *s3.Options) {
+		o.UsePathStyle = staticConfig.UsePathStyle
+		// Local MinIO. In every other environment the endpoint comes from the
+		// shared config (AWS_ENDPOINT_URL_S3 or the region default).
+		if staticConfig.Environment == "MOCK" && staticConfig.Endpoint != "" {
+			o.BaseEndpoint = aws.String(staticConfig.Endpoint)
+		}
+	})
+
 	return func(next echo.HandlerFunc) echo.HandlerFunc {
-		return func(c echo.Context) (err error) {
+		return func(c echo.Context) error {
 			if staticConfig.Skipper(c) {
 				return next(c)
 			}
+			ctx := c.Request().Context()
 
 			// get a clean url path
-			p := c.Request().URL.Path
-
-			p, err = url.PathUnescape(p)
+			p, err := url.PathUnescape(c.Request().URL.Path)
 			if err != nil {
-				log.Printf("PathUnescape error: %s\n", err)
-				return
+				log.Printf("PathUnescape error: %s", err)
+				return echo.NewHTTPError(http.StatusBadRequest)
 			}
 
 			// set the potential key from path and default key incase that does not exist
-			pathKey := path.Join(staticConfig.Prefix, path.Clean("/"+p))
-			key := path.Join(staticConfig.Prefix, path.Clean("/"+staticConfig.Index))
+			pathKey := objectKey(staticConfig.Prefix, p)
+			key := objectKey(staticConfig.Prefix, staticConfig.Index)
 
-			// load aws config and get a client
-			cfg, err := config.LoadDefaultConfig(context.Background())
-			if staticConfig.Environment == "MOCK" {
-				cfg, err = config.LoadDefaultConfig(context.Background(),
-					config.WithEndpointResolverWithOptions(
-						aws.EndpointResolverWithOptionsFunc(
-							func(service, region string, options ...any) (aws.Endpoint, error) {
-								return aws.Endpoint{
-									URL:               staticConfig.Endpoint,
-									HostnameImmutable: true,
-								}, nil
-							}),
-					),
-				)
-			}
-
-			client := s3.NewFromConfig(cfg)
-
-			// first, check if the bucket exists and we have permission to access
-			_, err = client.HeadBucket(context.Background(), &s3.HeadBucketInput{Bucket: &staticConfig.Bucket})
-			if err != nil {
-				log.Printf("no permissions or bucket does not exist: %s", staticConfig.Bucket)
-				return
-			}
-
-			// get a list of content in the bucket limited on the Prefix
-			objects, err := client.ListObjectsV2(context.Background(), &s3.ListObjectsV2Input{
+			// Serve the requested key if it exists, otherwise fall back to the SPA
+			// index. A single HeadObject replaces the previous HeadBucket +
+			// ListObjectsV2 pair. Besides being two fewer round trips, it is correct
+			// for buckets holding more than 1000 keys under the prefix -- the list
+			// call returned only the first page, so any asset past that boundary was
+			// silently served the index instead of itself.
+			if _, err := client.HeadObject(ctx, &s3.HeadObjectInput{
 				Bucket: &staticConfig.Bucket,
-				Prefix: &staticConfig.Prefix,
-			})
-
-			if err != nil {
-				log.Printf("ListObjectsV2 error: %s\n", err)
-				return
+				Key:    &pathKey,
+			}); err == nil {
+				key = pathKey
 			}
 
-			// check that the incoming path is available
-			for _, objContent := range objects.Contents {
-				if pathKey == *objContent.Key {
-					key = pathKey
-					break
-				}
-			}
-
-			// if available, get and serve
-			var obj *s3.GetObjectOutput
-			obj, err = client.GetObject(context.Background(), &s3.GetObjectInput{
+			obj, err := client.GetObject(ctx, &s3.GetObjectInput{
 				Bucket: &staticConfig.Bucket,
 				Key:    &key,
 			})
 			if err != nil {
-				log.Printf("GetObject error on key '%s': %s\n", key, err)
-				return
+				log.Printf("GetObject error on key '%s': %s", key, err)
+				return echo.NewHTTPError(http.StatusNotFound)
 			}
 			defer obj.Body.Close()
 
-			// stream content
-			err = c.Stream(http.StatusOK, *obj.ContentType, obj.Body)
-			if err != nil {
-				log.Printf("Streaming error for '%s': %s", key, err)
+			// S3 omits ContentType for objects uploaded without one; dereferencing it
+			// blindly panicked the process, since no Recover middleware is registered.
+			contentType := "application/octet-stream"
+			if obj.ContentType != nil {
+				contentType = *obj.ContentType
 			}
 
-			return err
+			// stream content
+			if err := c.Stream(http.StatusOK, contentType, obj.Body); err != nil {
+				log.Printf("Streaming error for '%s': %s", key, err)
+				return err
+			}
+			return nil
 		}
 	}
 }

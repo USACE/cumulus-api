@@ -42,6 +42,10 @@ CREATE OR REPLACE FUNCTION notify_new_download() RETURNS trigger AS $$
 $$ LANGUAGE plpgsql;
 
 -- Trigger; NOTIFY NEW DOWNLOAD ON INSERT
+-- DROP first: this is a repeatable migration, so it re-runs whenever its checksum changes and a
+-- bare CREATE TRIGGER would fail with "trigger already exists". The file had never been edited
+-- since it was introduced, so it had never re-run and the missing guards had never surfaced.
+DROP TRIGGER IF EXISTS notify_new_download ON download;
 CREATE TRIGGER notify_new_download
 AFTER INSERT ON download
 FOR EACH ROW
@@ -80,6 +84,7 @@ CREATE OR REPLACE FUNCTION notify_acquirablefile_geoprocess() RETURNS trigger AS
 $$ LANGUAGE plpgsql;
 
 -- Trigger; NOTIFY NEW ACQUIRABLEFILE ON INSERT
+DROP TRIGGER IF EXISTS notify_acquirablefile_geoprocess ON acquirablefile;
 CREATE TRIGGER notify_acquirablefile_geoprocess
 AFTER INSERT ON acquirablefile
 FOR EACH ROW
@@ -90,18 +95,37 @@ EXECUTE PROCEDURE notify_acquirablefile_geoprocess();
 -- ASYNC LISTENER FUNCTION (ALF) FOR snodas_interpolate_geoprocess
 --------------------------------------------------------------
 
--- Trigger Function; Inserts Into acquirablefile Table
+-- Trigger Function; NOTIFY snodas-interpolate geoprocess for a new SNODAS SWE productfile
+--
+-- Reads 'product' directly instead of going through v_productfile. v_productfile LEFT JOINs
+-- v_product, and v_product carries an unfiltered
+--     SELECT product_id, COUNT(id), MIN(datetime), MAX(datetime), max(version)
+--     FROM productfile GROUP BY product_id
+-- rollup. The product_slug test only resolves to a product id at execution time, so the planner
+-- could not push a constant into that grouped subquery -- and v_product's own ORDER BY blocks
+-- subquery pull-up -- leaving it to aggregate the ENTIRE productfile table and then join a
+-- single row against the result. Since this trigger is FOR EACH ROW on INSERT OR UPDATE, that
+-- full-table aggregate ran once per ingested file. CreateProductfiles inserts a row per
+-- statement with ON CONFLICT DO UPDATE, so re-ingesting an existing file paid it as well.
+--
+-- Everything the payload needs is already on NEW (datetime, product_id), so the only lookup
+-- left is a primary-key hit on the small product table.
+--
+-- 'NOT p.deleted' preserves the previous behaviour: v_product filters deleted products, so a
+-- productfile belonging to a deleted product came back with product_slug = NULL through the
+-- LEFT JOIN and never matched the slug test.
 CREATE OR REPLACE FUNCTION notify_snodas_interpolate_geoprocess() RETURNS trigger AS $$
     BEGIN
         PERFORM (
             WITH geoprocess_config as (
-                SELECT 
+                SELECT
                        (SELECT config_value from config where config_name = 'write_to_bucket') AS bucket,
-                       to_char(datetime, 'YYYYMMDD')  AS datetime,
-                       CAST(16 as real)               AS max_distance
-                FROM v_productfile
-                WHERE id = NEW.id
-                AND product_slug = 'nohrsc-snodas-swe'
+                       to_char(NEW.datetime, 'YYYYMMDD')  AS datetime,
+                       CAST(16 as real)                   AS max_distance
+                FROM product p
+                WHERE p.id = NEW.product_id
+                  AND p.slug = 'nohrsc-snodas-swe'
+                  AND NOT p.deleted
             )
             SELECT notify_async_listener(
                 json_build_object(
@@ -117,7 +141,8 @@ CREATE OR REPLACE FUNCTION notify_snodas_interpolate_geoprocess() RETURNS trigge
     END;
 $$ LANGUAGE plpgsql;
 
--- Trigger; NOTIFY NEW ACQUIRABLEFILE ON INSERT
+-- Trigger; NOTIFY NEW SNODAS SWE PRODUCTFILE ON INSERT OR UPDATE
+DROP TRIGGER IF EXISTS notify_snodas_interpolate_geoprocess ON productfile;
 CREATE TRIGGER notify_snodas_interpolate_geoprocess
 AFTER INSERT or UPDATE ON productfile
 FOR EACH ROW

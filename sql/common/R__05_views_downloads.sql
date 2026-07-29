@@ -65,15 +65,119 @@ CREATE OR REPLACE VIEW v_download AS (
 );
 
 -- v_download_request
+--
+-- One row per productfile that belongs in a download's package: the S3 key to fetch, plus the DSS
+-- metadata that grid will be written under.
+--
+-- The three match rules (observed / forecast-in-the-past / forecast-through-now) are written as
+-- UNION ALL branches rather than one OR'd WHERE. They are mutually exclusive by construction --
+-- the first tests version < 1900 and the other two version >= 1900, and those two are split on
+-- datetime_end < now() vs >= now() -- so UNION ALL cannot produce duplicates, and it avoids the
+-- sort that UNION would add to deduplicate.
+--
+-- The split is what makes the productfile access sargable. Every date bound in every rule comes
+-- from the download row (dp.datetime_start / dp.datetime_end), so they are join quals, not
+-- constants -- and the second rule's 'dp.datetime_end < now()' references only the download side.
+-- An OR arm that depends on outer-relation-only conditions cannot be reduced to index quals on
+-- productfile, so as a single OR the whole predicate had to be evaluated as a post-fetch Filter:
+-- the only usable index qual was f.product_id, and each product's entire ingest history was read
+-- from the heap and then discarded down to the requested window. Cost scaled with how long a
+-- product had been ingested rather than with the window asked for. Split into branches, each gets
+-- its own parameterized index scan and non-matching rows are rejected without a heap fetch.
+--
+-- The output column list is unchanged, so CREATE OR REPLACE is sufficient here -- no DROP needed
+-- (unlike v_download above, which renamed a column).
 CREATE OR REPLACE VIEW v_download_request AS (
-    WITH download_products AS (
+    -- NOT MATERIALIZED is load-bearing, not cosmetic. This CTE is now referenced three times, and
+    -- Postgres materializes a multiply-referenced CTE by default -- which would compute every
+    -- download x product pair in the database before the caller's WHERE download_id = $1 could be
+    -- applied. Inlining keeps that qual pushable into all three branches.
+    WITH download_products AS NOT MATERIALIZED (
         SELECT dp.download_id,
             dp.product_id,
             d.datetime_start,
             d.datetime_end
         FROM download d
         JOIN download_product dp ON dp.download_id = d.id
+    ),
+    -- Match productfile rows first; the lookup tables are joined once against the narrowed set
+    -- (in 'dss' below) rather than three times, once per branch.
+    matched AS (
+        -- Observed data: year-1111 sentinel version, selected on the file's own valid time.
+        --
+        -- The sentinel test is a range against 1900 rather than date_part('year', f.version) =
+        -- '1111' both for sargability -- wrapping the column in a function makes it opaque to any
+        -- index -- and for correctness: there is NOT one sentinel value. Production holds at least
+        -- three distinct year-1111 values (1111-11-04 11:04:09.11+00 on the majority of rows,
+        -- 1111-11-11 11:11:11.11+00, and 1111-11-03 23:52:58+00), so matching the nominal sentinel
+        -- by equality would misclassify most observed rows as forecasts. Nothing below 1900 is a
+        -- real forecast issue time, so the cutoff is safe.
+        SELECT dp.download_id, dp.product_id, dp.datetime_start, dp.datetime_end,
+               f.file, f.datetime, f.version
+        FROM download_products dp
+        JOIN productfile f
+          ON f.product_id = dp.product_id
+         AND f.datetime  >= dp.datetime_start
+         AND f.datetime  <= dp.datetime_end
+        WHERE f.version < '1900-01-01'::timestamptz
+
+        UNION ALL
+
+        -- Forecast data, requested window ends in the past: the issue cycles covering the 24 hours
+        -- up to the end of the window.
+        SELECT dp.download_id, dp.product_id, dp.datetime_start, dp.datetime_end,
+               f.file, f.datetime, f.version
+        FROM download_products dp
+        JOIN productfile f
+          ON f.product_id = dp.product_id
+         AND f.version >= dp.datetime_end - interval '24 hours'
+         AND f.version <= dp.datetime_end
+        WHERE f.version >= '1900-01-01'::timestamptz
+          AND dp.datetime_end < now()
+
+        UNION ALL
+
+        -- Forecast data, requested window reaches the present: the latest issue cycles.
+        SELECT dp.download_id, dp.product_id, dp.datetime_start, dp.datetime_end,
+               f.file, f.datetime, f.version
+        FROM download_products dp
+        JOIN productfile f
+          ON f.product_id = dp.product_id
+         AND f.version >= now() - interval '18 hours'
+         AND f.version <= now()
+        WHERE f.version >= '1900-01-01'::timestamptz
+          AND dp.datetime_end >= now()
+    ),
+    dss AS (
+        SELECT m.download_id,
+               m.product_id,
+               m.datetime_start,
+               m.datetime_end,
+               m.file AS key,
+               (SELECT config.config_value FROM config WHERE config.config_name::text = 'write_to_bucket'::text) AS bucket,
+               d.name AS dss_datatype,
+               CASE
+                   WHEN p.temporal_duration = 0 THEN m.datetime
+                   ELSE m.datetime - p.temporal_duration::double precision * '00:00:01'::interval
+               END AS datetime_dss_dpart,
+               CASE
+                   WHEN p.temporal_duration = 0 THEN NULL::timestamp with time zone
+                   ELSE m.datetime
+               END AS datetime_dss_epart,
+               p.dss_fpart,
+               u.name AS dss_unit,
+               a.name AS dss_cpart,
+               m.version AS forecast_version
+        FROM matched m
+        JOIN product p      ON p.id = m.product_id
+        JOIN unit u         ON u.id = p.unit_id
+        JOIN parameter a    ON a.id = p.parameter_id
+        JOIN dss_datatype d ON d.id = p.dss_datatype_id
     )
+    -- No ORDER BY. The previous definition sorted by (product_id, version, datetime) inside the
+    -- view and nothing depended on it: the only caller re-sorts in
+    -- jsonb_agg(... ORDER BY dss_fpart, key) -- see GetDownloadPackagerRequest in
+    -- api/models/download.go -- and the dense_rank() window there supplies its own ordering.
     SELECT dss.download_id,
         dss.product_id,
         dss.datetime_start,
@@ -97,52 +201,7 @@ CREATE OR REPLACE VIEW v_download_request AS (
         dss.dss_fpart,
         dss.dss_unit,
         dss.forecast_version
-    FROM (
-        SELECT dp.download_id,
-               dp.product_id,
-               dp.datetime_start,
-               dp.datetime_end,
-               f.file AS key,
-               (SELECT config.config_value FROM config WHERE config.config_name::text = 'write_to_bucket'::text) AS bucket,
-               d.name AS dss_datatype,
-               CASE
-                   WHEN p.temporal_duration = 0 THEN f.datetime
-                   ELSE f.datetime - p.temporal_duration::double precision * '00:00:01'::interval
-               END AS datetime_dss_dpart,
-               CASE
-                   WHEN p.temporal_duration = 0 THEN NULL::timestamp with time zone
-                   ELSE f.datetime
-               END AS datetime_dss_epart,
-               p.dss_fpart,
-               u.name AS dss_unit,
-               a.name AS dss_cpart,
-               f.version AS forecast_version
-        FROM productfile f
-        JOIN download_products dp ON dp.product_id = f.product_id
-        JOIN product p ON f.product_id = p.id
-        JOIN unit u ON p.unit_id = u.id
-        JOIN parameter a ON a.id = p.parameter_id
-        JOIN dss_datatype d ON p.dss_datatype_id = d.id
-        -- Observed rows carry a year-1111 sentinel in 'version'; forecast rows carry the real
-        -- issue/reference time. The test is written as a range against 1900 rather than
-        -- date_part('year', f.version) = '1111' so it is sargable: wrapping the column in a
-        -- function makes it opaque to unique_product_version_datetime (product_id, version,
-        -- datetime), which then restricts on product_id only and filters every row of the
-        -- product's history. As a range it uses the version key too.
-        --
-        -- A range is also required for correctness -- there is NOT one sentinel value. Production
-        -- holds at least three distinct year-1111 values (1111-11-04 11:04:09.11+00 on the
-        -- majority of rows, 1111-11-11 11:11:11.11+00, and 1111-11-03 23:52:58+00), so matching
-        -- the nominal sentinel by equality would misclassify most observed rows as forecasts.
-        -- Nothing below 1900 is a real forecast issue time, so the cutoff is safe.
-        -- observed data will use the file datetime
-        WHERE (f.version < '1900-01-01'::timestamptz AND f.datetime >= dp.datetime_start AND f.datetime <= dp.datetime_end)
-        -- forecast data with an end date < now (looking at forecasts in the past)
-        OR (dp.datetime_end < now() AND f.version >= '1900-01-01'::timestamptz AND f.version between dp.datetime_end - interval '24 hours' and dp.datetime_end)
-        -- forecast data with an end date >= now (looking at current latest forecasts)
-        OR (dp.datetime_end >= now() AND f.version >= '1900-01-01'::timestamptz AND f.version between now() - interval '18 hours' and now())
-        ORDER BY f.product_id, f.version, f.datetime
-    ) dss
+    FROM dss
 );
 
 GRANT SELECT ON

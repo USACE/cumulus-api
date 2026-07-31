@@ -138,13 +138,25 @@ CREATE OR REPLACE VIEW v_download_request AS (
         UNION ALL
 
         -- Forecast data, requested window reaches the present: the latest issue cycles.
+        --
+        -- f.version is bounded below only. A cycle's version can run slightly AHEAD of wall-clock
+        -- -- products round their reference time differently and use different timezone
+        -- conventions -- so an upper bound of now() would drop exactly the newest cycle, and a
+        -- suite holding only that cycle would return nothing at all.
+        --
+        -- Choosing among cycles is not this branch's job: dense_rank() OVER (PARTITION BY
+        -- product_id ORDER BY forecast_version DESC) in GetDownloadPackagerRequest does it, and
+        -- relies only on version being monotonic per product. The lower bound here is a
+        -- performance guard -- it keeps the candidate set off the product's whole forecast history
+        -- and uses unique_product_version_datetime's (product_id, version) prefix as a range
+        -- bound. Unlike branch 2, where the upper bound defines the as-of point of a historical
+        -- query, there is nothing for one to mean here.
         SELECT dp.download_id, dp.product_id, dp.datetime_start, dp.datetime_end,
                f.file, f.datetime, f.version
         FROM download_products dp
         JOIN productfile f
           ON f.product_id = dp.product_id
          AND f.version >= now() - interval '18 hours'
-         AND f.version <= now()
         WHERE f.version >= '1900-01-01'::timestamptz
           AND dp.datetime_end >= now()
     ),

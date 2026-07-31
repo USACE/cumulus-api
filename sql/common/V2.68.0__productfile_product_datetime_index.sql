@@ -1,0 +1,37 @@
+-- Index on productfile (product_id, datetime).
+--
+-- productfile's only useful index is unique_product_version_datetime (product_id, version,
+-- datetime). With an equality on product_id and a RANGE on version, btree cannot use datetime as a
+-- boundary -- only as a non-boundary in-index filter -- and it cannot return datetime in order for
+-- a product at all, because entries are ordered by (version, datetime) within each product.
+--
+-- Required by (not merely helpful to):
+--
+--   * v_product's after / before / productfile_count columns (R__04_views_products.sql). Those were
+--     rewritten from a full-table GROUP BY into correlated per-product lookups; min()/max() only
+--     collapse to ORDER BY ... LIMIT 1 if an index can return datetime in order for one product,
+--     which is exactly what this provides. Without this index the rewrite does not pay off.
+--
+-- Also serves, by promoting datetime from an in-index filter to an index BOUNDARY:
+--
+--   * v_download_request's observed branch (R__05_views_downloads.sql) -- the packager payload
+--   * ListProductfiles           -> GET /products/:id/files
+--   * GetProductFileAvailability -> GET /products/:id/file-availability
+--
+-- Not extended to (product_id, datetime, version DESC), which would additionally make
+-- ListProductfilesLatestVersion's DISTINCT ON (datetime) ORDER BY datetime, version DESC
+-- sort-free for GET /products/:id/cog-files. That is the only query the third column helps -- the
+-- forecast branches of v_download_request want (product_id, version, ...), already covered by
+-- unique_product_version_datetime -- and it costs ~20% wider index entries. Add it if /cog-files
+-- turns out to carry real traffic; measure whether a Sort node appears above the index scan first.
+--
+-- Deliberately NOT a partial index (WHERE version < '1900-01-01'::timestamptz): a timestamptz
+-- literal in an index predicate is resolved against the session TimeZone at CREATE INDEX time, so
+-- the index would only be usable by sessions whose TimeZone matches the one that built it.
+--
+-- IF NOT EXISTS so this is a no-op when the index has already been pre-created with
+-- CREATE INDEX CONCURRENTLY. Prefer that on any environment with live ingest -- the plain form
+-- below takes a SHARE lock on productfile, blocking the geoprocessor's INSERTs until the build
+-- finishes, which on a multi-million-row table is not instant.
+CREATE INDEX IF NOT EXISTS productfile_product_id_datetime_idx
+    ON productfile (product_id, datetime);

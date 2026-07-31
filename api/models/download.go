@@ -239,6 +239,21 @@ func GetDownloadPackagerRequest(ctx context.Context, db *pgxpool.Pool, downloadI
 			    AND r.forecast_version BETWEEN r.datetime_start - interval '24 hours' AND r.datetime_end
 		),
 		download_contents AS (
+			-- 'vrank <= 2' keeps the latest two issue cycles per product so the older one can
+			-- backfill valid times the newest does not reach. Those two cycles overlap, and the
+			-- DSS pathname cannot tell them apart: dss_dpart/dss_epart derive purely from a file's
+			-- valid time and dss_fpart is a per-product constant, so two cycles at the same valid
+			-- time collide on one pathname with different S3 keys. Left alone, the packager fetches
+			-- and warps both grids and writes them to the same path, the second overwriting the
+			-- first.
+			--
+			-- DISTINCT ON therefore keeps one grid per pathname, newest issue cycle winning -- the
+			-- same rule ListProductfilesLatestVersion applies for the COG endpoint (see
+			-- api/models/productfiles.go). It dedupes on (dss_dpart, dss_epart) rather than the raw
+			-- valid time because those are the components that actually collide, and the view
+			-- already exposes them; forecast_version is selected only to break the tie.
+			--
+			-- The subquery wrapper is required: a UNION ALL branch cannot carry its own ORDER BY.
 			SELECT download_id,
 			       product_id,
 			       key,
@@ -249,8 +264,23 @@ func GetDownloadPackagerRequest(ctx context.Context, db *pgxpool.Pool, downloadI
 			       dss_epart,
 			       dss_fpart,
 			       dss_unit
-		    FROM forecast
-		    WHERE vrank <= 2
+		    FROM (
+		        SELECT DISTINCT ON (product_id, dss_dpart, dss_epart)
+		               download_id,
+		               product_id,
+		               key,
+		               bucket,
+		               dss_datatype,
+		               dss_cpart,
+		               dss_dpart,
+		               dss_epart,
+		               dss_fpart,
+		               dss_unit,
+		               forecast_version
+		        FROM forecast
+		        WHERE vrank <= 2
+		        ORDER BY product_id, dss_dpart, dss_epart, forecast_version DESC
+		    ) latest_cycle_per_path
 		    -- UNION ALL, not UNION: the two branches are disjoint by construction (non-sentinel
 		    -- vs sentinel version), so deduplicating across them only buys a sort.
 		    UNION ALL

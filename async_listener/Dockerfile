@@ -1,4 +1,4 @@
-ARG GO_VERSION=1.26.5
+ARG GO_VERSION=1.26.6
 ARG GO_TAG=${GO_VERSION}-alpine
 
 # *~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~

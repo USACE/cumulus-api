@@ -35,6 +35,13 @@ RUN apt-get update \
     && apt-get remove python3-pil -y \
     && apt clean
 
+# Remove unused Arrow ADBC drivers and the stray pebble binary shipped by the GDAL
+# ubuntu-full image. GDAL builds the ADBC drivers as an optional component; nothing in
+# cumulus-api or cumulus-geoproc opens an ADBC connection, and pebble is not part of GDAL's
+# published Dockerfile at all. They are Go binaries and account for the large majority of
+# this image's CVE findings.
+RUN rm -f /usr/bin/pebble /usr/lib/x86_64-linux-gnu/libadbc_driver_*.so*
+
 # install package in venv
 COPY . ${PACKAGER}/pkg
 

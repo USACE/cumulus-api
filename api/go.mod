@@ -3,7 +3,6 @@ module github.com/USACE/cumulus-api/api
 go 1.26.6
 
 require (
-	github.com/USACE/go-simple-asyncer v0.0.0-20201015223104-446ae10887a8
 	github.com/aws/aws-sdk-go-v2 v1.42.0
 	github.com/btcsuite/btcutil v1.0.2
 	github.com/georgysavva/scany/v2 v2.1.4
@@ -21,7 +20,6 @@ require (
 )
 
 require (
-	github.com/aws/aws-sdk-go v1.35.7 // indirect
 	github.com/aws/aws-sdk-go-v2/aws/protocol/eventstream v1.7.13 // indirect
 	github.com/aws/aws-sdk-go-v2/credentials v1.19.23 // indirect
 	github.com/aws/aws-sdk-go-v2/feature/ec2/imds v1.18.29 // indirect
@@ -38,8 +36,6 @@ require (
 	github.com/aws/aws-sdk-go-v2/service/sts v1.43.3 // indirect
 	github.com/aws/smithy-go v1.27.2 // indirect
 	github.com/jackc/puddle/v2 v2.2.2 // indirect
-	github.com/jmespath/go-jmespath v0.4.0 // indirect
-	github.com/streadway/amqp v1.0.0 // indirect
 	golang.org/x/sync v0.21.0 // indirect
 )
 

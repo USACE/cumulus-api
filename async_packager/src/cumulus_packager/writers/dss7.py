@@ -4,7 +4,7 @@ import gc
 import json
 import logging
 import os
-import sys
+import traceback
 import threading
 from collections import defaultdict, namedtuple
 from pathlib import Path
@@ -36,6 +36,35 @@ gdal.SetConfigOption('GDAL_DISABLE_READDIR_ON_OPEN', 'EMPTY_DIR')
 gdal.SetConfigOption('CPL_VSIL_CURL_ALLOWED_EXTENSIONS', '.tif,.tiff')
 gdal.SetConfigOption('VSI_CACHE', 'FALSE')  # Disable VSI cache - prevents memory accumulation
 gdal.SetCacheMax(0)  # Disable GDAL block cache - not needed for single-pass processing
+
+# Value HEC-DSS uses to mark an undefined grid cell
+DSS_UNDEFINED_VALUE = -3.4028234663852886e+38
+
+
+def mark_undefined_cells(data, nodata):
+    """
+    Mark undefined cells with the DSS undefined value, in place.
+
+    Two sweeps are needed because they catch different cells: the first matches
+    the raster's declared nodata value, the second catches NaN already present in
+    the source. NaN never compares equal to anything, so the first sweep misses it.
+
+    Parameters:
+    -----------
+    data : numpy.ndarray
+        Float raster data, modified in place
+    nodata : float or None
+        The raster band's nodata value, or None if it declares none
+
+    Returns:
+    --------
+    numpy.ndarray : the same array, for convenience
+    """
+    if nodata is not None:
+        data[data == nodata] = DSS_UNDEFINED_VALUE
+    data[numpy.isnan(data)] = DSS_UNDEFINED_VALUE
+    return data
+
 
 def get_available_memory_gb():
     """
@@ -248,9 +277,8 @@ def process_single_tiff_gdal(args):
         # Flip the dataset up/down because tif and dss have different origins
         data = numpy.flipud(data)
 
-        # Replace nodata with NaN
-        if nodata is not None:
-            data[data == nodata] = numpy.nan
+        # Mark undefined cells with the value DSS stores them as
+        data = mark_undefined_cells(data, nodata)
 
         # Get geotransform for lower left coordinates
         xsize = warp_ds.RasterXSize
@@ -263,10 +291,6 @@ def process_single_tiff_gdal(args):
         band = None
         warp_ds = None
         ds = None
-
-        # Prepare data for DSS
-        DSS_UNDEFINED_VALUE = -3.4028234663852886e+38
-        data[numpy.isnan(data)] = DSS_UNDEFINED_VALUE
 
         # Create DSS pathname
         data_type = dssutil.data_type[TifCfg.dss_datatype]
@@ -590,6 +614,7 @@ def writer(
     _extent_name = extent["name"]
     _bbox = extent["bbox"]
     _progress = 0
+    product_stats = {}
 
     # assuming destination spacial references are all EPSG
     destination_srs = osr.SpatialReference()
@@ -630,116 +655,52 @@ def writer(
                 id, gridcount
             )
             _progress = int((processed_count / gridcount) * 100) if processed_count > 0 else 0
-        # Single file - process sequentially
-        else:
+        # Single file - run the same worker the parallel path uses, so the two
+        # cannot drift apart. Anything but len(src) == 1 falls through with no
+        # successes, which the guard below turns into a FAILED status.
+        elif len(src) == 1:
             logger.info("Processing single file with GDAL")
-            for idx, tif in enumerate(src):
-                TifCfg = namedtuple("TifCfg", tif)(**tif)
-                dsspathname = f"/{grid_type_name}/{_extent_name}/{TifCfg.dss_cpart}/{TifCfg.dss_dpart}/{TifCfg.dss_epart}/{TifCfg.dss_fpart}/"
+            result = process_single_tiff_gdal(
+                (0, src[0], _bbox, cellsize, destination_srs, grid_type,
+                 grid_type_name, srs_definition, _extent_name, tz_name,
+                 tz_offset, is_interval)
+            )
 
+            if result['success']:
+                # Contain write failures the same way the parallel consumer does,
+                # so a bad write is a failed download rather than a failed packager
                 try:
-                    data_type = dssutil.data_type[TifCfg.dss_datatype]
-                    ds = gdal.Open(f"/vsis3_streaming/{TifCfg.bucket}/{TifCfg.key}")
-
-                    # GDAL Warp the Tiff to what we need for DSS
-                    warp_ds = gdal.Warp(
-                        '',            # empty string => no filename, return a Dataset
-                        ds,
-                        format='MEM',  # in‐RAM driver
-                        outputBounds=_bbox,
-                        xRes=cellsize,
-                        yRes=cellsize,
-                        targetAlignedPixels=True,
-                        dstSRS=destination_srs.ExportToWkt(),
-                        resampleAlg=gdalconst.GRA_Bilinear,
-                        copyMetadata=False,
-                    )
-
-                    # Now read your band straight out of memory:
-                    band = warp_ds.GetRasterBand(1)
-                    nodata = band.GetNoDataValue()
-                    data = band.ReadAsArray()
-                    # Flip the dataset up/down because tif and dss have different origins
-                    data = numpy.flipud(data)
-                    DSS_UNDEFINED_VALUE = -3.4028234663852886e+38
-                    data[data == nodata] = numpy.nan # Replace nodata with NaN for processing
-                    # GeoTransforma and lower X Y
-                    xsize = warp_ds.RasterXSize
-                    ysize = warp_ds.RasterYSize
-                    adfGeoTransform = warp_ds.GetGeoTransform()
-                    llx = int(adfGeoTransform[0] / adfGeoTransform[1])
-                    lly = int(
-                        (adfGeoTransform[5] * ysize + adfGeoTransform[3])
-                        / adfGeoTransform[1]
-                    )
-
-                    gd = GriddedData.create(
-                        path=dsspathname,
-                        type=grid_type,
-                        dataType=data_type,
-                        lowerLeftCellX=llx,
-                        lowerLeftCellY=lly,
-                        numberOfCellsX=xsize,
-                        numberOfCellsY=ysize,
-                        srsName=grid_type_name,
-                        srsDefinitionType=1,
-                        srsDefinition=srs_definition,
-                        dataUnits=TifCfg.dss_unit,
-                        dataSource="INTERNAL",
-                        timeZoneID=tz_name,
-                        timeZoneRawOffset=tz_offset,
-                        isInterval=is_interval,
-                        isTimeStamped=1,
-                        cellSize=cellsize,
-                        xCoordOfGridCellZero=0.0,
-                        yCoordOfGridCellZero=0.0,
-                        nullValue=DSS_UNDEFINED_VALUE,
-                        data=data,
-                    )
-
-                    # Call HecDss.put() in different process space to release memory after each iteration
                     t = Timer(name="accumuluated", logger=None)
                     t.start()
-                    result = dss.put(gd)
+                    dss_result = dss.writePrecompressedGrid(
+                        result['gd'], result['compressed_data'], result['compressed_size']
+                    )
                     elapsed_time = t.stop()
-                    if result != 0:
-                        logger.info(
-                            f'HEC-DSS-PY write record failed for "{TifCfg.key}": {result}'
+
+                    if dss_result != 0:
+                        logger.warning(
+                            f'HEC-DSS-PY write record failed for "{result["tif_key"]}": {dss_result}'
                         )
                     else:
                         if logger.isEnabledFor(logging.DEBUG):
                             logger.debug(
-                                f'DSS put Processed "{TifCfg.key}" in {elapsed_time:.4f} seconds'
+                                f'DSS writePrecompressedGrid processed '
+                                f'"{result["tif_key"]}" in {elapsed_time:.4f}s'
                             )
-                        _product_id = tif.get('product_id', 'UNKNOWN')
-                        success_counts[_product_id] += 1
-
-                    _progress = int(((idx + 1) / gridcount) * 100)
-                    # Update progress at predefined interval
-                    if idx % PACKAGER_UPDATE_INTERVAL == 0 or idx == gridcount - 1:
+                        success_counts[result['product_id']] += 1
+                        # Only a successful write counts as progress
+                        _progress = 100
                         update_status(
                             id=id, status_id=PACKAGE_STATUS["INITIATED"], progress=_progress
                         )
-                        if _progress % PACKAGER_UPDATE_INTERVAL == 0:
-                            logger.info(f'Download ID "{id}" progress: {_progress}%')
-
-                except (RuntimeError, Exception):
-                    exc_type, exc_value, exc_traceback = sys.exc_info()
-                    traceback_details = {
-                        "filename": Path(exc_traceback.tb_frame.f_code.co_filename).name,
-                        "line number": exc_traceback.tb_lineno,
-                        "method": exc_traceback.tb_frame.f_code.co_name,
-                        "type": exc_type.__name__,
-                        "message": exc_value,
-                    }
-                    logger.error(traceback_details)
-
-                    continue
-
-                finally:
-                    data = None
-                    warp_ds = None
-                    ds = None
+                except Exception as e:
+                    logger.error(f"Error writing to DSS for file {result['index']}: {e}")
+                    logger.error(traceback.format_exc())
+            else:
+                logger.error(
+                    f"Error processing file {result['index']}: "
+                    f"{result.get('error', 'Unknown error')}"
+                )
 
     # Build product_stats for single-file path (multi-file path already has it)
     if len(src) == 1:
@@ -748,14 +709,20 @@ def writer(
             for pid in expected_counts
         }
 
-    # If no progress was made for any items in the payload (ex: all tifs could not be projected properly),
-    # don't return a dssfilename
-    if _progress == 0:
+    # If nothing was written successfully (ex: all tifs could not be projected
+    # properly, or every grid was entirely undefined), don't return a dssfilename.
+    # This has to count successful writes rather than progress: failures are
+    # counted as processed too, so _progress reaches 100 on a run that wrote
+    # nothing at all.
+    total_successful = sum(stats["successful"] for stats in product_stats.values())
+    if total_successful == 0:
         logger.error(f'No files processed for download ID "{id}"- Progress:{_progress}')
         update_status(id=id, status_id=PACKAGE_STATUS["FAILED"], progress=_progress)
         return None
 
-    total_time = Timer.timers["accumuluated"]
+    # The timer is only registered once a write has completed, so it is absent
+    # entirely when every write failed
+    total_time = Timer.timers.get("accumuluated", 0)
     logger.info(
         f'Total processing time for download ID "{id}" in {total_time:.4f} seconds'
     )

@@ -10,6 +10,7 @@ import (
 
 	awshttp "github.com/aws/aws-sdk-go-v2/aws/transport/http"
 	"github.com/aws/aws-sdk-go-v2/config"
+	"github.com/aws/aws-sdk-go-v2/service/cloudwatch"
 	"github.com/aws/aws-sdk-go-v2/service/s3"
 	"github.com/labstack/echo/v4"
 	"golang.org/x/net/http2"
@@ -18,6 +19,7 @@ import (
 	"github.com/jackc/pgx/v5/pgxpool"
 
 	_config "github.com/USACE/cumulus-api/api/config"
+	"github.com/USACE/cumulus-api/api/costs"
 	"github.com/USACE/cumulus-api/api/handlers"
 	"github.com/USACE/cumulus-api/api/middleware"
 
@@ -114,6 +116,14 @@ func main() {
 	productCache.Start()
 	productStatusCache := handlers.NewProductStatusCache(db, 3*time.Minute)
 	productStatusCache.Start()
+
+	// Admin cost estimate. Rates and sizes come from COST_* env vars; usage
+	// comes from CloudWatch (needs cloudwatch:GetMetricData) and the download table.
+	costCfg, err := costs.LoadConfig()
+	if err != nil {
+		log.Fatalf("cost estimate config: %s", err.Error())
+	}
+	costEstimator := costs.NewEstimator(costCfg, cloudwatch.NewFromConfig(cfg.AwsConfig), db)
 
 	e := echo.New()
 	// Middleware for All Routes
@@ -307,6 +317,8 @@ func main() {
 	private.GET("/downloads/usage/summary", handlers.GetUsageSummary(db), middleware.IsAdmin)
 	private.GET("/downloads/usage/timeseries", handlers.GetUsageTimeseries(db), middleware.IsAdmin)
 	private.GET("/downloads/usage/users", handlers.ListUsageUsers(db), middleware.IsAdmin)
+	// Admin AWS cost estimate
+	private.GET("/admin/cost_estimate", handlers.GetCostEstimate(costEstimator), middleware.IsAdmin)
 	// Create Download (Anonymous)
 	public.POST("/deprecated/anonymous_downloads", handlers.CreateDownload(db, cfg), middleware.AttachAnonymousUserInfo) // deprecated
 	private.POST("/downloads", handlers.CreateDownload(db, cfg))

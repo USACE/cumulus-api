@@ -179,10 +179,6 @@ func main() {
 		return handlers.GetIdentityProviderConfiguration(cfg.AuthEnvironment, c)
 	})
 
-	// Proxy to pg_featureserv
-	features := e.Group("/features")
-	features.Use(middleware.PgFeatureservProxy(cfg.PgFeatureservUrl))
-
 	// Acquirables
 	public.GET("/acquirables", handlers.ListAcquirables(db))
 	private.GET("/acquirables/:acquirable_id/files", handlers.ListAcquirablefiles(db))

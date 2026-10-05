@@ -53,7 +53,7 @@ ADD --keep-git-dir=false --chown=${USERNAME}:${USERNAME} https://github.com/USAC
 RUN python3 -m venv --system-site-packages ${GEOPROC_VENV} \
     && . activate \
     && pip install --upgrade pip \
-    && pip install ${GEOPROC}/pkg/
+    && pip install ${GEOPROC}/pkg/ 'urllib3>=2.8.0,<3'
 
 # Cache buster
 # RUN echo $(date +%s)

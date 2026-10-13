@@ -1,11 +1,9 @@
 ARG GDAL_TAG=ubuntu-full-3.13.1
-ARG GEOPROC_PACKAGE=main:geoproc
 
 # *~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~
 # builder
 # *~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~*~
 FROM ghcr.io/osgeo/gdal:${GDAL_TAG} AS builder
-ARG GEOPROC_PACKAGE
 
 # force stdout and stderr to be unbuffered setting to non-empty
 ENV PYTHONUNBUFFERED=1
@@ -46,8 +44,8 @@ RUN groupadd -r ${USERNAME} && \
 
 WORKDIR ${GEOPROC}
 
-# get the cumulus-geoproc package
-ADD --keep-git-dir=false --chown=${USERNAME}:${USERNAME} https://github.com/USACE/cumulus-geoproc.git#${GEOPROC_PACKAGE} ${GEOPROC}/pkg
+# Install the processors from the same checkout as the worker.
+COPY --chown=${USERNAME}:${USERNAME} ./geoproc/ ${GEOPROC}/pkg/
 
 # install package in venv
 RUN python3 -m venv --system-site-packages ${GEOPROC_VENV} \
@@ -63,3 +61,23 @@ COPY ./worker.py ./
 USER ${USERNAME}:${USERNAME}
 
 ENTRYPOINT ["python3", "worker.py"]
+
+
+# Processor development and regression tests; production builds skip this stage.
+FROM builder AS test
+USER root
+ARG TEST_DATA_TAG=2025-11-04
+
+COPY requirements-dev.txt ./
+RUN pip install -r requirements-dev.txt
+
+ADD https://github.com/USACE/cumulus-geoproc-test-data/releases/download/${TEST_DATA_TAG}/cumulus-geoproc-test-data.tar.gz ${GEOPROC}/
+RUN tar -xzf cumulus-geoproc-test-data.tar.gz && rm cumulus-geoproc-test-data.tar.gz
+COPY --chown=${USERNAME}:${USERNAME} geoproc_develop/ ${GEOPROC}/develop/
+
+USER ${USERNAME}:${USERNAME}
+ENTRYPOINT ["python3", "-m", "pytest"]
+CMD ["pkg/src/tests", "-v", "-p", "no:cacheprovider"]
+
+# Keep the default image limited to the production worker.
+FROM builder AS runtime

@@ -1,0 +1,33 @@
+[build-system]
+requires = ["setuptools", "setuptools-scm", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "cumulus_geoproc"
+dynamic = ["version"]
+description = "Implementation processing incoming grids to Cloud Optimized GeoTIFF (COG)"
+requires-python = ">=3.8"
+readme = { file = "README.md", content-type = "text/markdown" }
+license = { file = "LICENSE" }
+dependencies = [
+    "httpx",
+    "httpx[http2]",
+    # Pinned for CVE-2026-71554. h2 is pulled in by httpx[http2], whose
+    # constraint is h2>=3,<5, so it would otherwise resolve to 4.3.0.
+    "h2>=4.4.1",
+    "boto3",
+    "botocore",
+    "celery",
+    "pyplugs",
+    "netCDF4",
+    "requests",
+    "GDAL[numpy]>=3.9.1",
+    "psycopg2-binary",
+    "pyresample",
+]
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.setuptools.package-data]
+cumulus_geoproc = ["geoprocess/snodas/data/*"]

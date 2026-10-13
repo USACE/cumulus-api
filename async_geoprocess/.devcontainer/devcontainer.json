@@ -1,0 +1,23 @@
+{
+  "name": "Cumulus geoprocessors",
+  "dockerComposeFile": [
+    "../docker-compose.tests.yml",
+    "docker-compose.yml"
+  ],
+  "service": "geoproc",
+  "workspaceFolder": "/opt/geoproc/pkg",
+  "remoteUser": "geoproc",
+  "shutdownAction": "stopCompose",
+  "customizations": {
+    "vscode": {
+      "extensions": [
+        "ms-python.python",
+        "ms-python.vscode-pylance",
+        "ms-python.black-formatter"
+      ],
+      "settings": {
+        "python.defaultInterpreterPath": "/opt/geoproc/venv/bin/python3"
+      }
+    }
+  }
+}

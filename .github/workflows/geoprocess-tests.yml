@@ -1,0 +1,23 @@
+name: Test Geoprocessors
+
+on:
+  pull_request:
+    branches: [cwbi-dev, cwbi-test, cwbi-prod]
+    paths:
+      - 'async_geoprocess/**'
+      - '.github/workflows/geoprocess-tests.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  processors:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v4
+      - name: Build processor test image
+        run: docker compose -f async_geoprocess/docker-compose.tests.yml build geoproc
+      - name: Test processors against reference data
+        run: docker compose -f async_geoprocess/docker-compose.tests.yml run --rm geoproc

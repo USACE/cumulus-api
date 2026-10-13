@@ -1,0 +1,14 @@
+services:
+  geoproc:
+    build:
+      context: .
+      target: test
+      args:
+        TEST_DATA_TAG: "2025-11-04"
+    environment:
+      # Use edits in the mounted checkout without reinstalling the package.
+      PYTHONPATH: /opt/geoproc/pkg/src
+      PYTHONDONTWRITEBYTECODE: "1"
+    volumes:
+      - ./geoproc:/opt/geoproc/pkg:ro
+      - ./geoproc_develop:/opt/geoproc/develop:rw

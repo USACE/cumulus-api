@@ -1,0 +1,2731 @@
+{
+  "description":"blend.20221212t01z.core.f001.co.grib2",
+  "driverShortName":"GRIB",
+  "driverLongName":"GRIdded Binary (.grb, .grb2)",
+  "files":[
+    "blend.20221212t01z.core.f001.co.grib2"
+  ],
+  "size":[
+    2345,
+    1597
+  ],
+  "coordinateSystem":{
+    "wkt":"PROJCRS[\"unnamed\",\n    BASEGEOGCRS[\"Coordinate System imported from GRIB file\",\n        DATUM[\"unnamed\",\n            ELLIPSOID[\"Sphere\",6371200,0,\n                LENGTHUNIT[\"metre\",1,\n                    ID[\"EPSG\",9001]]]],\n        PRIMEM[\"Greenwich\",0,\n            ANGLEUNIT[\"degree\",0.0174532925199433,\n                ID[\"EPSG\",9122]]]],\n    CONVERSION[\"Lambert Conic Conformal (2SP)\",\n        METHOD[\"Lambert Conic Conformal (2SP)\",\n            ID[\"EPSG\",9802]],\n        PARAMETER[\"Latitude of false origin\",25,\n            ANGLEUNIT[\"degree\",0.0174532925199433],\n            ID[\"EPSG\",8821]],\n        PARAMETER[\"Longitude of false origin\",-95,\n            ANGLEUNIT[\"degree\",0.0174532925199433],\n            ID[\"EPSG\",8822]],\n        PARAMETER[\"Latitude of 1st standard parallel\",25,\n            ANGLEUNIT[\"degree\",0.0174532925199433],\n            ID[\"EPSG\",8823]],\n        PARAMETER[\"Latitude of 2nd standard parallel\",25,\n            ANGLEUNIT[\"degree\",0.0174532925199433],\n            ID[\"EPSG\",8824]],\n        PARAMETER[\"Easting at false origin\",0,\n            LENGTHUNIT[\"metre\",1],\n            ID[\"EPSG\",8826]],\n        PARAMETER[\"Northing at false origin\",0,\n            LENGTHUNIT[\"metre\",1],\n            ID[\"EPSG\",8827]]],\n    CS[Cartesian,2],\n        AXIS[\"(E)\",east,\n            ORDER[1],\n            LENGTHUNIT[\"Metre\",1]],\n        AXIS[\"(N)\",north,\n            ORDER[2],\n            LENGTHUNIT[\"Metre\",1]]]",
+    "dataAxisToSRSAxisMapping":[
+      1,
+      2
+    ]
+  },
+  "geoTransform":[
+    -3272421.4573371694423258,
+    2539.7029999999999745,
+    0.0,
+    3790842.1060354355722666,
+    0.0,
+    -2539.7029999999999745
+  ],
+  "metadata":{
+  },
+  "cornerCoordinates":{
+    "upperLeft":[
+      -3272421.457,
+      3790842.106
+    ],
+    "lowerLeft":[
+      -3272421.457,
+      -265063.585
+    ],
+    "lowerRight":[
+      2683182.078,
+      -265063.585
+    ],
+    "upperRight":[
+      2683182.078,
+      3790842.106
+    ],
+    "center":[
+      -294619.69,
+      1762889.261
+    ]
+  },
+  "wgs84Extent":{
+    "type":"Polygon",
+    "coordinates":[
+      [
+        [
+          -138.394187,
+          53.0568774
+        ],
+        [
+          -126.2855626,
+          19.2153401
+        ],
+        [
+          -69.1986051,
+          20.318417
+        ],
+        [
+          -59.0215392,
+          54.3796791
+        ],
+        [
+          -138.394187,
+          53.0568774
+        ]
+      ]
+    ]
+  },
+  "bands":[
+    {
+      "band":1,
+      "block":[
+        2345,
+        1
+      ],
+      "type":"Float64",
+      "colorInterpretation":"Undefined",
+      "description":"2[m] HTGL=\"Specified height level above ground\"",
+      "noDataValue":9999.0,
+      "metadata":{
+        "":{
+          "GRIB_COMMENT":"Apparent Temperature [C]",
+          "GRIB_DISCIPLINE":"0(Meteorological)",
+          "GRIB_ELEMENT":"APTMP",
+          "GRIB_FORECAST_SECONDS":"3600",
+          "GRIB_IDS":"CENTER=7(US-NCEP) SUBCENTER=14(Meteorological Development Laboratory (MDL)) MASTER_TABLE=1 LOCAL_TABLE=1 SIGNF_REF_TIME=1(Start_of_Forecast) REF_TIME=2022-12-12T01:00:00Z PROD_STATUS=0(Operational) TYPE=1(Forecast)",
+          "GRIB_PDS_PDTN":"0",
+          "GRIB_PDS_TEMPLATE_ASSEMBLED_VALUES":"0 21 2 255 104 65535 255 1 1 103 0 2 255 0 0",
+          "GRIB_PDS_TEMPLATE_NUMBERS":"0 21 2 255 104 255 255 255 1 0 0 0 1 103 0 0 0 0 2 255 0 0 0 0 0",
+          "GRIB_REF_TIME":"1670806800",
+          "GRIB_SHORT_NAME":"2-HTGL",
+          "GRIB_UNIT":"[C]",
+          "GRIB_VALID_TIME":"1670810400"
+        }
+      }
+    },
+    {
+      "band":2,
+      "block":[
+        2345,
+        1
+      ],
+      "type":"Float64",
+      "colorInterpretation":"Undefined",
+      "description":"0[-] SFC=\"Ground or water surface\"",
+      "noDataValue":9999.0,
+      "metadata":{
+        "":{
+          "GRIB_COMMENT":"Convective available potential energy [J/kg]",
+          "GRIB_DISCIPLINE":"0(Meteorological)",
+          "GRIB_ELEMENT":"CAPE",
+          "GRIB_FORECAST_SECONDS":"3600",
+          "GRIB_IDS":"CENTER=7(US-NCEP) SUBCENTER=14(Meteorological Development Laboratory (MDL)) MASTER_TABLE=1 LOCAL_TABLE=1 SIGNF_REF_TIME=1(Start_of_Forecast) REF_TIME=2022-12-12T01:00:00Z PROD_STATUS=0(Operational) TYPE=1(Forecast)",
+          "GRIB_PDS_PDTN":"0",
+          "GRIB_PDS_TEMPLATE_ASSEMBLED_VALUES":"7 6 2 255 104 65535 255 1 1 1 0 0 255 0 0",
+          "GRIB_PDS_TEMPLATE_NUMBERS":"7 6 2 255 104 255 255 255 1 0 0 0 1 1 0 0 0 0 0 255 0 0 0 0 0",
+          "GRIB_REF_TIME":"1670806800",
+          "GRIB_SHORT_NAME":"0-SFC",
+          "GRIB_UNIT":"[J/kg]",
+          "GRIB_VALID_TIME":"1670810400"
+        }
+      }
+    },
+    {
+      "band":3,
+      "block":[
+        2345,
+        1
+      ],
+      "type":"Float64",
+      "colorInterpretation":"Undefined",
+      "description":"0[-] SFC=\"Ground or water surface\"",
+      "noDataValue":9999.0,
+      "metadata":{
+        "":{
+          "GRIB_COMMENT":"Convective available potential energy [stddev]",
+          "GRIB_DISCIPLINE":"0(Meteorological)",
+          "GRIB_ELEMENT":"CAPE",
+          "GRIB_FORECAST_SECONDS":"3600",
+          "GRIB_IDS":"CENTER=7(US-NCEP) SUBCENTER=14(Meteorological Development Laboratory (MDL)) MASTER_TABLE=1 LOCAL_TABLE=1 SIGNF_REF_TIME=1(Start_of_Forecast) REF_TIME=2022-12-12T01:00:00Z PROD_STATUS=0(Operational) TYPE=1(Forecast)",
+          "GRIB_PDS_PDTN":"2",
+          "GRIB_PDS_TEMPLATE_ASSEMBLED_VALUES":"7 6 2 255 104 65535 255 1 1 1 0 0 255 0 0 2 255",
+          "GRIB_PDS_TEMPLATE_NUMBERS":"7 6 2 255 104 255 255 255 1 0 0 0 1 1 0 0 0 0 0 255 0 0 0 0 0 2 255",
+          "GRIB_REF_TIME":"1670806800",
+          "GRIB_SHORT_NAME":"0-SFC",
+          "GRIB_UNIT":"[stddev]",
+          "GRIB_VALID_TIME":"1670810400"
+        }
+      }
+    },
+    {
+      "band":4,
+      "block":[
+        2345,
+        1
+      ],
+      "type":"Float64",
+      "colorInterpretation":"Undefined",
+      "description":"0[-] CEIL=\"Cloud ceiling\"",
+      "noDataValue":9999.0,
+      "metadata":{
+        "":{
+          "GRIB_COMMENT":"Ceiling [m]",
+          "GRIB_DISCIPLINE":"0(Meteorological)",
+          "GRIB_ELEMENT":"CEIL",
+          "GRIB_FORECAST_SECONDS":"3600",
+          "GRIB_IDS":"CENTER=7(US-NCEP) SUBCENTER=14(Meteorological Development Laboratory (MDL)) MASTER_TABLE=1 LOCAL_TABLE=1 SIGNF_REF_TIME=1(Start_of_Forecast) REF_TIME=2022-12-12T01:00:00Z PROD_STATUS=0(Operational) TYPE=1(Forecast)",
+          "GRIB_PDS_PDTN":"0",
+          "GRIB_PDS_TEMPLATE_ASSEMBLED_VALUES":"6 13 2 255 104 65535 255 1 1 215 0 0 255 0 0",
+          "GRIB_PDS_TEMPLATE_NUMBERS":"6 13 2 255 104 255 255 255 1 0 0 0 1 215 0 0 0 0 0 255 0 0 0 0 0",
+          "GRIB_REF_TIME":"1670806800",
+          "GRIB_SHORT_NAME":"0-CEIL",
+          "GRIB_UNIT":"[m]",
+          "GRIB_VALID_TIME":"1670810400"
+        }
+      }
+    },
+    {
+      "band":5,
+      "block":[
+        2345,
+        1
+      ],
+      "type":"Float64",
+      "colorInterpretation":"Undefined",
+      "description":"0[-] CEIL=\"Cloud ceiling\"",
+      "metadata":{
+        "":{
+          "GRIB_COMMENT":"01 hr Prob of Ceiling < 304.8 m [%]",
+          "GRIB_DISCIPLINE":"0(Meteorological)",
+          "GRIB_ELEMENT":"ProbCEIL01",
+          "GRIB_FORECAST_SECONDS":"3600",
+          "GRIB_IDS":"CENTER=7(US-NCEP) SUBCENTER=14(Meteorological Development Laboratory (MDL)) MASTER_TABLE=1 LOCAL_TABLE=1 SIGNF_REF_TIME=1(Start_of_Forecast) REF_TIME=2022-12-12T01:00:00Z PROD_STATUS=0(Operational) TYPE=1(Forecast)",
+          "GRIB_PDS_PDTN":"5",
+          "GRIB_PDS_TEMPLATE_ASSEMBLED_VALUES":"6 13 5 255 108 65535 255 1 1 215 0 0 255 0 0 3 7 0 2 30480 -127 255",
+          "GRIB_PDS_TEMPLATE_NUMBERS":"6 13 5 255 108 255 255 255 1 0 0 0 1 215 0 0 0 0 0 255 0 0 0 0 0 3 7 0 2 0 0 119 16 255 0 0 0 255",
+          "GRIB_REF_TIME":"1670806800",
+          "GRIB_SHORT_NAME":"0-CEIL",
+          "GRIB_UNIT":"[%]",
+          "GRIB_VALID_TIME":"1670810400"
+        }
+      }
+    },
+    {
+      "band":6,
+      "block":[
+        2345,
+        1
+      ],
+      "type":"Float64",
+      "colorInterpretation":"Undefined",
+      "description":"0[-] CEIL=\"Cloud ceiling\"",
+      "metadata":{
+        "":{
+          "GRIB_COMMENT":"01 hr Prob of Ceiling < 152.4 m [%]",
+          "GRIB_DISCIPLINE":"0(Meteorological)",
+          "GRIB_ELEMENT":"ProbCEIL01",
+          "GRIB_FORECAST_SECONDS":"3600",
+          "GRIB_IDS":"CENTER=7(US-NCEP) SUBCENTER=14(Meteorological Development Laboratory (MDL)) MASTER_TABLE=1 LOCAL_TABLE=1 SIGNF_REF_TIME=1(Start_of_Forecast) REF_TIME=2022-12-12T01:00:00Z PROD_STATUS=0(Operational) TYPE=1(Forecast)",
+          "GRIB_PDS_PDTN":"5",
+          "GRIB_PDS_TEMPLATE_ASSEMBLED_VALUES":"6 13 5 255 108 65535 255 1 1 215 0 0 255 0 0 2 7 0 2 15240 -127 255",
+          "GRIB_PDS_TEMPLATE_NUMBERS":"6 13 5 255 108 255 255 255 1 0 0 0 1 215 0 0 0 0 0 255 0 0 0 0 0 2 7 0 2 0 0 59 136 255 0 0 0 255",
+          "GRIB_REF_TIME":"1670806800",
+          "GRIB_SHORT_NAME":"0-CEIL",
+          "GRIB_UNIT":"[%]",
+          "GRIB_VALID_TIME":"1670810400"
+        }
+      }
+    },
+    {
+      "band":7,
+      "block":[
+        2345,
+        1
+      ],
+      "type":"Float64",
+      "colorInterpretation":"Undefined",
+      "description":"0[-] CEIL=\"Cloud ceiling\"",
+      "metadata":{
+        "":{
+          "GRIB_COMMENT":"01 hr Prob of Ceiling < 914.5 m [%]",
+          "GRIB_DISCIPLINE":"0(Meteorological)",
+          "GRIB_ELEMENT":"ProbCEIL01",
+          "GRIB_FORECAST_SECONDS":"3600",
+          "GRIB_IDS":"CENTER=7(US-NCEP) SUBCENTER=14(Meteorological Development Laboratory (MDL)) MASTER_TABLE=1 LOCAL_TABLE=1 SIGNF_REF_TIME=1(Start_of_Forecast) REF_TIME=2022-12-12T01:00:00Z PROD_STATUS=0(Operational) TYPE=1(Forecast)",
+          "GRIB_PDS_PDTN":"5",
+          "GRIB_PDS_TEMPLATE_ASSEMBLED_VALUES":"6 13 5 255 108 65535 255 1 1 215 0 0 255 0 0 5 7 0 2 91450 -127 255",
+          "GRIB_PDS_TEMPLATE_NUMBERS":"6 13 5 255 108 255 255 255 1 0 0 0 1 215 0 0 0 0 0 255 0 0 0 0 0 5 7 0 2 0 1 101 58 255 0 0 0 255",
+          "GRIB_REF_TIME":"1670806800",
+          "GRIB_SHORT_NAME":"0-CEIL",
+          "GRIB_UNIT":"[%]",
+          "GRIB_VALID_TIME":"1670810400"
+        }
+      }
+    },
+    {
+      "band":8,
+      "block":[
+        2345,
+        1
+      ],
+      "type":"Float64",
+      "colorInterpretation":"Undefined",
+      "description":"0[-] CBL=\"Cloud base level\"",
+      "noDataValue":9999.0,
+      "metadata":{
+        "":{
+          "GRIB_COMMENT":"Ceiling [m]",
+          "GRIB_DISCIPLINE":"0(Meteorological)",
+          "GRIB_ELEMENT":"CEIL",
+          "GRIB_FORECAST_SECONDS":"3600",
+          "GRIB_IDS":"CENTER=7(US-NCEP) SUBCENTER=14(Meteorological Development Laboratory (MDL)) MASTER_TABLE=1 LOCAL_TABLE=1 SIGNF_REF_TIME=1(Start_of_Forecast) REF_TIME=2022-12-12T01:00:00Z PROD_STATUS=0(Operational) TYPE=1(Forecast)",
+          "GRIB_PDS_PDTN":"0",
+          "GRIB_PDS_TEMPLATE_ASSEMBLED_VALUES":"6 13 2 255 104 65535 255 1 1 2 0 0 255 0 0",
+          "GRIB_PDS_TEMPLATE_NUMBERS":"6 13 2 255 104 255 255 255 1 0 0 0 1 2 0 0 0 0 0 255 0 0 0 0 0",
+          "GRIB_REF_TIME":"1670806800",
+          "GRIB_SHORT_NAME":"0-CBL",
+          "GRIB_UNIT":"[m]",
+          "GRIB_VALID_TIME":"1670810400"
+        }
+      }
+    },
+    {
+      "band":9,
+      "block":[
+        2345,
+        1
+      ],
+      "type":"Float64",
+      "colorInterpretation":"Undefined",
+      "description":"0[-] SFC=\"Ground or water surface\"",
+      "noDataValue":9999.0,
+      "metadata":{
+        "":{
+          "GRIB_COMMENT":"(prodType 0, cat 19, subcat 239) [-]",
+          "GRIB_DISCIPLINE":"0(Meteorological)",
+          "GRIB_ELEMENT":"unknown",
+          "GRIB_FORECAST_SECONDS":"3600",
+          "GRIB_IDS":"CENTER=7(US-NCEP) SUBCENTER=14(Meteorological Development Laboratory (MDL)) MASTER_TABLE=1 LOCAL_TABLE=1 SIGNF_REF_TIME=1(Start_of_Forecast) REF_TIME=2022-12-12T01:00:00Z PROD_STATUS=0(Operational) TYPE=1(Forecast)",
+          "GRIB_PDS_PDTN":"6",
+          "GRIB_PDS_TEMPLATE_ASSEMBLED_VALUES":"19 239 2 255 104 65535 255 1 1 1 0 0 255 0 0 5",
+          "GRIB_PDS_TEMPLATE_NUMBERS":"19 239 2 255 104 255 255 255 1 0 0 0 1 1 0 0 0 0 0 255 0 0 0 0 0 5",
+          "GRIB_REF_TIME":"1670806800",
+          "GRIB_SHORT_NAME":"0-SFC",
+          "GRIB_UNIT":"[-]",
+          "GRIB_VALID_TIME":"1670810400"
+        }
+      }
+    },
+    {
+      "band":10,
+      "block":[
+        2345,
+        1
+      ],
+      "type":"Float64",
+      "colorInterpretation":"Undefined",
+      "description":"0[-] SFC=\"Ground or water surface\"",
+      "noDataValue":9999.0,
+      "metadata":{
+        "":{
+          "GRIB_COMMENT":"(prodType 0, cat 19, subcat 239) [-]",
+          "GRIB_DISCIPLINE":"0(Meteorological)",
+          "GRIB_ELEMENT":"unknown",
+          "GRIB_FORECAST_SECONDS":"3600",
+          "GRIB_IDS":"CENTER=7(US-NCEP) SUBCENTER=14(Meteorological Development Laboratory (MDL)) MASTER_TABLE=1 LOCAL_TABLE=1 SIGNF_REF_TIME=1(Start_of_Forecast) REF_TIME=2022-12-12T01:00:00Z PROD_STATUS=0(Operational) TYPE=1(Forecast)",
+          "GRIB_PDS_PDTN":"6",
+          "GRIB_PDS_TEMPLATE_ASSEMBLED_VALUES":"19 239 2 255 104 65535 255 1 1 1 0 0 255 0 0 10",
+          "GRIB_PDS_TEMPLATE_NUMBERS":"19 239 2 255 104 255 255 255 1 0 0 0 1 1 0 0 0 0 0 255 0 0 0 0 0 10",
+          "GRIB_REF_TIME":"1670806800",
+          "GRIB_SHORT_NAME":"0-SFC",
+          "GRIB_UNIT":"[-]",
+          "GRIB_VALID_TIME":"1670810400"
+        }
+      }
+    },
+    {
+      "band":11,
+      "block":[
+        2345,
+        1
+      ],
+      "type":"Float64",
+      "colorInterpretation":"Undefined",
+      "description":"0[-] SFC=\"Ground or water surface\"",
+      "noDataValue":9999.0,
+      "metadata":{
+        "":{
+          "GRIB_COMMENT":"(prodType 0, cat 19, subcat 239) [-]",
+          "GRIB_DISCIPLINE":"0(Meteorological)",
+          "GRIB_ELEMENT":"unknown",
+          "GRIB_FORECAST_SECONDS":"3600",
+          "GRIB_IDS":"CENTER=7(US-NCEP) SUBCENTER=14(Meteorological Development Laboratory (MDL)) MASTER_TABLE=1 LOCAL_TABLE=1 SIGNF_REF_TIME=1(Start_of_Forecast) REF_TIME=2022-12-12T01:00:00Z PROD_STATUS=0(Operational) TYPE=1(Forecast)",
+          "GRIB_PDS_PDTN":"6",
+          "GRIB_PDS_TEMPLATE_ASSEMBLED_VALUES":"19 239 2 255 104 65535 255 1 1 1 0 0 255 0 0 25",
+          "GRIB_PDS_TEMPLATE_NUMBERS":"19 239 2 255 104 255 255 255 1 0 0 0 1 1 0 0 0 0 0 255 0 0 0 0 0 25",
+          "GRIB_REF_TIME":"1670806800",
+          "GRIB_SHORT_NAME":"0-SFC",
+          "GRIB_UNIT":"[-]",
+          "GRIB_VALID_TIME":"1670810400"
+        }
+      }
+    },
+    {
+      "band":12,
+      "block":[
+        2345,
+        1
+      ],
+      "type":"Float64",
+      "colorInterpretation":"Undefined",
+      "description":"0[-] SFC=\"Ground or water surface\"",
+      "noDataValue":9999.0,
+      "metadata":{
+        "":{
+          "GRIB_COMMENT":"(prodType 0, cat 19, subcat 239) [-]",
+          "GRIB_DISCIPLINE":"0(Meteorological)",
+          "GRIB_ELEMENT":"unknown",
+          "GRIB_FORECAST_SECONDS":"3600",
+          "GRIB_IDS":"CENTER=7(US-NCEP) SUBCENTER=14(Meteorological Development Laboratory (MDL)) MASTER_TABLE=1 LOCAL_TABLE=1 SIGNF_REF_TIME=1(Start_of_Forecast) REF_TIME=2022-12-12T01:00:00Z PROD_STATUS=0(Operational) TYPE=1(Forecast)",
+          "GRIB_PDS_PDTN":"6",
+          "GRIB_PDS_TEMPLATE_ASSEMBLED_VALUES":"19 239 2 255 104 65535 255 1 1 1 0 0 255 0 0 50",
+          "GRIB_PDS_TEMPLATE_NUMBERS":"19 239 2 255 104 255 255 255 1 0 0 0 1 1 0 0 0 0 0 255 0 0 0 0 0 50",
+          "GRIB_REF_TIME":"1670806800",
+          "GRIB_SHORT_NAME":"0-SFC",
+          "GRIB_UNIT":"[-]",
+          "GRIB_VALID_TIME":"1670810400"
+        }
+      }
+    },
+    {
+      "band":13,
+      "block":[
+        2345,
+        1
+      ],
+      "type":"Float64",
+      "colorInterpretation":"Undefined",
+      "description":"0[-] SFC=\"Ground or water surface\"",
+      "noDataValue":9999.0,
+      "metadata":{
+        "":{
+          "GRIB_COMMENT":"(prodType 0, cat 19, subcat 239) [-]",
+          "GRIB_DISCIPLINE":"0(Meteorological)",
+          "GRIB_ELEMENT":"unknown",
+          "GRIB_FORECAST_SECONDS":"3600",
+          "GRIB_IDS":"CENTER=7(US-NCEP) SUBCENTER=14(Meteorological Development Laboratory (MDL)) MASTER_TABLE=1 LOCAL_TABLE=1 SIGNF_REF_TIME=1(Start_of_Forecast) REF_TIME=2022-12-12T01:00:00Z PROD_STATUS=0(Operational) TYPE=1(Forecast)",
+          "GRIB_PDS_PDTN":"6",
+          "GRIB_PDS_TEMPLATE_ASSEMBLED_VALUES":"19 239 2 255 104 65535 255 1 1 1 0 0 255 0 0 75",
+          "GRIB_PDS_TEMPLATE_NUMBERS":"19 239 2 255 104 255 255 255 1 0 0 0 1 1 0 0 0 0 0 255 0 0 0 0 0 75",
+          "GRIB_REF_TIME":"1670806800",
+          "GRIB_SHORT_NAME":"0-SFC",
+          "GRIB_UNIT":"[-]",
+          "GRIB_VALID_TIME":"1670810400"
+        }
+      }
+    },
+    {
+      "band":14,
+      "block":[
+        2345,
+        1
+      ],
+      "type":"Float64",
+      "colorInterpretation":"Undefined",
+      "description":"0[-] SFC=\"Ground or water surface\"",
+      "noDataValue":9999.0,
+      "metadata":{
+        "":{
+          "GRIB_COMMENT":"(prodType 0, cat 19, subcat 239) [-]",
+          "GRIB_DISCIPLINE":"0(Meteorological)",
+          "GRIB_ELEMENT":"unknown",
+          "GRIB_FORECAST_SECONDS":"3600",
+          "GRIB_IDS":"CENTER=7(US-NCEP) SUBCENTER=14(Meteorological Development Laboratory (MDL)) MASTER_TABLE=1 LOCAL_TABLE=1 SIGNF_REF_TIME=1(Start_of_Forecast) REF_TIME=2022-12-12T01:00:00Z PROD_STATUS=0(Operational) TYPE=1(Forecast)",
+          "GRIB_PDS_PDTN":"6",
+          "GRIB_PDS_TEMPLATE_ASSEMBLED_VALUES":"19 239 2 255 104 65535 255 1 1 1 0 0 255 0 0 90",
+          "GRIB_PDS_TEMPLATE_NUMBERS":"19 239 2 255 104 255 255 255 1 0 0 0 1 1 0 0 0 0 0 255 0 0 0 0 0 90",
+          "GRIB_REF_TIME":"1670806800",
+          "GRIB_SHORT_NAME":"0-SFC",
+          "GRIB_UNIT":"[-]",
+          "GRIB_VALID_TIME":"1670810400"
+        }
+      }
+    },
+    {
+      "band":15,
+      "block":[
+        2345,
+        1
+      ],
+      "type":"Float64",
+      "colorInterpretation":"Undefined",
+      "description":"0[-] SFC=\"Ground or water surface\"",
+      "noDataValue":9999.0,
+      "metadata":{
+        "":{
+          "GRIB_COMMENT":"(prodType 0, cat 19, subcat 239) [-]",
+          "GRIB_DISCIPLINE":"0(Meteorological)",
+          "GRIB_ELEMENT":"unknown",
+          "GRIB_FORECAST_SECONDS":"3600",
+          "GRIB_IDS":"CENTER=7(US-NCEP) SUBCENTER=14(Meteorological Development Laboratory (MDL)) MASTER_TABLE=1 LOCAL_TABLE=1 SIGNF_REF_TIME=1(Start_of_Forecast) REF_TIME=2022-12-12T01:00:00Z PROD_STATUS=0(Operational) TYPE=1(Forecast)",
+          "GRIB_PDS_PDTN":"6",
+          "GRIB_PDS_TEMPLATE_ASSEMBLED_VALUES":"19 239 2 255 104 65535 255 1 1 1 0 0 255 0 0 95",
+          "GRIB_PDS_TEMPLATE_NUMBERS":"19 239 2 255 104 255 255 255 1 0 0 0 1 1 0 0 0 0 0 255 0 0 0 0 0 95",
+          "GRIB_REF_TIME":"1670806800",
+          "GRIB_SHORT_NAME":"0-SFC",
+          "GRIB_UNIT":"[-]",
+          "GRIB_VALID_TIME":"1670810400"
+        }
+      }
+    },
+    {
+      "band":16,
+      "block":[
+        2345,
+        1
+      ],
+      "type":"Float64",
+      "colorInterpretation":"Undefined",
+      "description":"0[-] SFC=\"Ground or water surface\"",
+      "noDataValue":9999.0,
+      "metadata":{
+        "":{
+          "GRIB_COMMENT":"(prodType 0, cat 19, subcat 239) [-]",
+          "GRIB_DISCIPLINE":"0(Meteorological)",
+          "GRIB_ELEMENT":"unknown",
+          "GRIB_FORECAST_SECONDS":"3600",
+          "GRIB_IDS":"CENTER=7(US-NCEP) SUBCENTER=14(Meteorological Development Laboratory (MDL)) MASTER_TABLE=1 LOCAL_TABLE=1 SIGNF_REF_TIME=1(Start_of_Forecast) REF_TIME=2022-12-12T01:00:00Z PROD_STATUS=0(Operational) TYPE=1(Forecast)",
+          "GRIB_PDS_PDTN":"2",
+          "GRIB_PDS_TEMPLATE_ASSEMBLED_VALUES":"19 239 2 255 104 65535 255 1 1 1 0 0 255 0 0 241 241",
+          "GRIB_PDS_TEMPLATE_NUMBERS":"19 239 2 255 104 255 255 255 1 0 0 0 1 1 0 0 0 0 0 255 0 0 0 0 0 241 241",
+          "GRIB_REF_TIME":"1670806800",
+          "GRIB_SHORT_NAME":"0-SFC",
+          "GRIB_UNIT":"[-]",
+          "GRIB_VALID_TIME":"1670810400"
+        }
+      }
+    },
+    {
+      "band":17,
+      "block":[
+        2345,
+        1
+      ],
+      "type":"Float64",
+      "colorInterpretation":"Undefined",
+      "description":"0[-] SFC=\"Ground or water surface\"",
+      "noDataValue":9999.0,
+      "metadata":{
+        "":{
+          "GRIB_COMMENT":"Prob of (prodType 0, cat 19, subcat 239) [%]",
+          "GRIB_DISCIPLINE":"0(Meteorological)",
+          "GRIB_ELEMENT":"ProbUnknown",
+          "GRIB_FORECAST_SECONDS":"3600",
+          "GRIB_IDS":"CENTER=7(US-NCEP) SUBCENTER=14(Meteorological Development Laboratory (MDL)) MASTER_TABLE=1 LOCAL_TABLE=1 SIGNF_REF_TIME=1(Start_of_Forecast) REF_TIME=2022-12-12T01:00:00Z PROD_STATUS=0(Operational) TYPE=1(Forecast)",
+          "GRIB_PDS_PDTN":"5",
+          "GRIB_PDS_TEMPLATE_ASSEMBLED_VALUES":"19 239 2 255 104 65535 255 1 1 1 0 0 255 0 0 255 255 1 -127 255 0 50",
+          "GRIB_PDS_TEMPLATE_NUMBERS":"19 239 2 255 104 255 255 255 1 0 0 0 1 1 0 0 0 0 0 255 0 0 0 0 0 255 255 1 255 0 0 0 255 0 0 0 0 50",
+          "GRIB_REF_TIME":"1670806800",
+          "GRIB_SHORT_NAME":"0-SFC",
+          "GRIB_UNIT":"[%]",
+          "GRIB_VALID_TIME":"1670810400"
+        }
+      }
+    },
+    {
+      "band":18,
+      "block":[
+        2345,
+        1
+      ],
+      "type":"Float64",
+      "colorInterpretation":"Undefined",
+      "description":"0[-] SFC=\"Ground or water surface\"",
+      "noDataValue":9999.0,
+      "metadata":{
+        "":{
+          "GRIB_COMMENT":"Prob of (prodType 0, cat 19, subcat 239) [%]",
+          "GRIB_DISCIPLINE":"0(Meteorological)",
+          "GRIB_ELEMENT":"ProbUnknown",
+          "GRIB_FORECAST_SECONDS":"3600",
+          "GRIB_IDS":"CENTER=7(US-NCEP) SUBCENTER=14(Meteorological Development Laboratory (MDL)) MASTER_TABLE=1 LOCAL_TABLE=1 SIGNF_REF_TIME=1(Start_of_Forecast) REF_TIME=2022-12-12T01:00:00Z PROD_STATUS=0(Operational) TYPE=1(Forecast)",
+          "GRIB_PDS_PDTN":"5",
+          "GRIB_PDS_TEMPLATE_ASSEMBLED_VALUES":"19 239 2 255 104 65535 255 1 1 1 0 0 255 0 0 255 255 1 -127 255 0 65",
+          "GRIB_PDS_TEMPLATE_NUMBERS":"19 239 2 255 104 255 255 255 1 0 0 0 1 1 0 0 0 0 0 255 0 0 0 0 0 255 255 1 255 0 0 0 255 0 0 0 0 65",
+          "GRIB_REF_TIME":"1670806800",
+          "GRIB_SHORT_NAME":"0-SFC",
+          "GRIB_UNIT":"[%]",
+          "GRIB_VALID_TIME":"1670810400"
+        }
+      }
+    },
+    {
+      "band":19,
+      "block":[
+        2345,
+        1
+      ],
+      "type":"Float64",
+      "colorInterpretation":"Undefined",
+      "description":"0[-] SFC=\"Ground or water surface\"",
+      "noDataValue":9999.0,
+      "metadata":{
+        "":{
+          "GRIB_COMMENT":"Prob of (prodType 0, cat 19, subcat 239) [%]",
+          "GRIB_DISCIPLINE":"0(Meteorological)",
+          "GRIB_ELEMENT":"ProbUnknown",
+          "GRIB_FORECAST_SECONDS":"3600",
+          "GRIB_IDS":"CENTER=7(US-NCEP) SUBCENTER=14(Meteorological Development Laboratory (MDL)) MASTER_TABLE=1 LOCAL_TABLE=1 SIGNF_REF_TIME=1(Start_of_Forecast) REF_TIME=2022-12-12T01:00:00Z PROD_STATUS=0(Operational) TYPE=1(Forecast)",
+          "GRIB_PDS_PDTN":"5",
+          "GRIB_PDS_TEMPLATE_ASSEMBLED_VALUES":"19 239 2 255 104 65535 255 1 1 1 0 0 255 0 0 255 255 1 -127 255 0 70",
+          "GRIB_PDS_TEMPLATE_NUMBERS":"19 239 2 255 104 255 255 255 1 0 0 0 1 1 0 0 0 0 0 255 0 0 0 0 0 255 255 1 255 0 0 0 255 0 0 0 0 70",
+          "GRIB_REF_TIME":"1670806800",
+          "GRIB_SHORT_NAME":"0-SFC",
+          "GRIB_UNIT":"[%]",
+          "GRIB_VALID_TIME":"1670810400"
+        }
+      }
+    },
+    {
+      "band":20,
+      "block":[
+        2345,
+        1
+      ],
+      "type":"Float64",
+      "colorInterpretation":"Undefined",
+      "description":"0[-] SFC=\"Ground or water surface\"",
+      "noDataValue":9999.0,
+      "metadata":{
+        "":{
+          "GRIB_COMMENT":"Prob of (prodType 0, cat 19, subcat 239) [%]",
+          "GRIB_DISCIPLINE":"0(Meteorological)",
+          "GRIB_ELEMENT":"ProbUnknown",
+          "GRIB_FORECAST_SECONDS":"3600",
+          "GRIB_IDS":"CENTER=7(US-NCEP) SUBCENTER=14(Meteorological Development Laboratory (MDL)) MASTER_TABLE=1 LOCAL_TABLE=1 SIGNF_REF_TIME=1(Start_of_Forecast) REF_TIME=2022-12-12T01:00:00Z PROD_STATUS=0(Operational) TYPE=1(Forecast)",
+          "GRIB_PDS_PDTN":"5",
+          "GRIB_PDS_TEMPLATE_ASSEMBLED_VALUES":"19 239 2 255 104 65535 255 1 1 1 0 0 255 0 0 255 255 1 -127 255 0 75",
+          "GRIB_PDS_TEMPLATE_NUMBERS":"19 239 2 255 104 255 255 255 1 0 0 0 1 1 0 0 0 0 0 255 0 0 0 0 0 255 255 1 255 0 0 0 255 0 0 0 0 75",
+          "GRIB_REF_TIME":"1670806800",
+          "GRIB_SHORT_NAME":"0-SFC",
+          "GRIB_UNIT":"[%]",
+          "GRIB_VALID_TIME":"1670810400"
+        }
+      }
+    },
+    {
+      "band":21,
+      "block":[
+        2345,
+        1
+      ],
+      "type":"Float64",
+      "colorInterpretation":"Undefined",
+      "description":"0[-] SFC=\"Ground or water surface\"",
+      "noDataValue":9999.0,
+      "metadata":{
+        "":{
+          "GRIB_COMMENT":"Prob of (prodType 0, cat 19, subcat 239) [%]",
+          "GRIB_DISCIPLINE":"0(Meteorological)",
+          "GRIB_ELEMENT":"ProbUnknown",
+          "GRIB_FORECAST_SECONDS":"3600",
+          "GRIB_IDS":"CENTER=7(US-NCEP) SUBCENTER=14(Meteorological Development Laboratory (MDL)) MASTER_TABLE=1 LOCAL_TABLE=1 SIGNF_REF_TIME=1(Start_of_Forecast) REF_TIME=2022-12-12T01:00:00Z PROD_STATUS=0(Operational) TYPE=1(Forecast)",
+          "GRIB_PDS_PDTN":"5",
+          "GRIB_PDS_TEMPLATE_ASSEMBLED_VALUES":"19 239 2 255 104 65535 255 1 1 1 0 0 255 0 0 255 255 1 -127 255 0 85",
+          "GRIB_PDS_TEMPLATE_NUMBERS":"19 239 2 255 104 255 255 255 1 0 0 0 1 1 0 0 0 0 0 255 0 0 0 0 0 255 255 1 255 0 0 0 255 0 0 0 0 85",
+          "GRIB_REF_TIME":"1670806800",
+          "GRIB_SHORT_NAME":"0-SFC",
+          "GRIB_UNIT":"[%]",
+          "GRIB_VALID_TIME":"1670810400"
+        }
+      }
+    },
+    {
+      "band":22,
+      "block":[
+        2345,
+        1
+      ],
+      "type":"Float64",
+      "colorInterpretation":"Undefined",
+      "description":"2[m] HTGL=\"Specified height level above ground\"",
+      "noDataValue":9999.0,
+      "metadata":{
+        "":{
+          "GRIB_COMMENT":"Dew point temperature [C]",
+          "GRIB_DISCIPLINE":"0(Meteorological)",
+          "GRIB_ELEMENT":"Td",
+          "GRIB_FORECAST_SECONDS":"3600",
+          "GRIB_IDS":"CENTER=7(US-NCEP) SUBCENTER=14(Meteorological Development Laboratory (MDL)) MASTER_TABLE=1 LOCAL_TABLE=1 SIGNF_REF_TIME=1(Start_of_Forecast) REF_TIME=2022-12-12T01:00:00Z PROD_STATUS=0(Operational) TYPE=1(Forecast)",
+          "GRIB_PDS_PDTN":"0",
+          "GRIB_PDS_TEMPLATE_ASSEMBLED_VALUES":"0 6 2 255 104 65535 255 1 1 103 0 2 255 0 0",
+          "GRIB_PDS_TEMPLATE_NUMBERS":"0 6 2 255 104 255 255 255 1 0 0 0 1 103 0 0 0 0 2 255 0 0 0 0 0",
+          "GRIB_REF_TIME":"1670806800",
+          "GRIB_SHORT_NAME":"2-HTGL",
+          "GRIB_UNIT":"[C]",
+          "GRIB_VALID_TIME":"1670810400"
+        }
+      }
+    },
+    {
+      "band":23,
+      "block":[
+        2345,
+        1
+      ],
+      "type":"Float64",
+      "colorInterpretation":"Undefined",
+      "description":"2[m] HTGL=\"Specified height level above ground\"",
+      "noDataValue":9999.0,
+      "metadata":{
+        "":{
+          "GRIB_COMMENT":"Dew point temperature [stddev]",
+          "GRIB_DISCIPLINE":"0(Meteorological)",
+          "GRIB_ELEMENT":"Td",
+          "GRIB_FORECAST_SECONDS":"3600",
+          "GRIB_IDS":"CENTER=7(US-NCEP) SUBCENTER=14(Meteorological Development Laboratory (MDL)) MASTER_TABLE=1 LOCAL_TABLE=1 SIGNF_REF_TIME=1(Start_of_Forecast) REF_TIME=2022-12-12T01:00:00Z PROD_STATUS=0(Operational) TYPE=1(Forecast)",
+          "GRIB_PDS_PDTN":"2",
+          "GRIB_PDS_TEMPLATE_ASSEMBLED_VALUES":"0 6 2 255 104 65535 255 1 1 103 0 2 255 0 0 2 255",
+          "GRIB_PDS_TEMPLATE_NUMBERS":"0 6 2 255 104 255 255 255 1 0 0 0 1 103 0 0 0 0 2 255 0 0 0 0 0 2 255",
+          "GRIB_REF_TIME":"1670806800",
+          "GRIB_SHORT_NAME":"2-HTGL",
+          "GRIB_UNIT":"[stddev]",
+          "GRIB_VALID_TIME":"1670810400"
+        }
+      }
+    },
+    {
+      "band":24,
+      "block":[
+        2345,
+        1
+      ],
+      "type":"Float64",
+      "colorInterpretation":"Undefined",
+      "description":"0[-] SFC=\"Ground or water surface\"",
+      "noDataValue":9999.0,
+      "metadata":{
+        "":{
+          "GRIB_COMMENT":"Downward short-wave radiation flux [W/(m^2)]",
+          "GRIB_DISCIPLINE":"0(Meteorological)",
+          "GRIB_ELEMENT":"DSWRF",
+          "GRIB_FORECAST_SECONDS":"3600",
+          "GRIB_IDS":"CENTER=7(US-NCEP) SUBCENTER=14(Meteorological Development Laboratory (MDL)) MASTER_TABLE=1 LOCAL_TABLE=1 SIGNF_REF_TIME=1(Start_of_Forecast) REF_TIME=2022-12-12T01:00:00Z PROD_STATUS=0(Operational) TYPE=1(Forecast)",
+          "GRIB_PDS_PDTN":"0",
+          "GRIB_PDS_TEMPLATE_ASSEMBLED_VALUES":"4 7 2 255 104 65535 255 1 1 1 0 0 255 0 0",
+          "GRIB_PDS_TEMPLATE_NUMBERS":"4 7 2 255 104 255 255 255 1 0 0 0 1 1 0 0 0 0 0 255 0 0 0 0 0",
+          "GRIB_REF_TIME":"1670806800",
+          "GRIB_SHORT_NAME":"0-SFC",
+          "GRIB_UNIT":"[W/(m^2)]",
+          "GRIB_VALID_TIME":"1670810400"
+        }
+      }
+    },
+    {
+      "band":25,
+      "block":[
+        2345,
+        1
+      ],
+      "type":"Float64",
+      "colorInterpretation":"Undefined",
+      "description":"0[-] CTL=\"Level of cloud tops\"",
+      "noDataValue":9999.0,
+      "metadata":{
+        "":{
+          "GRIB_COMMENT":"Echo Top [m]",
+          "GRIB_DISCIPLINE":"0(Meteorological)",
+          "GRIB_ELEMENT":"RETOP",
+          "GRIB_FORECAST_SECONDS":"3600",
+          "GRIB_IDS":"CENTER=7(US-NCEP) SUBCENTER=14(Meteorological Development Laboratory (MDL)) MASTER_TABLE=1 LOCAL_TABLE=1 SIGNF_REF_TIME=1(Start_of_Forecast) REF_TIME=2022-12-12T01:00:00Z PROD_STATUS=0(Operational) TYPE=1(Forecast)",
+          "GRIB_PDS_PDTN":"0",
+          "GRIB_PDS_TEMPLATE_ASSEMBLED_VALUES":"16 3 2 255 104 65535 255 1 1 3 0 0 255 0 0",
+          "GRIB_PDS_TEMPLATE_NUMBERS":"16 3 2 255 104 255 255 255 1 0 0 0 1 3 0 0 0 0 0 255 0 0 0 0 0",
+          "GRIB_REF_TIME":"1670806800",
+          "GRIB_SHORT_NAME":"0-CTL",
+          "GRIB_UNIT":"[m]",
+          "GRIB_VALID_TIME":"1670810400"
+        }
+      }
+    },
+    {
+      "band":26,
+      "block":[
+        2345,
+        1
+      ],
+      "type":"Float64",
+      "colorInterpretation":"Undefined",
+      "description":"40000-30000[Pa] ISBL=\"Isobaric surface\"",
+      "noDataValue":9999.0,
+      "metadata":{
+        "":{
+          "GRIB_COMMENT":"(prodType 0, cat 19, subcat 238) [-]",
+          "GRIB_DISCIPLINE":"0(Meteorological)",
+          "GRIB_ELEMENT":"unknown",
+          "GRIB_FORECAST_SECONDS":"3600",
+          "GRIB_IDS":"CENTER=7(US-NCEP) SUBCENTER=14(Meteorological Development Laboratory (MDL)) MASTER_TABLE=1 LOCAL_TABLE=1 SIGNF_REF_TIME=1(Start_of_Forecast) REF_TIME=2022-12-12T01:00:00Z PROD_STATUS=0(Operational) TYPE=1(Forecast)",
+          "GRIB_PDS_PDTN":"0",
+          "GRIB_PDS_TEMPLATE_ASSEMBLED_VALUES":"19 238 2 255 104 65535 255 1 1 100 0 40000 100 0 30000",
+          "GRIB_PDS_TEMPLATE_NUMBERS":"19 238 2 255 104 255 255 255 1 0 0 0 1 100 0 0 0 156 64 100 0 0 0 117 48",
+          "GRIB_REF_TIME":"1670806800",
+          "GRIB_SHORT_NAME":"40000-30000-ISBL",
+          "GRIB_UNIT":"[-]",
+          "GRIB_VALID_TIME":"1670810400"
+        }
+      }
+    },
+    {
+      "band":27,
+      "block":[
+        2345,
+        1
+      ],
+      "type":"Float64",
+      "colorInterpretation":"Undefined",
+      "description":"0[-] SFC=\"Ground or water surface\"",
+      "noDataValue":9999.0,
+      "metadata":{
+        "":{
+          "GRIB_COMMENT":"Flat Ice Accumulation (FRAM) [kg/(m^2)]",
+          "GRIB_DISCIPLINE":"0(Meteorological)",
+          "GRIB_ELEMENT":"FICEAC",
+          "GRIB_FORECAST_SECONDS":"0",
+          "GRIB_IDS":"CENTER=7(US-NCEP) SUBCENTER=14(Meteorological Development Laboratory (MDL)) MASTER_TABLE=1 LOCAL_TABLE=1 SIGNF_REF_TIME=1(Start_of_Forecast) REF_TIME=2022-12-12T01:00:00Z PROD_STATUS=0(Operational) TYPE=1(Forecast)",
+          "GRIB_PDS_PDTN":"8",
+          "GRIB_PDS_TEMPLATE_ASSEMBLED_VALUES":"1 228 2 255 104 65535 255 1 0 1 0 0 255 0 0 2022 12 12 2 0 0 1 0 1 2 1 1 1 0",
+          "GRIB_PDS_TEMPLATE_NUMBERS":"1 228 2 255 104 255 255 255 1 0 0 0 0 1 0 0 0 0 0 255 0 0 0 0 0 7 230 12 12 2 0 0 1 0 0 0 0 1 2 1 0 0 0 1 1 0 0 0 0",
+          "GRIB_REF_TIME":"1670806800",
+          "GRIB_SHORT_NAME":"0-SFC",
+          "GRIB_UNIT":"[kg/(m^2)]",
+          "GRIB_VALID_TIME":"1670810400"
+        }
+      }
+    },
+    {
+      "band":28,
+      "block":[
+        2345,
+        1
+      ],
+      "type":"Float64",
+      "colorInterpretation":"Undefined",
+      "description":"0-1372[-] SFC=\"Ground or water surface\"",
+      "noDataValue":9999.0,
+      "metadata":{
+        "":{
+          "GRIB_COMMENT":"Turbulance [0=None (smooth); 1=Light; 2=Moderate; 3=Severe; 4=Extreme; 5-191=Reserved; 192-254=Reserved for local use; 255=Missing]",
+          "GRIB_DISCIPLINE":"0(Meteorological)",
+          "GRIB_ELEMENT":"TURB",
+          "GRIB_FORECAST_SECONDS":"3600",
+          "GRIB_IDS":"CENTER=7(US-NCEP) SUBCENTER=14(Meteorological Development Laboratory (MDL)) MASTER_TABLE=1 LOCAL_TABLE=1 SIGNF_REF_TIME=1(Start_of_Forecast) REF_TIME=2022-12-12T01:00:00Z PROD_STATUS=0(Operational) TYPE=1(Forecast)",
+          "GRIB_PDS_PDTN":"0",
+          "GRIB_PDS_TEMPLATE_ASSEMBLED_VALUES":"19 10 2 255 104 65535 255 1 1 1 0 0 103 0 1372",
+          "GRIB_PDS_TEMPLATE_NUMBERS":"19 10 2 255 104 255 255 255 1 0 0 0 1 1 0 0 0 0 0 103 0 0 0 5 92",
+          "GRIB_REF_TIME":"1670806800",
+          "GRIB_SHORT_NAME":"0-1372-SFC",
+          "GRIB_UNIT":"[0=None (smooth); 1=Light; 2=Moderate; 3=Severe; 4=Extreme; 5-191=Reserved; 192-254=Reserved for local use; 255=Missing]",
+          "GRIB_VALID_TIME":"1670810400"
+        }
+      }
+    },
+    {
+      "band":29,
+      "block":[
+        2345,
+        1
+      ],
+      "type":"Float64",
+      "colorInterpretation":"Undefined",
+      "description":"0-610[-] SFC=\"Ground or water surface\"",
+      "noDataValue":9999.0,
+      "metadata":{
+        "":{
+          "GRIB_COMMENT":"Wind direction (from which blowing) [deg true]",
+          "GRIB_DISCIPLINE":"0(Meteorological)",
+          "GRIB_ELEMENT":"WindDir",
+          "GRIB_FORECAST_SECONDS":"3600",
+          "GRIB_IDS":"CENTER=7(US-NCEP) SUBCENTER=14(Meteorological Development Laboratory (MDL)) MASTER_TABLE=1 LOCAL_TABLE=1 SIGNF_REF_TIME=1(Start_of_Forecast) REF_TIME=2022-12-12T01:00:00Z PROD_STATUS=0(Operational) TYPE=1(Forecast)",
+          "GRIB_PDS_PDTN":"0",
+          "GRIB_PDS_TEMPLATE_ASSEMBLED_VALUES":"2 0 2 255 104 65535 255 1 1 1 0 0 103 0 610",
+          "GRIB_PDS_TEMPLATE_NUMBERS":"2 0 2 255 104 255 255 255 1 0 0 0 1 1 0 0 0 0 0 103 0 0 0 2 98",
+          "GRIB_REF_TIME":"1670806800",
+          "GRIB_SHORT_NAME":"0-610-SFC",
+          "GRIB_UNIT":"[deg true]",
+          "GRIB_VALID_TIME":"1670810400"
+        }
+      }
+    },
+    {
+      "band":30,
+      "block":[
+        2345,
+        1
+      ],
+      "type":"Float64",
+      "colorInterpretation":"Undefined",
+      "description":"0-610[-] SFC=\"Ground or water surface\"",
+      "noDataValue":9999.0,
+      "metadata":{
+        "":{
+          "GRIB_COMMENT":"Geometric height [m]",
+          "GRIB_DISCIPLINE":"0(Meteorological)",
+          "GRIB_ELEMENT":"DIST",
+          "GRIB_FORECAST_SECONDS":"3600",
+          "GRIB_IDS":"CENTER=7(US-NCEP) SUBCENTER=14(Meteorological Development Laboratory (MDL)) MASTER_TABLE=1 LOCAL_TABLE=1 SIGNF_REF_TIME=1(Start_of_Forecast) REF_TIME=2022-12-12T01:00:00Z PROD_STATUS=0(Operational) TYPE=1(Forecast)",
+          "GRIB_PDS_PDTN":"0",
+          "GRIB_PDS_TEMPLATE_ASSEMBLED_VALUES":"3 6 2 255 104 65535 255 1 1 1 0 0 103 0 610",
+          "GRIB_PDS_TEMPLATE_NUMBERS":"3 6 2 255 104 255 255 255 1 0 0 0 1 1 0 0 0 0 0 103 0 0 0 2 98",
+          "GRIB_REF_TIME":"1670806800",
+          "GRIB_SHORT_NAME":"0-610-SFC",
+          "GRIB_UNIT":"[m]",
+          "GRIB_VALID_TIME":"1670810400"
+        }
+      }
+    },
+    {
+      "band":31,
+      "block":[
+        2345,
+        1
+      ],
+      "type":"Float64",
+      "colorInterpretation":"Undefined",
+      "description":"0-610[-] SFC=\"Ground or water surface\"",
+      "noDataValue":9999.0,
+      "metadata":{
+        "":{
+          "GRIB_COMMENT":"Wind speed [m/s]",
+          "GRIB_DISCIPLINE":"0(Meteorological)",
+          "GRIB_ELEMENT":"WindSpd",
+          "GRIB_FORECAST_SECONDS":"3600",
+          "GRIB_IDS":"CENTER=7(US-NCEP) SUBCENTER=14(Meteorological Development Laboratory (MDL)) MASTER_TABLE=1 LOCAL_TABLE=1 SIGNF_REF_TIME=1(Start_of_Forecast) REF_TIME=2022-12-12T01:00:00Z PROD_STATUS=0(Operational) TYPE=1(Forecast)",
+          "GRIB_PDS_PDTN":"0",
+          "GRIB_PDS_TEMPLATE_ASSEMBLED_VALUES":"2 1 2 255 104 65535 255 1 1 1 0 0 103 0 610",
+          "GRIB_PDS_TEMPLATE_NUMBERS":"2 1 2 255 104 255 255 255 1 0 0 0 1 1 0 0 0 0 0 103 0 0 0 2 98",
+          "GRIB_REF_TIME":"1670806800",
+          "GRIB_SHORT_NAME":"0-610-SFC",
+          "GRIB_UNIT":"[m/s]",
+          "GRIB_VALID_TIME":"1670810400"
+        }
+      }
+    },
+    {
+      "band":32,
+      "block":[
+        2345,
+        1
+      ],
+      "type":"Float64",
+      "colorInterpretation":"Undefined",
+      "description":"1000[m] HTGL=\"Specified height level above ground\"",
+      "noDataValue":9999.0,
+      "metadata":{
+        "":{
+          "GRIB_COMMENT":"Hourly Maximum of Simulated Reflectivity at 1 km AGL [dB]",
+          "GRIB_DISCIPLINE":"0(Meteorological)",
+          "GRIB_ELEMENT":"MAXREF",
+          "GRIB_FORECAST_SECONDS":"0",
+          "GRIB_IDS":"CENTER=7(US-NCEP) SUBCENTER=14(Meteorological Development Laboratory (MDL)) MASTER_TABLE=1 LOCAL_TABLE=1 SIGNF_REF_TIME=1(Start_of_Forecast) REF_TIME=2022-12-12T01:00:00Z PROD_STATUS=0(Operational) TYPE=1(Forecast)",
+          "GRIB_PDS_PDTN":"8",
+          "GRIB_PDS_TEMPLATE_ASSEMBLED_VALUES":"16 198 2 255 104 65535 255 1 0 103 0 1000 255 0 0 2022 12 12 2 0 0 1 0 2 2 1 1 1 0",
+          "GRIB_PDS_TEMPLATE_NUMBERS":"16 198 2 255 104 255 255 255 1 0 0 0 0 103 0 0 0 3 232 255 0 0 0 0 0 7 230 12 12 2 0 0 1 0 0 0 0 2 2 1 0 0 0 1 1 0 0 0 0",
+          "GRIB_REF_TIME":"1670806800",
+          "GRIB_SHORT_NAME":"1000-HTGL",
+          "GRIB_UNIT":"[dB]",
+          "GRIB_VALID_TIME":"1670810400"
+        }
+      }
+    },
+    {
+      "band":33,
+      "block":[
+        2345,
+        1
+      ],
+      "type":"Float64",
+      "colorInterpretation":"Undefined",
+      "description":"0[-] EATM=\"Entire atmosphere (considered as a single layer)\"",
+      "noDataValue":9999.0,
+      "metadata":{
+        "":{
+          "GRIB_COMMENT":"Mixed layer depth [m]",
+          "GRIB_DISCIPLINE":"0(Meteorological)",
+          "GRIB_ELEMENT":"MIXHT",
+          "GRIB_FORECAST_SECONDS":"3600",
+          "GRIB_IDS":"CENTER=7(US-NCEP) SUBCENTER=14(Meteorological Development Laboratory (MDL)) MASTER_TABLE=1 LOCAL_TABLE=1 SIGNF_REF_TIME=1(Start_of_Forecast) REF_TIME=2022-12-12T01:00:00Z PROD_STATUS=0(Operational) TYPE=1(Forecast)",
+          "GRIB_PDS_PDTN":"0",
+          "GRIB_PDS_TEMPLATE_ASSEMBLED_VALUES":"19 3 2 255 104 65535 255 1 1 200 0 0 255 0 0",
+          "GRIB_PDS_TEMPLATE_NUMBERS":"19 3 2 255 104 255 255 255 1 0 0 0 1 200 0 0 0 0 0 255 0 0 0 0 0",
+          "GRIB_REF_TIME":"1670806800",
+          "GRIB_SHORT_NAME":"0-EATM",
+          "GRIB_UNIT":"[m]",
+          "GRIB_VALID_TIME":"1670810400"
+        }
+      }
+    },
+    {
+      "band":34,
+      "block":[
+        2345,
+        1
+      ],
+      "type":"Float64",
+      "colorInterpretation":"Undefined",
+      "description":"610-40000[m] HTGL=\"Specified height level above ground\"",
+      "noDataValue":9999.0,
+      "metadata":{
+        "":{
+          "GRIB_COMMENT":"Wet Bulb Temperature [C]",
+          "GRIB_DISCIPLINE":"0(Meteorological)",
+          "GRIB_ELEMENT":"WETBT",
+          "GRIB_FORECAST_SECONDS":"3600",
+          "GRIB_IDS":"CENTER=7(US-NCEP) SUBCENTER=14(Meteorological Development Laboratory (MDL)) MASTER_TABLE=1 LOCAL_TABLE=1 SIGNF_REF_TIME=1(Start_of_Forecast) REF_TIME=2022-12-12T01:00:00Z PROD_STATUS=0(Operational) TYPE=1(Forecast)",
+          "GRIB_PDS_PDTN":"15",
+          "GRIB_PDS_TEMPLATE_ASSEMBLED_VALUES":"0 27 2 255 104 65535 255 1 1 103 0 610 100 0 40000 241 241 241",
+          "GRIB_PDS_TEMPLATE_NUMBERS":"0 27 2 255 104 255 255 255 1 0 0 0 1 103 0 0 0 2 98 100 0 0 0 156 64 241 241 241",
+          "GRIB_REF_TIME":"1670806800",
+          "GRIB_SHORT_NAME":"610-40000-HTGL",
+          "GRIB_UNIT":"[C]",
+          "GRIB_VALID_TIME":"1670810400"
+        }
+      }
+    },
+    {
+      "band":35,
+      "block":[
+        2345,
+        1
+      ],
+      "type":"Float64",
+      "colorInterpretation":"Undefined",
+      "description":"0-0[-] SFC=\"Ground or water surface\"",
+      "noDataValue":9999.0,
+      "metadata":{
+        "":{
+          "GRIB_COMMENT":"Bourgoiun Negative Energy Layer (surface to freezing level) [J/kg]",
+          "GRIB_DISCIPLINE":"0(Meteorological)",
+          "GRIB_ELEMENT":"BNEGLAY",
+          "GRIB_FORECAST_SECONDS":"3600",
+          "GRIB_IDS":"CENTER=7(US-NCEP) SUBCENTER=14(Meteorological Development Laboratory (MDL)) MASTER_TABLE=1 LOCAL_TABLE=1 SIGNF_REF_TIME=1(Start_of_Forecast) REF_TIME=2022-12-12T01:00:00Z PROD_STATUS=0(Operational) TYPE=1(Forecast)",
+          "GRIB_PDS_PDTN":"0",
+          "GRIB_PDS_TEMPLATE_ASSEMBLED_VALUES":"7 201 2 255 104 65535 255 1 1 1 0 0 4 0 0",
+          "GRIB_PDS_TEMPLATE_NUMBERS":"7 201 2 255 104 255 255 255 1 0 0 0 1 1 0 0 0 0 0 4 0 0 0 0 0",
+          "GRIB_REF_TIME":"1670806800",
+          "GRIB_SHORT_NAME":"0-0-SFC",
+          "GRIB_UNIT":"[J/kg]",
+          "GRIB_VALID_TIME":"1670810400"
+        }
+      }
+    },
+    {
+      "band":36,
+      "block":[
+        2345,
+        1
+      ],
+      "type":"Float64",
+      "colorInterpretation":"Undefined",
+      "description":"0[-] SFC=\"Ground or water surface\"",
+      "noDataValue":9999.0,
+      "metadata":{
+        "":{
+          "GRIB_COMMENT":"01 hr Prob of Precip > 0.01 In. [%]",
+          "GRIB_DISCIPLINE":"0(Meteorological)",
+          "GRIB_ELEMENT":"PoP01",
+          "GRIB_FORECAST_SECONDS":"0",
+          "GRIB_IDS":"CENTER=7(US-NCEP) SUBCENTER=14(Meteorological Development Laboratory (MDL)) MASTER_TABLE=1 LOCAL_TABLE=1 SIGNF_REF_TIME=1(Start_of_Forecast) REF_TIME=2022-12-12T01:00:00Z PROD_STATUS=0(Operational) TYPE=1(Forecast)",
+          "GRIB_PDS_PDTN":"9",
+          "GRIB_PDS_TEMPLATE_ASSEMBLED_VALUES":"1 8 2 255 104 65535 255 1 0 1 0 0 255 0 0 255 255 1 -127 255 3 254 2022 12 12 2 0 0 1 0 1 2 1 1 1 0",
+          "GRIB_PDS_TEMPLATE_NUMBERS":"1 8 2 255 104 255 255 255 1 0 0 0 0 1 0 0 0 0 0 255 0 0 0 0 0 255 255 1 255 0 0 0 255 3 0 0 0 254 7 230 12 12 2 0 0 1 0 0 0 0 1 2 1 0 0 0 1 1 0 0 0 0",
+          "GRIB_REF_TIME":"1670806800",
+          "GRIB_SHORT_NAME":"0-SFC",
+          "GRIB_UNIT":"[%]",
+          "GRIB_VALID_TIME":"1670810400"
+        }
+      }
+    },
+    {
+      "band":37,
+      "block":[
+        2345,
+        1
+      ],
+      "type":"Float64",
+      "colorInterpretation":"Undefined",
+      "description":"610-40000[m] HTGL=\"Specified height level above ground\"",
+      "noDataValue":9999.0,
+      "metadata":{
+        "":{
+          "GRIB_COMMENT":"Bourgoiun Positive Energy Layer (2k ft AGL to 400 hPa) [J/kg]",
+          "GRIB_DISCIPLINE":"0(Meteorological)",
+          "GRIB_ELEMENT":"BPOSELAY",
+          "GRIB_FORECAST_SECONDS":"3600",
+          "GRIB_IDS":"CENTER=7(US-NCEP) SUBCENTER=14(Meteorological Development Laboratory (MDL)) MASTER_TABLE=1 LOCAL_TABLE=1 SIGNF_REF_TIME=1(Start_of_Forecast) REF_TIME=2022-12-12T01:00:00Z PROD_STATUS=0(Operational) TYPE=1(Forecast)",
+          "GRIB_PDS_PDTN":"0",
+          "GRIB_PDS_TEMPLATE_ASSEMBLED_VALUES":"7 202 2 255 104 65535 255 1 1 103 0 610 100 0 40000",
+          "GRIB_PDS_TEMPLATE_NUMBERS":"7 202 2 255 104 255 255 255 1 0 0 0 1 103 0 0 0 2 98 100 0 0 0 156 64",
+          "GRIB_REF_TIME":"1670806800",
+          "GRIB_SHORT_NAME":"610-40000-HTGL",
+          "GRIB_UNIT":"[J/kg]",
+          "GRIB_VALID_TIME":"1670810400"
+        }
+      }
+    },
+    {
+      "band":38,
+      "block":[
+        2345,
+        1
+      ],
+      "type":"Float64",
+      "colorInterpretation":"Undefined",
+      "description":"0-0[-] SFC=\"Ground or water surface\"",
+      "noDataValue":9999.0,
+      "metadata":{
+        "":{
+          "GRIB_COMMENT":"Weather String [-]",
+          "GRIB_DISCIPLINE":"0(Meteorological)",
+          "GRIB_ELEMENT":"Wx",
+          "GRIB_FORECAST_SECONDS":"3600",
+          "GRIB_IDS":"CENTER=7(US-NCEP) SUBCENTER=14(Meteorological Development Laboratory (MDL)) MASTER_TABLE=1 LOCAL_TABLE=1 SIGNF_REF_TIME=1(Start_of_Forecast) REF_TIME=2022-12-12T01:00:00Z PROD_STATUS=0(Operational) TYPE=1(Forecast)",
+          "GRIB_PDS_PDTN":"0",
+          "GRIB_PDS_TEMPLATE_ASSEMBLED_VALUES":"1 226 2 255 104 65535 255 1 1 1 0 0 0 0 0",
+          "GRIB_PDS_TEMPLATE_NUMBERS":"1 226 2 255 104 255 255 255 1 0 0 0 1 1 0 0 0 0 0 0 0 0 0 0 0",
+          "GRIB_REF_TIME":"1670806800",
+          "GRIB_SHORT_NAME":"0-0-SFC",
+          "GRIB_UNIT":"[-]",
+          "GRIB_VALID_TIME":"1670810400"
+        }
+      }
+    },
+    {
+      "band":39,
+      "block":[
+        2345,
+        1
+      ],
+      "type":"Float64",
+      "colorInterpretation":"Undefined",
+      "description":"0[-] SFC=\"Ground or water surface\"",
+      "noDataValue":9999.0,
+      "metadata":{
+        "":{
+          "GRIB_COMMENT":"01 hr Prob of Precipitation type >= 3, < 4 0=Reserved; 1=Rain; 2=Thunderstorm; 3=Freezing rain; 4=Mixed/ice; 5=Snow; 6=Wet snow; 7=Mixture of rain and snow; 8=Ice pellets; 9=Graupel; 10=Hail; 11=Drizzle; 12=Freezing drizzle; 13-191=Reserved; 192-254=Reserved for local use; 255=Missing [%]",
+          "GRIB_DISCIPLINE":"0(Meteorological)",
+          "GRIB_ELEMENT":"ProbPTYPE01",
+          "GRIB_FORECAST_SECONDS":"3600",
+          "GRIB_IDS":"CENTER=7(US-NCEP) SUBCENTER=14(Meteorological Development Laboratory (MDL)) MASTER_TABLE=1 LOCAL_TABLE=1 SIGNF_REF_TIME=1(Start_of_Forecast) REF_TIME=2022-12-12T01:00:00Z PROD_STATUS=0(Operational) TYPE=1(Forecast)",
+          "GRIB_PDS_PDTN":"5",
+          "GRIB_PDS_TEMPLATE_ASSEMBLED_VALUES":"1 19 2 255 104 65535 255 1 1 1 0 0 255 0 0 1 1 2 0 3 0 4",
+          "GRIB_PDS_TEMPLATE_NUMBERS":"1 19 2 255 104 255 255 255 1 0 0 0 1 1 0 0 0 0 0 255 0 0 0 0 0 1 1 2 0 0 0 0 3 0 0 0 0 4",
+          "GRIB_REF_TIME":"1670806800",
+          "GRIB_SHORT_NAME":"0-SFC",
+          "GRIB_UNIT":"[%]",
+          "GRIB_VALID_TIME":"1670810400"
+        }
+      }
+    },
+    {
+      "band":40,
+      "block":[
+        2345,
+        1
+      ],
+      "type":"Float64",
+      "colorInterpretation":"Undefined",
+      "description":"0[-] EATM=\"Entire Atmosphere\"",
+      "noDataValue":9999.0,
+      "metadata":{
+        "":{
+          "GRIB_COMMENT":"01 hr Prob of Probability Cloud Ice Present > 0 % [%]",
+          "GRIB_DISCIPLINE":"0(Meteorological)",
+          "GRIB_ELEMENT":"ProbPROBCIP01",
+          "GRIB_FORECAST_SECONDS":"3600",
+          "GRIB_IDS":"CENTER=7(US-NCEP) SUBCENTER=14(Meteorological Development Laboratory (MDL)) MASTER_TABLE=1 LOCAL_TABLE=1 SIGNF_REF_TIME=1(Start_of_Forecast) REF_TIME=2022-12-12T01:00:00Z PROD_STATUS=0(Operational) TYPE=1(Forecast)",
+          "GRIB_PDS_PDTN":"5",
+          "GRIB_PDS_TEMPLATE_ASSEMBLED_VALUES":"1 232 2 255 104 65535 255 1 1 10 0 0 255 0 0 1 1 3 0 0 -127 255",
+          "GRIB_PDS_TEMPLATE_NUMBERS":"1 232 2 255 104 255 255 255 1 0 0 0 1 10 0 0 0 0 0 255 0 0 0 0 0 1 1 3 0 0 0 0 0 255 0 0 0 255",
+          "GRIB_REF_TIME":"1670806800",
+          "GRIB_SHORT_NAME":"0-EATM",
+          "GRIB_UNIT":"[%]",
+          "GRIB_VALID_TIME":"1670810400"
+        }
+      }
+    },
+    {
+      "band":41,
+      "block":[
+        2345,
+        1
+      ],
+      "type":"Float64",
+      "colorInterpretation":"Undefined",
+      "description":"0[-] EATM=\"Entire Atmosphere\"",
+      "noDataValue":9999.0,
+      "metadata":{
+        "":{
+          "GRIB_COMMENT":"01 hr Prob of Precipitation type >= 8, < 9 0=Reserved; 1=Rain; 2=Thunderstorm; 3=Freezing rain; 4=Mixed/ice; 5=Snow; 6=Wet snow; 7=Mixture of rain and snow; 8=Ice pellets; 9=Graupel; 10=Hail; 11=Drizzle; 12=Freezing drizzle; 13-191=Reserved; 192-254=Reserved for local use; 255=Missing [%]",
+          "GRIB_DISCIPLINE":"0(Meteorological)",
+          "GRIB_ELEMENT":"ProbPTYPE01",
+          "GRIB_FORECAST_SECONDS":"3600",
+          "GRIB_IDS":"CENTER=7(US-NCEP) SUBCENTER=14(Meteorological Development Laboratory (MDL)) MASTER_TABLE=1 LOCAL_TABLE=1 SIGNF_REF_TIME=1(Start_of_Forecast) REF_TIME=2022-12-12T01:00:00Z PROD_STATUS=0(Operational) TYPE=1(Forecast)",
+          "GRIB_PDS_PDTN":"5",
+          "GRIB_PDS_TEMPLATE_ASSEMBLED_VALUES":"1 19 2 255 104 65535 255 1 1 10 0 0 255 0 0 1 1 2 0 8 0 9",
+          "GRIB_PDS_TEMPLATE_NUMBERS":"1 19 2 255 104 255 255 255 1 0 0 0 1 10 0 0 0 0 0 255 0 0 0 0 0 1 1 2 0 0 0 0 8 0 0 0 0 9",
+          "GRIB_REF_TIME":"1670806800",
+          "GRIB_SHORT_NAME":"0-EATM",
+          "GRIB_UNIT":"[%]",
+          "GRIB_VALID_TIME":"1670810400"
+        }
+      }
+    },
+    {
+      "band":42,
+      "block":[
+        2345,
+        1
+      ],
+      "type":"Float64",
+      "colorInterpretation":"Undefined",
+      "description":"0[-] SFC=\"Ground or water surface\"",
+      "noDataValue":9999.0,
+      "metadata":{
+        "":{
+          "GRIB_COMMENT":"01 hr Prob of Precipitation type >= 1, < 2 0=Reserved; 1=Rain; 2=Thunderstorm; 3=Freezing rain; 4=Mixed/ice; 5=Snow; 6=Wet snow; 7=Mixture of rain and snow; 8=Ice pellets; 9=Graupel; 10=Hail; 11=Drizzle; 12=Freezing drizzle; 13-191=Reserved; 192-254=Reserved for local use; 255=Missing [%]",
+          "GRIB_DISCIPLINE":"0(Meteorological)",
+          "GRIB_ELEMENT":"ProbPTYPE01",
+          "GRIB_FORECAST_SECONDS":"3600",
+          "GRIB_IDS":"CENTER=7(US-NCEP) SUBCENTER=14(Meteorological Development Laboratory (MDL)) MASTER_TABLE=1 LOCAL_TABLE=1 SIGNF_REF_TIME=1(Start_of_Forecast) REF_TIME=2022-12-12T01:00:00Z PROD_STATUS=0(Operational) TYPE=1(Forecast)",
+          "GRIB_PDS_PDTN":"5",
+          "GRIB_PDS_TEMPLATE_ASSEMBLED_VALUES":"1 19 2 255 104 65535 255 1 1 1 0 0 255 0 0 1 1 2 0 1 0 2",
+          "GRIB_PDS_TEMPLATE_NUMBERS":"1 19 2 255 104 255 255 255 1 0 0 0 1 1 0 0 0 0 0 255 0 0 0 0 0 1 1 2 0 0 0 0 1 0 0 0 0 2",
+          "GRIB_REF_TIME":"1670806800",
+          "GRIB_SHORT_NAME":"0-SFC",
+          "GRIB_UNIT":"[%]",
+          "GRIB_VALID_TIME":"1670810400"
+        }
+      }
+    },
+    {
+      "band":43,
+      "block":[
+        2345,
+        1
+      ],
+      "type":"Float64",
+      "colorInterpretation":"Undefined",
+      "description":"0[-] SFC=\"Ground or water surface\"",
+      "noDataValue":9999.0,
+      "metadata":{
+        "":{
+          "GRIB_COMMENT":"01 hr Prob of Precipitation type >= 8, < 9 0=Reserved; 1=Rain; 2=Thunderstorm; 3=Freezing rain; 4=Mixed/ice; 5=Snow; 6=Wet snow; 7=Mixture of rain and snow; 8=Ice pellets; 9=Graupel; 10=Hail; 11=Drizzle; 12=Freezing drizzle; 13-191=Reserved; 192-254=Reserved for local use; 255=Missing [%]",
+          "GRIB_DISCIPLINE":"0(Meteorological)",
+          "GRIB_ELEMENT":"ProbPTYPE01",
+          "GRIB_FORECAST_SECONDS":"3600",
+          "GRIB_IDS":"CENTER=7(US-NCEP) SUBCENTER=14(Meteorological Development Laboratory (MDL)) MASTER_TABLE=1 LOCAL_TABLE=1 SIGNF_REF_TIME=1(Start_of_Forecast) REF_TIME=2022-12-12T01:00:00Z PROD_STATUS=0(Operational) TYPE=1(Forecast)",
+          "GRIB_PDS_PDTN":"5",
+          "GRIB_PDS_TEMPLATE_ASSEMBLED_VALUES":"1 19 2 255 104 65535 255 1 1 1 0 0 255 0 0 1 1 2 0 8 0 9",
+          "GRIB_PDS_TEMPLATE_NUMBERS":"1 19 2 255 104 255 255 255 1 0 0 0 1 1 0 0 0 0 0 255 0 0 0 0 0 1 1 2 0 0 0 0 8 0 0 0 0 9",
+          "GRIB_REF_TIME":"1670806800",
+          "GRIB_SHORT_NAME":"0-SFC",
+          "GRIB_UNIT":"[%]",
+          "GRIB_VALID_TIME":"1670810400"
+        }
+      }
+    },
+    {
+      "band":44,
+      "block":[
+        2345,
+        1
+      ],
+      "type":"Float64",
+      "colorInterpretation":"Undefined",
+      "description":"0[-] SFC=\"Ground or water surface\"",
+      "noDataValue":9999.0,
+      "metadata":{
+        "":{
+          "GRIB_COMMENT":"01 hr Prob of Precipitation type >= 5, < 7 0=Reserved; 1=Rain; 2=Thunderstorm; 3=Freezing rain; 4=Mixed/ice; 5=Snow; 6=Wet snow; 7=Mixture of rain and snow; 8=Ice pellets; 9=Graupel; 10=Hail; 11=Drizzle; 12=Freezing drizzle; 13-191=Reserved; 192-254=Reserved for local use; 255=Missing [%]",
+          "GRIB_DISCIPLINE":"0(Meteorological)",
+          "GRIB_ELEMENT":"ProbPTYPE01",
+          "GRIB_FORECAST_SECONDS":"3600",
+          "GRIB_IDS":"CENTER=7(US-NCEP) SUBCENTER=14(Meteorological Development Laboratory (MDL)) MASTER_TABLE=1 LOCAL_TABLE=1 SIGNF_REF_TIME=1(Start_of_Forecast) REF_TIME=2022-12-12T01:00:00Z PROD_STATUS=0(Operational) TYPE=1(Forecast)",
+          "GRIB_PDS_PDTN":"5",
+          "GRIB_PDS_TEMPLATE_ASSEMBLED_VALUES":"1 19 2 255 104 65535 255 1 1 1 0 0 255 0 0 1 1 2 0 5 0 7",
+          "GRIB_PDS_TEMPLATE_NUMBERS":"1 19 2 255 104 255 255 255 1 0 0 0 1 1 0 0 0 0 0 255 0 0 0 0 0 1 1 2 0 0 0 0 5 0 0 0 0 7",
+          "GRIB_REF_TIME":"1670806800",
+          "GRIB_SHORT_NAME":"0-SFC",
+          "GRIB_UNIT":"[%]",
+          "GRIB_VALID_TIME":"1670810400"
+        }
+      }
+    },
+    {
+      "band":45,
+      "block":[
+        2345,
+        1
+      ],
+      "type":"Float64",
+      "colorInterpretation":"Undefined",
+      "description":"0[-] SFC=\"Ground or water surface\"",
+      "noDataValue":9999.0,
+      "metadata":{
+        "":{
+          "GRIB_COMMENT":"01 hr Thunderstorm probability [%]",
+          "GRIB_DISCIPLINE":"0(Meteorological)",
+          "GRIB_ELEMENT":"TSTM01",
+          "GRIB_FORECAST_SECONDS":"0",
+          "GRIB_IDS":"CENTER=7(US-NCEP) SUBCENTER=14(Meteorological Development Laboratory (MDL)) MASTER_TABLE=1 LOCAL_TABLE=1 SIGNF_REF_TIME=1(Start_of_Forecast) REF_TIME=2022-12-12T01:00:00Z PROD_STATUS=0(Operational) TYPE=1(Forecast)",
+          "GRIB_PDS_PDTN":"8",
+          "GRIB_PDS_TEMPLATE_ASSEMBLED_VALUES":"19 2 5 255 104 65535 255 1 0 1 0 0 255 0 0 2022 12 12 2 0 0 1 0 1 2 1 1 1 0",
+          "GRIB_PDS_TEMPLATE_NUMBERS":"19 2 5 255 104 255 255 255 1 0 0 0 0 1 0 0 0 0 0 255 0 0 0 0 0 7 230 12 12 2 0 0 1 0 0 0 0 1 2 1 0 0 0 1 1 0 0 0 0",
+          "GRIB_REF_TIME":"1670806800",
+          "GRIB_SHORT_NAME":"0-SFC",
+          "GRIB_UNIT":"[%]",
+          "GRIB_VALID_TIME":"1670810400"
+        }
+      }
+    },
+    {
+      "band":46,
+      "block":[
+        2345,
+        1
+      ],
+      "type":"Float64",
+      "colorInterpretation":"Undefined",
+      "description":"0[-] SFC=\"Ground or water surface\"",
+      "noDataValue":9999.0,
+      "metadata":{
+        "":{
+          "GRIB_COMMENT":"01 hr Total precipitation [kg/(m^2)]",
+          "GRIB_DISCIPLINE":"0(Meteorological)",
+          "GRIB_ELEMENT":"QPF01",
+          "GRIB_FORECAST_SECONDS":"0",
+          "GRIB_IDS":"CENTER=7(US-NCEP) SUBCENTER=14(Meteorological Development Laboratory (MDL)) MASTER_TABLE=1 LOCAL_TABLE=1 SIGNF_REF_TIME=1(Start_of_Forecast) REF_TIME=2022-12-12T01:00:00Z PROD_STATUS=0(Operational) TYPE=1(Forecast)",
+          "GRIB_PDS_PDTN":"8",
+          "GRIB_PDS_TEMPLATE_ASSEMBLED_VALUES":"1 8 2 255 104 65535 255 1 0 1 0 0 255 0 0 2022 12 12 2 0 0 1 0 1 2 1 1 1 0",
+          "GRIB_PDS_TEMPLATE_NUMBERS":"1 8 2 255 104 255 255 255 1 0 0 0 0 1 0 0 0 0 0 255 0 0 0 0 0 7 230 12 12 2 0 0 1 0 0 0 0 1 2 1 0 0 0 1 1 0 0 0 0",
+          "GRIB_REF_TIME":"1670806800",
+          "GRIB_SHORT_NAME":"0-SFC",
+          "GRIB_UNIT":"[kg/(m^2)]",
+          "GRIB_VALID_TIME":"1670810400"
+        }
+      }
+    },
+    {
+      "band":47,
+      "block":[
+        2345,
+        1
+      ],
+      "type":"Float64",
+      "colorInterpretation":"Undefined",
+      "description":"2[m] HTGL=\"Specified height level above ground\"",
+      "noDataValue":9999.0,
+      "metadata":{
+        "":{
+          "GRIB_COMMENT":"Relative humidity [%]",
+          "GRIB_DISCIPLINE":"0(Meteorological)",
+          "GRIB_ELEMENT":"RH",
+          "GRIB_FORECAST_SECONDS":"3600",
+          "GRIB_IDS":"CENTER=7(US-NCEP) SUBCENTER=14(Meteorological Development Laboratory (MDL)) MASTER_TABLE=1 LOCAL_TABLE=1 SIGNF_REF_TIME=1(Start_of_Forecast) REF_TIME=2022-12-12T01:00:00Z PROD_STATUS=0(Operational) TYPE=1(Forecast)",
+          "GRIB_PDS_PDTN":"0",
+          "GRIB_PDS_TEMPLATE_ASSEMBLED_VALUES":"1 1 2 255 104 65535 255 1 1 103 0 2 255 0 0",
+          "GRIB_PDS_TEMPLATE_NUMBERS":"1 1 2 255 104 255 255 255 1 0 0 0 1 103 0 0 0 0 2 255 0 0 0 0 0",
+          "GRIB_REF_TIME":"1670806800",
+          "GRIB_SHORT_NAME":"2-HTGL",
+          "GRIB_UNIT":"[%]",
+          "GRIB_VALID_TIME":"1670810400"
+        }
+      }
+    },
+    {
+      "band":48,
+      "block":[
+        2345,
+        1
+      ],
+      "type":"Float64",
+      "colorInterpretation":"Undefined",
+      "description":"0[-] SFC=\"Ground or water surface\"",
+      "noDataValue":9999.0,
+      "metadata":{
+        "":{
+          "GRIB_COMMENT":"Total cloud cover [%]",
+          "GRIB_DISCIPLINE":"0(Meteorological)",
+          "GRIB_ELEMENT":"Sky",
+          "GRIB_FORECAST_SECONDS":"3600",
+          "GRIB_IDS":"CENTER=7(US-NCEP) SUBCENTER=14(Meteorological Development Laboratory (MDL)) MASTER_TABLE=1 LOCAL_TABLE=1 SIGNF_REF_TIME=1(Start_of_Forecast) REF_TIME=2022-12-12T01:00:00Z PROD_STATUS=0(Operational) TYPE=1(Forecast)",
+          "GRIB_PDS_PDTN":"0",
+          "GRIB_PDS_TEMPLATE_ASSEMBLED_VALUES":"6 1 2 255 104 65535 255 1 1 1 0 0 255 0 0",
+          "GRIB_PDS_TEMPLATE_NUMBERS":"6 1 2 255 104 255 255 255 1 0 0 0 1 1 0 0 0 0 0 255 0 0 0 0 0",
+          "GRIB_REF_TIME":"1670806800",
+          "GRIB_SHORT_NAME":"0-SFC",
+          "GRIB_UNIT":"[%]",
+          "GRIB_VALID_TIME":"1670810400"
+        }
+      }
+    },
+    {
+      "band":49,
+      "block":[
+        2345,
+        1
+      ],
+      "type":"Float64",
+      "colorInterpretation":"Undefined",
+      "description":"0[-] SFC=\"Ground or water surface\"",
+      "noDataValue":9999.0,
+      "metadata":{
+        "":{
+          "GRIB_COMMENT":"Total cloud cover [stddev]",
+          "GRIB_DISCIPLINE":"0(Meteorological)",
+          "GRIB_ELEMENT":"Sky",
+          "GRIB_FORECAST_SECONDS":"3600",
+          "GRIB_IDS":"CENTER=7(US-NCEP) SUBCENTER=14(Meteorological Development Laboratory (MDL)) MASTER_TABLE=1 LOCAL_TABLE=1 SIGNF_REF_TIME=1(Start_of_Forecast) REF_TIME=2022-12-12T01:00:00Z PROD_STATUS=0(Operational) TYPE=1(Forecast)",
+          "GRIB_PDS_PDTN":"2",
+          "GRIB_PDS_TEMPLATE_ASSEMBLED_VALUES":"6 1 2 255 104 65535 255 1 1 1 0 0 255 0 0 2 255",
+          "GRIB_PDS_TEMPLATE_NUMBERS":"6 1 2 255 104 255 255 255 1 0 0 0 1 1 0 0 0 0 0 255 0 0 0 0 0 2 255",
+          "GRIB_REF_TIME":"1670806800",
+          "GRIB_SHORT_NAME":"0-SFC",
+          "GRIB_UNIT":"[stddev]",
+          "GRIB_VALID_TIME":"1670810400"
+        }
+      }
+    },
+    {
+      "band":50,
+      "block":[
+        2345,
+        1
+      ],
+      "type":"Float64",
+      "colorInterpretation":"Undefined",
+      "description":"0[-] SFC=\"Ground or water surface\"",
+      "noDataValue":9999.0,
+      "metadata":{
+        "":{
+          "GRIB_COMMENT":"Snow Liquid ratio [kg/kg]",
+          "GRIB_DISCIPLINE":"0(Meteorological)",
+          "GRIB_ELEMENT":"SNOWLR",
+          "GRIB_FORECAST_SECONDS":"3600",
+          "GRIB_IDS":"CENTER=7(US-NCEP) SUBCENTER=14(Meteorological Development Laboratory (MDL)) MASTER_TABLE=1 LOCAL_TABLE=1 SIGNF_REF_TIME=1(Start_of_Forecast) REF_TIME=2022-12-12T01:00:00Z PROD_STATUS=0(Operational) TYPE=1(Forecast)",
+          "GRIB_PDS_PDTN":"0",
+          "GRIB_PDS_TEMPLATE_ASSEMBLED_VALUES":"1 233 2 255 104 65535 255 1 1 1 0 0 255 0 0",
+          "GRIB_PDS_TEMPLATE_NUMBERS":"1 233 2 255 104 255 255 255 1 0 0 0 1 1 0 0 0 0 0 255 0 0 0 0 0",
+          "GRIB_REF_TIME":"1670806800",
+          "GRIB_SHORT_NAME":"0-SFC",
+          "GRIB_UNIT":"[kg/kg]",
+          "GRIB_VALID_TIME":"1670810400"
+        }
+      }
+    },
+    {
+      "band":51,
+      "block":[
+        2345,
+        1
+      ],
+      "type":"Float64",
+      "colorInterpretation":"Undefined",
+      "description":"0[-] SFC=\"Ground or water surface\"",
+      "noDataValue":9999.0,
+      "metadata":{
+        "":{
+          "GRIB_COMMENT":"01 hr Total snowfall [m]",
+          "GRIB_DISCIPLINE":"0(Meteorological)",
+          "GRIB_ELEMENT":"SnowAmt01",
+          "GRIB_FORECAST_SECONDS":"0",
+          "GRIB_IDS":"CENTER=7(US-NCEP) SUBCENTER=14(Meteorological Development Laboratory (MDL)) MASTER_TABLE=1 LOCAL_TABLE=1 SIGNF_REF_TIME=1(Start_of_Forecast) REF_TIME=2022-12-12T01:00:00Z PROD_STATUS=0(Operational) TYPE=1(Forecast)",
+          "GRIB_PDS_PDTN":"8",
+          "GRIB_PDS_TEMPLATE_ASSEMBLED_VALUES":"1 29 2 255 104 65535 255 1 0 1 0 0 255 0 0 2022 12 12 2 0 0 1 0 1 2 1 1 1 0",
+          "GRIB_PDS_TEMPLATE_NUMBERS":"1 29 2 255 104 255 255 255 1 0 0 0 0 1 0 0 0 0 0 255 0 0 0 0 0 7 230 12 12 2 0 0 1 0 0 0 0 1 2 1 0 0 0 1 1 0 0 0 0",
+          "GRIB_REF_TIME":"1670806800",
+          "GRIB_SHORT_NAME":"0-SFC",
+          "GRIB_UNIT":"[m]",
+          "GRIB_VALID_TIME":"1670810400"
+        }
+      }
+    },
+    {
+      "band":52,
+      "block":[
+        2345,
+        1
+      ],
+      "type":"Float64",
+      "colorInterpretation":"Undefined",
+      "description":"0[m] GPML=\"Specific altitude above mean sea level\"",
+      "noDataValue":9999.0,
+      "metadata":{
+        "":{
+          "GRIB_COMMENT":"Snow Level [m]",
+          "GRIB_DISCIPLINE":"0(Meteorological)",
+          "GRIB_ELEMENT":"SNOWLVL",
+          "GRIB_FORECAST_SECONDS":"3600",
+          "GRIB_IDS":"CENTER=7(US-NCEP) SUBCENTER=14(Meteorological Development Laboratory (MDL)) MASTER_TABLE=1 LOCAL_TABLE=1 SIGNF_REF_TIME=1(Start_of_Forecast) REF_TIME=2022-12-12T01:00:00Z PROD_STATUS=0(Operational) TYPE=1(Forecast)",
+          "GRIB_PDS_PDTN":"0",
+          "GRIB_PDS_TEMPLATE_ASSEMBLED_VALUES":"19 236 2 255 104 65535 255 1 1 102 0 0 255 0 0",
+          "GRIB_PDS_TEMPLATE_NUMBERS":"19 236 2 255 104 255 255 255 1 0 0 0 1 102 0 0 0 0 0 255 0 0 0 0 0",
+          "GRIB_REF_TIME":"1670806800",
+          "GRIB_SHORT_NAME":"0-GPML",
+          "GRIB_UNIT":"[m]",
+          "GRIB_VALID_TIME":"1670810400"
+        }
+      }
+    },
+    {
+      "band":53,
+      "block":[
+        2345,
+        1
+      ],
+      "type":"Float64",
+      "colorInterpretation":"Undefined",
+      "description":"0[-] SFC=\"Ground or water surface\"",
+      "noDataValue":9999.0,
+      "metadata":{
+        "":{
+          "GRIB_COMMENT":"Temperature [C]",
+          "GRIB_DISCIPLINE":"0(Meteorological)",
+          "GRIB_ELEMENT":"T",
+          "GRIB_FORECAST_SECONDS":"3600",
+          "GRIB_IDS":"CENTER=7(US-NCEP) SUBCENTER=14(Meteorological Development Laboratory (MDL)) MASTER_TABLE=1 LOCAL_TABLE=1 SIGNF_REF_TIME=1(Start_of_Forecast) REF_TIME=2022-12-12T01:00:00Z PROD_STATUS=0(Operational) TYPE=1(Forecast)",
+          "GRIB_PDS_PDTN":"0",
+          "GRIB_PDS_TEMPLATE_ASSEMBLED_VALUES":"0 0 2 255 104 65535 255 1 1 1 0 0 255 0 0",
+          "GRIB_PDS_TEMPLATE_NUMBERS":"0 0 2 255 104 255 255 255 1 0 0 0 1 1 0 0 0 0 0 255 0 0 0 0 0",
+          "GRIB_REF_TIME":"1670806800",
+          "GRIB_SHORT_NAME":"0-SFC",
+          "GRIB_UNIT":"[C]",
+          "GRIB_VALID_TIME":"1670810400"
+        }
+      }
+    },
+    {
+      "band":54,
+      "block":[
+        2345,
+        1
+      ],
+      "type":"Float64",
+      "colorInterpretation":"Undefined",
+      "description":"2[m] HTGL=\"Specified height level above ground\"",
+      "noDataValue":9999.0,
+      "metadata":{
+        "":{
+          "GRIB_COMMENT":"Temperature [C]",
+          "GRIB_DISCIPLINE":"0(Meteorological)",
+          "GRIB_ELEMENT":"T",
+          "GRIB_FORECAST_SECONDS":"3600",
+          "GRIB_IDS":"CENTER=7(US-NCEP) SUBCENTER=14(Meteorological Development Laboratory (MDL)) MASTER_TABLE=1 LOCAL_TABLE=1 SIGNF_REF_TIME=1(Start_of_Forecast) REF_TIME=2022-12-12T01:00:00Z PROD_STATUS=0(Operational) TYPE=1(Forecast)",
+          "GRIB_PDS_PDTN":"0",
+          "GRIB_PDS_TEMPLATE_ASSEMBLED_VALUES":"0 0 2 255 104 65535 255 1 1 103 0 2 255 0 0",
+          "GRIB_PDS_TEMPLATE_NUMBERS":"0 0 2 255 104 255 255 255 1 0 0 0 1 103 0 0 0 0 2 255 0 0 0 0 0",
+          "GRIB_REF_TIME":"1670806800",
+          "GRIB_SHORT_NAME":"2-HTGL",
+          "GRIB_UNIT":"[C]",
+          "GRIB_VALID_TIME":"1670810400"
+        }
+      }
+    },
+    {
+      "band":55,
+      "block":[
+        2345,
+        1
+      ],
+      "type":"Float64",
+      "colorInterpretation":"Undefined",
+      "description":"2[m] HTGL=\"Specified height level above ground\"",
+      "noDataValue":9999.0,
+      "metadata":{
+        "":{
+          "GRIB_COMMENT":"Temperature [stddev]",
+          "GRIB_DISCIPLINE":"0(Meteorological)",
+          "GRIB_ELEMENT":"T",
+          "GRIB_FORECAST_SECONDS":"3600",
+          "GRIB_IDS":"CENTER=7(US-NCEP) SUBCENTER=14(Meteorological Development Laboratory (MDL)) MASTER_TABLE=1 LOCAL_TABLE=1 SIGNF_REF_TIME=1(Start_of_Forecast) REF_TIME=2022-12-12T01:00:00Z PROD_STATUS=0(Operational) TYPE=1(Forecast)",
+          "GRIB_PDS_PDTN":"2",
+          "GRIB_PDS_TEMPLATE_ASSEMBLED_VALUES":"0 0 2 255 104 65535 255 1 1 103 0 2 255 0 0 2 255",
+          "GRIB_PDS_TEMPLATE_NUMBERS":"0 0 2 255 104 255 255 255 1 0 0 0 1 103 0 0 0 0 2 255 0 0 0 0 0 2 255",
+          "GRIB_REF_TIME":"1670806800",
+          "GRIB_SHORT_NAME":"2-HTGL",
+          "GRIB_UNIT":"[stddev]",
+          "GRIB_VALID_TIME":"1670810400"
+        }
+      }
+    },
+    {
+      "band":56,
+      "block":[
+        2345,
+        1
+      ],
+      "type":"Float64",
+      "colorInterpretation":"Undefined",
+      "description":"0[-] EATM=\"Entire atmosphere (considered as a single layer)\"",
+      "noDataValue":9999.0,
+      "metadata":{
+        "":{
+          "GRIB_COMMENT":"Transport Wind Direction [deg]",
+          "GRIB_DISCIPLINE":"0(Meteorological)",
+          "GRIB_ELEMENT":"TRWDIR",
+          "GRIB_FORECAST_SECONDS":"3600",
+          "GRIB_IDS":"CENTER=7(US-NCEP) SUBCENTER=14(Meteorological Development Laboratory (MDL)) MASTER_TABLE=1 LOCAL_TABLE=1 SIGNF_REF_TIME=1(Start_of_Forecast) REF_TIME=2022-12-12T01:00:00Z PROD_STATUS=0(Operational) TYPE=1(Forecast)",
+          "GRIB_PDS_PDTN":"0",
+          "GRIB_PDS_TEMPLATE_ASSEMBLED_VALUES":"2 226 2 255 104 65535 255 1 1 200 0 0 255 0 0",
+          "GRIB_PDS_TEMPLATE_NUMBERS":"2 226 2 255 104 255 255 255 1 0 0 0 1 200 0 0 0 0 0 255 0 0 0 0 0",
+          "GRIB_REF_TIME":"1670806800",
+          "GRIB_SHORT_NAME":"0-EATM",
+          "GRIB_UNIT":"[deg]",
+          "GRIB_VALID_TIME":"1670810400"
+        }
+      }
+    },
+    {
+      "band":57,
+      "block":[
+        2345,
+        1
+      ],
+      "type":"Float64",
+      "colorInterpretation":"Undefined",
+      "description":"0[-] EATM=\"Entire atmosphere (considered as a single layer)\"",
+      "noDataValue":9999.0,
+      "metadata":{
+        "":{
+          "GRIB_COMMENT":"Transport Wind Speed [m/s]",
+          "GRIB_DISCIPLINE":"0(Meteorological)",
+          "GRIB_ELEMENT":"TRWSPD",
+          "GRIB_FORECAST_SECONDS":"3600",
+          "GRIB_IDS":"CENTER=7(US-NCEP) SUBCENTER=14(Meteorological Development Laboratory (MDL)) MASTER_TABLE=1 LOCAL_TABLE=1 SIGNF_REF_TIME=1(Start_of_Forecast) REF_TIME=2022-12-12T01:00:00Z PROD_STATUS=0(Operational) TYPE=1(Forecast)",
+          "GRIB_PDS_PDTN":"0",
+          "GRIB_PDS_TEMPLATE_ASSEMBLED_VALUES":"2 225 2 255 104 65535 255 1 1 200 0 0 255 0 0",
+          "GRIB_PDS_TEMPLATE_NUMBERS":"2 225 2 255 104 255 255 255 1 0 0 0 1 200 0 0 0 0 0 255 0 0 0 0 0",
+          "GRIB_REF_TIME":"1670806800",
+          "GRIB_SHORT_NAME":"0-EATM",
+          "GRIB_UNIT":"[m/s]",
+          "GRIB_VALID_TIME":"1670810400"
+        }
+      }
+    },
+    {
+      "band":58,
+      "block":[
+        2345,
+        1
+      ],
+      "type":"Float64",
+      "colorInterpretation":"Undefined",
+      "description":"0[-] EATM=\"Entire Atmosphere\"",
+      "noDataValue":9999.0,
+      "metadata":{
+        "":{
+          "GRIB_COMMENT":"Vertically-integrated liquid [kg/m]",
+          "GRIB_DISCIPLINE":"0(Meteorological)",
+          "GRIB_ELEMENT":"VERIL",
+          "GRIB_FORECAST_SECONDS":"3600",
+          "GRIB_IDS":"CENTER=7(US-NCEP) SUBCENTER=14(Meteorological Development Laboratory (MDL)) MASTER_TABLE=1 LOCAL_TABLE=1 SIGNF_REF_TIME=1(Start_of_Forecast) REF_TIME=2022-12-12T01:00:00Z PROD_STATUS=0(Operational) TYPE=1(Forecast)",
+          "GRIB_PDS_PDTN":"0",
+          "GRIB_PDS_TEMPLATE_ASSEMBLED_VALUES":"15 3 2 255 104 65535 255 1 1 10 0 0 255 0 0",
+          "GRIB_PDS_TEMPLATE_NUMBERS":"15 3 2 255 104 255 255 255 1 0 0 0 1 10 0 0 0 0 0 255 0 0 0 0 0",
+          "GRIB_REF_TIME":"1670806800",
+          "GRIB_SHORT_NAME":"0-EATM",
+          "GRIB_UNIT":"[kg/m]",
+          "GRIB_VALID_TIME":"1670810400"
+        }
+      }
+    },
+    {
+      "band":59,
+      "block":[
+        2345,
+        1
+      ],
+      "type":"Float64",
+      "colorInterpretation":"Undefined",
+      "description":"0[-] SFC=\"Ground or water surface\"",
+      "noDataValue":9999.0,
+      "metadata":{
+        "":{
+          "GRIB_COMMENT":"Visibility [m]",
+          "GRIB_DISCIPLINE":"0(Meteorological)",
+          "GRIB_ELEMENT":"VIS",
+          "GRIB_FORECAST_SECONDS":"3600",
+          "GRIB_IDS":"CENTER=7(US-NCEP) SUBCENTER=14(Meteorological Development Laboratory (MDL)) MASTER_TABLE=1 LOCAL_TABLE=1 SIGNF_REF_TIME=1(Start_of_Forecast) REF_TIME=2022-12-12T01:00:00Z PROD_STATUS=0(Operational) TYPE=1(Forecast)",
+          "GRIB_PDS_PDTN":"0",
+          "GRIB_PDS_TEMPLATE_ASSEMBLED_VALUES":"19 0 2 255 104 65535 255 1 1 1 0 0 255 0 0",
+          "GRIB_PDS_TEMPLATE_NUMBERS":"19 0 2 255 104 255 255 255 1 0 0 0 1 1 0 0 0 0 0 255 0 0 0 0 0",
+          "GRIB_REF_TIME":"1670806800",
+          "GRIB_SHORT_NAME":"0-SFC",
+          "GRIB_UNIT":"[m]",
+          "GRIB_VALID_TIME":"1670810400"
+        }
+      }
+    },
+    {
+      "band":60,
+      "block":[
+        2345,
+        1
+      ],
+      "type":"Float64",
+      "colorInterpretation":"Undefined",
+      "description":"0[-] SFC=\"Ground or water surface\"",
+      "metadata":{
+        "":{
+          "GRIB_COMMENT":"01 hr Prob of Visibility < 1609.34 m [%]",
+          "GRIB_DISCIPLINE":"0(Meteorological)",
+          "GRIB_ELEMENT":"ProbVIS01",
+          "GRIB_FORECAST_SECONDS":"3600",
+          "GRIB_IDS":"CENTER=7(US-NCEP) SUBCENTER=14(Meteorological Development Laboratory (MDL)) MASTER_TABLE=1 LOCAL_TABLE=1 SIGNF_REF_TIME=1(Start_of_Forecast) REF_TIME=2022-12-12T01:00:00Z PROD_STATUS=0(Operational) TYPE=1(Forecast)",
+          "GRIB_PDS_PDTN":"5",
+          "GRIB_PDS_TEMPLATE_ASSEMBLED_VALUES":"19 0 5 255 108 65535 255 1 1 1 0 0 255 0 0 2 6 0 2 160934 -127 255",
+          "GRIB_PDS_TEMPLATE_NUMBERS":"19 0 5 255 108 255 255 255 1 0 0 0 1 1 0 0 0 0 0 255 0 0 0 0 0 2 6 0 2 0 2 116 166 255 0 0 0 255",
+          "GRIB_REF_TIME":"1670806800",
+          "GRIB_SHORT_NAME":"0-SFC",
+          "GRIB_UNIT":"[%]",
+          "GRIB_VALID_TIME":"1670810400"
+        }
+      }
+    },
+    {
+      "band":61,
+      "block":[
+        2345,
+        1
+      ],
+      "type":"Float64",
+      "colorInterpretation":"Undefined",
+      "description":"0[-] SFC=\"Ground or water surface\"",
+      "metadata":{
+        "":{
+          "GRIB_COMMENT":"01 hr Prob of Visibility < 4828.03 m [%]",
+          "GRIB_DISCIPLINE":"0(Meteorological)",
+          "GRIB_ELEMENT":"ProbVIS01",
+          "GRIB_FORECAST_SECONDS":"3600",
+          "GRIB_IDS":"CENTER=7(US-NCEP) SUBCENTER=14(Meteorological Development Laboratory (MDL)) MASTER_TABLE=1 LOCAL_TABLE=1 SIGNF_REF_TIME=1(Start_of_Forecast) REF_TIME=2022-12-12T01:00:00Z PROD_STATUS=0(Operational) TYPE=1(Forecast)",
+          "GRIB_PDS_PDTN":"5",
+          "GRIB_PDS_TEMPLATE_ASSEMBLED_VALUES":"19 0 5 255 108 65535 255 1 1 1 0 0 255 0 0 4 6 0 2 482803 -127 255",
+          "GRIB_PDS_TEMPLATE_NUMBERS":"19 0 5 255 108 255 255 255 1 0 0 0 1 1 0 0 0 0 0 255 0 0 0 0 0 4 6 0 2 0 7 93 243 255 0 0 0 255",
+          "GRIB_REF_TIME":"1670806800",
+          "GRIB_SHORT_NAME":"0-SFC",
+          "GRIB_UNIT":"[%]",
+          "GRIB_VALID_TIME":"1670810400"
+        }
+      }
+    },
+    {
+      "band":62,
+      "block":[
+        2345,
+        1
+      ],
+      "type":"Float64",
+      "colorInterpretation":"Undefined",
+      "description":"0[-] SFC=\"Ground or water surface\"",
+      "metadata":{
+        "":{
+          "GRIB_COMMENT":"01 hr Prob of Visibility < 8046.73 m [%]",
+          "GRIB_DISCIPLINE":"0(Meteorological)",
+          "GRIB_ELEMENT":"ProbVIS01",
+          "GRIB_FORECAST_SECONDS":"3600",
+          "GRIB_IDS":"CENTER=7(US-NCEP) SUBCENTER=14(Meteorological Development Laboratory (MDL)) MASTER_TABLE=1 LOCAL_TABLE=1 SIGNF_REF_TIME=1(Start_of_Forecast) REF_TIME=2022-12-12T01:00:00Z PROD_STATUS=0(Operational) TYPE=1(Forecast)",
+          "GRIB_PDS_PDTN":"5",
+          "GRIB_PDS_TEMPLATE_ASSEMBLED_VALUES":"19 0 5 255 108 65535 255 1 1 1 0 0 255 0 0 5 6 0 2 804673 -127 255",
+          "GRIB_PDS_TEMPLATE_NUMBERS":"19 0 5 255 108 255 255 255 1 0 0 0 1 1 0 0 0 0 0 255 0 0 0 0 0 5 6 0 2 0 12 71 65 255 0 0 0 255",
+          "GRIB_REF_TIME":"1670806800",
+          "GRIB_SHORT_NAME":"0-SFC",
+          "GRIB_UNIT":"[%]",
+          "GRIB_VALID_TIME":"1670810400"
+        }
+      }
+    },
+    {
+      "band":63,
+      "block":[
+        2345,
+        1
+      ],
+      "type":"Float64",
+      "colorInterpretation":"Undefined",
+      "description":"0[-] EATM=\"Entire atmosphere (considered as a single layer)\"",
+      "noDataValue":9999.0,
+      "metadata":{
+        "":{
+          "GRIB_COMMENT":"Ventilation Rate [m^2/s]",
+          "GRIB_DISCIPLINE":"0(Meteorological)",
+          "GRIB_ELEMENT":"VRATE",
+          "GRIB_FORECAST_SECONDS":"3600",
+          "GRIB_IDS":"CENTER=7(US-NCEP) SUBCENTER=14(Meteorological Development Laboratory (MDL)) MASTER_TABLE=1 LOCAL_TABLE=1 SIGNF_REF_TIME=1(Start_of_Forecast) REF_TIME=2022-12-12T01:00:00Z PROD_STATUS=0(Operational) TYPE=1(Forecast)",
+          "GRIB_PDS_PDTN":"0",
+          "GRIB_PDS_TEMPLATE_ASSEMBLED_VALUES":"2 224 2 255 104 65535 255 1 1 200 0 0 255 0 0",
+          "GRIB_PDS_TEMPLATE_NUMBERS":"2 224 2 255 104 255 255 255 1 0 0 0 1 200 0 0 0 0 0 255 0 0 0 0 0",
+          "GRIB_REF_TIME":"1670806800",
+          "GRIB_SHORT_NAME":"0-EATM",
+          "GRIB_UNIT":"[m^2/s]",
+          "GRIB_VALID_TIME":"1670810400"
+        }
+      }
+    },
+    {
+      "band":64,
+      "block":[
+        2345,
+        1
+      ],
+      "type":"Float64",
+      "colorInterpretation":"Undefined",
+      "description":"30[m] HTGL=\"Specified height level above ground\"",
+      "noDataValue":9999.0,
+      "metadata":{
+        "":{
+          "GRIB_COMMENT":"Wind direction (from which blowing) [deg true]",
+          "GRIB_DISCIPLINE":"0(Meteorological)",
+          "GRIB_ELEMENT":"WindDir",
+          "GRIB_FORECAST_SECONDS":"3600",
+          "GRIB_IDS":"CENTER=7(US-NCEP) SUBCENTER=14(Meteorological Development Laboratory (MDL)) MASTER_TABLE=1 LOCAL_TABLE=1 SIGNF_REF_TIME=1(Start_of_Forecast) REF_TIME=2022-12-12T01:00:00Z PROD_STATUS=0(Operational) TYPE=1(Forecast)",
+          "GRIB_PDS_PDTN":"0",
+          "GRIB_PDS_TEMPLATE_ASSEMBLED_VALUES":"2 0 2 255 104 65535 255 1 1 103 0 30 255 -127 -2147483647",
+          "GRIB_PDS_TEMPLATE_NUMBERS":"2 0 2 255 104 255 255 255 1 0 0 0 1 103 0 0 0 0 30 255 255 255 255 255 255",
+          "GRIB_REF_TIME":"1670806800",
+          "GRIB_SHORT_NAME":"30-HTGL",
+          "GRIB_UNIT":"[deg true]",
+          "GRIB_VALID_TIME":"1670810400"
+        }
+      }
+    },
+    {
+      "band":65,
+      "block":[
+        2345,
+        1
+      ],
+      "type":"Float64",
+      "colorInterpretation":"Undefined",
+      "description":"80[m] HTGL=\"Specified height level above ground\"",
+      "noDataValue":9999.0,
+      "metadata":{
+        "":{
+          "GRIB_COMMENT":"Wind direction (from which blowing) [deg true]",
+          "GRIB_DISCIPLINE":"0(Meteorological)",
+          "GRIB_ELEMENT":"WindDir",
+          "GRIB_FORECAST_SECONDS":"3600",
+          "GRIB_IDS":"CENTER=7(US-NCEP) SUBCENTER=14(Meteorological Development Laboratory (MDL)) MASTER_TABLE=1 LOCAL_TABLE=1 SIGNF_REF_TIME=1(Start_of_Forecast) REF_TIME=2022-12-12T01:00:00Z PROD_STATUS=0(Operational) TYPE=1(Forecast)",
+          "GRIB_PDS_PDTN":"0",
+          "GRIB_PDS_TEMPLATE_ASSEMBLED_VALUES":"2 0 2 255 104 65535 255 1 1 103 0 80 255 -127 -2147483647",
+          "GRIB_PDS_TEMPLATE_NUMBERS":"2 0 2 255 104 255 255 255 1 0 0 0 1 103 0 0 0 0 80 255 255 255 255 255 255",
+          "GRIB_REF_TIME":"1670806800",
+          "GRIB_SHORT_NAME":"80-HTGL",
+          "GRIB_UNIT":"[deg true]",
+          "GRIB_VALID_TIME":"1670810400"
+        }
+      }
+    },
+    {
+      "band":66,
+      "block":[
+        2345,
+        1
+      ],
+      "type":"Float64",
+      "colorInterpretation":"Undefined",
+      "description":"10[m] HTGL=\"Specified height level above ground\"",
+      "noDataValue":9999.0,
+      "metadata":{
+        "":{
+          "GRIB_COMMENT":"Wind direction (from which blowing) [deg true]",
+          "GRIB_DISCIPLINE":"0(Meteorological)",
+          "GRIB_ELEMENT":"WindDir",
+          "GRIB_FORECAST_SECONDS":"3600",
+          "GRIB_IDS":"CENTER=7(US-NCEP) SUBCENTER=14(Meteorological Development Laboratory (MDL)) MASTER_TABLE=1 LOCAL_TABLE=1 SIGNF_REF_TIME=1(Start_of_Forecast) REF_TIME=2022-12-12T01:00:00Z PROD_STATUS=0(Operational) TYPE=1(Forecast)",
+          "GRIB_PDS_PDTN":"0",
+          "GRIB_PDS_TEMPLATE_ASSEMBLED_VALUES":"2 0 2 255 104 65535 255 1 1 103 0 10 255 0 0",
+          "GRIB_PDS_TEMPLATE_NUMBERS":"2 0 2 255 104 255 255 255 1 0 0 0 1 103 0 0 0 0 10 255 0 0 0 0 0",
+          "GRIB_REF_TIME":"1670806800",
+          "GRIB_SHORT_NAME":"10-HTGL",
+          "GRIB_UNIT":"[deg true]",
+          "GRIB_VALID_TIME":"1670810400"
+        }
+      }
+    },
+    {
+      "band":67,
+      "block":[
+        2345,
+        1
+      ],
+      "type":"Float64",
+      "colorInterpretation":"Undefined",
+      "description":"10[m] HTGL=\"Specified height level above ground\"",
+      "noDataValue":9999.0,
+      "metadata":{
+        "":{
+          "GRIB_COMMENT":"Wind speed (gust) [m/s]",
+          "GRIB_DISCIPLINE":"0(Meteorological)",
+          "GRIB_ELEMENT":"WindGust",
+          "GRIB_FORECAST_SECONDS":"3600",
+          "GRIB_IDS":"CENTER=7(US-NCEP) SUBCENTER=14(Meteorological Development Laboratory (MDL)) MASTER_TABLE=1 LOCAL_TABLE=1 SIGNF_REF_TIME=1(Start_of_Forecast) REF_TIME=2022-12-12T01:00:00Z PROD_STATUS=0(Operational) TYPE=1(Forecast)",
+          "GRIB_PDS_PDTN":"0",
+          "GRIB_PDS_TEMPLATE_ASSEMBLED_VALUES":"2 22 2 255 104 65535 255 1 1 103 0 10 255 0 0",
+          "GRIB_PDS_TEMPLATE_NUMBERS":"2 22 2 255 104 255 255 255 1 0 0 0 1 103 0 0 0 0 10 255 0 0 0 0 0",
+          "GRIB_REF_TIME":"1670806800",
+          "GRIB_SHORT_NAME":"10-HTGL",
+          "GRIB_UNIT":"[m/s]",
+          "GRIB_VALID_TIME":"1670810400"
+        }
+      }
+    },
+    {
+      "band":68,
+      "block":[
+        2345,
+        1
+      ],
+      "type":"Float64",
+      "colorInterpretation":"Undefined",
+      "description":"10[m] HTGL=\"Specified height level above ground\"",
+      "noDataValue":9999.0,
+      "metadata":{
+        "":{
+          "GRIB_COMMENT":"Wind speed (gust) [stddev]",
+          "GRIB_DISCIPLINE":"0(Meteorological)",
+          "GRIB_ELEMENT":"WindGust",
+          "GRIB_FORECAST_SECONDS":"3600",
+          "GRIB_IDS":"CENTER=7(US-NCEP) SUBCENTER=14(Meteorological Development Laboratory (MDL)) MASTER_TABLE=1 LOCAL_TABLE=1 SIGNF_REF_TIME=1(Start_of_Forecast) REF_TIME=2022-12-12T01:00:00Z PROD_STATUS=0(Operational) TYPE=1(Forecast)",
+          "GRIB_PDS_PDTN":"2",
+          "GRIB_PDS_TEMPLATE_ASSEMBLED_VALUES":"2 22 2 255 104 65535 255 1 1 103 0 10 255 0 0 2 255",
+          "GRIB_PDS_TEMPLATE_NUMBERS":"2 22 2 255 104 255 255 255 1 0 0 0 1 103 0 0 0 0 10 255 0 0 0 0 0 2 255",
+          "GRIB_REF_TIME":"1670806800",
+          "GRIB_SHORT_NAME":"10-HTGL",
+          "GRIB_UNIT":"[stddev]",
+          "GRIB_VALID_TIME":"1670810400"
+        }
+      }
+    },
+    {
+      "band":69,
+      "block":[
+        2345,
+        1
+      ],
+      "type":"Float64",
+      "colorInterpretation":"Undefined",
+      "description":"30[m] HTGL=\"Specified height level above ground\"",
+      "noDataValue":9999.0,
+      "metadata":{
+        "":{
+          "GRIB_COMMENT":"Wind speed [m/s]",
+          "GRIB_DISCIPLINE":"0(Meteorological)",
+          "GRIB_ELEMENT":"WindSpd",
+          "GRIB_FORECAST_SECONDS":"3600",
+          "GRIB_IDS":"CENTER=7(US-NCEP) SUBCENTER=14(Meteorological Development Laboratory (MDL)) MASTER_TABLE=1 LOCAL_TABLE=1 SIGNF_REF_TIME=1(Start_of_Forecast) REF_TIME=2022-12-12T01:00:00Z PROD_STATUS=0(Operational) TYPE=1(Forecast)",
+          "GRIB_PDS_PDTN":"0",
+          "GRIB_PDS_TEMPLATE_ASSEMBLED_VALUES":"2 1 2 255 104 65535 255 1 1 103 0 30 255 0 0",
+          "GRIB_PDS_TEMPLATE_NUMBERS":"2 1 2 255 104 255 255 255 1 0 0 0 1 103 0 0 0 0 30 255 0 0 0 0 0",
+          "GRIB_REF_TIME":"1670806800",
+          "GRIB_SHORT_NAME":"30-HTGL",
+          "GRIB_UNIT":"[m/s]",
+          "GRIB_VALID_TIME":"1670810400"
+        }
+      }
+    },
+    {
+      "band":70,
+      "block":[
+        2345,
+        1
+      ],
+      "type":"Float64",
+      "colorInterpretation":"Undefined",
+      "description":"80[m] HTGL=\"Specified height level above ground\"",
+      "noDataValue":9999.0,
+      "metadata":{
+        "":{
+          "GRIB_COMMENT":"Wind speed [m/s]",
+          "GRIB_DISCIPLINE":"0(Meteorological)",
+          "GRIB_ELEMENT":"WindSpd",
+          "GRIB_FORECAST_SECONDS":"3600",
+          "GRIB_IDS":"CENTER=7(US-NCEP) SUBCENTER=14(Meteorological Development Laboratory (MDL)) MASTER_TABLE=1 LOCAL_TABLE=1 SIGNF_REF_TIME=1(Start_of_Forecast) REF_TIME=2022-12-12T01:00:00Z PROD_STATUS=0(Operational) TYPE=1(Forecast)",
+          "GRIB_PDS_PDTN":"0",
+          "GRIB_PDS_TEMPLATE_ASSEMBLED_VALUES":"2 1 2 255 104 65535 255 1 1 103 0 80 255 0 0",
+          "GRIB_PDS_TEMPLATE_NUMBERS":"2 1 2 255 104 255 255 255 1 0 0 0 1 103 0 0 0 0 80 255 0 0 0 0 0",
+          "GRIB_REF_TIME":"1670806800",
+          "GRIB_SHORT_NAME":"80-HTGL",
+          "GRIB_UNIT":"[m/s]",
+          "GRIB_VALID_TIME":"1670810400"
+        }
+      }
+    },
+    {
+      "band":71,
+      "block":[
+        2345,
+        1
+      ],
+      "type":"Float64",
+      "colorInterpretation":"Undefined",
+      "description":"10[m] HTGL=\"Specified height level above ground\"",
+      "noDataValue":9999.0,
+      "metadata":{
+        "":{
+          "GRIB_COMMENT":"Wind speed [m/s]",
+          "GRIB_DISCIPLINE":"0(Meteorological)",
+          "GRIB_ELEMENT":"WindSpd",
+          "GRIB_FORECAST_SECONDS":"3600",
+          "GRIB_IDS":"CENTER=7(US-NCEP) SUBCENTER=14(Meteorological Development Laboratory (MDL)) MASTER_TABLE=1 LOCAL_TABLE=1 SIGNF_REF_TIME=1(Start_of_Forecast) REF_TIME=2022-12-12T01:00:00Z PROD_STATUS=0(Operational) TYPE=1(Forecast)",
+          "GRIB_PDS_PDTN":"0",
+          "GRIB_PDS_TEMPLATE_ASSEMBLED_VALUES":"2 1 2 255 104 65535 255 1 1 103 0 10 255 0 0",
+          "GRIB_PDS_TEMPLATE_NUMBERS":"2 1 2 255 104 255 255 255 1 0 0 0 1 103 0 0 0 0 10 255 0 0 0 0 0",
+          "GRIB_REF_TIME":"1670806800",
+          "GRIB_SHORT_NAME":"10-HTGL",
+          "GRIB_UNIT":"[m/s]",
+          "GRIB_VALID_TIME":"1670810400"
+        }
+      }
+    },
+    {
+      "band":72,
+      "block":[
+        2345,
+        1
+      ],
+      "type":"Float64",
+      "colorInterpretation":"Undefined",
+      "description":"10[m] HTGL=\"Specified height level above ground\"",
+      "noDataValue":9999.0,
+      "metadata":{
+        "":{
+          "GRIB_COMMENT":"Wind speed [stddev]",
+          "GRIB_DISCIPLINE":"0(Meteorological)",
+          "GRIB_ELEMENT":"WindSpd",
+          "GRIB_FORECAST_SECONDS":"3600",
+          "GRIB_IDS":"CENTER=7(US-NCEP) SUBCENTER=14(Meteorological Development Laboratory (MDL)) MASTER_TABLE=1 LOCAL_TABLE=1 SIGNF_REF_TIME=1(Start_of_Forecast) REF_TIME=2022-12-12T01:00:00Z PROD_STATUS=0(Operational) TYPE=1(Forecast)",
+          "GRIB_PDS_PDTN":"2",
+          "GRIB_PDS_TEMPLATE_ASSEMBLED_VALUES":"2 1 2 255 104 65535 255 1 1 103 0 10 255 0 0 2 255",
+          "GRIB_PDS_TEMPLATE_NUMBERS":"2 1 2 255 104 255 255 255 1 0 0 0 1 103 0 0 0 0 10 255 0 0 0 0 0 2 255",
+          "GRIB_REF_TIME":"1670806800",
+          "GRIB_SHORT_NAME":"10-HTGL",
+          "GRIB_UNIT":"[stddev]",
+          "GRIB_VALID_TIME":"1670810400"
+        }
+      }
+    }
+  ],
+  "stac":{
+    "proj:shape":[
+      2345,
+      1597
+    ],
+    "proj:wkt2":"PROJCRS[\"unnamed\",\n    BASEGEOGCRS[\"Coordinate System imported from GRIB file\",\n        DATUM[\"unnamed\",\n            ELLIPSOID[\"Sphere\",6371200,0,\n                LENGTHUNIT[\"metre\",1,\n                    ID[\"EPSG\",9001]]]],\n        PRIMEM[\"Greenwich\",0,\n            ANGLEUNIT[\"degree\",0.0174532925199433,\n                ID[\"EPSG\",9122]]]],\n    CONVERSION[\"Lambert Conic Conformal (2SP)\",\n        METHOD[\"Lambert Conic Conformal (2SP)\",\n            ID[\"EPSG\",9802]],\n        PARAMETER[\"Latitude of false origin\",25,\n            ANGLEUNIT[\"degree\",0.0174532925199433],\n            ID[\"EPSG\",8821]],\n        PARAMETER[\"Longitude of false origin\",-95,\n            ANGLEUNIT[\"degree\",0.0174532925199433],\n            ID[\"EPSG\",8822]],\n        PARAMETER[\"Latitude of 1st standard parallel\",25,\n            ANGLEUNIT[\"degree\",0.0174532925199433],\n            ID[\"EPSG\",8823]],\n        PARAMETER[\"Latitude of 2nd standard parallel\",25,\n            ANGLEUNIT[\"degree\",0.0174532925199433],\n            ID[\"EPSG\",8824]],\n        PARAMETER[\"Easting at false origin\",0,\n            LENGTHUNIT[\"metre\",1],\n            ID[\"EPSG\",8826]],\n        PARAMETER[\"Northing at false origin\",0,\n            LENGTHUNIT[\"metre\",1],\n            ID[\"EPSG\",8827]]],\n    CS[Cartesian,2],\n        AXIS[\"(E)\",east,\n            ORDER[1],\n            LENGTHUNIT[\"Metre\",1]],\n        AXIS[\"(N)\",north,\n            ORDER[2],\n            LENGTHUNIT[\"Metre\",1]]]",
+    "proj:projjson":{
+      "$schema":"https://proj.org/schemas/v0.5/projjson.schema.json",
+      "type":"ProjectedCRS",
+      "name":"unnamed",
+      "base_crs":{
+        "name":"Coordinate System imported from GRIB file",
+        "datum":{
+          "type":"GeodeticReferenceFrame",
+          "name":"unnamed",
+          "ellipsoid":{
+            "name":"Sphere",
+            "radius":6371200
+          }
+        },
+        "coordinate_system":{
+          "subtype":"ellipsoidal",
+          "axis":[
+            {
+              "name":"Latitude",
+              "abbreviation":"lat",
+              "direction":"north",
+              "unit":"degree"
+            },
+            {
+              "name":"Longitude",
+              "abbreviation":"lon",
+              "direction":"east",
+              "unit":"degree"
+            }
+          ]
+        }
+      },
+      "conversion":{
+        "name":"Lambert Conic Conformal (2SP)",
+        "method":{
+          "name":"Lambert Conic Conformal (2SP)",
+          "id":{
+            "authority":"EPSG",
+            "code":9802
+          }
+        },
+        "parameters":[
+          {
+            "name":"Latitude of false origin",
+            "value":25,
+            "unit":"degree",
+            "id":{
+              "authority":"EPSG",
+              "code":8821
+            }
+          },
+          {
+            "name":"Longitude of false origin",
+            "value":-95,
+            "unit":"degree",
+            "id":{
+              "authority":"EPSG",
+              "code":8822
+            }
+          },
+          {
+            "name":"Latitude of 1st standard parallel",
+            "value":25,
+            "unit":"degree",
+            "id":{
+              "authority":"EPSG",
+              "code":8823
+            }
+          },
+          {
+            "name":"Latitude of 2nd standard parallel",
+            "value":25,
+            "unit":"degree",
+            "id":{
+              "authority":"EPSG",
+              "code":8824
+            }
+          },
+          {
+            "name":"Easting at false origin",
+            "value":0,
+            "unit":"metre",
+            "id":{
+              "authority":"EPSG",
+              "code":8826
+            }
+          },
+          {
+            "name":"Northing at false origin",
+            "value":0,
+            "unit":"metre",
+            "id":{
+              "authority":"EPSG",
+              "code":8827
+            }
+          }
+        ]
+      },
+      "coordinate_system":{
+        "subtype":"Cartesian",
+        "axis":[
+          {
+            "name":"Easting",
+            "abbreviation":"E",
+            "direction":"east",
+            "unit":{
+              "type":"LinearUnit",
+              "name":"Metre",
+              "conversion_factor":1
+            }
+          },
+          {
+            "name":"Northing",
+            "abbreviation":"N",
+            "direction":"north",
+            "unit":{
+              "type":"LinearUnit",
+              "name":"Metre",
+              "conversion_factor":1
+            }
+          }
+        ]
+      }
+    },
+    "proj:transform":[
+      -3272421.4573371694423258,
+      2539.7029999999999745,
+      0.0,
+      3790842.1060354355722666,
+      0.0,
+      -2539.7029999999999745
+    ],
+    "raster:bands":[
+      {
+        "data_type":"float64",
+        "nodata":null
+      },
+      {
+        "data_type":"float64",
+        "nodata":null
+      },
+      {
+        "data_type":"float64",
+        "nodata":null
+      },
+      {
+        "data_type":"float64",
+        "nodata":null
+      },
+      {
+        "data_type":"float64"
+      },
+      {
+        "data_type":"float64"
+      },
+      {
+        "data_type":"float64"
+      },
+      {
+        "data_type":"float64",
+        "nodata":null
+      },
+      {
+        "data_type":"float64",
+        "nodata":null
+      },
+      {
+        "data_type":"float64",
+        "nodata":null
+      },
+      {
+        "data_type":"float64",
+        "nodata":null
+      },
+      {
+        "data_type":"float64",
+        "nodata":null
+      },
+      {
+        "data_type":"float64",
+        "nodata":null
+      },
+      {
+        "data_type":"float64",
+        "nodata":null
+      },
+      {
+        "data_type":"float64",
+        "nodata":null
+      },
+      {
+        "data_type":"float64",
+        "nodata":null
+      },
+      {
+        "data_type":"float64",
+        "nodata":null
+      },
+      {
+        "data_type":"float64",
+        "nodata":null
+      },
+      {
+        "data_type":"float64",
+        "nodata":null
+      },
+      {
+        "data_type":"float64",
+        "nodata":null
+      },
+      {
+        "data_type":"float64",
+        "nodata":null
+      },
+      {
+        "data_type":"float64",
+        "nodata":null
+      },
+      {
+        "data_type":"float64",
+        "nodata":null
+      },
+      {
+        "data_type":"float64",
+        "nodata":null
+      },
+      {
+        "data_type":"float64",
+        "nodata":null
+      },
+      {
+        "data_type":"float64",
+        "nodata":null
+      },
+      {
+        "data_type":"float64",
+        "nodata":null
+      },
+      {
+        "data_type":"float64",
+        "nodata":null
+      },
+      {
+        "data_type":"float64",
+        "nodata":null
+      },
+      {
+        "data_type":"float64",
+        "nodata":null
+      },
+      {
+        "data_type":"float64",
+        "nodata":null
+      },
+      {
+        "data_type":"float64",
+        "nodata":null
+      },
+      {
+        "data_type":"float64",
+        "nodata":null
+      },
+      {
+        "data_type":"float64",
+        "nodata":null
+      },
+      {
+        "data_type":"float64",
+        "nodata":null
+      },
+      {
+        "data_type":"float64",
+        "nodata":null
+      },
+      {
+        "data_type":"float64",
+        "nodata":null
+      },
+      {
+        "data_type":"float64",
+        "nodata":null
+      },
+      {
+        "data_type":"float64",
+        "nodata":null
+      },
+      {
+        "data_type":"float64",
+        "nodata":null
+      },
+      {
+        "data_type":"float64",
+        "nodata":null
+      },
+      {
+        "data_type":"float64",
+        "nodata":null
+      },
+      {
+        "data_type":"float64",
+        "nodata":null
+      },
+      {
+        "data_type":"float64",
+        "nodata":null
+      },
+      {
+        "data_type":"float64",
+        "nodata":null
+      },
+      {
+        "data_type":"float64",
+        "nodata":null
+      },
+      {
+        "data_type":"float64",
+        "nodata":null
+      },
+      {
+        "data_type":"float64",
+        "nodata":null
+      },
+      {
+        "data_type":"float64",
+        "nodata":null
+      },
+      {
+        "data_type":"float64",
+        "nodata":null
+      },
+      {
+        "data_type":"float64",
+        "nodata":null
+      },
+      {
+        "data_type":"float64",
+        "nodata":null
+      },
+      {
+        "data_type":"float64",
+        "nodata":null
+      },
+      {
+        "data_type":"float64",
+        "nodata":null
+      },
+      {
+        "data_type":"float64",
+        "nodata":null
+      },
+      {
+        "data_type":"float64",
+        "nodata":null
+      },
+      {
+        "data_type":"float64",
+        "nodata":null
+      },
+      {
+        "data_type":"float64",
+        "nodata":null
+      },
+      {
+        "data_type":"float64",
+        "nodata":null
+      },
+      {
+        "data_type":"float64"
+      },
+      {
+        "data_type":"float64"
+      },
+      {
+        "data_type":"float64"
+      },
+      {
+        "data_type":"float64",
+        "nodata":null
+      },
+      {
+        "data_type":"float64",
+        "nodata":null
+      },
+      {
+        "data_type":"float64",
+        "nodata":null
+      },
+      {
+        "data_type":"float64",
+        "nodata":null
+      },
+      {
+        "data_type":"float64",
+        "nodata":null
+      },
+      {
+        "data_type":"float64",
+        "nodata":null
+      },
+      {
+        "data_type":"float64",
+        "nodata":null
+      },
+      {
+        "data_type":"float64",
+        "nodata":null
+      },
+      {
+        "data_type":"float64",
+        "nodata":null
+      },
+      {
+        "data_type":"float64",
+        "nodata":null
+      }
+    ],
+    "eo:bands":[
+      {
+        "name":"b1",
+        "description":"2[m] HTGL=\"Specified height level above ground\""
+      },
+      {
+        "name":"b2",
+        "description":"0[-] SFC=\"Ground or water surface\""
+      },
+      {
+        "name":"b3",
+        "description":"0[-] SFC=\"Ground or water surface\""
+      },
+      {
+        "name":"b4",
+        "description":"0[-] CEIL=\"Cloud ceiling\""
+      },
+      {
+        "name":"b5",
+        "description":"0[-] CEIL=\"Cloud ceiling\""
+      },
+      {
+        "name":"b6",
+        "description":"0[-] CEIL=\"Cloud ceiling\""
+      },
+      {
+        "name":"b7",
+        "description":"0[-] CEIL=\"Cloud ceiling\""
+      },
+      {
+        "name":"b8",
+        "description":"0[-] CBL=\"Cloud base level\""
+      },
+      {
+        "name":"b9",
+        "description":"0[-] SFC=\"Ground or water surface\""
+      },
+      {
+        "name":"b10",
+        "description":"0[-] SFC=\"Ground or water surface\""
+      },
+      {
+        "name":"b11",
+        "description":"0[-] SFC=\"Ground or water surface\""
+      },
+      {
+        "name":"b12",
+        "description":"0[-] SFC=\"Ground or water surface\""
+      },
+      {
+        "name":"b13",
+        "description":"0[-] SFC=\"Ground or water surface\""
+      },
+      {
+        "name":"b14",
+        "description":"0[-] SFC=\"Ground or water surface\""
+      },
+      {
+        "name":"b15",
+        "description":"0[-] SFC=\"Ground or water surface\""
+      },
+      {
+        "name":"b16",
+        "description":"0[-] SFC=\"Ground or water surface\""
+      },
+      {
+        "name":"b17",
+        "description":"0[-] SFC=\"Ground or water surface\""
+      },
+      {
+        "name":"b18",
+        "description":"0[-] SFC=\"Ground or water surface\""
+      },
+      {
+        "name":"b19",
+        "description":"0[-] SFC=\"Ground or water surface\""
+      },
+      {
+        "name":"b20",
+        "description":"0[-] SFC=\"Ground or water surface\""
+      },
+      {
+        "name":"b21",
+        "description":"0[-] SFC=\"Ground or water surface\""
+      },
+      {
+        "name":"b22",
+        "description":"2[m] HTGL=\"Specified height level above ground\""
+      },
+      {
+        "name":"b23",
+        "description":"2[m] HTGL=\"Specified height level above ground\""
+      },
+      {
+        "name":"b24",
+        "description":"0[-] SFC=\"Ground or water surface\""
+      },
+      {
+        "name":"b25",
+        "description":"0[-] CTL=\"Level of cloud tops\""
+      },
+      {
+        "name":"b26",
+        "description":"40000-30000[Pa] ISBL=\"Isobaric surface\""
+      },
+      {
+        "name":"b27",
+        "description":"0[-] SFC=\"Ground or water surface\""
+      },
+      {
+        "name":"b28",
+        "description":"0-1372[-] SFC=\"Ground or water surface\""
+      },
+      {
+        "name":"b29",
+        "description":"0-610[-] SFC=\"Ground or water surface\""
+      },
+      {
+        "name":"b30",
+        "description":"0-610[-] SFC=\"Ground or water surface\""
+      },
+      {
+        "name":"b31",
+        "description":"0-610[-] SFC=\"Ground or water surface\""
+      },
+      {
+        "name":"b32",
+        "description":"1000[m] HTGL=\"Specified height level above ground\""
+      },
+      {
+        "name":"b33",
+        "description":"0[-] EATM=\"Entire atmosphere (considered as a single layer)\""
+      },
+      {
+        "name":"b34",
+        "description":"610-40000[m] HTGL=\"Specified height level above ground\""
+      },
+      {
+        "name":"b35",
+        "description":"0-0[-] SFC=\"Ground or water surface\""
+      },
+      {
+        "name":"b36",
+        "description":"0[-] SFC=\"Ground or water surface\""
+      },
+      {
+        "name":"b37",
+        "description":"610-40000[m] HTGL=\"Specified height level above ground\""
+      },
+      {
+        "name":"b38",
+        "description":"0-0[-] SFC=\"Ground or water surface\""
+      },
+      {
+        "name":"b39",
+        "description":"0[-] SFC=\"Ground or water surface\""
+      },
+      {
+        "name":"b40",
+        "description":"0[-] EATM=\"Entire Atmosphere\""
+      },
+      {
+        "name":"b41",
+        "description":"0[-] EATM=\"Entire Atmosphere\""
+      },
+      {
+        "name":"b42",
+        "description":"0[-] SFC=\"Ground or water surface\""
+      },
+      {
+        "name":"b43",
+        "description":"0[-] SFC=\"Ground or water surface\""
+      },
+      {
+        "name":"b44",
+        "description":"0[-] SFC=\"Ground or water surface\""
+      },
+      {
+        "name":"b45",
+        "description":"0[-] SFC=\"Ground or water surface\""
+      },
+      {
+        "name":"b46",
+        "description":"0[-] SFC=\"Ground or water surface\""
+      },
+      {
+        "name":"b47",
+        "description":"2[m] HTGL=\"Specified height level above ground\""
+      },
+      {
+        "name":"b48",
+        "description":"0[-] SFC=\"Ground or water surface\""
+      },
+      {
+        "name":"b49",
+        "description":"0[-] SFC=\"Ground or water surface\""
+      },
+      {
+        "name":"b50",
+        "description":"0[-] SFC=\"Ground or water surface\""
+      },
+      {
+        "name":"b51",
+        "description":"0[-] SFC=\"Ground or water surface\""
+      },
+      {
+        "name":"b52",
+        "description":"0[m] GPML=\"Specific altitude above mean sea level\""
+      },
+      {
+        "name":"b53",
+        "description":"0[-] SFC=\"Ground or water surface\""
+      },
+      {
+        "name":"b54",
+        "description":"2[m] HTGL=\"Specified height level above ground\""
+      },
+      {
+        "name":"b55",
+        "description":"2[m] HTGL=\"Specified height level above ground\""
+      },
+      {
+        "name":"b56",
+        "description":"0[-] EATM=\"Entire atmosphere (considered as a single layer)\""
+      },
+      {
+        "name":"b57",
+        "description":"0[-] EATM=\"Entire atmosphere (considered as a single layer)\""
+      },
+      {
+        "name":"b58",
+        "description":"0[-] EATM=\"Entire Atmosphere\""
+      },
+      {
+        "name":"b59",
+        "description":"0[-] SFC=\"Ground or water surface\""
+      },
+      {
+        "name":"b60",
+        "description":"0[-] SFC=\"Ground or water surface\""
+      },
+      {
+        "name":"b61",
+        "description":"0[-] SFC=\"Ground or water surface\""
+      },
+      {
+        "name":"b62",
+        "description":"0[-] SFC=\"Ground or water surface\""
+      },
+      {
+        "name":"b63",
+        "description":"0[-] EATM=\"Entire atmosphere (considered as a single layer)\""
+      },
+      {
+        "name":"b64",
+        "description":"30[m] HTGL=\"Specified height level above ground\""
+      },
+      {
+        "name":"b65",
+        "description":"80[m] HTGL=\"Specified height level above ground\""
+      },
+      {
+        "name":"b66",
+        "description":"10[m] HTGL=\"Specified height level above ground\""
+      },
+      {
+        "name":"b67",
+        "description":"10[m] HTGL=\"Specified height level above ground\""
+      },
+      {
+        "name":"b68",
+        "description":"10[m] HTGL=\"Specified height level above ground\""
+      },
+      {
+        "name":"b69",
+        "description":"30[m] HTGL=\"Specified height level above ground\""
+      },
+      {
+        "name":"b70",
+        "description":"80[m] HTGL=\"Specified height level above ground\""
+      },
+      {
+        "name":"b71",
+        "description":"10[m] HTGL=\"Specified height level above ground\""
+      },
+      {
+        "name":"b72",
+        "description":"10[m] HTGL=\"Specified height level above ground\""
+      }
+    ]
+  }
+}

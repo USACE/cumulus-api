@@ -2,6 +2,10 @@
 
 ### Local Development
 
+Geoprocessor source, development tools, and tests are included under
+[`async_geoprocess`](async_geoprocess/README.md). The worker image builds these
+processors directly from this checkout.
+
 #### Containers
 
 This project includes numerous docker containers to near-exactly replicate production services (for example, S3, SQS, etc.). The docker containers are orchestrated using 3 `docker-compose` files.

@@ -7,7 +7,7 @@ This guide sets up a local Cumulus stack on an Ubuntu machine or VM:
 | [cumulus-api](https://github.com/USACE/cumulus-api) | Postgres/PostGIS, Flyway migrations, Go API, async listener, geoprocess and packager workers, ElasticMQ (SQS), MinIO (S3), pg_featureserv | Docker Compose |
 | [airflow-config](https://github.com/USACE/airflow-config) | Airflow scheduler, workers, UI, and its own Postgres, Redis and ElasticMQ | Docker Compose |
 | [cumulus-ui](https://github.com/USACE/cumulus-ui) | React front end (Vite dev server) | Node.js on the host |
-| [cumulus-geoproc](https://github.com/USACE/cumulus-geoproc) | Grid processors (optional; only needed if you are changing processors) | Docker Compose |
+| `cumulus-api/async_geoprocess/geoproc` | Grid processors and their tests (included in this repo) | Docker Compose |
 
 Only Docker, Git, and Node.js are installed on the host. GDAL, Go and Python all run inside containers.
 
@@ -74,8 +74,6 @@ mkdir -p ~/code && cd ~/code
 git clone https://github.com/USACE/cumulus-api.git
 git clone https://github.com/USACE/airflow-config.git
 git clone https://github.com/USACE/cumulus-ui.git
-# optional, only for processor development:
-git clone https://github.com/USACE/cumulus-geoproc.git
 
 for r in cumulus-api airflow-config cumulus-ui; do git -C $r checkout cwbi-dev; done
 ```
@@ -90,7 +88,7 @@ for r in cumulus-api airflow-config cumulus-ui; do git -C $r checkout cwbi-dev; 
 - **`docker-compose.minio.yml`**: `minio` and `minio_init`. `minio_init` creates the buckets `castle-data-develop` and `cwbi-airflow-dev`, then uploads everything in `_volumes/minio/cumulus/` to `castle-data-develop/cumulus/`. **Always include MinIO locally.** The API, the workers and Airflow all expect it.
 - **Flyway** runs `sql/common` + `sql/local` on every `up`. `sql/local` holds the local seed data (products, test downloads, and so on). Flyway only applies migrations that have not run yet, so an existing database is not re-seeded.
 - The compose network is named **`cumulus-api_default`**. Airflow joins it as an *external* network, which is why **cumulus-api has to be started before Airflow**.
-- The `geoprocess` image installs the processors from **GitHub `USACE/cumulus-geoproc@main`** at build time. Your local `cumulus-geoproc` checkout is **not** used by this stack (see section 5).
+- The `geoprocess` image installs processors from **`async_geoprocess/geoproc` in this checkout**. Rebuild it after changing processors (see section 5).
 
 ### 2.2 `compose.sh` cheat sheet
 
@@ -300,17 +298,23 @@ Local settings live in `.env.development.local` (committed):
 
 ## 5. Geoprocessors (optional)
 
-You do **not** need GDAL on the host (`pip install gdal` / `gdal-bin` is unnecessary). Processor development and tests run in the `cumulus-geoproc` container:
+Processors and their tests live in `async_geoprocess/geoproc`. You do not need
+GDAL on the host or a separate repository checkout.
 
 ```bash
-cd ~/code/cumulus-geoproc
-docker compose run --rm geoproc      # default entrypoint runs pytest against the test data
-docker compose down -v
+cd ~/code/cumulus-api
+docker compose -f async_geoprocess/docker-compose.tests.yml build geoproc
+docker compose -f async_geoprocess/docker-compose.tests.yml run --rm geoproc
 ```
 
-See that repo's README for the three entrypoint options (shell, pytest, single-processor runner).
+The test service mounts the processor source, so Python edits are available on the
+next test run. Rebuild after changing package dependencies. See
+[the geoprocessor README](async_geoprocess/README.md) for unit tests, a development
+shell, and the single-processor runner.
 
-To run a local processor branch inside the cumulus-api stack, change the `GEOPROC_PACKAGE` build arg of `geoprocess` in `docker-compose.yml` (format `<git-ref>:geoproc`). Push the branch first, then run `cdc up -d --build geoprocess`.
+To use local processor changes in the full stack, run `cdc up -d --build geoprocess`.
+The image builds directly from this checkout; no separate processor branch push
+or `GEOPROC_PACKAGE` build argument is needed.
 
 ---
 

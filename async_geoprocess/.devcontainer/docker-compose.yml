@@ -1,0 +1,6 @@
+services:
+  geoproc:
+    entrypoint: ["sleep", "infinity"]
+    command: []
+    volumes:
+      - ./geoproc:/opt/geoproc/pkg:rw

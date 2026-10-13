@@ -36,7 +36,6 @@ jobs:
           ECR_REPOSITORY: cumulus-geoprocess
         run: |
           docker build \
-            --build-arg CUMULUS_GEOPROC_PIP_URL=git+https://github.com/USACE/cumulus-geoproc@main \
             -t $ECR_REGISTRY/$ECR_REPOSITORY:latest async_geoprocess
           docker push $ECR_REGISTRY/$ECR_REPOSITORY:latest
 

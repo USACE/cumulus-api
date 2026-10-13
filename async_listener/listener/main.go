@@ -1,12 +1,13 @@
 package main
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
 	"log"
 	"time"
 
-	"github.com/USACE/go-simple-asyncer/asyncer"
+	"github.com/USACE/cumulus-api/listener/dispatch"
 	"github.com/kelseyhightower/envconfig"
 	"github.com/lib/pq"
 )
@@ -61,11 +62,17 @@ func (c Config) maxReconn() time.Duration {
 	return d
 }
 
-// NewAsyncNotificationHandler handles dependency injection of asyncer.Asyncer
-func NewAsyncNotificationHandler(a asyncer.Asyncer) NotificationHandler {
+// sendTimeout bounds a single dispatch. go-simple-asyncer had no timeout at
+// all, so a hung send leaked its goroutine for the life of the process.
+const sendTimeout = 30 * time.Second
+
+// NewAsyncNotificationHandler handles dependency injection of dispatch.Sender
+func NewAsyncNotificationHandler(s dispatch.Sender) NotificationHandler {
 	return func(d string) error {
-		if err := a.CallAsync([]byte(d)); err != nil {
-			fmt.Println("Error calling async")
+		ctx, cancel := context.WithTimeout(context.Background(), sendTimeout)
+		defer cancel()
+		if err := s.Send(ctx, []byte(d)); err != nil {
+			fmt.Println("Error dispatching to worker queue")
 			fmt.Println(err.Error())
 			return err
 		}
@@ -100,6 +107,8 @@ func reportProblem(eq pq.ListenerEventType, err error) {
 
 func main() {
 
+	ctx := context.Background()
+
 	var cfg Config
 	if err := envconfig.Process("cumulus", &cfg); err != nil {
 		log.Fatal(err.Error())
@@ -113,26 +122,26 @@ func main() {
 	}
 
 	// downloadAsyncer defines async engine used to package DSS files for download
-	downloadAsyncer, err := asyncer.NewAsyncer(asyncer.Config{Engine: cfg.AsyncEnginePackager, Target: cfg.AsyncEnginePackagerTarget})
+	downloadSender, err := dispatch.New(ctx, cfg.AsyncEnginePackager, cfg.AsyncEnginePackagerTarget)
 	if err != nil {
 		log.Fatal(err.Error())
 	}
-	d := NewAsyncNotificationHandler(downloadAsyncer)
+	d := NewAsyncNotificationHandler(downloadSender)
 
 	// acquirablefileAsyncer defines async engine for processing new acquirable files
-	geoprocessAsyncer, err := asyncer.NewAsyncer(asyncer.Config{Engine: cfg.AsyncEngineGeoprocess, Target: cfg.AsyncEngineGeoprocessTarget})
+	geoprocessSender, err := dispatch.New(ctx, cfg.AsyncEngineGeoprocess, cfg.AsyncEngineGeoprocessTarget)
 	if err != nil {
 		log.Fatal(err.Error())
 	}
-	g := NewAsyncNotificationHandler(geoprocessAsyncer)
+	g := NewAsyncNotificationHandler(geoprocessSender)
 
 	// statisticsAsyncer defines async engine for computing raster statistics
-	// statisticsAsyncer, err := asyncer.NewAsyncer(asyncer.Config{Engine: cfg.AsyncEngineStatistics, Target: cfg.AsyncEngineStatisticsTarget})
+	// statisticsSender, err := dispatch.New(ctx, cfg.AsyncEngineStatistics, cfg.AsyncEngineStatisticsTarget)
 	// if err != nil {
 	// 	log.Fatal(err.Error())
 	// }
 	// // AddstatisticsAsyncer to map of registered handlers
-	// handlers["notify_statistics"] = NewAsyncNotificationHandler(statisticsAsyncer)
+	// handlers["notify_statistics"] = NewAsyncNotificationHandler(statisticsSender)
 
 	// Map of handlers
 	handlers := map[string]NotificationHandler{

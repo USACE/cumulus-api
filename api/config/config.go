@@ -33,7 +33,6 @@ type Config struct {
 	AWSS3ForcePathStyle          bool   `envconfig:"AWS_S3_FORCE_PATH_STYLE"`
 	AWSS3Bucket                  string `envconfig:"AWS_S3_BUCKET"`
 	AWSS3BucketPrefix            string `envconfig:"AWS_S3_BUCKET_PREFIX"`
-	PgFeatureservUrl             string `envconfig:"PG_FEATURESERV_URL"`
 
 	// Timeouts. Every value below is a ceiling on how long one request can pin a
 	// resource; they are env-tunable because the right number depends on how slow

@@ -129,7 +129,7 @@ func main() {
 		Environment:  cfg.AuthEnvironment,
 		Endpoint:     cfg.AWSS3Endpoint,
 		Skipper: func(c echo.Context) bool {
-			return strings.HasPrefix(c.Request().URL.Path, "/api/") || strings.HasPrefix(c.Request().URL.Path, "/features/")
+			return strings.HasPrefix(c.Request().URL.Path, "/api/")
 		},
 	}))
 
@@ -178,10 +178,6 @@ func main() {
 	public.GET("/identity-provider/configuration", func(c echo.Context) error {
 		return handlers.GetIdentityProviderConfiguration(cfg.AuthEnvironment, c)
 	})
-
-	// Proxy to pg_featureserv
-	features := e.Group("/features")
-	features.Use(middleware.PgFeatureservProxy(cfg.PgFeatureservUrl))
 
 	// Acquirables
 	public.GET("/acquirables", handlers.ListAcquirables(db))

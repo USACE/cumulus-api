@@ -13,6 +13,7 @@ RUN apk update \
 WORKDIR /go/src/app
 
 COPY ./listener go.mod go.sum ./
+COPY ./dispatch ./dispatch
 
 RUN go mod download \
     && go mod verify

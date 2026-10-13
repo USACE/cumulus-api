@@ -60,9 +60,9 @@ func GetIdentityProviderConfiguration(authEnv string, c echo.Context) error {
 	// ----------------------------
 	// CWBI auth servers
 	case "dev":
-		keycloakHost = "https://identityc-test.cwbi.us"
+		keycloakHost = "https://identity-test.cwbi.mil"
 	case "test":
-		keycloakHost = "https://identityc-test.cwbi.us"
+		keycloakHost = "https://identity-test.cwbi.mil"
 	case "prod":
 		keycloakHost = "https://identityc.sec.usace.army.mil"
 	default:

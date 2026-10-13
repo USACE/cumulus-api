@@ -359,9 +359,9 @@ func GetDownloadPackagerRequest(ctx context.Context, db *pgxpool.Pool, downloadI
 	return &pr, nil
 }
 
-// CreateDownload creates a download record in
+// CreateDownload creates a download record.
 // ident carries the requesting user's display-name claims and may be nil
-// (application-key or anonymous requests). When present it refreshes that
+// (application-key requests). When present it refreshes that
 // user's user_directory row, which is the only thing admin usage reporting
 // needs a directory entry for -- see UpsertUserDirectory.
 func CreateDownload(db *pgxpool.Pool, dr *DownloadRequest, ident *UserIdentity) (*Download, error) {

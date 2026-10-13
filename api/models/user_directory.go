@@ -27,7 +27,7 @@ type UserIdentity struct {
 }
 
 // IsEmpty reports whether there is nothing worth writing to user_directory --
-// true for application-key and anonymous requests, which carry no claims.
+// true for application-key requests, which carry no claims.
 func (u *UserIdentity) IsEmpty() bool {
 	return u == nil || (u.PreferredUsername == nil && u.Email == nil && u.Name == nil)
 }

@@ -20,7 +20,7 @@ func GetSub(c echo.Context) (*uuid.UUID, error) {
 }
 
 // GetUserIdentity returns the display-name claims attached by AttachUserInfo.
-// Returns nil when there are none (application-key or anonymous requests).
+// Returns nil when user info is absent. Application-key requests carry no claims.
 func GetUserIdentity(c echo.Context) *models.UserIdentity {
 	userInfo, ok := c.Get("userInfo").(middleware.UserInfo)
 	if !ok {

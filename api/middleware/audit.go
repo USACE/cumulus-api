@@ -21,7 +21,7 @@ type UserInfo struct {
 	// Display-name claims carried through from the JWT. Not identity or auth;
 	// they are recorded to user_directory when the user requests a download
 	// package so admin usage reports can show something friendlier than a bare
-	// sub. Nil for application-key and anonymous requests.
+	// sub. Nil for application-key requests.
 	PreferredUsername *string `json:"preferred_username,omitempty"`
 	Email             *string `json:"email,omitempty"`
 	Name              *string `json:"name,omitempty"`
@@ -33,18 +33,6 @@ func claimStr(claims jwt.MapClaims, key string) *string {
 		return &v
 	}
 	return nil
-}
-
-func AttachAnonymousUserInfo(next echo.HandlerFunc) echo.HandlerFunc {
-	return func(c echo.Context) error {
-		anonUUID := uuid.MustParse("11111111-1111-1111-1111-111111111111")
-		c.Set("userInfo", UserInfo{
-			Sub:     &anonUUID,
-			Roles:   []string{},
-			IsAdmin: false,
-		})
-		return next(c)
-	}
 }
 
 func AttachUserInfo(db *pgxpool.Pool) echo.MiddlewareFunc {

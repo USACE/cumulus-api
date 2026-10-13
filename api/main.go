@@ -303,8 +303,7 @@ func main() {
 	private.GET("/downloads/usage/summary", handlers.GetUsageSummary(db), middleware.IsAdmin)
 	private.GET("/downloads/usage/timeseries", handlers.GetUsageTimeseries(db), middleware.IsAdmin)
 	private.GET("/downloads/usage/users", handlers.ListUsageUsers(db), middleware.IsAdmin)
-	// Create Download (Anonymous)
-	public.POST("/deprecated/anonymous_downloads", handlers.CreateDownload(db, cfg), middleware.AttachAnonymousUserInfo) // deprecated
+	// Create Download (Authenticated)
 	private.POST("/downloads", handlers.CreateDownload(db, cfg))
 	// Public: this is the status-poll endpoint for an async packaging job, and
 	// HEC-RTS polls it with no credentials (CumulusManagerGridDao builds its

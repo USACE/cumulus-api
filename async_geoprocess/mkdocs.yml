@@ -1,0 +1,37 @@
+site_name: Cumulus Geoprocessor
+
+docs_dir: ../docs/async_geoprocess/docs
+
+site_dir: ../docs/async_geoprocess/html
+
+use_directory_urls: true
+
+plugins:
+  - search
+  - autorefs
+  - mkdocstrings:
+      default_handler: python
+      handlers:
+        python:
+          options:
+            show_source: true
+            docstring_style: numpy
+
+nav:
+  - Cumulus Geo-Processing:
+    - cumulus_geoproc.md
+    - Geoprocess:
+        - Geoprocess: geoprocess/geoprocess.md
+        - High Resolution Rapid Refresh: geoprocess/hrrr.md
+        - Snow Data Assimilation System: geoprocess/snodas.md
+    - Processors:
+        - processors/processors.md
+    - Utils:
+        - utils/boto.md
+        - utils/capi.md
+        - utils/cgdal.md
+
+theme:
+  name: readthedocs
+  features:
+    - navigation.expand

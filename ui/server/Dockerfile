@@ -1,4 +1,4 @@
-FROM golang:1.26.3-alpine AS builder
+FROM golang:1.26.10-alpine AS builder
 
 RUN addgroup -g 50000 -S data \
   && adduser -u 50000 -S data -G data

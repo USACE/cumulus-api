@@ -28,10 +28,16 @@ Acquire::BrokenProxy true;
 EOF
 
 RUN apt-get update \
-    && apt-get -y upgrade \
-    && apt-get install python3-venv -y \
-    && apt-get remove python3-pil -y \
-    && apt clean
+   && apt-get -y upgrade \
+   && apt-get install python3-venv -y \
+   && apt-get remove python3-pil -y #\
+   && apt clean
+
+# RUN apt-get update 
+# RUN apt-get -y upgrade 
+# RUN apt-get install python3-venv -y 
+# RUN apt-get remove python3-pil -y 
+# RUN apt clean
 
 # Remove unused Arrow ADBC drivers and the stray pebble binary shipped by the GDAL
 # ubuntu-full image. GDAL builds the ADBC drivers as an optional component; nothing in
@@ -53,7 +59,7 @@ ADD --keep-git-dir=false --chown=${USERNAME}:${USERNAME} https://github.com/USAC
 RUN python3 -m venv --system-site-packages ${GEOPROC_VENV} \
     && . activate \
     && pip install --upgrade pip \
-    && pip install ${GEOPROC}/pkg/ 'urllib3>=2.8.0,<3'
+    && pip install ${GEOPROC}/pkg/
 
 # Cache buster
 # RUN echo $(date +%s)

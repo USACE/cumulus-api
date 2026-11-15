@@ -13,8 +13,8 @@ This project includes numerous docker containers to near-exactly replicate produ
 
 ```
 # Database and Services
-docker-compose up --build
-docker-compose -f docker-compose.minio.yml up --build
+docker compose up --build
+docker compose -f docker-compose.minio.yml up --build
 
 
 # Cumulus User Interface
